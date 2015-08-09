@@ -1,5 +1,4 @@
-postgres/*
-postgres.tar.gz
+tmp/*
 
 *.o
 *.a
