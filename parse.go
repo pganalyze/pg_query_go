@@ -1,4 +1,4 @@
-package pg_query_go
+package pg_query
 
 // Note(LukasFittl): This needs Go 1.5 for $SRCDIR support, see
 // https://github.com/golang/go/commit/131758183f7dc2610af489da3a7fcc4d30c6bc48

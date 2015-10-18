@@ -12,7 +12,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-cd $GOROOT/src/pkg
+cd $GOPATH/src
 git clone git://github.com/lfittl/pg_query.go.git github.com/lfittl/pg_query.go
 cd github.com/lfittl/pg_query.go
 make
@@ -20,8 +20,6 @@ go build
 ```
 
 Due to compiling parts of PostgreSQL, running `make` will take a while. Expect up to 5 minutes.
-
-Note: On some Linux systems you'll have to install the ```flex``` and ```curl``` packages beforehand.
 
 
 ## Usage
@@ -35,7 +33,7 @@ package main
 
 import (
   "fmt"
-  pg_query "github.com/lfittl/pg_query.go"
+  "github.com/lfittl/pg_query.go"
 )
 
 func main() {
