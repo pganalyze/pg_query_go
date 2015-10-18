@@ -1,4 +1,4 @@
-# pg_query.go
+# pg_query.go [![Build Status](https://travis-ci.org/lfittl/pg_query.go.svg)](https://travis-ci.org/lfittl/pg_query.go)
 
 Experimental Go version of https://github.com/lfittl/pg_query
 
