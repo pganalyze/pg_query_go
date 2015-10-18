@@ -6,7 +6,6 @@ package pg_query
 /*
 #cgo CFLAGS: -I${SRCDIR}/tmp/libpg_query-master
 #cgo LDFLAGS: -L${SRCDIR}/tmp/libpg_query-master -lpg_query -fstack-protector
-#cgo LDFLAGS: -Wl,-undefined,dynamic_lookup
 #include <pg_query.h>
 #include <stdlib.h>
 */
