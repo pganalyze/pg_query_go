@@ -11,7 +11,9 @@ package pg_query
 */
 import "C"
 
-import "unsafe"
+import (
+  "unsafe"
+)
 
 func init() {
   C.pg_query_init()
