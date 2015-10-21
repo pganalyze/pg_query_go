@@ -13,3 +13,11 @@ func (input A_Const) MarshalJSON() ([]byte, error) {
     "A_CONST": (*A_ConstAlias)(&input),
   });
 }
+
+func (aConst *A_Const) UnmarshalJSON(input []byte) error {
+  return UnmarshalNodeFieldJSON(input, aConst);
+}
+
+func (aConst A_Const) Deparse() string {
+  panic("Not Implemented")
+}

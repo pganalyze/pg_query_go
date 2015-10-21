@@ -50,9 +50,19 @@ type SelectStmt struct {
   /* Eventually add fields for CORRESPONDING spec here */
 }
 
+// Only used for (un-)marshalling
+type SelectStmtMarshalAlias SelectStmt
+
 func (selectStmt SelectStmt) MarshalJSON() ([]byte, error) {
-  type SelectStmtAlias SelectStmt
   return json.Marshal(map[string]interface{}{
-    "SELECT": (*SelectStmtAlias)(&selectStmt),
+    "SELECT": (*SelectStmtMarshalAlias)(&selectStmt),
   });
+}
+
+func (selectStmt *SelectStmt) UnmarshalJSON(input []byte) error {
+  return UnmarshalNodeFieldJSON(input, selectStmt);
+}
+
+func (selectStmt SelectStmt) Deparse() string {
+  panic("Not Implemented")
 }

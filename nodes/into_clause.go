@@ -9,3 +9,7 @@ type IntoClause struct {
   ViewQuery *Node `json:"viewQuery"`	/* materialized view's SELECT query */
   SkipData bool	`json:"skipData"` /* true for WITH NO DATA */
 }
+
+func (intoClause IntoClause) Deparse() string {
+  panic("Not Implemented")
+}

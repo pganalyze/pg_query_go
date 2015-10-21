@@ -5,3 +5,7 @@ type WithClause struct {
   Recursive bool `json:"recursive"`		/* true = WITH RECURSIVE */
   Location int `json:"location"`		/* token location, or -1 if unknown */
 }
+
+func (withClause WithClause) Deparse() string {
+  panic("Not Implemented")
+}

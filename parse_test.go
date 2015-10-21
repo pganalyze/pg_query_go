@@ -18,25 +18,41 @@ var queryTests = []struct {
 func TestParse(t *testing.T) {
   fmt.Printf("%v\n", nodes.JsonKeyToNodeTag("SELECT"));
 
-  stmt := nodes.SelectStmt{
-    TargetList: []nodes.Node {
-      nodes.ResTarget{
-        Val: nodes.A_Const{
-          Val: nodes.Value{
-            Type: nodes.T_Integer,
-            Ival: 1,
+  parsetree_list := pg_query.ParsetreeList{
+    Statements: []nodes.Node{
+      nodes.SelectStmt{
+        TargetList: []nodes.Node{
+          nodes.ResTarget{
+            Val: nodes.A_Const{
+              Val: nodes.Value{
+                Type: nodes.T_Integer,
+                Ival: 1,
+              },
+              Location: 7,
+            },
+            Location: 7,
           },
-          Location: 7,
         },
-        Location: 7,
       },
     },
   }
-  fmt.Printf("%v\n", stmt)
-  str, _ := json.Marshal(&[]nodes.Node{stmt})
-  fmt.Printf("%s\n", str)
-  fmt.Printf(pg_query.Parse("SELECT 1"))
 
+
+  fmt.Printf("MARSHAL\n")
+  str, _ := json.Marshal(&parsetree_list)
+  fmt.Printf("%s\n", str)
+  fmt.Printf("%s\n", pg_query.Parse("SELECT 1"))
+
+  fmt.Printf("UNMARSHAL\n")
+  var new_parsetree_list pg_query.ParsetreeList
+  err := json.Unmarshal([]byte(pg_query.Parse("SELECT 1")), &new_parsetree_list)
+  if err != nil {
+    fmt.Printf("%v\n", err)
+  }
+  fmt.Printf("%V\n", new_parsetree_list)
+  fmt.Printf("%V\n", parsetree_list)
+
+  fmt.Printf("TESTS\n")
   for _, test := range queryTests {
     actual := pg_query.Parse(test.input)
     if actual != test.expected {
