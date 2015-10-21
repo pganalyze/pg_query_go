@@ -13,9 +13,11 @@ import "C"
 
 import "unsafe"
 
-func Parse(input string) string {
+func init() {
   C.pg_query_init()
+}
 
+func Parse(input string) string {
   input_c := C.CString(input)
   defer C.free(unsafe.Pointer(input_c))
 
