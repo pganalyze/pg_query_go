@@ -1,8 +1,8 @@
 package pg_query
 
 import (
-  "encoding/json"
-  "fmt"
+	"encoding/json"
+	"fmt"
 )
 
 /*----------------------
@@ -30,51 +30,51 @@ import (
  */
 
 type Value struct {
-  Type NodeTag			/* tag appropriately (eg. T_String) */
-  Ival int `json:"ival"`		/* machine integer */
-  Str string `json:"str"`		/* string */
+	Type NodeTag /* tag appropriately (eg. T_String) */
+	Ival int     `json:"ival"` /* machine integer */
+	Str  string  `json:"str"`  /* string */
 }
 
 func (input Value) MarshalJSON() ([]byte, error) {
-  switch input.Type {
-  case T_Integer:
-    return json.Marshal(input.Ival)
-  case T_Float:
-    return json.Marshal(input.Str)
-  case T_String:
-    return json.Marshal(input.Str)
-  case T_BitString:
-    return json.Marshal(input.Str)
-  case T_Null:
-    return json.Marshal(nil)
-  }
+	switch input.Type {
+	case T_Integer:
+		return json.Marshal(input.Ival)
+	case T_Float:
+		return json.Marshal(input.Str)
+	case T_String:
+		return json.Marshal(input.Str)
+	case T_BitString:
+		return json.Marshal(input.Str)
+	case T_Null:
+		return json.Marshal(nil)
+	}
 
-  return json.Marshal(nil)
+	return json.Marshal(nil)
 }
 
 func (value *Value) UnmarshalJSON(input []byte) (err error) {
-  var i interface{}
-  err = json.Unmarshal(input, &i)
-  if err != nil {
-    return
-  }
+	var i interface{}
+	err = json.Unmarshal(input, &i)
+	if err != nil {
+		return
+	}
 
-  switch v := i.(type) {
-  case float64:
-    value.Type = T_Integer // FIXME: Support floats (check if input has a dot in it?)
-    value.Ival = int(v)
-  case string:
-    value.Type = T_String
-    value.Str = v
-  case nil:
-    value.Type = T_Null
-  default:
-    err = fmt.Errorf("Unsupported value %V", v)
-  }
+	switch v := i.(type) {
+	case float64:
+		value.Type = T_Integer // FIXME: Support floats (check if input has a dot in it?)
+		value.Ival = int(v)
+	case string:
+		value.Type = T_String
+		value.Str = v
+	case nil:
+		value.Type = T_Null
+	default:
+		err = fmt.Errorf("Unsupported value %V", v)
+	}
 
-  return
+	return
 }
 
 func (value Value) Deparse() string {
-  panic("Not Implemented")
+	panic("Not Implemented")
 }

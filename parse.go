@@ -12,22 +12,22 @@ package pg_query
 import "C"
 
 import (
-  "unsafe"
+	"unsafe"
 )
 
 func init() {
-  C.pg_query_init()
+	C.pg_query_init()
 }
 
 func Parse(input string) string {
-  input_c := C.CString(input)
-  defer C.free(unsafe.Pointer(input_c))
+	input_c := C.CString(input)
+	defer C.free(unsafe.Pointer(input_c))
 
-  result_c := C.pg_query_parse(input_c)
-  defer C.free(unsafe.Pointer(result_c.parse_tree))
-  defer C.free(unsafe.Pointer(result_c.stderr_buffer))
+	result_c := C.pg_query_parse(input_c)
+	defer C.free(unsafe.Pointer(result_c.parse_tree))
+	defer C.free(unsafe.Pointer(result_c.stderr_buffer))
 
-  result := C.GoString(result_c.parse_tree)
+	result := C.GoString(result_c.parse_tree)
 
-  return result
+	return result
 }
