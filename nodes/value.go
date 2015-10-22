@@ -1,6 +1,9 @@
 package pg_query
 
-import "encoding/json"
+import (
+  "encoding/json"
+  "fmt"
+)
 
 /*----------------------
  *		Value node
@@ -47,4 +50,31 @@ func (input Value) MarshalJSON() ([]byte, error) {
   }
 
   return json.Marshal(nil)
+}
+
+func (value *Value) UnmarshalJSON(input []byte) (err error) {
+  var i interface{}
+  err = json.Unmarshal(input, &i)
+  if err != nil {
+    return
+  }
+
+  switch v := i.(type) {
+  case float64:
+    value.Type = T_Integer // FIXME: Support floats (check if input has a dot in it?)
+    value.Ival = int(v)
+  case string:
+    value.Type = T_String
+    value.Str = v
+  case nil:
+    value.Type = T_Null
+  default:
+    err = fmt.Errorf("Unsupported value %V", v)
+  }
+
+  return
+}
+
+func (value Value) Deparse() string {
+  panic("Not Implemented")
 }

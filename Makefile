@@ -20,6 +20,6 @@ clean:
 	-@ $(RM) -r $(TMPDIR)
 
 test: build
-	go test -v
+	go test -v ./ ./nodes
 
 .PHONY: default build clean test
