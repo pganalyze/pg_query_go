@@ -50,7 +50,7 @@ func UnmarshalNodeFieldJSON(input []byte, node Node) (err error) {
 		nodeType := reflect.TypeOf((*Node)(nil)).Elem()
 
 		// Null is the default, so we just skip the type magic here
-		if string(fields[fieldName]) == "null" {
+		if fields[fieldName] == nil {
 			continue
 		}
 
