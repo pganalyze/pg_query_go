@@ -1,3 +1,5 @@
+// Auto-generated - DO NOT EDIT
+
 package pg_query
 
 type SetOperation uint

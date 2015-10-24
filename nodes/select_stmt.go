@@ -1,10 +1,6 @@
+// Auto-generated - DO NOT EDIT
+
 package pg_query
-
-import "encoding/json"
-
-// Make first letter of all fields uppercase
-// char* => *string (so we can NULL)
-// enum => const
 
 type SelectStmt struct {
 	/*
@@ -48,19 +44,4 @@ type SelectStmt struct {
 	Larg *SelectStmt  `json:"larg"` /* left child */
 	Rarg *SelectStmt  `json:"rarg"` /* right child */
 	/* Eventually add fields for CORRESPONDING spec here */
-}
-
-func (selectStmt SelectStmt) MarshalJSON() ([]byte, error) {
-	type SelectStmtMarshalAlias SelectStmt
-	return json.Marshal(map[string]interface{}{
-		"SELECT": (*SelectStmtMarshalAlias)(&selectStmt),
-	})
-}
-
-func (selectStmt *SelectStmt) UnmarshalJSON(input []byte) error {
-	return UnmarshalNodeFieldJSON(input, selectStmt)
-}
-
-func (selectStmt SelectStmt) Deparse() string {
-	panic("Not Implemented")
 }

@@ -1,9 +1,5 @@
 package pg_query
 
-import "strings"
-
-// TODO(LukasFittl): I don't think we actually need this
-
 type NodeTag uint
 
 /*
@@ -446,17 +442,3 @@ const (
 	T_InlineCodeBlock                       /* in nodes/parsenodes.h */
 	T_FdwRoutine                            /* in foreign/fdwapi.h */
 )
-
-func JsonKeyToNodeTag(input string) NodeTag {
-	reversed_map := make(map[string]NodeTag)
-
-	if input == "SELECT" {
-		input = "SELECTSTMT"
-	}
-
-	for key, value := range _NodeTag_map {
-		reversed_map[strings.ToUpper(strings.TrimPrefix(value, "T_"))] = key
-	}
-
-	return reversed_map[input]
-}
