@@ -2,7 +2,10 @@
 
 package pg_query
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 	// Simple heuristic to catch value nodes

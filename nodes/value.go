@@ -69,7 +69,7 @@ func (value *Value) UnmarshalJSON(input []byte) (err error) {
 	case nil:
 		value.Type = T_Null
 	default:
-		err = fmt.Errorf("Unsupported value %V", v)
+		err = fmt.Errorf("Unsupported value %v", v)
 	}
 
 	return

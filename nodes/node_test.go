@@ -46,9 +46,9 @@ func TestNode(t *testing.T) {
 		var actual TestStruct
 		err := json.Unmarshal([]byte(test.input), &actual)
 		if err != nil {
-			t.Errorf("Unmarshal(%s)\nerror: %s\n\n", err)
+			t.Errorf("Unmarshal(%s)\nerror: %s\n\n", test.input, err)
 		} else if !reflect.DeepEqual(actual, test.expected) {
-			t.Errorf("Unmarshal(%s)\nexpected: %s\nactual: %s\n\n", test.input, test.expected, actual)
+			t.Errorf("Unmarshal(%s)\nexpected: %v\nactual: %v\n\n", test.input, test.expected, actual)
 		}
 	}
 }

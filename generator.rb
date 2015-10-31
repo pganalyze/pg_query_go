@@ -257,7 +257,10 @@ func (node #{type}) Deparse() string {
     end
 
     out_node_unmarshal = %(
-import "encoding/json"
+import (
+\t"encoding/json"
+\t"strings"
+)
 
 func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 \t// Simple heuristic to catch value nodes
