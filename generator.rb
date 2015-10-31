@@ -39,38 +39,11 @@ class Generator
     end
   end
 
-  OUTNODE_NAME_OVERRIDES = {
-    'VacuumStmt' => 'VACUUM',
-    'InsertStmt' => 'INSERT INTO',
-    'DeleteStmt' => 'DELETE FROM',
-    'UpdateStmt' => 'UPDATE',
-    'SelectStmt' => 'SELECT',
-    'AlterTableStmt' => 'ALTER TABLE',
-    'AlterTableCmd' => 'ALTER TABLE CMD',
-    'CopyStmt' => 'COPY',
-    'DropStmt' => 'DROP',
-    'TruncateStmt' => 'TRUNCATE',
-    'TransactionStmt' => 'TRANSACTION',
-    'ExplainStmt' => 'EXPLAIN',
-    'CreateTableAsStmt' => 'CREATE TABLE AS',
-    'VariableSetStmt' => 'SET',
-    'VariableShowStmt' => 'SHOW',
-    'LockStmt' => 'LOCK',
-    'CheckPointStmt' => 'CHECKPOINT',
-    'CreateSchemaStmt' => 'CREATE SCHEMA',
-    'DeclareCursorStmt' => 'DECLARECURSOR',
-    'CollateExpr' => 'COLLATE',
-    'CaseExpr' => 'CASE',
-    'CaseWhen' => 'WHEN',
-    'ArrayExpr' => 'ARRAY',
-    'RowExpr' => 'ROW',
-    'RowCompareExpr' => 'ROWCOMPARE',
-    'CoalesceExpr' => 'COALESCE',
-    'MinMaxExpr' => 'MINMAX',
-  }
-
-  IGNORE_LIST = ['Node', 'NodeTag', 'varlena', 'IntArray', 'nameData', 'bool',
-                 'sig_atomic_t', 'size_t', 'varatt_indirect']
+  IGNORE_LIST = [
+    'Node', 'NodeTag', 'varlena', 'IntArray', 'nameData', 'bool',
+    'sig_atomic_t', 'size_t', 'varatt_indirect',
+    'NullTest', 'BooleanTest', # These fail the compilation process - tbd why
+  ]
 
   def generate_defs!
     @target_struct = nil
@@ -204,9 +177,42 @@ class Generator
     end
   end
 
+  OUTNODE_NAME_OVERRIDES = {
+    'VacuumStmt' => 'VACUUM',
+    'InsertStmt' => 'INSERT INTO',
+    'DeleteStmt' => 'DELETE FROM',
+    'UpdateStmt' => 'UPDATE',
+    'SelectStmt' => 'SELECT',
+    'AlterTableStmt' => 'ALTER TABLE',
+    'AlterTableCmd' => 'ALTER TABLE CMD',
+    'CopyStmt' => 'COPY',
+    'DropStmt' => 'DROP',
+    'TruncateStmt' => 'TRUNCATE',
+    'TransactionStmt' => 'TRANSACTION',
+    'ExplainStmt' => 'EXPLAIN',
+    'CreateTableAsStmt' => 'CREATE TABLE AS',
+    'VariableSetStmt' => 'SET',
+    'VariableShowStmt' => 'SHOW',
+    'LockStmt' => 'LOCK',
+    'CheckPointStmt' => 'CHECKPOINT',
+    'CreateSchemaStmt' => 'CREATE SCHEMA',
+    'DeclareCursorStmt' => 'DECLARECURSOR',
+    'CollateExpr' => 'COLLATE',
+    'CaseExpr' => 'CASE',
+    'CaseWhen' => 'WHEN',
+    'ArrayExpr' => 'ARRAY',
+    'RowExpr' => 'ROW',
+    'RowCompareExpr' => 'ROWCOMPARE',
+    'CoalesceExpr' => 'COALESCE',
+    'MinMaxExpr' => 'MINMAX',
+    'A_Expr' => 'AEXPR',
+  }
+
   def generate!
     generate_nodetypes!
     generate_defs!
+
+    node_unmarshal_cases = ''
 
     @struct_defs.each do |group, defs|
       defs.each do |type, struct_def|
@@ -217,8 +223,69 @@ class Generator
         out += "}\n"
 
         write_nodes_file(type, out)
+
+        json_key = OUTNODE_NAME_OVERRIDES[type] || type.upcase
+
+        out = %{
+import "encoding/json"
+
+func (node #{type}) MarshalJSON() ([]byte, error) {
+  type #{type}MarshalAlias #{type}
+  return json.Marshal(map[string]interface{}{
+    "#{json_key}": (*#{type}MarshalAlias)(&node),
+  })
+}
+
+func (node *#{type}) UnmarshalJSON(input []byte) (err error) {
+  err = UnmarshalNodeFieldJSON(input, node)
+  return
+}
+
+func (node #{type}) Deparse() string {
+  panic("Not Implemented")
+}
+        }
+
+        write_nodes_file(type + '_methods', out, false)
+
+        node_unmarshal_cases << %{
+\t\t\tcase "#{json_key}":
+\t\t\t\tvar outNode #{type}
+\t\t\t\tjson.Unmarshal(jsonText, &outNode)
+\t\t\t\tnode = outNode}
       end
     end
+
+    out_node_unmarshal = %(
+import "encoding/json"
+
+func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
+\t// Simple heuristic to catch value nodes
+\tif (!strings.HasPrefix(string(input), "{")) {
+\t\tvar value Value
+\t\terr = json.Unmarshal(input, &value)
+\t\tnode = value
+\t\treturn
+\t}
+
+\tvar nodeMap map[string]json.RawMessage
+
+\terr = json.Unmarshal(input, &nodeMap)
+\tif err != nil {
+\t\treturn
+\t}
+
+\tfor nodeType, jsonText := range nodeMap {
+\t\tswitch nodeType {
+#{node_unmarshal_cases}
+\t\t}
+\t}
+
+\treturn
+}
+    )
+
+    write_nodes_file('node_unmarshal', out_node_unmarshal, true)
 
     @enum_defs.each do |group, defs|
       defs.each do |type, enum_def|
@@ -236,9 +303,11 @@ class Generator
     write_nodes_file('typedefs', @typedefs)
   end
 
-  def write_nodes_file(name, content)
-    content = "// Auto-generated - DO NOT EDIT\n\npackage pg_query\n\n" + content
+  def write_nodes_file(name, content, overwrite = true)
     path = format('./nodes/%s.go', underscore(name))
+    return if !overwrite && File.exist?(path)
+
+    content = "// Auto-generated - DO NOT EDIT\n\npackage pg_query\n\n" + content
     File.write(path, content)
     system format("go fmt %s", path)
   end
