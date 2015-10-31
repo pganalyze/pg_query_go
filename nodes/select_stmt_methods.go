@@ -1,18 +1,21 @@
+// Auto-generated - DO NOT EDIT
+
 package pg_query
 
 import "encoding/json"
 
-func (selectStmt SelectStmt) MarshalJSON() ([]byte, error) {
+func (node SelectStmt) MarshalJSON() ([]byte, error) {
 	type SelectStmtMarshalAlias SelectStmt
 	return json.Marshal(map[string]interface{}{
-		"SELECT": (*SelectStmtMarshalAlias)(&selectStmt),
+		"SELECT": (*SelectStmtMarshalAlias)(&node),
 	})
 }
 
-func (selectStmt *SelectStmt) UnmarshalJSON(input []byte) error {
-	return UnmarshalNodeFieldJSON(input, selectStmt)
+func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }
 
-func (selectStmt SelectStmt) Deparse() string {
+func (node SelectStmt) Deparse() string {
 	panic("Not Implemented")
 }

@@ -1,18 +1,21 @@
+// Auto-generated - DO NOT EDIT
+
 package pg_query
 
 import "encoding/json"
 
-func (input ResTarget) MarshalJSON() ([]byte, error) {
-	type ResTargetAlias ResTarget
+func (node ResTarget) MarshalJSON() ([]byte, error) {
+	type ResTargetMarshalAlias ResTarget
 	return json.Marshal(map[string]interface{}{
-		"RESTARGET": (*ResTargetAlias)(&input),
+		"RESTARGET": (*ResTargetMarshalAlias)(&node),
 	})
 }
 
-func (resTarget *ResTarget) UnmarshalJSON(input []byte) error {
-	return UnmarshalNodeFieldJSON(input, resTarget)
+func (node *ResTarget) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }
 
-func (resTarget ResTarget) Deparse() string {
+func (node ResTarget) Deparse() string {
 	panic("Not Implemented")
 }

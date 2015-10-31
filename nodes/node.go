@@ -8,30 +8,6 @@ type Node interface {
 	Deparse() string
 }
 
-func UnmarshalNodeJSON(input json.RawMessage) Node {
-	var nodeMap map[string]json.RawMessage
-	json.Unmarshal(input, &nodeMap)
-
-	for nodeType, jsonText := range nodeMap {
-		switch nodeType {
-		case "SELECT":
-			var selectStmt SelectStmt
-			json.Unmarshal(jsonText, &selectStmt)
-			return selectStmt
-		case "RESTARGET":
-			var resTarget ResTarget
-			json.Unmarshal(jsonText, &resTarget)
-			return resTarget
-		case "A_CONST":
-			var aConst A_Const
-			json.Unmarshal(jsonText, &aConst)
-			return aConst
-		}
-	}
-
-	return nil
-}
-
 func UnmarshalNodeFieldJSON(input []byte, node Node) (err error) {
 	var fields map[string]json.RawMessage
 
@@ -57,33 +33,64 @@ func UnmarshalNodeFieldJSON(input []byte, node Node) (err error) {
 		switch f.Interface().(type) {
 		case int:
 			var value int64
-			json.Unmarshal(fields[fieldName], &value)
+			err = json.Unmarshal(fields[fieldName], &value)
+			if err != nil {
+				return
+			}
 			f.SetInt(value)
-		case Value:
-			// FIXME: We shouldn't special case like this
-			var value Value
-			json.Unmarshal(fields[fieldName], &value)
-			f.Set(reflect.ValueOf(value))
+		case byte:
+			var value string
+			err = json.Unmarshal(fields[fieldName], &value)
+			if err != nil {
+				return
+			}
+			f.Set(reflect.ValueOf([]byte(value)[0]))
 		case *string:
 			var value string
-			json.Unmarshal(fields[fieldName], &value)
+			err = json.Unmarshal(fields[fieldName], &value)
+			if err != nil {
+				return
+			}
 			f.Set(reflect.ValueOf(&value))
 		case []Node:
 			var list []json.RawMessage
 			var nodes []Node
-			json.Unmarshal(fields[fieldName], &list)
-			for _, node := range list {
-				nodes = append(nodes, UnmarshalNodeJSON(node))
+			err = json.Unmarshal(fields[fieldName], &list)
+			if err != nil {
+				return
+			}
+			for _, nodeJson := range list {
+				node, err = UnmarshalNodeJSON(nodeJson)
+				if err != nil {
+					return
+				}
+				nodes = append(nodes, node)
 			}
 			f.Set(reflect.ValueOf(nodes))
 		default:
-			if f2.Type.Implements(nodeType) {
-				node := UnmarshalNodeJSON(fields[fieldName])
-				if node != nil {
-					f.Set(reflect.ValueOf(node))
+			if f2.Type.Kind() == reflect.Uint {
+				var enumValue uint
+				err = json.Unmarshal(fields[fieldName], &enumValue)
+				if err != nil {
+					return
 				}
-			} else {
+				f.SetUint(uint64(enumValue))
+				continue
+			}
+
+			if !f2.Type.Implements(nodeType) {
 				err = fmt.Errorf("Invalid type %v", f.Type())
+				return
+			}
+
+			node, err = UnmarshalNodeJSON(fields[fieldName])
+
+			if err != nil {
+				return
+			}
+
+			if node != nil {
+				f.Set(reflect.ValueOf(node))
 			}
 		}
 	}

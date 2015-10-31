@@ -18,8 +18,13 @@ func (output *ParsetreeList) UnmarshalJSON(input []byte) (err error) {
 	var list []json.RawMessage
 	err = json.Unmarshal([]byte(input), &list)
 
-	for _, node := range list {
-		output.Statements = append(output.Statements, nodes.UnmarshalNodeJSON(node))
+	for _, nodeJson := range list {
+		var node nodes.Node
+		node, err = nodes.UnmarshalNodeJSON(nodeJson)
+		if err != nil {
+			return
+		}
+		output.Statements = append(output.Statements, node)
 	}
 
 	return

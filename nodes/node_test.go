@@ -1,19 +1,27 @@
-package pg_query
+package pg_query_test
 
 import (
 	"encoding/json"
 	"reflect"
 	"testing"
+
+	nodes "github.com/lfittl/pg_query.go/nodes"
 )
 
+func strPtr(str string) *string {
+	return &str
+}
+
 type TestStruct struct {
-	Val      Value  `json:"val"`
-	Location int    `json:"location"`
-	Dummies  []Node `json:"dummies"`
+	Val        nodes.Value  `json:"val"`
+	Location   int          `json:"location"`
+	Dummies    []nodes.Node `json:"dummies"`
+	MaybeStr   *string      `json:"maybe_str"`
+	LittleByte byte         `json:"little_byte"`
 }
 
 func (test *TestStruct) UnmarshalJSON(input []byte) error {
-	return UnmarshalNodeFieldJSON(input, test)
+	return nodes.UnmarshalNodeFieldJSON(input, test)
 }
 
 func (test TestStruct) Deparse() string {
@@ -22,17 +30,19 @@ func (test TestStruct) Deparse() string {
 
 var testString = "test"
 
-var queryTests = []struct {
+var nodeTests = []struct {
 	input    string
 	expected TestStruct
 }{
 	{`{"location": 10}`, TestStruct{Location: 10}},
-	{`{"val": 8}`, TestStruct{Val: Value{Type: T_Integer, Ival: 8}}},
-	{`{"dummies": [{"RESTARGET": {"name": "test"}}]}`, TestStruct{Dummies: []Node{ResTarget{Name: &testString}}}},
+	{`{"val": 8}`, TestStruct{Val: nodes.Value{Type: nodes.T_Integer, Ival: 8}}},
+	{`{"dummies": [{"RESTARGET": {"name": "test"}}]}`, TestStruct{Dummies: []nodes.Node{nodes.ResTarget{Name: &testString}}}},
+	{`{"maybe_str": "x"}`, TestStruct{MaybeStr: strPtr("x")}},
+	{`{"little_byte": "x"}`, TestStruct{LittleByte: 'x'}},
 }
 
-func TestUnmarshalNodeFieldJSON(t *testing.T) {
-	for _, test := range queryTests {
+func TestNode(t *testing.T) {
+	for _, test := range nodeTests {
 		var actual TestStruct
 		err := json.Unmarshal([]byte(test.input), &actual)
 		if err != nil {
