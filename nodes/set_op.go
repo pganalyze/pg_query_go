@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type SetOp struct {
 	Plan     Plan          `json:"plan"`
 	Cmd      SetOpCmd      `json:"cmd"`      /* what to do */
@@ -13,4 +15,16 @@ type SetOp struct {
 	FlagColIdx   AttrNumber  `json:"flagColIdx"`   /* where is the flag column, if any */
 	FirstFlag    int         `json:"firstFlag"`    /* flag value for first input relation */
 	NumGroups    int64       `json:"numGroups"`    /* estimated number of groups in input */
+}
+
+func (node SetOp) MarshalJSON() ([]byte, error) {
+	type SetOpMarshalAlias SetOp
+	return json.Marshal(map[string]interface{}{
+		"SETOP": (*SetOpMarshalAlias)(&node),
+	})
+}
+
+func (node *SetOp) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

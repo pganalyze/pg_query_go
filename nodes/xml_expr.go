@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type XmlExpr struct {
 	Xpr       Expr          `json:"xpr"`
 	Op        XmlExprOp     `json:"op"`         /* xml function ID */
@@ -13,4 +15,16 @@ type XmlExpr struct {
 	Type      Oid           `json:"type"`       /* target type/typmod for XMLSERIALIZE */
 	Typmod    int32         `json:"typmod"`
 	Location  int           `json:"location"` /* token location, or -1 if unknown */
+}
+
+func (node XmlExpr) MarshalJSON() ([]byte, error) {
+	type XmlExprMarshalAlias XmlExpr
+	return json.Marshal(map[string]interface{}{
+		"XMLEXPR": (*XmlExprMarshalAlias)(&node),
+	})
+}
+
+func (node *XmlExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

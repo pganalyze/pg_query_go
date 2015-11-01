@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type SubLink struct {
 	Xpr         Expr        `json:"xpr"`
 	SubLinkType SubLinkType `json:"subLinkType"` /* see above */
@@ -9,4 +11,16 @@ type SubLink struct {
 	OperName    []Node      `json:"operName"`    /* originally specified operator name */
 	Subselect   Node        `json:"subselect"`   /* subselect as Query* or parsetree */
 	Location    int         `json:"location"`    /* token location, or -1 if unknown */
+}
+
+func (node SubLink) MarshalJSON() ([]byte, error) {
+	type SubLinkMarshalAlias SubLink
+	return json.Marshal(map[string]interface{}{
+		"SUBLINK": (*SubLinkMarshalAlias)(&node),
+	})
+}
+
+func (node *SubLink) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

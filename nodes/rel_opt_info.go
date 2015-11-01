@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RelOptInfo struct {
 	Reloptkind RelOptKind `json:"reloptkind"`
 
@@ -54,4 +56,16 @@ type RelOptInfo struct {
 	Joininfo         []Node   `json:"joininfo"`         /* RestrictInfo structures for join clauses
 	 * involving this rel */
 	HasEclassJoins bool `json:"has_eclass_joins"` /* T means joininfo is incomplete */
+}
+
+func (node RelOptInfo) MarshalJSON() ([]byte, error) {
+	type RelOptInfoMarshalAlias RelOptInfo
+	return json.Marshal(map[string]interface{}{
+		"RELOPTINFO": (*RelOptInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *RelOptInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

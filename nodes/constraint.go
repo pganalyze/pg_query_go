@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type Constraint struct {
 	Contype ConstrType `json:"contype"` /* see above */
 
@@ -43,4 +45,16 @@ type Constraint struct {
 	/* Fields used for constraints that allow a NOT VALID specification */
 	SkipValidation bool `json:"skip_validation"` /* skip validation of existing rows? */
 	InitiallyValid bool `json:"initially_valid"` /* mark the new constraint as valid? */
+}
+
+func (node Constraint) MarshalJSON() ([]byte, error) {
+	type ConstraintMarshalAlias Constraint
+	return json.Marshal(map[string]interface{}{
+		"CONSTRAINT": (*ConstraintMarshalAlias)(&node),
+	})
+}
+
+func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

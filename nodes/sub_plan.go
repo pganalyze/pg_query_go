@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type SubPlan struct {
 	Xpr Expr `json:"xpr"`
 	/* Fields copied from original SubLink: */
@@ -33,4 +35,16 @@ type SubPlan struct {
 	/* Estimated execution costs: */
 	StartupCost Cost `json:"startup_cost"`  /* one-time setup cost */
 	PerCallCost Cost `json:"per_call_cost"` /* cost for each subplan evaluation */
+}
+
+func (node SubPlan) MarshalJSON() ([]byte, error) {
+	type SubPlanMarshalAlias SubPlan
+	return json.Marshal(map[string]interface{}{
+		"SUBPLAN": (*SubPlanMarshalAlias)(&node),
+	})
+}
+
+func (node *SubPlan) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

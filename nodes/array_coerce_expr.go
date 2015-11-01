@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type ArrayCoerceExpr struct {
 	Xpr          Expr         `json:"xpr"`
 	Arg          *Expr        `json:"arg"`          /* input expression (yields an array) */
@@ -12,4 +14,16 @@ type ArrayCoerceExpr struct {
 	IsExplicit   bool         `json:"isExplicit"`   /* conversion semantics flag to pass to func */
 	Coerceformat CoercionForm `json:"coerceformat"` /* how to display this node */
 	Location     int          `json:"location"`     /* token location, or -1 if unknown */
+}
+
+func (node ArrayCoerceExpr) MarshalJSON() ([]byte, error) {
+	type ArrayCoerceExprMarshalAlias ArrayCoerceExpr
+	return json.Marshal(map[string]interface{}{
+		"ARRAYCOERCEEXPR": (*ArrayCoerceExprMarshalAlias)(&node),
+	})
+}
+
+func (node *ArrayCoerceExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

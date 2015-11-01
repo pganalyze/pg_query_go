@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type ModifyTable struct {
 	Plan                 Plan    `json:"plan"`
 	Operation            CmdType `json:"operation"`            /* INSERT, UPDATE, or DELETE */
@@ -14,4 +16,16 @@ type ModifyTable struct {
 	FdwPrivLists         []Node  `json:"fdwPrivLists"`         /* per-target-table FDW private data lists */
 	RowMarks             []Node  `json:"rowMarks"`             /* PlanRowMarks (non-locking only) */
 	EpqParam             int     `json:"epqParam"`             /* ID of Param for EvalPlanQual re-eval */
+}
+
+func (node ModifyTable) MarshalJSON() ([]byte, error) {
+	type ModifyTableMarshalAlias ModifyTable
+	return json.Marshal(map[string]interface{}{
+		"MODIFYTABLE": (*ModifyTableMarshalAlias)(&node),
+	})
+}
+
+func (node *ModifyTable) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

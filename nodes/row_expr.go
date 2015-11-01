@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RowExpr struct {
 	Xpr       Expr   `json:"xpr"`
 	Args      []Node `json:"args"`       /* the fields */
@@ -19,4 +21,16 @@ type RowExpr struct {
 	RowFormat CoercionForm `json:"row_format"` /* how to display this node */
 	Colnames  []Node       `json:"colnames"`   /* list of String, or NIL */
 	Location  int          `json:"location"`   /* token location, or -1 if unknown */
+}
+
+func (node RowExpr) MarshalJSON() ([]byte, error) {
+	type RowExprMarshalAlias RowExpr
+	return json.Marshal(map[string]interface{}{
+		"ROW": (*RowExprMarshalAlias)(&node),
+	})
+}
+
+func (node *RowExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

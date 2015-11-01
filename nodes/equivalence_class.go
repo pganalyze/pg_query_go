@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type EquivalenceClass struct {
 	EcOpfamilies []Node   `json:"ec_opfamilies"` /* btree operator family OIDs */
 	EcCollation  Oid      `json:"ec_collation"`  /* collation, if datatypes are collatable */
@@ -16,4 +18,16 @@ type EquivalenceClass struct {
 	EcBroken         bool              `json:"ec_broken"`           /* failed to generate needed clauses? */
 	EcSortref        Index             `json:"ec_sortref"`          /* originating sortclause label, or 0 */
 	EcMerged         *EquivalenceClass `json:"ec_merged"`           /* set if merged into another EC */
+}
+
+func (node EquivalenceClass) MarshalJSON() ([]byte, error) {
+	type EquivalenceClassMarshalAlias EquivalenceClass
+	return json.Marshal(map[string]interface{}{
+		"EQUIVALENCECLASS": (*EquivalenceClassMarshalAlias)(&node),
+	})
+}
+
+func (node *EquivalenceClass) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type Query struct {
 	CommandType CmdType `json:"commandType"` /* select|insert|update|delete|utility */
 
@@ -56,4 +58,16 @@ type Query struct {
 
 	ConstraintDeps []Node `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
 	 * depends on to be semantically valid */
+}
+
+func (node Query) MarshalJSON() ([]byte, error) {
+	type QueryMarshalAlias Query
+	return json.Marshal(map[string]interface{}{
+		"QUERY": (*QueryMarshalAlias)(&node),
+	})
+}
+
+func (node *Query) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

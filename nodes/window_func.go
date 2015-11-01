@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type WindowFunc struct {
 	Xpr         Expr   `json:"xpr"`
 	Winfnoid    Oid    `json:"winfnoid"`    /* pg_proc Oid of the function */
@@ -14,4 +16,16 @@ type WindowFunc struct {
 	Winstar     bool   `json:"winstar"`     /* TRUE if argument list was really '*' */
 	Winagg      bool   `json:"winagg"`      /* is function a simple aggregate? */
 	Location    int    `json:"location"`    /* token location, or -1 if unknown */
+}
+
+func (node WindowFunc) MarshalJSON() ([]byte, error) {
+	type WindowFuncMarshalAlias WindowFunc
+	return json.Marshal(map[string]interface{}{
+		"WINDOWFUNC": (*WindowFuncMarshalAlias)(&node),
+	})
+}
+
+func (node *WindowFunc) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

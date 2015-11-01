@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type ColumnDef struct {
 	Colname       *string        `json:"colname"`        /* name of column */
 	TypeName      *TypeName      `json:"typeName"`       /* type of column */
@@ -17,4 +19,16 @@ type ColumnDef struct {
 	Constraints   []Node         `json:"constraints"`    /* other constraints on column */
 	Fdwoptions    []Node         `json:"fdwoptions"`     /* per-column FDW options */
 	Location      int            `json:"location"`       /* parse location, or -1 if none/unknown */
+}
+
+func (node ColumnDef) MarshalJSON() ([]byte, error) {
+	type ColumnDefMarshalAlias ColumnDef
+	return json.Marshal(map[string]interface{}{
+		"COLUMNDEF": (*ColumnDefMarshalAlias)(&node),
+	})
+}
+
+func (node *ColumnDef) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

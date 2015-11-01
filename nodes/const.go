@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type Const struct {
 	Xpr         Expr  `json:"xpr"`
 	Consttype   Oid   `json:"consttype"`   /* pg_type OID of the constant's datatype */
@@ -16,4 +18,16 @@ type Const struct {
 	 * in the Datum. If false, then the Datum
 	 * contains a pointer to the information. */
 	Location int `json:"location"` /* token location, or -1 if unknown */
+}
+
+func (node Const) MarshalJSON() ([]byte, error) {
+	type ConstMarshalAlias Const
+	return json.Marshal(map[string]interface{}{
+		"CONST": (*ConstMarshalAlias)(&node),
+	})
+}
+
+func (node *Const) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

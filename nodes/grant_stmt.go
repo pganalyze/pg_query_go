@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type GrantStmt struct {
 	IsGrant  bool            `json:"is_grant"` /* true = GRANT, false = REVOKE */
 	Targtype GrantTargetType `json:"targtype"` /* type of the grant target */
@@ -13,4 +15,16 @@ type GrantStmt struct {
 	Grantees    []Node       `json:"grantees"`     /* list of PrivGrantee nodes */
 	GrantOption bool         `json:"grant_option"` /* grant or revoke grant option */
 	Behavior    DropBehavior `json:"behavior"`     /* drop behavior (for REVOKE) */
+}
+
+func (node GrantStmt) MarshalJSON() ([]byte, error) {
+	type GrantStmtMarshalAlias GrantStmt
+	return json.Marshal(map[string]interface{}{
+		"GRANTSTMT": (*GrantStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *GrantStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

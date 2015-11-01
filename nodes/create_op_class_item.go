@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type CreateOpClassItem struct {
 	Itemtype int `json:"itemtype"` /* see codes above */
 	/* fields used for an operator or function item: */
@@ -12,4 +14,16 @@ type CreateOpClassItem struct {
 	ClassArgs   []Node `json:"class_args"`   /* only used for functions */
 	/* fields used for a storagetype item: */
 	Storedtype *TypeName `json:"storedtype"` /* datatype stored in index */
+}
+
+func (node CreateOpClassItem) MarshalJSON() ([]byte, error) {
+	type CreateOpClassItemMarshalAlias CreateOpClassItem
+	return json.Marshal(map[string]interface{}{
+		"CREATEOPCLASSITEM": (*CreateOpClassItemMarshalAlias)(&node),
+	})
+}
+
+func (node *CreateOpClassItem) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

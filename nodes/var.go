@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type Var struct {
 	Xpr   Expr  `json:"xpr"`
 	Varno Index `json:"varno"` /* index of this var's relation in the range
@@ -17,4 +19,16 @@ type Var struct {
 	Varnoold  Index      `json:"varnoold"`  /* original value of varno, for debugging */
 	Varoattno AttrNumber `json:"varoattno"` /* original value of varattno */
 	Location  int        `json:"location"`  /* token location, or -1 if unknown */
+}
+
+func (node Var) MarshalJSON() ([]byte, error) {
+	type VarMarshalAlias Var
+	return json.Marshal(map[string]interface{}{
+		"VAR": (*VarMarshalAlias)(&node),
+	})
+}
+
+func (node *Var) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type JoinCostWorkspace struct {
 	/* Preliminary cost estimates --- must not be larger than final ones! */
 	StartupCost Cost `json:"startup_cost"` /* cost expended before fetching any tuples */
@@ -23,4 +25,16 @@ type JoinCostWorkspace struct {
 	/* private for cost_hashjoin code */
 	Numbuckets int `json:"numbuckets"`
 	Numbatches int `json:"numbatches"`
+}
+
+func (node JoinCostWorkspace) MarshalJSON() ([]byte, error) {
+	type JoinCostWorkspaceMarshalAlias JoinCostWorkspace
+	return json.Marshal(map[string]interface{}{
+		"JOINCOSTWORKSPACE": (*JoinCostWorkspaceMarshalAlias)(&node),
+	})
+}
+
+func (node *JoinCostWorkspace) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

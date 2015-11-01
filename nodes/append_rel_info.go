@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type AppendRelInfo struct {
 	/*
 	 * These fields uniquely identify this append relationship.  There can be
@@ -45,4 +47,16 @@ type AppendRelInfo struct {
 	 * an attempt is made to reference a dropped parent column.
 	 */
 	ParentReloid Oid `json:"parent_reloid"` /* OID of parent relation */
+}
+
+func (node AppendRelInfo) MarshalJSON() ([]byte, error) {
+	type AppendRelInfoMarshalAlias AppendRelInfo
+	return json.Marshal(map[string]interface{}{
+		"APPENDRELINFO": (*AppendRelInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *AppendRelInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

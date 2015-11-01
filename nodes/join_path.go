@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type JoinPath struct {
 	Path Path `json:"path"`
 
@@ -17,4 +19,16 @@ type JoinPath struct {
 	 * joinrestrictinfo is needed in JoinPath, and can't be merged into the
 	 * parent RelOptInfo.
 	 */
+}
+
+func (node JoinPath) MarshalJSON() ([]byte, error) {
+	type JoinPathMarshalAlias JoinPath
+	return json.Marshal(map[string]interface{}{
+		"JOINPATH": (*JoinPathMarshalAlias)(&node),
+	})
+}
+
+func (node *JoinPath) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

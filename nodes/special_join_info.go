@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type SpecialJoinInfo struct {
 	MinLefthand     []uint32 `json:"min_lefthand"`      /* base relids in minimum LHS for join */
 	MinRighthand    []uint32 `json:"min_righthand"`     /* base relids in minimum RHS for join */
@@ -11,4 +13,16 @@ type SpecialJoinInfo struct {
 	LhsStrict       bool     `json:"lhs_strict"`        /* joinclause is strict for some LHS rel */
 	DelayUpperJoins bool     `json:"delay_upper_joins"` /* can't commute with upper RHS */
 	JoinQuals       []Node   `json:"join_quals"`        /* join quals, in implicit-AND list format */
+}
+
+func (node SpecialJoinInfo) MarshalJSON() ([]byte, error) {
+	type SpecialJoinInfoMarshalAlias SpecialJoinInfo
+	return json.Marshal(map[string]interface{}{
+		"SPECIALJOININFO": (*SpecialJoinInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *SpecialJoinInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

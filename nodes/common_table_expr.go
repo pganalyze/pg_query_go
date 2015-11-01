@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type CommonTableExpr struct {
 	Ctename       *string `json:"ctename"`       /* query name (never qualified) */
 	Aliascolnames []Node  `json:"aliascolnames"` /* optional list of column names */
@@ -16,4 +18,16 @@ type CommonTableExpr struct {
 	Ctecoltypes      []Node `json:"ctecoltypes"`      /* OID list of output column type OIDs */
 	Ctecoltypmods    []Node `json:"ctecoltypmods"`    /* integer list of output column typmods */
 	Ctecolcollations []Node `json:"ctecolcollations"` /* OID list of column collation OIDs */
+}
+
+func (node CommonTableExpr) MarshalJSON() ([]byte, error) {
+	type CommonTableExprMarshalAlias CommonTableExpr
+	return json.Marshal(map[string]interface{}{
+		"COMMONTABLEEXPR": (*CommonTableExprMarshalAlias)(&node),
+	})
+}
+
+func (node *CommonTableExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

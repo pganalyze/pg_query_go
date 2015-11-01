@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type PlannerGlobal struct {
 	BoundParams ParamListInfo `json:"boundParams"` /* Param values provided to planner() */
 
@@ -28,4 +30,16 @@ type PlannerGlobal struct {
 	LastRowMarkId Index `json:"lastRowMarkId"` /* highest PlanRowMark ID assigned */
 
 	TransientPlan bool `json:"transientPlan"` /* redo plan when TransactionXmin changes? */
+}
+
+func (node PlannerGlobal) MarshalJSON() ([]byte, error) {
+	type PlannerGlobalMarshalAlias PlannerGlobal
+	return json.Marshal(map[string]interface{}{
+		"PLANNERGLOBAL": (*PlannerGlobalMarshalAlias)(&node),
+	})
+}
+
+func (node *PlannerGlobal) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

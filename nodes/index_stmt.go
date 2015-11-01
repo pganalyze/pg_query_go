@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type IndexStmt struct {
 	Idxname        *string   `json:"idxname"`        /* name of new index, or NULL for default */
 	Relation       *RangeVar `json:"relation"`       /* relation to build index on */
@@ -20,4 +22,16 @@ type IndexStmt struct {
 	Deferrable     bool      `json:"deferrable"`     /* is the constraint DEFERRABLE? */
 	Initdeferred   bool      `json:"initdeferred"`   /* is the constraint INITIALLY DEFERRED? */
 	Concurrent     bool      `json:"concurrent"`     /* should this be a concurrent index build? */
+}
+
+func (node IndexStmt) MarshalJSON() ([]byte, error) {
+	type IndexStmtMarshalAlias IndexStmt
+	return json.Marshal(map[string]interface{}{
+		"INDEXSTMT": (*IndexStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *IndexStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

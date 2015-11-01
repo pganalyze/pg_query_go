@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type IndexOptInfo struct {
 	Indexoid      Oid         `json:"indexoid"`      /* OID of the index relation */
 	Reltablespace Oid         `json:"reltablespace"` /* tablespace of index (not table) */
@@ -41,4 +43,16 @@ type IndexOptInfo struct {
 	Amsearchnulls  bool `json:"amsearchnulls"`  /* can AM search for NULL/NOT NULL entries? */
 	Amhasgettuple  bool `json:"amhasgettuple"`  /* does AM have amgettuple interface? */
 	Amhasgetbitmap bool `json:"amhasgetbitmap"` /* does AM have amgetbitmap interface? */
+}
+
+func (node IndexOptInfo) MarshalJSON() ([]byte, error) {
+	type IndexOptInfoMarshalAlias IndexOptInfo
+	return json.Marshal(map[string]interface{}{
+		"INDEXOPTINFO": (*IndexOptInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *IndexOptInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

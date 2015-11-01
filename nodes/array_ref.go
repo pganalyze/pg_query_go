@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type ArrayRef struct {
 	Xpr             Expr   `json:"xpr"`
 	Refarraytype    Oid    `json:"refarraytype"`    /* type of the array proper */
@@ -16,4 +18,16 @@ type ArrayRef struct {
 	 * value */
 	Refassgnexpr *Expr `json:"refassgnexpr"` /* expression for the source value, or NULL if
 	 * fetch */
+}
+
+func (node ArrayRef) MarshalJSON() ([]byte, error) {
+	type ArrayRefMarshalAlias ArrayRef
+	return json.Marshal(map[string]interface{}{
+		"ARRAYREF": (*ArrayRefMarshalAlias)(&node),
+	})
+}
+
+func (node *ArrayRef) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

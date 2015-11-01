@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RenameStmt struct {
 	RenameType   ObjectType `json:"renameType"`   /* OBJECT_TABLE, OBJECT_COLUMN, etc */
 	RelationType ObjectType `json:"relationType"` /* if column name, associated relation type */
@@ -13,4 +15,16 @@ type RenameStmt struct {
 	Newname   *string      `json:"newname"`    /* the new name */
 	Behavior  DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE behavior */
 	MissingOk bool         `json:"missing_ok"` /* skip error if missing? */
+}
+
+func (node RenameStmt) MarshalJSON() ([]byte, error) {
+	type RenameStmtMarshalAlias RenameStmt
+	return json.Marshal(map[string]interface{}{
+		"RENAMESTMT": (*RenameStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *RenameStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

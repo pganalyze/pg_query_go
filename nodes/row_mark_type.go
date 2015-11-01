@@ -11,4 +11,5 @@ const (
 	ROW_MARK_KEYSHARE              /* obtain keyshare tuple lock */
 	ROW_MARK_REFERENCE             /* just fetch the TID */
 	ROW_MARK_COPY                  /* physically copy the row value */
+
 )

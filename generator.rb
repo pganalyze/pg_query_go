@@ -218,16 +218,13 @@ class Generator
       defs.each do |type, struct_def|
         next if IGNORE_LIST.include?(type)
 
-        out = format("type %s struct {\n", type)
-        out += struct_def
-        out += "}\n"
-
-        write_nodes_file(type, out)
-
         json_key = OUTNODE_NAME_OVERRIDES[type] || type.upcase
 
-        out = %{
+        write_nodes_file type, %(
 import "encoding/json"
+
+type #{type} struct {
+#{struct_def}}
 
 func (node #{type}) MarshalJSON() ([]byte, error) {
   type #{type}MarshalAlias #{type}
@@ -240,66 +237,65 @@ func (node *#{type}) UnmarshalJSON(input []byte) (err error) {
   err = UnmarshalNodeFieldJSON(input, node)
   return
 }
+        )
 
+        write_nodes_file(type + '_deparse', %(
 func (node #{type}) Deparse() string {
   panic("Not Implemented")
 }
-        }
+        ), false)
 
-        write_nodes_file(type + '_methods', out, false)
-
-        node_unmarshal_cases << %{
-\t\t\tcase "#{json_key}":
-\t\t\t\tvar outNode #{type}
-\t\t\t\tjson.Unmarshal(jsonText, &outNode)
-\t\t\t\tnode = outNode}
+        node_unmarshal_cases << %(
+case "#{json_key}":
+  var outNode #{type}
+  json.Unmarshal(jsonText, &outNode)
+  node = outNode)
       end
     end
 
-    out_node_unmarshal = %(
+    write_nodes_file 'node_unmarshal', %(
 import (
-\t"encoding/json"
-\t"strings"
+  "encoding/json"
+  "strings"
 )
 
 func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
-\t// Simple heuristic to catch value nodes
-\tif (!strings.HasPrefix(string(input), "{")) {
-\t\tvar value Value
-\t\terr = json.Unmarshal(input, &value)
-\t\tnode = value
-\t\treturn
-\t}
+  // Simple heuristic to catch value nodes
+  if (!strings.HasPrefix(string(input), "{")) {
+    var value Value
+    err = json.Unmarshal(input, &value)
+    node = value
+    return
+  }
 
-\tvar nodeMap map[string]json.RawMessage
+  var nodeMap map[string]json.RawMessage
 
-\terr = json.Unmarshal(input, &nodeMap)
-\tif err != nil {
-\t\treturn
-\t}
+  err = json.Unmarshal(input, &nodeMap)
+  if err != nil {
+    return
+  }
 
-\tfor nodeType, jsonText := range nodeMap {
-\t\tswitch nodeType {
+  for nodeType, jsonText := range nodeMap {
+    switch nodeType {
 #{node_unmarshal_cases}
-\t\t}
-\t}
+    }
+  }
 
-\treturn
+  return
 }
     )
-
-    write_nodes_file('node_unmarshal', out_node_unmarshal, true)
 
     @enum_defs.each do |group, defs|
       defs.each do |type, enum_def|
         next if IGNORE_LIST.include?(type)
 
-        out = format("type %s uint\n\n", type)
-        out += "const (\n"
-        out += enum_def
-        out += ")\n"
+        write_nodes_file type, %(
+          type #{type} uint
 
-        write_nodes_file(type, out)
+          const (
+            #{enum_def}
+          )
+        )
       end
     end
 

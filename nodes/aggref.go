@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type Aggref struct {
 	Xpr           Expr   `json:"xpr"`
 	Aggfnoid      Oid    `json:"aggfnoid"`      /* pg_proc Oid of the aggregate */
@@ -19,4 +21,16 @@ type Aggref struct {
 	Aggkind     byte  `json:"aggkind"`     /* aggregate kind (see pg_aggregate.h) */
 	Agglevelsup Index `json:"agglevelsup"` /* > 0 if agg belongs to outer query */
 	Location    int   `json:"location"`    /* token location, or -1 if unknown */
+}
+
+func (node Aggref) MarshalJSON() ([]byte, error) {
+	type AggrefMarshalAlias Aggref
+	return json.Marshal(map[string]interface{}{
+		"AGGREF": (*AggrefMarshalAlias)(&node),
+	})
+}
+
+func (node *Aggref) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

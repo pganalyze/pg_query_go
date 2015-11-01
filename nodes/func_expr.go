@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type FuncExpr struct {
 	Xpr            Expr `json:"xpr"`
 	Funcid         Oid  `json:"funcid"`         /* PG_PROC OID of the function */
@@ -14,4 +16,16 @@ type FuncExpr struct {
 	Inputcollid Oid          `json:"inputcollid"` /* OID of collation that function should use */
 	Args        []Node       `json:"args"`        /* arguments to the function */
 	Location    int          `json:"location"`    /* token location, or -1 if unknown */
+}
+
+func (node FuncExpr) MarshalJSON() ([]byte, error) {
+	type FuncExprMarshalAlias FuncExpr
+	return json.Marshal(map[string]interface{}{
+		"FUNCEXPR": (*FuncExprMarshalAlias)(&node),
+	})
+}
+
+func (node *FuncExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

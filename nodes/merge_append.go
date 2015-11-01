@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type MergeAppend struct {
 	Plan       Plan   `json:"plan"`
 	Mergeplans []Node `json:"mergeplans"`
@@ -11,4 +13,16 @@ type MergeAppend struct {
 	SortOperators *Oid        `json:"sortOperators"` /* OIDs of operators to sort them by */
 	Collations    *Oid        `json:"collations"`    /* OIDs of collations */
 	NullsFirst    *bool       `json:"nullsFirst"`    /* NULLS FIRST/LAST directions */
+}
+
+func (node MergeAppend) MarshalJSON() ([]byte, error) {
+	type MergeAppendMarshalAlias MergeAppend
+	return json.Marshal(map[string]interface{}{
+		"MERGEAPPEND": (*MergeAppendMarshalAlias)(&node),
+	})
+}
+
+func (node *MergeAppend) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

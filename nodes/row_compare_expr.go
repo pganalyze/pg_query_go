@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RowCompareExpr struct {
 	Xpr          Expr           `json:"xpr"`
 	Rctype       RowCompareType `json:"rctype"`       /* LT LE GE or GT, never EQ or NE */
@@ -10,4 +12,16 @@ type RowCompareExpr struct {
 	Inputcollids []Node         `json:"inputcollids"` /* OID list of collations for comparisons */
 	Largs        []Node         `json:"largs"`        /* the left-hand input arguments */
 	Rargs        []Node         `json:"rargs"`        /* the right-hand input arguments */
+}
+
+func (node RowCompareExpr) MarshalJSON() ([]byte, error) {
+	type RowCompareExprMarshalAlias RowCompareExpr
+	return json.Marshal(map[string]interface{}{
+		"ROWCOMPARE": (*RowCompareExprMarshalAlias)(&node),
+	})
+}
+
+func (node *RowCompareExpr) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

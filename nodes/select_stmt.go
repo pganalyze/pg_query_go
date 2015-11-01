@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type SelectStmt struct {
 	/*
 	 * These fields are used only in "leaf" SelectStmts.
@@ -44,4 +46,16 @@ type SelectStmt struct {
 	Larg *SelectStmt  `json:"larg"` /* left child */
 	Rarg *SelectStmt  `json:"rarg"` /* right child */
 	/* Eventually add fields for CORRESPONDING spec here */
+}
+
+func (node SelectStmt) MarshalJSON() ([]byte, error) {
+	type SelectStmtMarshalAlias SelectStmt
+	return json.Marshal(map[string]interface{}{
+		"SELECT": (*SelectStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type CreateTrigStmt struct {
 	Trigname *string   `json:"trigname"` /* TRIGGER's name */
 	Relation *RangeVar `json:"relation"` /* relation trigger is on */
@@ -19,4 +21,16 @@ type CreateTrigStmt struct {
 	Deferrable   bool      `json:"deferrable"`   /* [NOT] DEFERRABLE */
 	Initdeferred bool      `json:"initdeferred"` /* INITIALLY {DEFERRED|IMMEDIATE} */
 	Constrrel    *RangeVar `json:"constrrel"`    /* opposite relation, if RI trigger */
+}
+
+func (node CreateTrigStmt) MarshalJSON() ([]byte, error) {
+	type CreateTrigStmtMarshalAlias CreateTrigStmt
+	return json.Marshal(map[string]interface{}{
+		"CREATETRIGSTMT": (*CreateTrigStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *CreateTrigStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

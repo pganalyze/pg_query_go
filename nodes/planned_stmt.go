@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type PlannedStmt struct {
 	CommandType CmdType `json:"commandType"` /* select|insert|update|delete */
 
@@ -35,4 +37,16 @@ type PlannedStmt struct {
 	InvalItems []Node `json:"invalItems"` /* other dependencies, as PlanInvalItems */
 
 	NParamExec int `json:"nParamExec"` /* number of PARAM_EXEC Params used */
+}
+
+func (node PlannedStmt) MarshalJSON() ([]byte, error) {
+	type PlannedStmtMarshalAlias PlannedStmt
+	return json.Marshal(map[string]interface{}{
+		"PLANNEDSTMT": (*PlannedStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *PlannedStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

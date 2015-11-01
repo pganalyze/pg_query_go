@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RangeTblEntry struct {
 	Rtekind RTEKind `json:"rtekind"` /* see above */
 
@@ -83,4 +85,16 @@ type RangeTblEntry struct {
 	SelectedCols  []uint32 `json:"selectedCols"`  /* columns needing SELECT permission */
 	ModifiedCols  []uint32 `json:"modifiedCols"`  /* columns needing INSERT/UPDATE permission */
 	SecurityQuals []Node   `json:"securityQuals"` /* any security barrier quals to apply */
+}
+
+func (node RangeTblEntry) MarshalJSON() ([]byte, error) {
+	type RangeTblEntryMarshalAlias RangeTblEntry
+	return json.Marshal(map[string]interface{}{
+		"RANGETBLENTRY": (*RangeTblEntryMarshalAlias)(&node),
+	})
+}
+
+func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

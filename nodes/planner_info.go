@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type PlannerInfo struct {
 	Parse *Query `json:"parse"` /* the Query being planned */
 
@@ -133,4 +135,16 @@ type PlannerInfo struct {
 
 	/* optional private data for join_search_hook, e.g., GEQO */
 	JoinSearchPrivate interface{} `json:"join_search_private"`
+}
+
+func (node PlannerInfo) MarshalJSON() ([]byte, error) {
+	type PlannerInfoMarshalAlias PlannerInfo
+	return json.Marshal(map[string]interface{}{
+		"PLANNERINFO": (*PlannerInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *PlannerInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

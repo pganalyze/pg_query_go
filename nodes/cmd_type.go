@@ -14,4 +14,5 @@ const (
 	 * etc. */
 	CMD_NOTHING /* dummy command for instead nothing rules
 	 * with qual */
+
 )

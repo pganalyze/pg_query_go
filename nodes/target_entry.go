@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type TargetEntry struct {
 	Xpr             Expr       `json:"xpr"`
 	Expr            *Expr      `json:"expr"`            /* expression to evaluate */
@@ -13,4 +15,16 @@ type TargetEntry struct {
 	Resorigcol AttrNumber `json:"resorigcol"` /* column's number in source table */
 	Resjunk    bool       `json:"resjunk"`    /* set to true to eliminate the attribute from
 	 * final target list */
+}
+
+func (node TargetEntry) MarshalJSON() ([]byte, error) {
+	type TargetEntryMarshalAlias TargetEntry
+	return json.Marshal(map[string]interface{}{
+		"TARGETENTRY": (*TargetEntryMarshalAlias)(&node),
+	})
+}
+
+func (node *TargetEntry) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

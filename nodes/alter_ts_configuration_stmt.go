@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type AlterTSConfigurationStmt struct {
 	Cfgname []Node `json:"cfgname"` /* qualified name (list of Value strings) */
 
@@ -14,4 +16,16 @@ type AlterTSConfigurationStmt struct {
 	Override  bool   `json:"override"`   /* if true - remove old variant */
 	Replace   bool   `json:"replace"`    /* if true - replace dictionary by another */
 	MissingOk bool   `json:"missing_ok"` /* for DROP - skip error if missing? */
+}
+
+func (node AlterTSConfigurationStmt) MarshalJSON() ([]byte, error) {
+	type AlterTSConfigurationStmtMarshalAlias AlterTSConfigurationStmt
+	return json.Marshal(map[string]interface{}{
+		"ALTERTSCONFIGURATIONSTMT": (*AlterTSConfigurationStmtMarshalAlias)(&node),
+	})
+}
+
+func (node *AlterTSConfigurationStmt) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }

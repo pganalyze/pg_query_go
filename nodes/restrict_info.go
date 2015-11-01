@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "encoding/json"
+
 type RestrictInfo struct {
 	Clause *Expr `json:"clause"` /* the represented clause of WHERE or JOIN */
 
@@ -62,4 +64,16 @@ type RestrictInfo struct {
 	/* cache space for hashclause processing; -1 if not yet set */
 	LeftBucketsize  Selectivity `json:"left_bucketsize"`  /* avg bucketsize of left side */
 	RightBucketsize Selectivity `json:"right_bucketsize"` /* avg bucketsize of right side */
+}
+
+func (node RestrictInfo) MarshalJSON() ([]byte, error) {
+	type RestrictInfoMarshalAlias RestrictInfo
+	return json.Marshal(map[string]interface{}{
+		"RESTRICTINFO": (*RestrictInfoMarshalAlias)(&node),
+	})
+}
+
+func (node *RestrictInfo) UnmarshalJSON(input []byte) (err error) {
+	err = UnmarshalNodeFieldJSON(input, node)
+	return
 }
