@@ -7,7 +7,7 @@ LIBDIRGZ = $(TMPDIR)/libpg_query-master.tar.gz
 default: test
 
 $(LIBDIR): $(LIBDIRGZ)
-	cd $(TMPDIR); tar -xf $(LIBDIRGZ)
+	cd $(TMPDIR); tar -xzf $(LIBDIRGZ)
 	cd $(LIBDIR); make
 
 $(LIBDIRGZ):
