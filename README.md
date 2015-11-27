@@ -24,7 +24,7 @@ Due to compiling parts of PostgreSQL, running `make` will take a while. Expect u
 
 ## Usage
 
-### Parsing a query
+### Parsing a query into JSON
 
 Put the following in a new Go package, after having installed pg_query as above:
 
@@ -37,19 +37,24 @@ import (
 )
 
 func main() {
-  tree := pg_query.Parse("SELECT 1")
+  tree, err := pg_query.ParseToJSON("SELECT 1")
+  if err != nil {
+    panic(err);
+  }
   fmt.Printf("%s\n", tree)
 }
 ```
 
-Running will output the query's parse tree:
+Running will output the query's parse tree as JSON:
 
 ```json
 $ go run main.go
 [{"SELECT": {"distinctClause": null, "intoClause": null, "targetList": [{"RESTARGET": {"name": null, "indirection": null, "val": {"A_CONST": {"val": 1, "location": 7}}, "location": 7}}], "fromClause": null, "whereClause": null, "groupClause": null, "havingClause": null, "windowClause": null, "valuesLists": null, "sortClause": null, "limitOffset": null, "limitCount": null, "lockingClause": null, "withClause": null, "op": 0, "all": false, "larg": null, "rarg": null}}]
 ```
 
-You can also unmarshal this parse tree into actual structs to make it easier to work with:
+### Parsing a query into Go structs
+
+When working with the query information inside Go its recommended you use the `Parse()` method which returns Go structs:
 
 ```go
 package main
@@ -62,10 +67,7 @@ import (
 )
 
 func main() {
-  json := pg_query.Parse(test.input)
-
-  var tree pg_query.ParsetreeList
-  err := json.Unmarshal([]byte(json), &tree)
+  tree, err := pg_query.Parse("SELECT 1")
   if err != nil {
     panic(err);
   }
@@ -76,6 +78,7 @@ func main() {
         TargetList: []nodes.Node{
           nodes.ResTarget{
             Val: nodes.A_Const{
+              Type: "integer",
               Val: nodes.Value{
                 Type: nodes.T_Integer,
                 Ival: 1,
@@ -90,6 +93,8 @@ func main() {
   }));
 }
 ```
+
+You can find all the node struct types in the `nodes/` directory.
 
 ## Authors
 
