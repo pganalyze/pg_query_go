@@ -1,4 +1,4 @@
-// Auto-generated - DO NOT EDIT
+// Auto-generated from postgres/src/include/nodes/params.h - DO NOT EDIT
 
 package pg_query
 

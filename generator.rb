@@ -214,7 +214,7 @@ class Generator
 
     node_unmarshal_cases = []
 
-    @struct_defs.each do |_group, defs|
+    @struct_defs.each do |source_filename, defs|
       defs.each do |type, struct_def|
         next if IGNORE_LIST.include?(type)
 
@@ -290,7 +290,7 @@ func (node *#{type}) UnmarshalJSON(input []byte) (err error) {
 
   return
 }
-        )
+        ), true, "postgres/src/include/#{source_filename}.h"
 
         write_nodes_file(type + '_deparse', %(
 func (node #{type}) Deparse() string {
@@ -352,7 +352,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 }
     )
 
-    @enum_defs.each do |_group, defs|
+    @enum_defs.each do |source_filename, defs|
       defs.each do |type, enum_def|
         next if IGNORE_LIST.include?(type)
 
@@ -379,7 +379,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
           const (
             #{go_enum_def}
           )
-        )
+        ), true, "postgres/src/include/#{source_filename}.h"
       end
     end
 
@@ -392,11 +392,16 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
     write_nodes_file('typedefs', typedefs_go)
   end
 
-  def write_nodes_file(name, content, overwrite = true)
+  def write_nodes_file(name, content, overwrite = true, source_file = nil)
     path = format('./nodes/%s.go', underscore(name))
     return if !overwrite && File.exist?(path)
 
-    content = "// Auto-generated - DO NOT EDIT\n\npackage pg_query\n\n" + content
+    if source_file
+      header = "// Auto-generated from #{source_file} - DO NOT EDIT\n"
+    else
+      header = "// Auto-generated - DO NOT EDIT\n"
+    end
+    content = header + "\npackage pg_query\n\n" + content
     File.write(path, content)
     system format('go fmt %s', path)
   end
