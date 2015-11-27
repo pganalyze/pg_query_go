@@ -106,5 +106,5 @@ You can find all the node struct types in the `nodes/` directory.
 Copyright (c) 2015, Lukas Fittl <lukas@fittl.com><br>
 pg_query.go is licensed under the 3-clause BSD license, see LICENSE file for details.
 
-Query normalization code:<br>
-Copyright (c) 2008-2015, PostgreSQL Global Development Group
+This project includes code derived from the [PostgreSQL project](http://www.postgresql.org/),
+see LICENSE.POSTGRESQL for details.
