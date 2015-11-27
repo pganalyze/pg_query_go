@@ -9,5 +9,4 @@ const (
 	SORTBY_ASC
 	SORTBY_DESC
 	SORTBY_USING /* not allowed in CREATE INDEX ... */
-
 )

@@ -13,5 +13,4 @@ const (
 	IS_XMLROOT             /* XMLROOT(xml, version, standalone) */
 	IS_XMLSERIALIZE        /* XMLSERIALIZE(is_document, xmlval) */
 	IS_DOCUMENT            /* xmlval IS DOCUMENT */
-
 )

@@ -12,7 +12,6 @@ type RangeFunction struct {
 	Alias      *Alias `json:"alias"`       /* table alias & optional column aliases */
 	Coldeflist []Node `json:"coldeflist"`  /* list of ColumnDef nodes to describe result
 	 * of function returning RECORD */
-
 }
 
 func (node RangeFunction) MarshalJSON() ([]byte, error) {

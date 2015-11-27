@@ -15,5 +15,4 @@ const (
 	AEXPR_NULLIF   /* NULLIF - name must be "=" */
 	AEXPR_OF       /* IS [NOT] OF - name must be "=" or "<>" */
 	AEXPR_IN       /* [NOT] IN - name must be "=" or "<>" */
-
 )

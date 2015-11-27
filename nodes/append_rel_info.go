@@ -5,7 +5,6 @@ package pg_query
 import "encoding/json"
 
 type AppendRelInfo struct {
-
 	/*
 	 * These fields uniquely identify this append relationship.  There can be
 	 * (in fact, always should be) multiple AppendRelInfos for the same

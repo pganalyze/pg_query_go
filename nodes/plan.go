@@ -5,7 +5,6 @@ package pg_query
 import "encoding/json"
 
 type Plan struct {
-
 	/*
 	 * estimated execution costs for plan (see costsize.c for more info)
 	 */

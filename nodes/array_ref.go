@@ -21,7 +21,6 @@ type ArrayRef struct {
 
 	Refassgnexpr *Expr `json:"refassgnexpr"` /* expression for the source value, or NULL if
 	 * fetch */
-
 }
 
 func (node ArrayRef) MarshalJSON() ([]byte, error) {

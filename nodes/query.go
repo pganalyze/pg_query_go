@@ -58,7 +58,6 @@ type Query struct {
 
 	ConstraintDeps []Node `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
 	 * depends on to be semantically valid */
-
 }
 
 func (node Query) MarshalJSON() ([]byte, error) {

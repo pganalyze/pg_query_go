@@ -8,7 +8,6 @@ type ParamListInfoData struct {
 	ParamFetchArg  interface{} `json:"paramFetchArg"`
 	ParserSetupArg interface{} `json:"parserSetupArg"`
 	NumParams      int         `json:"numParams"` /* number of ParamExternDatas following */
-
 }
 
 func (node ParamListInfoData) MarshalJSON() ([]byte, error) {

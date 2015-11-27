@@ -61,6 +61,7 @@ class Generator
       @target_group = group
       @struct_defs[@target_group] = {}
       @enum_defs[@target_group] = {}
+      @comment_text = nil
 
       lines = File.read(File.join(@pgdir, format('/src/include/%s.h', @target_group)))
       lines.each_line do |line|
@@ -70,13 +71,23 @@ class Generator
           handle_enum(line)
         elsif line[/^typedef struct ([A-z]+)\s*(\/\*.+)?$/]
           next if IGNORE_LIST.include?($1)
-          @current_struct_def = []
+          @current_struct_def = { fields: [], comment: @open_comment_text }
+          @open_comment_text = nil
         elsif line[/^typedef enum( [A-z]+)?\s*(\/\*.+)?$/]
           next if IGNORE_LIST.include?($1)
-          @current_enum_def = []
+          @current_enum_def = { values: [], comment: @open_comment_text }
+          @open_comment_text = nil
         elsif line[/^typedef( struct)? ([A-z0-9\s_]+) \*?([A-z]+);/]
           next if IGNORE_LIST.include?($2) || IGNORE_LIST.include?($3)
-          @typedefs << { new_type_name: $3, source_type: $2 }
+          @typedefs << { new_type_name: $3, source_type: $2, comment: @open_comment_text }
+          @open_comment_text = nil
+        elsif line.strip.start_with?('/*')
+          @open_comment_text = line
+          @open_comment = !line.include?('*/')
+        elsif @open_comment
+          @open_comment_text += "\n" unless @open_comment_text.end_with?("\n")
+          @open_comment_text += line
+          @open_comment = !line.include?('*/')
         end
       end
     end
@@ -88,21 +99,21 @@ class Generator
       c_type = $2 + $3.to_s
       comment = $5
 
-      @current_struct_def << { name: name, c_type: c_type, comment: comment }
+      @current_struct_def[:fields] << { name: name, c_type: c_type, comment: comment }
 
       @open_comment = line.include?('/*') && !line.include?('*/')
     elsif line[/^\}\s+([A-z]+);/]
       @struct_defs[@target_group][$1] = @current_struct_def
       @current_struct_def = nil
     elsif line.strip.start_with?('/*')
-      @current_struct_def << { comment: line }
+      @current_struct_def[:fields] << { comment: line }
       @open_comment = !line.include?('*/')
     elsif @open_comment
-      @current_struct_def.last[:comment] += "\n" unless @current_struct_def.last[:comment].end_with?("\n")
-      @current_struct_def.last[:comment] += line
+      @current_struct_def[:fields].last[:comment] += "\n" unless @current_struct_def[:fields].last[:comment].end_with?("\n")
+      @current_struct_def[:fields].last[:comment] += line
       @open_comment = !line.include?('*/')
-    elsif !@current_struct_def.empty?
-      @current_struct_def << { comment: '' }
+    elsif !@current_struct_def[:fields].empty?
+      @current_struct_def[:fields] << { comment: '' }
     end
   end
 
@@ -111,21 +122,21 @@ class Generator
       name = $1
       comment = $2
 
-      @current_enum_def << { name: name, comment: comment }
+      @current_enum_def[:values] << { name: name, comment: comment }
 
       @open_comment = line.include?('/*') && !line.include?('*/')
     elsif line[/^\}\s+([A-z]+);/]
       @enum_defs[@target_group][$1] = @current_enum_def
       @current_enum_def = nil
     elsif line.strip.start_with?('/*')
-      @current_enum_def << { comment: line }
+      @current_enum_def[:values] << { comment: line }
       @open_comment = !line.include?('*/')
     elsif @open_comment
-      @current_enum_def.last[:comment] += "\n" unless @current_enum_def.last[:comment].end_with?("\n")
-      @current_enum_def.last[:comment] += line
+      @current_enum_def[:values].last[:comment] += "\n" unless @current_enum_def[:values].last[:comment].end_with?("\n")
+      @current_enum_def[:values].last[:comment] += line
       @open_comment = !line.include?('*/')
     elsif !@current_enum_def.empty?
-      @current_enum_def << { comment: '' }
+      @current_enum_def[:values] << { comment: '' }
     end
   end
 
@@ -222,7 +233,7 @@ class Generator
 
         struct_def_go = ''
         unmarshal_def = ''
-        struct_def.each_with_index do |field, index|
+        struct_def[:fields].each_with_index do |field, index|
           if !field[:name] && field[:comment]
             struct_def_go += "\n" if index != 0
             struct_def_go += field[:comment]
@@ -269,7 +280,8 @@ class Generator
 import "encoding/json"
 
 type #{type} struct {
-#{struct_def_go}}
+#{struct_def_go.strip}
+}
 
 func (node #{type}) MarshalJSON() ([]byte, error) {
   type #{type}MarshalAlias #{type}
@@ -358,7 +370,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 
         go_enum_def = ''
         output_first_type_field = false
-        enum_def.each_with_index do |field, index|
+        enum_def[:values].each_with_index do |field, index|
           if !field[:name] && field[:comment]
             go_enum_def += "\n" if index != 0
             go_enum_def += field[:comment]
@@ -377,7 +389,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
           type #{type} uint
 
           const (
-            #{go_enum_def}
+            #{go_enum_def.strip}
           )
         ), true, "postgres/src/include/#{source_filename}.h"
       end

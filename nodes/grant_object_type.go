@@ -18,5 +18,4 @@ const (
 	ACL_OBJECT_NAMESPACE             /* namespace */
 	ACL_OBJECT_TABLESPACE            /* tablespace */
 	ACL_OBJECT_TYPE                  /* type */
-
 )

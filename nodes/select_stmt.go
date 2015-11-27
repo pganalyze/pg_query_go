@@ -5,7 +5,6 @@ package pg_query
 import "encoding/json"
 
 type SelectStmt struct {
-
 	/*
 	 * These fields are used only in "leaf" SelectStmts.
 	 */

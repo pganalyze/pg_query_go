@@ -12,5 +12,4 @@ const (
 	EXPR_SUBLINK
 	ARRAY_SUBLINK
 	CTE_SUBLINK /* for SubPlans only */
-
 )

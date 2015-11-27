@@ -11,5 +11,4 @@ const (
 	VAR_SET_MULTI          /* special case for SET TRANSACTION ... */
 	VAR_RESET              /* RESET var */
 	VAR_RESET_ALL          /* RESET ALL */
-
 )

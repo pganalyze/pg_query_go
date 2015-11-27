@@ -10,5 +10,4 @@ const (
 	QSRC_INSTEAD_RULE             /* added by unconditional INSTEAD rule */
 	QSRC_QUAL_INSTEAD_RULE        /* added by conditional INSTEAD rule */
 	QSRC_NON_INSTEAD_RULE         /* added by non-INSTEAD rule */
-
 )

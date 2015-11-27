@@ -16,7 +16,6 @@ type TargetEntry struct {
 	Resorigcol AttrNumber `json:"resorigcol"` /* column's number in source table */
 	Resjunk    bool       `json:"resjunk"`    /* set to true to eliminate the attribute from
 	 * final target list */
-
 }
 
 func (node TargetEntry) MarshalJSON() ([]byte, error) {

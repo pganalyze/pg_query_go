@@ -36,5 +36,4 @@ const (
 	/*
 	 * We might need additional join types someday.
 	 */
-
 )
