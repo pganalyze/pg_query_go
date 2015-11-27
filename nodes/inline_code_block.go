@@ -18,6 +18,33 @@ func (node InlineCodeBlock) MarshalJSON() ([]byte, error) {
 }
 
 func (node *InlineCodeBlock) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["source_text"] != nil {
+		err = json.Unmarshal(fields["source_text"], &node.SourceText)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["langOid"] != nil {
+		err = json.Unmarshal(fields["langOid"], &node.LangOid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["langIsTrusted"] != nil {
+		err = json.Unmarshal(fields["langIsTrusted"], &node.LangIsTrusted)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

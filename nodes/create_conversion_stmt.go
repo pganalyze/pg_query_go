@@ -20,6 +20,47 @@ func (node CreateConversionStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateConversionStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["conversion_name"] != nil {
+		node.ConversionName, err = UnmarshalNodeArrayJSON(fields["conversion_name"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["for_encoding_name"] != nil {
+		err = json.Unmarshal(fields["for_encoding_name"], &node.ForEncodingName)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["to_encoding_name"] != nil {
+		err = json.Unmarshal(fields["to_encoding_name"], &node.ToEncodingName)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["func_name"] != nil {
+		node.FuncName, err = UnmarshalNodeArrayJSON(fields["func_name"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["def"] != nil {
+		err = json.Unmarshal(fields["def"], &node.Def)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

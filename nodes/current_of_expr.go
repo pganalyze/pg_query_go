@@ -19,6 +19,40 @@ func (node CurrentOfExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CurrentOfExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cvarno"] != nil {
+		err = json.Unmarshal(fields["cvarno"], &node.Cvarno)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cursor_name"] != nil {
+		err = json.Unmarshal(fields["cursor_name"], &node.CursorName)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cursor_param"] != nil {
+		err = json.Unmarshal(fields["cursor_param"], &node.CursorParam)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -17,6 +17,26 @@ func (node DropTableSpaceStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DropTableSpaceStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["tablespacename"] != nil {
+		err = json.Unmarshal(fields["tablespacename"], &node.Tablespacename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

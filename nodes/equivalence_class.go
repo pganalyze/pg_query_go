@@ -12,6 +12,7 @@ type EquivalenceClass struct {
 	EcDerives    []Node   `json:"ec_derives"`    /* list of derived RestrictInfos */
 	EcRelids     []uint32 `json:"ec_relids"`     /* all relids appearing in ec_members, except
 	 * for child members (see below) */
+
 	EcHasConst       bool              `json:"ec_has_const"`        /* any pseudoconstants in ec_members? */
 	EcHasVolatile    bool              `json:"ec_has_volatile"`     /* the (sole) member is a volatile expr */
 	EcBelowOuterJoin bool              `json:"ec_below_outer_join"` /* equivalence applies below an OJ */
@@ -28,6 +29,101 @@ func (node EquivalenceClass) MarshalJSON() ([]byte, error) {
 }
 
 func (node *EquivalenceClass) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["ec_opfamilies"] != nil {
+		node.EcOpfamilies, err = UnmarshalNodeArrayJSON(fields["ec_opfamilies"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_collation"] != nil {
+		err = json.Unmarshal(fields["ec_collation"], &node.EcCollation)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_members"] != nil {
+		node.EcMembers, err = UnmarshalNodeArrayJSON(fields["ec_members"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_sources"] != nil {
+		node.EcSources, err = UnmarshalNodeArrayJSON(fields["ec_sources"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_derives"] != nil {
+		node.EcDerives, err = UnmarshalNodeArrayJSON(fields["ec_derives"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_relids"] != nil {
+		err = json.Unmarshal(fields["ec_relids"], &node.EcRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_has_const"] != nil {
+		err = json.Unmarshal(fields["ec_has_const"], &node.EcHasConst)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_has_volatile"] != nil {
+		err = json.Unmarshal(fields["ec_has_volatile"], &node.EcHasVolatile)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_below_outer_join"] != nil {
+		err = json.Unmarshal(fields["ec_below_outer_join"], &node.EcBelowOuterJoin)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_broken"] != nil {
+		err = json.Unmarshal(fields["ec_broken"], &node.EcBroken)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_sortref"] != nil {
+		err = json.Unmarshal(fields["ec_sortref"], &node.EcSortref)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ec_merged"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["ec_merged"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceClass)
+			node.EcMerged = &val
+		}
+	}
+
 	return
 }

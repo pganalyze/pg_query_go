@@ -26,6 +26,89 @@ func (node WindowAgg) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WindowAgg) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["winref"] != nil {
+		err = json.Unmarshal(fields["winref"], &node.Winref)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["partNumCols"] != nil {
+		err = json.Unmarshal(fields["partNumCols"], &node.PartNumCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["partColIdx"] != nil {
+		err = json.Unmarshal(fields["partColIdx"], &node.PartColIdx)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["partOperators"] != nil {
+		err = json.Unmarshal(fields["partOperators"], &node.PartOperators)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ordNumCols"] != nil {
+		err = json.Unmarshal(fields["ordNumCols"], &node.OrdNumCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ordColIdx"] != nil {
+		err = json.Unmarshal(fields["ordColIdx"], &node.OrdColIdx)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ordOperators"] != nil {
+		err = json.Unmarshal(fields["ordOperators"], &node.OrdOperators)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["frameOptions"] != nil {
+		err = json.Unmarshal(fields["frameOptions"], &node.FrameOptions)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["startOffset"] != nil {
+		node.StartOffset, err = UnmarshalNodeJSON(fields["startOffset"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["endOffset"] != nil {
+		node.EndOffset, err = UnmarshalNodeJSON(fields["endOffset"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

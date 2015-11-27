@@ -20,6 +20,57 @@ func (node InsertStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *InsertStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["cols"] != nil {
+		node.Cols, err = UnmarshalNodeArrayJSON(fields["cols"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["selectStmt"] != nil {
+		node.SelectStmt, err = UnmarshalNodeJSON(fields["selectStmt"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["returningList"] != nil {
+		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withClause"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["withClause"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(WithClause)
+			node.WithClause = &val
+		}
+	}
+
 	return
 }

@@ -22,6 +22,61 @@ func (node IndexElem) MarshalJSON() ([]byte, error) {
 }
 
 func (node *IndexElem) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["expr"] != nil {
+		node.Expr, err = UnmarshalNodeJSON(fields["expr"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexcolname"] != nil {
+		err = json.Unmarshal(fields["indexcolname"], &node.Indexcolname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["collation"] != nil {
+		node.Collation, err = UnmarshalNodeArrayJSON(fields["collation"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opclass"] != nil {
+		node.Opclass, err = UnmarshalNodeArrayJSON(fields["opclass"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ordering"] != nil {
+		err = json.Unmarshal(fields["ordering"], &node.Ordering)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nulls_ordering"] != nil {
+		err = json.Unmarshal(fields["nulls_ordering"], &node.NullsOrdering)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

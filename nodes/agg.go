@@ -21,6 +21,54 @@ func (node Agg) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Agg) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["aggstrategy"] != nil {
+		err = json.Unmarshal(fields["aggstrategy"], &node.Aggstrategy)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numCols"] != nil {
+		err = json.Unmarshal(fields["numCols"], &node.NumCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grpColIdx"] != nil {
+		err = json.Unmarshal(fields["grpColIdx"], &node.GrpColIdx)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grpOperators"] != nil {
+		err = json.Unmarshal(fields["grpOperators"], &node.GrpOperators)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numGroups"] != nil {
+		err = json.Unmarshal(fields["numGroups"], &node.NumGroups)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

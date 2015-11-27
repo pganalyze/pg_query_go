@@ -22,6 +22,66 @@ func (node RuleStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RuleStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["rulename"] != nil {
+		err = json.Unmarshal(fields["rulename"], &node.Rulename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["whereClause"] != nil {
+		node.WhereClause, err = UnmarshalNodeJSON(fields["whereClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["event"] != nil {
+		err = json.Unmarshal(fields["event"], &node.Event)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["instead"] != nil {
+		err = json.Unmarshal(fields["instead"], &node.Instead)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["actions"] != nil {
+		node.Actions, err = UnmarshalNodeArrayJSON(fields["actions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["replace"] != nil {
+		err = json.Unmarshal(fields["replace"], &node.Replace)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -20,6 +20,52 @@ func (node UniquePath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *UniquePath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["path"] != nil {
+		err = json.Unmarshal(fields["path"], &node.Path)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subpath"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subpath"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.Subpath = &val
+		}
+	}
+
+	if fields["umethod"] != nil {
+		err = json.Unmarshal(fields["umethod"], &node.Umethod)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["in_operators"] != nil {
+		node.InOperators, err = UnmarshalNodeArrayJSON(fields["in_operators"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["uniq_exprs"] != nil {
+		node.UniqExprs, err = UnmarshalNodeArrayJSON(fields["uniq_exprs"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

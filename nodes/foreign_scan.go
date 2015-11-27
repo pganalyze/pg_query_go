@@ -19,6 +19,40 @@ func (node ForeignScan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ForeignScan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["scan"] != nil {
+		err = json.Unmarshal(fields["scan"], &node.Scan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fdw_exprs"] != nil {
+		node.FdwExprs, err = UnmarshalNodeArrayJSON(fields["fdw_exprs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fdw_private"] != nil {
+		node.FdwPrivate, err = UnmarshalNodeArrayJSON(fields["fdw_private"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fsSystemCol"] != nil {
+		err = json.Unmarshal(fields["fsSystemCol"], &node.FsSystemCol)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

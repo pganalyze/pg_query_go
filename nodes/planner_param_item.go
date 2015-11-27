@@ -17,6 +17,26 @@ func (node PlannerParamItem) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PlannerParamItem) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["item"] != nil {
+		node.Item, err = UnmarshalNodeJSON(fields["item"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramId"] != nil {
+		err = json.Unmarshal(fields["paramId"], &node.ParamId)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

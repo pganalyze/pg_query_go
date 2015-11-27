@@ -18,6 +18,33 @@ func (node Limit) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Limit) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["limitOffset"] != nil {
+		node.LimitOffset, err = UnmarshalNodeJSON(fields["limitOffset"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["limitCount"] != nil {
+		node.LimitCount, err = UnmarshalNodeJSON(fields["limitCount"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

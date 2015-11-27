@@ -20,6 +20,47 @@ func (node AggClauseCosts) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AggClauseCosts) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["numAggs"] != nil {
+		err = json.Unmarshal(fields["numAggs"], &node.NumAggs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numOrderedAggs"] != nil {
+		err = json.Unmarshal(fields["numOrderedAggs"], &node.NumOrderedAggs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["transCost"] != nil {
+		err = json.Unmarshal(fields["transCost"], &node.TransCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["finalCost"] != nil {
+		err = json.Unmarshal(fields["finalCost"], &node.FinalCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["transitionSpace"] != nil {
+		err = json.Unmarshal(fields["transitionSpace"], &node.TransitionSpace)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

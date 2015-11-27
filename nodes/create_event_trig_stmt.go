@@ -19,6 +19,40 @@ func (node CreateEventTrigStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateEventTrigStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["trigname"] != nil {
+		err = json.Unmarshal(fields["trigname"], &node.Trigname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["eventname"] != nil {
+		err = json.Unmarshal(fields["eventname"], &node.Eventname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["whenclause"] != nil {
+		node.Whenclause, err = UnmarshalNodeArrayJSON(fields["whenclause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcname"] != nil {
+		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

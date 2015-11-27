@@ -17,6 +17,26 @@ func (node A_Indices) MarshalJSON() ([]byte, error) {
 }
 
 func (node *A_Indices) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["lidx"] != nil {
+		node.Lidx, err = UnmarshalNodeJSON(fields["lidx"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["uidx"] != nil {
+		node.Uidx, err = UnmarshalNodeJSON(fields["uidx"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

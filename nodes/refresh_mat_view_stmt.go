@@ -18,6 +18,38 @@ func (node RefreshMatViewStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RefreshMatViewStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["concurrent"] != nil {
+		err = json.Unmarshal(fields["concurrent"], &node.Concurrent)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["skipData"] != nil {
+		err = json.Unmarshal(fields["skipData"], &node.SkipData)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
 	return
 }

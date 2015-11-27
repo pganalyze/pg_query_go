@@ -19,6 +19,40 @@ func (node CaseTestExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CaseTestExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typeId"] != nil {
+		err = json.Unmarshal(fields["typeId"], &node.TypeId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typeMod"] != nil {
+		err = json.Unmarshal(fields["typeMod"], &node.TypeMod)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["collation"] != nil {
+		err = json.Unmarshal(fields["collation"], &node.Collation)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

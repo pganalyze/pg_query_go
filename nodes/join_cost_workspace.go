@@ -35,6 +35,89 @@ func (node JoinCostWorkspace) MarshalJSON() ([]byte, error) {
 }
 
 func (node *JoinCostWorkspace) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["startup_cost"] != nil {
+		err = json.Unmarshal(fields["startup_cost"], &node.StartupCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["total_cost"] != nil {
+		err = json.Unmarshal(fields["total_cost"], &node.TotalCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["run_cost"] != nil {
+		err = json.Unmarshal(fields["run_cost"], &node.RunCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inner_run_cost"] != nil {
+		err = json.Unmarshal(fields["inner_run_cost"], &node.InnerRunCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inner_rescan_run_cost"] != nil {
+		err = json.Unmarshal(fields["inner_rescan_run_cost"], &node.InnerRescanRunCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outer_rows"] != nil {
+		err = json.Unmarshal(fields["outer_rows"], &node.OuterRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inner_rows"] != nil {
+		err = json.Unmarshal(fields["inner_rows"], &node.InnerRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outer_skip_rows"] != nil {
+		err = json.Unmarshal(fields["outer_skip_rows"], &node.OuterSkipRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inner_skip_rows"] != nil {
+		err = json.Unmarshal(fields["inner_skip_rows"], &node.InnerSkipRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numbuckets"] != nil {
+		err = json.Unmarshal(fields["numbuckets"], &node.Numbuckets)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numbatches"] != nil {
+		err = json.Unmarshal(fields["numbatches"], &node.Numbatches)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -21,6 +21,54 @@ func (node DropStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DropStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["objects"] != nil {
+		node.Objects, err = UnmarshalNodeArrayJSON(fields["objects"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["arguments"] != nil {
+		node.Arguments, err = UnmarshalNodeArrayJSON(fields["arguments"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["removeType"] != nil {
+		err = json.Unmarshal(fields["removeType"], &node.RemoveType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["concurrent"] != nil {
+		err = json.Unmarshal(fields["concurrent"], &node.Concurrent)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

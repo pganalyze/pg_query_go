@@ -53,6 +53,227 @@ func (node IndexOptInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *IndexOptInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["indexoid"] != nil {
+		err = json.Unmarshal(fields["indexoid"], &node.Indexoid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["reltablespace"] != nil {
+		err = json.Unmarshal(fields["reltablespace"], &node.Reltablespace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rel"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["rel"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RelOptInfo)
+			node.Rel = &val
+		}
+	}
+
+	if fields["pages"] != nil {
+		err = json.Unmarshal(fields["pages"], &node.Pages)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tuples"] != nil {
+		err = json.Unmarshal(fields["tuples"], &node.Tuples)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tree_height"] != nil {
+		err = json.Unmarshal(fields["tree_height"], &node.TreeHeight)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ncolumns"] != nil {
+		err = json.Unmarshal(fields["ncolumns"], &node.Ncolumns)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexkeys"] != nil {
+		err = json.Unmarshal(fields["indexkeys"], &node.Indexkeys)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexcollations"] != nil {
+		err = json.Unmarshal(fields["indexcollations"], &node.Indexcollations)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opfamily"] != nil {
+		err = json.Unmarshal(fields["opfamily"], &node.Opfamily)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opcintype"] != nil {
+		err = json.Unmarshal(fields["opcintype"], &node.Opcintype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sortopfamily"] != nil {
+		err = json.Unmarshal(fields["sortopfamily"], &node.Sortopfamily)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["reverse_sort"] != nil {
+		err = json.Unmarshal(fields["reverse_sort"], &node.ReverseSort)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nulls_first"] != nil {
+		err = json.Unmarshal(fields["nulls_first"], &node.NullsFirst)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relam"] != nil {
+		err = json.Unmarshal(fields["relam"], &node.Relam)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amcostestimate"] != nil {
+		err = json.Unmarshal(fields["amcostestimate"], &node.Amcostestimate)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexprs"] != nil {
+		node.Indexprs, err = UnmarshalNodeArrayJSON(fields["indexprs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indpred"] != nil {
+		node.Indpred, err = UnmarshalNodeArrayJSON(fields["indpred"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indextlist"] != nil {
+		node.Indextlist, err = UnmarshalNodeArrayJSON(fields["indextlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["predOK"] != nil {
+		err = json.Unmarshal(fields["predOK"], &node.PredOk)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["unique"] != nil {
+		err = json.Unmarshal(fields["unique"], &node.Unique)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["immediate"] != nil {
+		err = json.Unmarshal(fields["immediate"], &node.Immediate)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hypothetical"] != nil {
+		err = json.Unmarshal(fields["hypothetical"], &node.Hypothetical)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["canreturn"] != nil {
+		err = json.Unmarshal(fields["canreturn"], &node.Canreturn)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amcanorderbyop"] != nil {
+		err = json.Unmarshal(fields["amcanorderbyop"], &node.Amcanorderbyop)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amoptionalkey"] != nil {
+		err = json.Unmarshal(fields["amoptionalkey"], &node.Amoptionalkey)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amsearcharray"] != nil {
+		err = json.Unmarshal(fields["amsearcharray"], &node.Amsearcharray)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amsearchnulls"] != nil {
+		err = json.Unmarshal(fields["amsearchnulls"], &node.Amsearchnulls)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amhasgettuple"] != nil {
+		err = json.Unmarshal(fields["amhasgettuple"], &node.Amhasgettuple)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["amhasgetbitmap"] != nil {
+		err = json.Unmarshal(fields["amhasgetbitmap"], &node.Amhasgetbitmap)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

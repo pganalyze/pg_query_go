@@ -17,6 +17,26 @@ func (node Alias) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Alias) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["aliasname"] != nil {
+		err = json.Unmarshal(fields["aliasname"], &node.Aliasname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["colnames"] != nil {
+		node.Colnames, err = UnmarshalNodeArrayJSON(fields["colnames"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

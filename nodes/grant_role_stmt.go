@@ -21,6 +21,54 @@ func (node GrantRoleStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *GrantRoleStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["granted_roles"] != nil {
+		node.GrantedRoles, err = UnmarshalNodeArrayJSON(fields["granted_roles"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grantee_roles"] != nil {
+		node.GranteeRoles, err = UnmarshalNodeArrayJSON(fields["grantee_roles"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["is_grant"] != nil {
+		err = json.Unmarshal(fields["is_grant"], &node.IsGrant)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["admin_opt"] != nil {
+		err = json.Unmarshal(fields["admin_opt"], &node.AdminOpt)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grantor"] != nil {
+		err = json.Unmarshal(fields["grantor"], &node.Grantor)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

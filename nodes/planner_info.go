@@ -118,11 +118,13 @@ type PlannerInfo struct {
 
 	HasInheritedTarget bool `json:"hasInheritedTarget"` /* true if parse->resultRelation is an
 	 * inheritance child rel */
+
 	HasJoinRtes            bool `json:"hasJoinRTEs"`            /* true if any RTEs are RTE_JOIN kind */
 	HasLateralRtes         bool `json:"hasLateralRTEs"`         /* true if any RTEs are marked LATERAL */
 	HasHavingQual          bool `json:"hasHavingQual"`          /* true if havingQual was non-null */
 	HasPseudoConstantQuals bool `json:"hasPseudoConstantQuals"` /* true if any RestrictInfo has
 	 * pseudoconstant = true */
+
 	HasRecursion bool `json:"hasRecursion"` /* true if planning a recursive WITH item */
 
 	/* These fields are used only when hasRecursion is true: */
@@ -145,6 +147,364 @@ func (node PlannerInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PlannerInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["parse"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["parse"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Query)
+			node.Parse = &val
+		}
+	}
+
+	if fields["glob"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["glob"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PlannerGlobal)
+			node.Glob = &val
+		}
+	}
+
+	if fields["query_level"] != nil {
+		err = json.Unmarshal(fields["query_level"], &node.QueryLevel)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parent_root"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["parent_root"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PlannerInfo)
+			node.ParentRoot = &val
+		}
+	}
+
+	if fields["plan_params"] != nil {
+		node.PlanParams, err = UnmarshalNodeArrayJSON(fields["plan_params"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["simple_rel_array"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["simple_rel_array"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RelOptInfo)
+			node.SimpleRelArray = &val
+		}
+	}
+
+	if fields["simple_rel_array_size"] != nil {
+		err = json.Unmarshal(fields["simple_rel_array_size"], &node.SimpleRelArraySize)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["simple_rte_array"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["simple_rte_array"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeTblEntry)
+			node.SimpleRteArray = &val
+		}
+	}
+
+	if fields["all_baserels"] != nil {
+		err = json.Unmarshal(fields["all_baserels"], &node.AllBaserels)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nullable_baserels"] != nil {
+		err = json.Unmarshal(fields["nullable_baserels"], &node.NullableBaserels)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["join_rel_list"] != nil {
+		node.JoinRelList, err = UnmarshalNodeArrayJSON(fields["join_rel_list"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["join_rel_level"] != nil {
+		node.JoinRelLevel, err = UnmarshalNodeArrayJSON(fields["join_rel_level"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["join_cur_level"] != nil {
+		err = json.Unmarshal(fields["join_cur_level"], &node.JoinCurLevel)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["init_plans"] != nil {
+		node.InitPlans, err = UnmarshalNodeArrayJSON(fields["init_plans"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cte_plan_ids"] != nil {
+		node.CtePlanIds, err = UnmarshalNodeArrayJSON(fields["cte_plan_ids"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["eq_classes"] != nil {
+		node.EqClasses, err = UnmarshalNodeArrayJSON(fields["eq_classes"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["canon_pathkeys"] != nil {
+		node.CanonPathkeys, err = UnmarshalNodeArrayJSON(fields["canon_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["left_join_clauses"] != nil {
+		node.LeftJoinClauses, err = UnmarshalNodeArrayJSON(fields["left_join_clauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["right_join_clauses"] != nil {
+		node.RightJoinClauses, err = UnmarshalNodeArrayJSON(fields["right_join_clauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["full_join_clauses"] != nil {
+		node.FullJoinClauses, err = UnmarshalNodeArrayJSON(fields["full_join_clauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["join_info_list"] != nil {
+		node.JoinInfoList, err = UnmarshalNodeArrayJSON(fields["join_info_list"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lateral_info_list"] != nil {
+		node.LateralInfoList, err = UnmarshalNodeArrayJSON(fields["lateral_info_list"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["append_rel_list"] != nil {
+		node.AppendRelList, err = UnmarshalNodeArrayJSON(fields["append_rel_list"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rowMarks"] != nil {
+		node.RowMarks, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["placeholder_list"] != nil {
+		node.PlaceholderList, err = UnmarshalNodeArrayJSON(fields["placeholder_list"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["query_pathkeys"] != nil {
+		node.QueryPathkeys, err = UnmarshalNodeArrayJSON(fields["query_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["group_pathkeys"] != nil {
+		node.GroupPathkeys, err = UnmarshalNodeArrayJSON(fields["group_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["window_pathkeys"] != nil {
+		node.WindowPathkeys, err = UnmarshalNodeArrayJSON(fields["window_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["distinct_pathkeys"] != nil {
+		node.DistinctPathkeys, err = UnmarshalNodeArrayJSON(fields["distinct_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sort_pathkeys"] != nil {
+		node.SortPathkeys, err = UnmarshalNodeArrayJSON(fields["sort_pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["minmax_aggs"] != nil {
+		node.MinmaxAggs, err = UnmarshalNodeArrayJSON(fields["minmax_aggs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["initial_rels"] != nil {
+		node.InitialRels, err = UnmarshalNodeArrayJSON(fields["initial_rels"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["total_table_pages"] != nil {
+		err = json.Unmarshal(fields["total_table_pages"], &node.TotalTablePages)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tuple_fraction"] != nil {
+		err = json.Unmarshal(fields["tuple_fraction"], &node.TupleFraction)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["limit_tuples"] != nil {
+		err = json.Unmarshal(fields["limit_tuples"], &node.LimitTuples)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasInheritedTarget"] != nil {
+		err = json.Unmarshal(fields["hasInheritedTarget"], &node.HasInheritedTarget)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasJoinRTEs"] != nil {
+		err = json.Unmarshal(fields["hasJoinRTEs"], &node.HasJoinRtes)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasLateralRTEs"] != nil {
+		err = json.Unmarshal(fields["hasLateralRTEs"], &node.HasLateralRtes)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasHavingQual"] != nil {
+		err = json.Unmarshal(fields["hasHavingQual"], &node.HasHavingQual)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasPseudoConstantQuals"] != nil {
+		err = json.Unmarshal(fields["hasPseudoConstantQuals"], &node.HasPseudoConstantQuals)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasRecursion"] != nil {
+		err = json.Unmarshal(fields["hasRecursion"], &node.HasRecursion)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["wt_param_id"] != nil {
+		err = json.Unmarshal(fields["wt_param_id"], &node.WtParamId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["non_recursive_plan"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["non_recursive_plan"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Plan)
+			node.NonRecursivePlan = &val
+		}
+	}
+
+	if fields["curOuterRels"] != nil {
+		err = json.Unmarshal(fields["curOuterRels"], &node.CurOuterRels)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["curOuterParams"] != nil {
+		node.CurOuterParams, err = UnmarshalNodeArrayJSON(fields["curOuterParams"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["join_search_private"] != nil {
+		err = json.Unmarshal(fields["join_search_private"], &node.JoinSearchPrivate)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

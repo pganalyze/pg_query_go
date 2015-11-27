@@ -19,6 +19,40 @@ func (node FetchStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *FetchStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["direction"] != nil {
+		err = json.Unmarshal(fields["direction"], &node.Direction)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["howMany"] != nil {
+		err = json.Unmarshal(fields["howMany"], &node.HowMany)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["portalname"] != nil {
+		err = json.Unmarshal(fields["portalname"], &node.Portalname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ismove"] != nil {
+		err = json.Unmarshal(fields["ismove"], &node.Ismove)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

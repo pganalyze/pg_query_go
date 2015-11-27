@@ -17,6 +17,26 @@ func (node NestLoop) MarshalJSON() ([]byte, error) {
 }
 
 func (node *NestLoop) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["join"] != nil {
+		err = json.Unmarshal(fields["join"], &node.Join)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nestParams"] != nil {
+		node.NestParams, err = UnmarshalNodeArrayJSON(fields["nestParams"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

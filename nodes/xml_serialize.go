@@ -19,6 +19,45 @@ func (node XmlSerialize) MarshalJSON() ([]byte, error) {
 }
 
 func (node *XmlSerialize) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xmloption"] != nil {
+		err = json.Unmarshal(fields["xmloption"], &node.Xmloption)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["expr"] != nil {
+		node.Expr, err = UnmarshalNodeJSON(fields["expr"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typeName"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TypeName)
+			node.TypeName = &val
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

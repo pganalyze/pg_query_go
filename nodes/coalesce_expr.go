@@ -20,6 +20,47 @@ func (node CoalesceExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CoalesceExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["coalescetype"] != nil {
+		err = json.Unmarshal(fields["coalescetype"], &node.Coalescetype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["coalescecollid"] != nil {
+		err = json.Unmarshal(fields["coalescecollid"], &node.Coalescecollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

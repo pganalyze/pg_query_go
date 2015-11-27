@@ -21,6 +21,59 @@ func (node CreateFunctionStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateFunctionStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["replace"] != nil {
+		err = json.Unmarshal(fields["replace"], &node.Replace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcname"] != nil {
+		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parameters"] != nil {
+		node.Parameters, err = UnmarshalNodeArrayJSON(fields["parameters"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["returnType"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["returnType"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TypeName)
+			node.ReturnType = &val
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withClause"] != nil {
+		node.WithClause, err = UnmarshalNodeArrayJSON(fields["withClause"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

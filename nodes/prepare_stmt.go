@@ -18,6 +18,33 @@ func (node PrepareStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PrepareStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["argtypes"] != nil {
+		node.Argtypes, err = UnmarshalNodeArrayJSON(fields["argtypes"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["query"] != nil {
+		node.Query, err = UnmarshalNodeJSON(fields["query"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -20,6 +20,47 @@ func (node MergePath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *MergePath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["jpath"] != nil {
+		err = json.Unmarshal(fields["jpath"], &node.Jpath)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["path_mergeclauses"] != nil {
+		node.PathMergeclauses, err = UnmarshalNodeArrayJSON(fields["path_mergeclauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outersortkeys"] != nil {
+		node.Outersortkeys, err = UnmarshalNodeArrayJSON(fields["outersortkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["innersortkeys"] != nil {
+		node.Innersortkeys, err = UnmarshalNodeArrayJSON(fields["innersortkeys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["materialize_inner"] != nil {
+		err = json.Unmarshal(fields["materialize_inner"], &node.MaterializeInner)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

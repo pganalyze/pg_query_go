@@ -23,6 +23,68 @@ func (node WindowDef) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WindowDef) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["refname"] != nil {
+		err = json.Unmarshal(fields["refname"], &node.Refname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["partitionClause"] != nil {
+		node.PartitionClause, err = UnmarshalNodeArrayJSON(fields["partitionClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["orderClause"] != nil {
+		node.OrderClause, err = UnmarshalNodeArrayJSON(fields["orderClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["frameOptions"] != nil {
+		err = json.Unmarshal(fields["frameOptions"], &node.FrameOptions)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["startOffset"] != nil {
+		node.StartOffset, err = UnmarshalNodeJSON(fields["startOffset"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["endOffset"] != nil {
+		node.EndOffset, err = UnmarshalNodeJSON(fields["endOffset"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

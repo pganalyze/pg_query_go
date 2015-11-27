@@ -18,6 +18,33 @@ func (node ParamPathInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ParamPathInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["ppi_req_outer"] != nil {
+		err = json.Unmarshal(fields["ppi_req_outer"], &node.PpiReqOuter)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ppi_rows"] != nil {
+		err = json.Unmarshal(fields["ppi_rows"], &node.PpiRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ppi_clauses"] != nil {
+		node.PpiClauses, err = UnmarshalNodeArrayJSON(fields["ppi_clauses"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

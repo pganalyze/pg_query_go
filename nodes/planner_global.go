@@ -40,6 +40,103 @@ func (node PlannerGlobal) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PlannerGlobal) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["boundParams"] != nil {
+		err = json.Unmarshal(fields["boundParams"], &node.BoundParams)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subplans"] != nil {
+		node.Subplans, err = UnmarshalNodeArrayJSON(fields["subplans"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subroots"] != nil {
+		node.Subroots, err = UnmarshalNodeArrayJSON(fields["subroots"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rewindPlanIDs"] != nil {
+		err = json.Unmarshal(fields["rewindPlanIDs"], &node.RewindPlanIds)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["finalrtable"] != nil {
+		node.Finalrtable, err = UnmarshalNodeArrayJSON(fields["finalrtable"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["finalrowmarks"] != nil {
+		node.Finalrowmarks, err = UnmarshalNodeArrayJSON(fields["finalrowmarks"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["resultRelations"] != nil {
+		node.ResultRelations, err = UnmarshalNodeArrayJSON(fields["resultRelations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relationOids"] != nil {
+		node.RelationOids, err = UnmarshalNodeArrayJSON(fields["relationOids"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["invalItems"] != nil {
+		node.InvalItems, err = UnmarshalNodeArrayJSON(fields["invalItems"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nParamExec"] != nil {
+		err = json.Unmarshal(fields["nParamExec"], &node.NParamExec)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lastPHId"] != nil {
+		err = json.Unmarshal(fields["lastPHId"], &node.LastPhid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lastRowMarkId"] != nil {
+		err = json.Unmarshal(fields["lastRowMarkId"], &node.LastRowMarkId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["transientPlan"] != nil {
+		err = json.Unmarshal(fields["transientPlan"], &node.TransientPlan)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

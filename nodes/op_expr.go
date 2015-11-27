@@ -24,6 +24,75 @@ func (node OpExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *OpExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opno"] != nil {
+		err = json.Unmarshal(fields["opno"], &node.Opno)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opfuncid"] != nil {
+		err = json.Unmarshal(fields["opfuncid"], &node.Opfuncid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opresulttype"] != nil {
+		err = json.Unmarshal(fields["opresulttype"], &node.Opresulttype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opretset"] != nil {
+		err = json.Unmarshal(fields["opretset"], &node.Opretset)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["opcollid"] != nil {
+		err = json.Unmarshal(fields["opcollid"], &node.Opcollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inputcollid"] != nil {
+		err = json.Unmarshal(fields["inputcollid"], &node.Inputcollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

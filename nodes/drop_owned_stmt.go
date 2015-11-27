@@ -17,6 +17,26 @@ func (node DropOwnedStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DropOwnedStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["roles"] != nil {
+		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

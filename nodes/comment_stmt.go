@@ -19,6 +19,40 @@ func (node CommentStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CommentStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["objtype"] != nil {
+		err = json.Unmarshal(fields["objtype"], &node.Objtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objname"] != nil {
+		node.Objname, err = UnmarshalNodeArrayJSON(fields["objname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objargs"] != nil {
+		node.Objargs, err = UnmarshalNodeArrayJSON(fields["objargs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["comment"] != nil {
+		err = json.Unmarshal(fields["comment"], &node.Comment)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

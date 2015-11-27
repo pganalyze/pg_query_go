@@ -21,6 +21,54 @@ func (node CreatePLangStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreatePLangStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["replace"] != nil {
+		err = json.Unmarshal(fields["replace"], &node.Replace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plname"] != nil {
+		err = json.Unmarshal(fields["plname"], &node.Plname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plhandler"] != nil {
+		node.Plhandler, err = UnmarshalNodeArrayJSON(fields["plhandler"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plinline"] != nil {
+		node.Plinline, err = UnmarshalNodeArrayJSON(fields["plinline"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plvalidator"] != nil {
+		node.Plvalidator, err = UnmarshalNodeArrayJSON(fields["plvalidator"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pltrusted"] != nil {
+		err = json.Unmarshal(fields["pltrusted"], &node.Pltrusted)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

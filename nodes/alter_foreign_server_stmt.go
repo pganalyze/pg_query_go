@@ -19,6 +19,40 @@ func (node AlterForeignServerStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterForeignServerStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["servername"] != nil {
+		err = json.Unmarshal(fields["servername"], &node.Servername)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["version"] != nil {
+		err = json.Unmarshal(fields["version"], &node.Version)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["has_version"] != nil {
+		err = json.Unmarshal(fields["has_version"], &node.HasVersion)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

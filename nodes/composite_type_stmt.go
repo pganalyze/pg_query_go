@@ -17,6 +17,31 @@ func (node CompositeTypeStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CompositeTypeStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["typevar"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["typevar"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Typevar = &val
+		}
+	}
+
+	if fields["coldeflist"] != nil {
+		node.Coldeflist, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -5,6 +5,7 @@ package pg_query
 import "encoding/json"
 
 type AppendRelInfo struct {
+
 	/*
 	 * These fields uniquely identify this append relationship.  There can be
 	 * (in fact, always should be) multiple AppendRelInfos for the same
@@ -57,6 +58,54 @@ func (node AppendRelInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AppendRelInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["parent_relid"] != nil {
+		err = json.Unmarshal(fields["parent_relid"], &node.ParentRelid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["child_relid"] != nil {
+		err = json.Unmarshal(fields["child_relid"], &node.ChildRelid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parent_reltype"] != nil {
+		err = json.Unmarshal(fields["parent_reltype"], &node.ParentReltype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["child_reltype"] != nil {
+		err = json.Unmarshal(fields["child_reltype"], &node.ChildReltype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["translated_vars"] != nil {
+		node.TranslatedVars, err = UnmarshalNodeArrayJSON(fields["translated_vars"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parent_reloid"] != nil {
+		err = json.Unmarshal(fields["parent_reloid"], &node.ParentReloid)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

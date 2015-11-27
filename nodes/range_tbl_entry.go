@@ -95,6 +95,218 @@ func (node RangeTblEntry) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["rtekind"] != nil {
+		err = json.Unmarshal(fields["rtekind"], &node.Rtekind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relid"] != nil {
+		err = json.Unmarshal(fields["relid"], &node.Relid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relkind"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["relkind"], &strVal)
+		node.Relkind = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subquery"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subquery"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Query)
+			node.Subquery = &val
+		}
+	}
+
+	if fields["security_barrier"] != nil {
+		err = json.Unmarshal(fields["security_barrier"], &node.SecurityBarrier)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["jointype"] != nil {
+		err = json.Unmarshal(fields["jointype"], &node.Jointype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["joinaliasvars"] != nil {
+		node.Joinaliasvars, err = UnmarshalNodeArrayJSON(fields["joinaliasvars"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["functions"] != nil {
+		node.Functions, err = UnmarshalNodeArrayJSON(fields["functions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcordinality"] != nil {
+		err = json.Unmarshal(fields["funcordinality"], &node.Funcordinality)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["values_lists"] != nil {
+		node.ValuesLists, err = UnmarshalNodeArrayJSON(fields["values_lists"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["values_collations"] != nil {
+		node.ValuesCollations, err = UnmarshalNodeArrayJSON(fields["values_collations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ctename"] != nil {
+		err = json.Unmarshal(fields["ctename"], &node.Ctename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ctelevelsup"] != nil {
+		err = json.Unmarshal(fields["ctelevelsup"], &node.Ctelevelsup)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["self_reference"] != nil {
+		err = json.Unmarshal(fields["self_reference"], &node.SelfReference)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ctecoltypes"] != nil {
+		node.Ctecoltypes, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ctecoltypmods"] != nil {
+		node.Ctecoltypmods, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ctecolcollations"] != nil {
+		node.Ctecolcollations, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["alias"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["alias"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Alias)
+			node.Alias = &val
+		}
+	}
+
+	if fields["eref"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["eref"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Alias)
+			node.Eref = &val
+		}
+	}
+
+	if fields["lateral"] != nil {
+		err = json.Unmarshal(fields["lateral"], &node.Lateral)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inh"] != nil {
+		err = json.Unmarshal(fields["inh"], &node.Inh)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inFromCl"] != nil {
+		err = json.Unmarshal(fields["inFromCl"], &node.InFromCl)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["requiredPerms"] != nil {
+		err = json.Unmarshal(fields["requiredPerms"], &node.RequiredPerms)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["checkAsUser"] != nil {
+		err = json.Unmarshal(fields["checkAsUser"], &node.CheckAsUser)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["selectedCols"] != nil {
+		err = json.Unmarshal(fields["selectedCols"], &node.SelectedCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["modifiedCols"] != nil {
+		err = json.Unmarshal(fields["modifiedCols"], &node.ModifiedCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["securityQuals"] != nil {
+		node.SecurityQuals, err = UnmarshalNodeArrayJSON(fields["securityQuals"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

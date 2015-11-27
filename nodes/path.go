@@ -14,6 +14,7 @@ type Path struct {
 	TotalCost   Cost    `json:"total_cost"`   /* total cost (assuming all tuples fetched) */
 
 	Pathkeys []Node `json:"pathkeys"` /* sort ordering of path's output */
+
 	/* pathkeys is a List of PathKey nodes; see above */
 }
 
@@ -25,6 +26,64 @@ func (node Path) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Path) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["parent"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["parent"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RelOptInfo)
+			node.Parent = &val
+		}
+	}
+
+	if fields["param_info"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["param_info"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(ParamPathInfo)
+			node.ParamInfo = &val
+		}
+	}
+
+	if fields["rows"] != nil {
+		err = json.Unmarshal(fields["rows"], &node.Rows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["startup_cost"] != nil {
+		err = json.Unmarshal(fields["startup_cost"], &node.StartupCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["total_cost"] != nil {
+		err = json.Unmarshal(fields["total_cost"], &node.TotalCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pathkeys"] != nil {
+		node.Pathkeys, err = UnmarshalNodeArrayJSON(fields["pathkeys"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

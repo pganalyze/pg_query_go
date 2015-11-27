@@ -20,6 +20,47 @@ func (node AlterEnumStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterEnumStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["typeName"] != nil {
+		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newVal"] != nil {
+		err = json.Unmarshal(fields["newVal"], &node.NewVal)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newValNeighbor"] != nil {
+		err = json.Unmarshal(fields["newValNeighbor"], &node.NewValNeighbor)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newValIsAfter"] != nil {
+		err = json.Unmarshal(fields["newValIsAfter"], &node.NewValIsAfter)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["skipIfExists"] != nil {
+		err = json.Unmarshal(fields["skipIfExists"], &node.SkipIfExists)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

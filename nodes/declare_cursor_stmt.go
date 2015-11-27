@@ -18,6 +18,33 @@ func (node DeclareCursorStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DeclareCursorStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["portalname"] != nil {
+		err = json.Unmarshal(fields["portalname"], &node.Portalname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		err = json.Unmarshal(fields["options"], &node.Options)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["query"] != nil {
+		node.Query, err = UnmarshalNodeJSON(fields["query"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

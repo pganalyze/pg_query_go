@@ -18,6 +18,33 @@ func (node LockingClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *LockingClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["lockedRels"] != nil {
+		node.LockedRels, err = UnmarshalNodeArrayJSON(fields["lockedRels"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["strength"] != nil {
+		err = json.Unmarshal(fields["strength"], &node.Strength)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["noWait"] != nil {
+		err = json.Unmarshal(fields["noWait"], &node.NoWait)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

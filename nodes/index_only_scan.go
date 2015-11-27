@@ -21,6 +21,54 @@ func (node IndexOnlyScan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *IndexOnlyScan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["scan"] != nil {
+		err = json.Unmarshal(fields["scan"], &node.Scan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexid"] != nil {
+		err = json.Unmarshal(fields["indexid"], &node.Indexid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexqual"] != nil {
+		node.Indexqual, err = UnmarshalNodeArrayJSON(fields["indexqual"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexorderby"] != nil {
+		node.Indexorderby, err = UnmarshalNodeArrayJSON(fields["indexorderby"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indextlist"] != nil {
+		node.Indextlist, err = UnmarshalNodeArrayJSON(fields["indextlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexorderdir"] != nil {
+		err = json.Unmarshal(fields["indexorderdir"], &node.Indexorderdir)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

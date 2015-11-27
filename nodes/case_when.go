@@ -19,6 +19,50 @@ func (node CaseWhen) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CaseWhen) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["expr"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["expr"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Expr = &val
+		}
+	}
+
+	if fields["result"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["result"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Result = &val
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -20,6 +20,52 @@ func (node ReindexStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ReindexStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["kind"] != nil {
+		err = json.Unmarshal(fields["kind"], &node.Kind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["do_system"] != nil {
+		err = json.Unmarshal(fields["do_system"], &node.DoSystem)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["do_user"] != nil {
+		err = json.Unmarshal(fields["do_user"], &node.DoUser)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

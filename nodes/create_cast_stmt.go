@@ -20,6 +20,62 @@ func (node CreateCastStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateCastStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["sourcetype"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["sourcetype"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TypeName)
+			node.Sourcetype = &val
+		}
+	}
+
+	if fields["targettype"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["targettype"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TypeName)
+			node.Targettype = &val
+		}
+	}
+
+	if fields["func"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["func"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(FuncWithArgs)
+			node.Func = &val
+		}
+	}
+
+	if fields["context"] != nil {
+		err = json.Unmarshal(fields["context"], &node.Context)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inout"] != nil {
+		err = json.Unmarshal(fields["inout"], &node.Inout)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -19,6 +19,40 @@ func (node DefElem) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DefElem) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["defnamespace"] != nil {
+		err = json.Unmarshal(fields["defnamespace"], &node.Defnamespace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["defname"] != nil {
+		err = json.Unmarshal(fields["defname"], &node.Defname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["arg"] != nil {
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["defaction"] != nil {
+		err = json.Unmarshal(fields["defaction"], &node.Defaction)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

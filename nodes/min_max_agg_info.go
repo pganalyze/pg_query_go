@@ -22,6 +22,81 @@ func (node MinMaxAggInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *MinMaxAggInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["aggfnoid"] != nil {
+		err = json.Unmarshal(fields["aggfnoid"], &node.Aggfnoid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["aggsortop"] != nil {
+		err = json.Unmarshal(fields["aggsortop"], &node.Aggsortop)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["target"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["target"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Target = &val
+		}
+	}
+
+	if fields["subroot"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subroot"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PlannerInfo)
+			node.Subroot = &val
+		}
+	}
+
+	if fields["path"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["path"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.Path = &val
+		}
+	}
+
+	if fields["pathcost"] != nil {
+		err = json.Unmarshal(fields["pathcost"], &node.Pathcost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["param"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["param"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Param)
+			node.Param = &val
+		}
+	}
+
 	return
 }

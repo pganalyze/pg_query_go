@@ -17,6 +17,26 @@ func (node SemiAntiJoinFactors) MarshalJSON() ([]byte, error) {
 }
 
 func (node *SemiAntiJoinFactors) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["outer_match_frac"] != nil {
+		err = json.Unmarshal(fields["outer_match_frac"], &node.OuterMatchFrac)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["match_count"] != nil {
+		err = json.Unmarshal(fields["match_count"], &node.MatchCount)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

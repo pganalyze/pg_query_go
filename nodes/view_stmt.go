@@ -21,6 +21,59 @@ func (node ViewStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ViewStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["view"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["view"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.View = &val
+		}
+	}
+
+	if fields["aliases"] != nil {
+		node.Aliases, err = UnmarshalNodeArrayJSON(fields["aliases"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["query"] != nil {
+		node.Query, err = UnmarshalNodeJSON(fields["query"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["replace"] != nil {
+		err = json.Unmarshal(fields["replace"], &node.Replace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withCheckOption"] != nil {
+		err = json.Unmarshal(fields["withCheckOption"], &node.WithCheckOption)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

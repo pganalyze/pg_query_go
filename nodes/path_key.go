@@ -19,6 +19,45 @@ func (node PathKey) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PathKey) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["pk_eclass"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["pk_eclass"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceClass)
+			node.PkEclass = &val
+		}
+	}
+
+	if fields["pk_opfamily"] != nil {
+		err = json.Unmarshal(fields["pk_opfamily"], &node.PkOpfamily)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pk_strategy"] != nil {
+		err = json.Unmarshal(fields["pk_strategy"], &node.PkStrategy)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pk_nulls_first"] != nil {
+		err = json.Unmarshal(fields["pk_nulls_first"], &node.PkNullsFirst)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

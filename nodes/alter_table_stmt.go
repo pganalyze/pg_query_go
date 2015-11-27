@@ -19,6 +19,45 @@ func (node AlterTableStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterTableStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["cmds"] != nil {
+		node.Cmds, err = UnmarshalNodeArrayJSON(fields["cmds"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relkind"] != nil {
+		err = json.Unmarshal(fields["relkind"], &node.Relkind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

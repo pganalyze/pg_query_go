@@ -16,6 +16,19 @@ func (node PrivGrantee) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PrivGrantee) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["rolname"] != nil {
+		err = json.Unmarshal(fields["rolname"], &node.Rolname)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

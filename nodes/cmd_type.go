@@ -12,6 +12,7 @@ const (
 	CMD_DELETE
 	CMD_UTILITY /* cmds like create, destroy, copy, vacuum,
 	 * etc. */
+
 	CMD_NOTHING /* dummy command for instead nothing rules
 	 * with qual */
 

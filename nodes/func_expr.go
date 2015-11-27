@@ -11,6 +11,7 @@ type FuncExpr struct {
 	Funcretset     bool `json:"funcretset"`     /* true if function returns set */
 	Funcvariadic   bool `json:"funcvariadic"`   /* true if variadic arguments have been
 	 * combined into an array last argument */
+
 	Funcformat  CoercionForm `json:"funcformat"`  /* how to display this function call */
 	Funccollid  Oid          `json:"funccollid"`  /* OID of collation of result */
 	Inputcollid Oid          `json:"inputcollid"` /* OID of collation that function should use */
@@ -26,6 +27,82 @@ func (node FuncExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *FuncExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcid"] != nil {
+		err = json.Unmarshal(fields["funcid"], &node.Funcid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcresulttype"] != nil {
+		err = json.Unmarshal(fields["funcresulttype"], &node.Funcresulttype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcretset"] != nil {
+		err = json.Unmarshal(fields["funcretset"], &node.Funcretset)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcvariadic"] != nil {
+		err = json.Unmarshal(fields["funcvariadic"], &node.Funcvariadic)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funcformat"] != nil {
+		err = json.Unmarshal(fields["funcformat"], &node.Funcformat)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["funccollid"] != nil {
+		err = json.Unmarshal(fields["funccollid"], &node.Funccollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inputcollid"] != nil {
+		err = json.Unmarshal(fields["inputcollid"], &node.Inputcollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

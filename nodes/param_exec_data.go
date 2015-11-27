@@ -18,6 +18,33 @@ func (node ParamExecData) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ParamExecData) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["execPlan"] != nil {
+		err = json.Unmarshal(fields["execPlan"], &node.ExecPlan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["value"] != nil {
+		err = json.Unmarshal(fields["value"], &node.Value)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["isnull"] != nil {
+		err = json.Unmarshal(fields["isnull"], &node.Isnull)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

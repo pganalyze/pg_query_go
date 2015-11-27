@@ -12,6 +12,7 @@ package pg_query
 import "C"
 
 import (
+	"encoding/json"
 	"unsafe"
 )
 
@@ -19,15 +20,22 @@ func init() {
 	C.pg_query_init()
 }
 
-func Parse(input string) string {
-	input_c := C.CString(input)
-	defer C.free(unsafe.Pointer(input_c))
+// ParseToJSON - Parses the given SQL statement into an AST (JSON format)
+func ParseToJSON(input string) string {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
 
-	result_c := C.pg_query_parse(input_c)
-	defer C.free(unsafe.Pointer(result_c.parse_tree))
-	defer C.free(unsafe.Pointer(result_c.stderr_buffer))
+	resultC := C.pg_query_parse(inputC)
+	defer C.pg_query_free_parse_result(resultC)
 
-	result := C.GoString(result_c.parse_tree)
+	result := C.GoString(resultC.parse_tree)
 
 	return result
+}
+
+// Parse - Parses the given SQL statement into an AST (native Go structs)
+func Parse(input string) (tree ParsetreeList, err error) {
+	jsonTree := ParseToJSON(input)
+	err = json.Unmarshal([]byte(jsonTree), &tree)
+	return
 }

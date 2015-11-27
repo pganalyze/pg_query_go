@@ -17,6 +17,31 @@ func (node TableLikeClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *TableLikeClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["options"] != nil {
+		err = json.Unmarshal(fields["options"], &node.Options)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

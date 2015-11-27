@@ -18,6 +18,33 @@ func (node DropUserMappingStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DropUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["username"] != nil {
+		err = json.Unmarshal(fields["username"], &node.Username)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["servername"] != nil {
+		err = json.Unmarshal(fields["servername"], &node.Servername)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

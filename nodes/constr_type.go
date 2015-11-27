@@ -7,6 +7,7 @@ type ConstrType uint
 const (
 	CONSTR_NULL = iota /* not standard SQL, but a lot of people
 	 * expect it */
+
 	CONSTR_NOTNULL
 	CONSTR_DEFAULT
 	CONSTR_CHECK

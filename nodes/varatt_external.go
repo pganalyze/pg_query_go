@@ -19,6 +19,40 @@ func (node varatt_external) MarshalJSON() ([]byte, error) {
 }
 
 func (node *varatt_external) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["va_rawsize"] != nil {
+		err = json.Unmarshal(fields["va_rawsize"], &node.VaRawsize)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["va_extsize"] != nil {
+		err = json.Unmarshal(fields["va_extsize"], &node.VaExtsize)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["va_valueid"] != nil {
+		err = json.Unmarshal(fields["va_valueid"], &node.VaValueid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["va_toastrelid"] != nil {
+		err = json.Unmarshal(fields["va_toastrelid"], &node.VaToastrelid)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

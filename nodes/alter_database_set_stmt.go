@@ -17,6 +17,31 @@ func (node AlterDatabaseSetStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterDatabaseSetStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["dbname"] != nil {
+		err = json.Unmarshal(fields["dbname"], &node.Dbname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["setstmt"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["setstmt"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(VariableSetStmt)
+			node.Setstmt = &val
+		}
+	}
+
 	return
 }

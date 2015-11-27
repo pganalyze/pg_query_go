@@ -19,6 +19,50 @@ func (node CreateDomainStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateDomainStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["domainname"] != nil {
+		node.Domainname, err = UnmarshalNodeArrayJSON(fields["domainname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typeName"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TypeName)
+			node.TypeName = &val
+		}
+	}
+
+	if fields["collClause"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["collClause"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(CollateClause)
+			node.CollClause = &val
+		}
+	}
+
+	if fields["constraints"] != nil {
+		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

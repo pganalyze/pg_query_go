@@ -17,6 +17,26 @@ func (node QualCost) MarshalJSON() ([]byte, error) {
 }
 
 func (node *QualCost) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["startup"] != nil {
+		err = json.Unmarshal(fields["startup"], &node.Startup)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["per_tuple"] != nil {
+		err = json.Unmarshal(fields["per_tuple"], &node.PerTuple)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

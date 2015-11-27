@@ -6,6 +6,7 @@ import "encoding/json"
 
 type ClosePortalStmt struct {
 	Portalname *string `json:"portalname"` /* name of the portal (cursor) */
+
 	/* NULL means CLOSE ALL */
 }
 
@@ -17,6 +18,19 @@ func (node ClosePortalStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ClosePortalStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["portalname"] != nil {
+		err = json.Unmarshal(fields["portalname"], &node.Portalname)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

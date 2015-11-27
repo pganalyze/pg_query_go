@@ -19,6 +19,40 @@ func (node VariableSetStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *VariableSetStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["kind"] != nil {
+		err = json.Unmarshal(fields["kind"], &node.Kind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["is_local"] != nil {
+		err = json.Unmarshal(fields["is_local"], &node.IsLocal)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

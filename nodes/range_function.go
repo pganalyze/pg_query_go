@@ -12,6 +12,7 @@ type RangeFunction struct {
 	Alias      *Alias `json:"alias"`       /* table alias & optional column aliases */
 	Coldeflist []Node `json:"coldeflist"`  /* list of ColumnDef nodes to describe result
 	 * of function returning RECORD */
+
 }
 
 func (node RangeFunction) MarshalJSON() ([]byte, error) {
@@ -22,6 +23,59 @@ func (node RangeFunction) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RangeFunction) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["lateral"] != nil {
+		err = json.Unmarshal(fields["lateral"], &node.Lateral)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ordinality"] != nil {
+		err = json.Unmarshal(fields["ordinality"], &node.Ordinality)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["is_rowsfrom"] != nil {
+		err = json.Unmarshal(fields["is_rowsfrom"], &node.IsRowsfrom)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["functions"] != nil {
+		node.Functions, err = UnmarshalNodeArrayJSON(fields["functions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["alias"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["alias"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Alias)
+			node.Alias = &val
+		}
+	}
+
+	if fields["coldeflist"] != nil {
+		node.Coldeflist, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

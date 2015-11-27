@@ -17,6 +17,31 @@ func (node AlterDefaultPrivilegesStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterDefaultPrivilegesStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["action"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["action"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(GrantStmt)
+			node.Action = &val
+		}
+	}
+
 	return
 }

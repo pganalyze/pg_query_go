@@ -19,6 +19,40 @@ func (node CreateTableSpaceStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateTableSpaceStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["tablespacename"] != nil {
+		err = json.Unmarshal(fields["tablespacename"], &node.Tablespacename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["owner"] != nil {
+		err = json.Unmarshal(fields["owner"], &node.Owner)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

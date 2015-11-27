@@ -42,6 +42,7 @@ type RestrictInfo struct {
 	NormSelec Selectivity `json:"norm_selec"` /* selectivity for "normal" (JOIN_INNER)
 	 * semantics; -1 if not yet set; >1 means a
 	 * redundant clause */
+
 	OuterSelec Selectivity `json:"outer_selec"` /* selectivity for outer join semantics; -1 if
 	 * not yet set */
 
@@ -74,6 +75,229 @@ func (node RestrictInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RestrictInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["clause"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["clause"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Clause = &val
+		}
+	}
+
+	if fields["is_pushed_down"] != nil {
+		err = json.Unmarshal(fields["is_pushed_down"], &node.IsPushedDown)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outerjoin_delayed"] != nil {
+		err = json.Unmarshal(fields["outerjoin_delayed"], &node.OuterjoinDelayed)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["can_join"] != nil {
+		err = json.Unmarshal(fields["can_join"], &node.CanJoin)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pseudoconstant"] != nil {
+		err = json.Unmarshal(fields["pseudoconstant"], &node.Pseudoconstant)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["clause_relids"] != nil {
+		err = json.Unmarshal(fields["clause_relids"], &node.ClauseRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["required_relids"] != nil {
+		err = json.Unmarshal(fields["required_relids"], &node.RequiredRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outer_relids"] != nil {
+		err = json.Unmarshal(fields["outer_relids"], &node.OuterRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nullable_relids"] != nil {
+		err = json.Unmarshal(fields["nullable_relids"], &node.NullableRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["left_relids"] != nil {
+		err = json.Unmarshal(fields["left_relids"], &node.LeftRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["right_relids"] != nil {
+		err = json.Unmarshal(fields["right_relids"], &node.RightRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["orclause"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["orclause"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Orclause = &val
+		}
+	}
+
+	if fields["parent_ec"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["parent_ec"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceClass)
+			node.ParentEc = &val
+		}
+	}
+
+	if fields["eval_cost"] != nil {
+		err = json.Unmarshal(fields["eval_cost"], &node.EvalCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["norm_selec"] != nil {
+		err = json.Unmarshal(fields["norm_selec"], &node.NormSelec)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outer_selec"] != nil {
+		err = json.Unmarshal(fields["outer_selec"], &node.OuterSelec)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["mergeopfamilies"] != nil {
+		node.Mergeopfamilies, err = UnmarshalNodeArrayJSON(fields["mergeopfamilies"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["left_ec"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["left_ec"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceClass)
+			node.LeftEc = &val
+		}
+	}
+
+	if fields["right_ec"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["right_ec"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceClass)
+			node.RightEc = &val
+		}
+	}
+
+	if fields["left_em"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["left_em"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceMember)
+			node.LeftEm = &val
+		}
+	}
+
+	if fields["right_em"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["right_em"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(EquivalenceMember)
+			node.RightEm = &val
+		}
+	}
+
+	if fields["scansel_cache"] != nil {
+		node.ScanselCache, err = UnmarshalNodeArrayJSON(fields["scansel_cache"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["outer_is_left"] != nil {
+		err = json.Unmarshal(fields["outer_is_left"], &node.OuterIsLeft)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hashjoinoperator"] != nil {
+		err = json.Unmarshal(fields["hashjoinoperator"], &node.Hashjoinoperator)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["left_bucketsize"] != nil {
+		err = json.Unmarshal(fields["left_bucketsize"], &node.LeftBucketsize)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["right_bucketsize"] != nil {
+		err = json.Unmarshal(fields["right_bucketsize"], &node.RightBucketsize)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

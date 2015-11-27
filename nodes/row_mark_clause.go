@@ -19,6 +19,40 @@ func (node RowMarkClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RowMarkClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["rti"] != nil {
+		err = json.Unmarshal(fields["rti"], &node.Rti)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["strength"] != nil {
+		err = json.Unmarshal(fields["strength"], &node.Strength)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["noWait"] != nil {
+		err = json.Unmarshal(fields["noWait"], &node.NoWait)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pushedDown"] != nil {
+		err = json.Unmarshal(fields["pushedDown"], &node.PushedDown)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

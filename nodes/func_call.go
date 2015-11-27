@@ -25,6 +25,87 @@ func (node FuncCall) MarshalJSON() ([]byte, error) {
 }
 
 func (node *FuncCall) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["funcname"] != nil {
+		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["agg_order"] != nil {
+		node.AggOrder, err = UnmarshalNodeArrayJSON(fields["agg_order"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["agg_filter"] != nil {
+		node.AggFilter, err = UnmarshalNodeJSON(fields["agg_filter"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["agg_within_group"] != nil {
+		err = json.Unmarshal(fields["agg_within_group"], &node.AggWithinGroup)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["agg_star"] != nil {
+		err = json.Unmarshal(fields["agg_star"], &node.AggStar)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["agg_distinct"] != nil {
+		err = json.Unmarshal(fields["agg_distinct"], &node.AggDistinct)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["func_variadic"] != nil {
+		err = json.Unmarshal(fields["func_variadic"], &node.FuncVariadic)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["over"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["over"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(WindowDef)
+			node.Over = &val
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -2,6 +2,7 @@ package pg_query
 
 import (
 	"encoding/json"
+
 	nodes "github.com/lfittl/pg_query.go/nodes"
 )
 
@@ -17,6 +18,9 @@ func (input ParsetreeList) MarshalJSON() ([]byte, error) {
 func (output *ParsetreeList) UnmarshalJSON(input []byte) (err error) {
 	var list []json.RawMessage
 	err = json.Unmarshal([]byte(input), &list)
+	if err != nil {
+		return
+	}
 
 	for _, nodeJson := range list {
 		var node nodes.Node

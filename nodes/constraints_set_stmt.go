@@ -17,6 +17,26 @@ func (node ConstraintsSetStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ConstraintsSetStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["constraints"] != nil {
+		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["deferred"] != nil {
+		err = json.Unmarshal(fields["deferred"], &node.Deferred)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

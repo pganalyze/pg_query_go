@@ -20,6 +20,47 @@ func (node SecLabelStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *SecLabelStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["objtype"] != nil {
+		err = json.Unmarshal(fields["objtype"], &node.Objtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objname"] != nil {
+		node.Objname, err = UnmarshalNodeArrayJSON(fields["objname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objargs"] != nil {
+		node.Objargs, err = UnmarshalNodeArrayJSON(fields["objargs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["provider"] != nil {
+		err = json.Unmarshal(fields["provider"], &node.Provider)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["label"] != nil {
+		err = json.Unmarshal(fields["label"], &node.Label)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

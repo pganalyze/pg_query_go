@@ -18,6 +18,33 @@ func (node TruncateStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *TruncateStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relations"] != nil {
+		node.Relations, err = UnmarshalNodeArrayJSON(fields["relations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["restart_seqs"] != nil {
+		err = json.Unmarshal(fields["restart_seqs"], &node.RestartSeqs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

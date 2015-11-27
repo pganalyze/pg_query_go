@@ -20,6 +20,47 @@ func (node DefineStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DefineStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["kind"] != nil {
+		err = json.Unmarshal(fields["kind"], &node.Kind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["oldstyle"] != nil {
+		err = json.Unmarshal(fields["oldstyle"], &node.Oldstyle)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["defnames"] != nil {
+		node.Defnames, err = UnmarshalNodeArrayJSON(fields["defnames"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["definition"] != nil {
+		node.Definition, err = UnmarshalNodeArrayJSON(fields["definition"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

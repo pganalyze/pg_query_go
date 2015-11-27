@@ -10,7 +10,9 @@ type GrantStmt struct {
 	Objtype  GrantObjectType `json:"objtype"`  /* kind of object being operated on */
 	Objects  []Node          `json:"objects"`  /* list of RangeVar nodes, FuncWithArgs nodes,
 	 * or plain names (as Value strings) */
+
 	Privileges []Node `json:"privileges"` /* list of AccessPriv nodes */
+
 	/* privileges == NIL denotes ALL PRIVILEGES */
 	Grantees    []Node       `json:"grantees"`     /* list of PrivGrantee nodes */
 	GrantOption bool         `json:"grant_option"` /* grant or revoke grant option */
@@ -25,6 +27,68 @@ func (node GrantStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *GrantStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["is_grant"] != nil {
+		err = json.Unmarshal(fields["is_grant"], &node.IsGrant)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["targtype"] != nil {
+		err = json.Unmarshal(fields["targtype"], &node.Targtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objtype"] != nil {
+		err = json.Unmarshal(fields["objtype"], &node.Objtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objects"] != nil {
+		node.Objects, err = UnmarshalNodeArrayJSON(fields["objects"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["privileges"] != nil {
+		node.Privileges, err = UnmarshalNodeArrayJSON(fields["privileges"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grantees"] != nil {
+		node.Grantees, err = UnmarshalNodeArrayJSON(fields["grantees"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["grant_option"] != nil {
+		err = json.Unmarshal(fields["grant_option"], &node.GrantOption)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

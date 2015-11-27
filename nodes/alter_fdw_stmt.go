@@ -18,6 +18,33 @@ func (node AlterFdwStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterFdwStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["fdwname"] != nil {
+		err = json.Unmarshal(fields["fdwname"], &node.Fdwname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["func_options"] != nil {
+		node.FuncOptions, err = UnmarshalNodeArrayJSON(fields["func_options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

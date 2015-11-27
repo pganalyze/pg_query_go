@@ -18,6 +18,33 @@ func (node CreateExtensionStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateExtensionStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["extname"] != nil {
+		err = json.Unmarshal(fields["extname"], &node.Extname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -22,6 +22,61 @@ func (node Param) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Param) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramkind"] != nil {
+		err = json.Unmarshal(fields["paramkind"], &node.Paramkind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramid"] != nil {
+		err = json.Unmarshal(fields["paramid"], &node.Paramid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramtype"] != nil {
+		err = json.Unmarshal(fields["paramtype"], &node.Paramtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramtypmod"] != nil {
+		err = json.Unmarshal(fields["paramtypmod"], &node.Paramtypmod)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramcollid"] != nil {
+		err = json.Unmarshal(fields["paramcollid"], &node.Paramcollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

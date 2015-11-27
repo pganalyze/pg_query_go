@@ -18,6 +18,33 @@ func (node LockRows) MarshalJSON() ([]byte, error) {
 }
 
 func (node *LockRows) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rowMarks"] != nil {
+		node.RowMarks, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["epqParam"] != nil {
+		err = json.Unmarshal(fields["epqParam"], &node.EpqParam)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -26,6 +26,54 @@ func (node AlterTSConfigurationStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterTSConfigurationStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["cfgname"] != nil {
+		node.Cfgname, err = UnmarshalNodeArrayJSON(fields["cfgname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tokentype"] != nil {
+		node.Tokentype, err = UnmarshalNodeArrayJSON(fields["tokentype"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["dicts"] != nil {
+		node.Dicts, err = UnmarshalNodeArrayJSON(fields["dicts"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["override"] != nil {
+		err = json.Unmarshal(fields["override"], &node.Override)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["replace"] != nil {
+		err = json.Unmarshal(fields["replace"], &node.Replace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

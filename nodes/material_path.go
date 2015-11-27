@@ -17,6 +17,31 @@ func (node MaterialPath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *MaterialPath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["path"] != nil {
+		err = json.Unmarshal(fields["path"], &node.Path)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subpath"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subpath"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.Subpath = &val
+		}
+	}
+
 	return
 }

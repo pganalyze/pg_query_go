@@ -19,6 +19,33 @@ func (node ParamListInfoData) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ParamListInfoData) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["paramFetchArg"] != nil {
+		err = json.Unmarshal(fields["paramFetchArg"], &node.ParamFetchArg)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parserSetupArg"] != nil {
+		err = json.Unmarshal(fields["parserSetupArg"], &node.ParserSetupArg)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numParams"] != nil {
+		err = json.Unmarshal(fields["numParams"], &node.NumParams)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

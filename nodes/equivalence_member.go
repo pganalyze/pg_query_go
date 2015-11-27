@@ -21,6 +21,59 @@ func (node EquivalenceMember) MarshalJSON() ([]byte, error) {
 }
 
 func (node *EquivalenceMember) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["em_expr"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["em_expr"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.EmExpr = &val
+		}
+	}
+
+	if fields["em_relids"] != nil {
+		err = json.Unmarshal(fields["em_relids"], &node.EmRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["em_nullable_relids"] != nil {
+		err = json.Unmarshal(fields["em_nullable_relids"], &node.EmNullableRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["em_is_const"] != nil {
+		err = json.Unmarshal(fields["em_is_const"], &node.EmIsConst)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["em_is_child"] != nil {
+		err = json.Unmarshal(fields["em_is_child"], &node.EmIsChild)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["em_datatype"] != nil {
+		err = json.Unmarshal(fields["em_datatype"], &node.EmDatatype)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -25,6 +25,87 @@ func (node IndexPath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *IndexPath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["path"] != nil {
+		err = json.Unmarshal(fields["path"], &node.Path)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexinfo"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["indexinfo"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(IndexOptInfo)
+			node.Indexinfo = &val
+		}
+	}
+
+	if fields["indexclauses"] != nil {
+		node.Indexclauses, err = UnmarshalNodeArrayJSON(fields["indexclauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexquals"] != nil {
+		node.Indexquals, err = UnmarshalNodeArrayJSON(fields["indexquals"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexqualcols"] != nil {
+		node.Indexqualcols, err = UnmarshalNodeArrayJSON(fields["indexqualcols"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexorderbys"] != nil {
+		node.Indexorderbys, err = UnmarshalNodeArrayJSON(fields["indexorderbys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexorderbycols"] != nil {
+		node.Indexorderbycols, err = UnmarshalNodeArrayJSON(fields["indexorderbycols"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexscandir"] != nil {
+		err = json.Unmarshal(fields["indexscandir"], &node.Indexscandir)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indextotalcost"] != nil {
+		err = json.Unmarshal(fields["indextotalcost"], &node.Indextotalcost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexselectivity"] != nil {
+		err = json.Unmarshal(fields["indexselectivity"], &node.Indexselectivity)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

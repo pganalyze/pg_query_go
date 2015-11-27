@@ -26,6 +26,89 @@ func (node ModifyTable) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ModifyTable) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["operation"] != nil {
+		err = json.Unmarshal(fields["operation"], &node.Operation)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["canSetTag"] != nil {
+		err = json.Unmarshal(fields["canSetTag"], &node.CanSetTag)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["resultRelations"] != nil {
+		node.ResultRelations, err = UnmarshalNodeArrayJSON(fields["resultRelations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["resultRelIndex"] != nil {
+		err = json.Unmarshal(fields["resultRelIndex"], &node.ResultRelIndex)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plans"] != nil {
+		node.Plans, err = UnmarshalNodeArrayJSON(fields["plans"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withCheckOptionLists"] != nil {
+		node.WithCheckOptionLists, err = UnmarshalNodeArrayJSON(fields["withCheckOptionLists"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["returningLists"] != nil {
+		node.ReturningLists, err = UnmarshalNodeArrayJSON(fields["returningLists"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fdwPrivLists"] != nil {
+		node.FdwPrivLists, err = UnmarshalNodeArrayJSON(fields["fdwPrivLists"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rowMarks"] != nil {
+		node.RowMarks, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["epqParam"] != nil {
+		err = json.Unmarshal(fields["epqParam"], &node.EpqParam)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

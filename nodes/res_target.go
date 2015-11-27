@@ -19,6 +19,40 @@ func (node ResTarget) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ResTarget) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indirection"] != nil {
+		node.Indirection, err = UnmarshalNodeArrayJSON(fields["indirection"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["val"] != nil {
+		node.Val, err = UnmarshalNodeJSON(fields["val"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

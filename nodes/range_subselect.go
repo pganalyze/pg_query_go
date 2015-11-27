@@ -18,6 +18,38 @@ func (node RangeSubselect) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RangeSubselect) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["lateral"] != nil {
+		err = json.Unmarshal(fields["lateral"], &node.Lateral)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subquery"] != nil {
+		node.Subquery, err = UnmarshalNodeJSON(fields["subquery"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["alias"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["alias"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Alias)
+			node.Alias = &val
+		}
+	}
+
 	return
 }

@@ -26,6 +26,94 @@ func (node WindowFunc) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WindowFunc) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["winfnoid"] != nil {
+		err = json.Unmarshal(fields["winfnoid"], &node.Winfnoid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["wintype"] != nil {
+		err = json.Unmarshal(fields["wintype"], &node.Wintype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["wincollid"] != nil {
+		err = json.Unmarshal(fields["wincollid"], &node.Wincollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["inputcollid"] != nil {
+		err = json.Unmarshal(fields["inputcollid"], &node.Inputcollid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["aggfilter"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["aggfilter"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Aggfilter = &val
+		}
+	}
+
+	if fields["winref"] != nil {
+		err = json.Unmarshal(fields["winref"], &node.Winref)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["winstar"] != nil {
+		err = json.Unmarshal(fields["winstar"], &node.Winstar)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["winagg"] != nil {
+		err = json.Unmarshal(fields["winagg"], &node.Winagg)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

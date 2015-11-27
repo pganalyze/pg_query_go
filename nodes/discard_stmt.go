@@ -16,6 +16,19 @@ func (node DiscardStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *DiscardStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["target"] != nil {
+		err = json.Unmarshal(fields["target"], &node.Target)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

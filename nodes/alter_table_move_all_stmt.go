@@ -20,6 +20,47 @@ func (node AlterTableMoveAllStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterTableMoveAllStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["orig_tablespacename"] != nil {
+		err = json.Unmarshal(fields["orig_tablespacename"], &node.OrigTablespacename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objtype"] != nil {
+		err = json.Unmarshal(fields["objtype"], &node.Objtype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["roles"] != nil {
+		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["new_tablespacename"] != nil {
+		err = json.Unmarshal(fields["new_tablespacename"], &node.NewTablespacename)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nowait"] != nil {
+		err = json.Unmarshal(fields["nowait"], &node.Nowait)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

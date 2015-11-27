@@ -17,6 +17,26 @@ func (node PlanInvalItem) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PlanInvalItem) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["cacheId"] != nil {
+		err = json.Unmarshal(fields["cacheId"], &node.CacheId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hashValue"] != nil {
+		err = json.Unmarshal(fields["hashValue"], &node.HashValue)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

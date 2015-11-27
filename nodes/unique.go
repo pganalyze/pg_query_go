@@ -19,6 +19,40 @@ func (node Unique) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Unique) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["plan"] != nil {
+		err = json.Unmarshal(fields["plan"], &node.Plan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["numCols"] != nil {
+		err = json.Unmarshal(fields["numCols"], &node.NumCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["uniqColIdx"] != nil {
+		err = json.Unmarshal(fields["uniqColIdx"], &node.UniqColIdx)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["uniqOperators"] != nil {
+		err = json.Unmarshal(fields["uniqOperators"], &node.UniqOperators)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -17,6 +17,26 @@ func (node AlternativeSubPlan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlternativeSubPlan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subplans"] != nil {
+		node.Subplans, err = UnmarshalNodeArrayJSON(fields["subplans"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

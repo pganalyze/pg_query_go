@@ -18,6 +18,33 @@ func (node WithClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WithClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["ctes"] != nil {
+		node.Ctes, err = UnmarshalNodeArrayJSON(fields["ctes"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["recursive"] != nil {
+		err = json.Unmarshal(fields["recursive"], &node.Recursive)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -18,6 +18,33 @@ func (node CollateClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CollateClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["arg"] != nil {
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["collname"] != nil {
+		node.Collname, err = UnmarshalNodeArrayJSON(fields["collname"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

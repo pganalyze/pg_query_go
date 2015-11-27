@@ -17,6 +17,26 @@ func (node BitmapHeapScan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *BitmapHeapScan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["scan"] != nil {
+		err = json.Unmarshal(fields["scan"], &node.Scan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["bitmapqualorig"] != nil {
+		node.Bitmapqualorig, err = UnmarshalNodeArrayJSON(fields["bitmapqualorig"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

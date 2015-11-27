@@ -18,6 +18,38 @@ func (node ClusterStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ClusterStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["indexname"] != nil {
+		err = json.Unmarshal(fields["indexname"], &node.Indexname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["verbose"] != nil {
+		err = json.Unmarshal(fields["verbose"], &node.Verbose)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

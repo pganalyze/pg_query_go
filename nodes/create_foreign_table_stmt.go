@@ -18,6 +18,33 @@ func (node CreateForeignTableStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateForeignTableStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["base"] != nil {
+		err = json.Unmarshal(fields["base"], &node.Base)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["servername"] != nil {
+		err = json.Unmarshal(fields["servername"], &node.Servername)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

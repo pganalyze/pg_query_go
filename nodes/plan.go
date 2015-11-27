@@ -5,6 +5,7 @@ package pg_query
 import "encoding/json"
 
 type Plan struct {
+
 	/*
 	 * estimated execution costs for plan (see costsize.c for more info)
 	 */
@@ -50,6 +51,99 @@ func (node Plan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Plan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["startup_cost"] != nil {
+		err = json.Unmarshal(fields["startup_cost"], &node.StartupCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["total_cost"] != nil {
+		err = json.Unmarshal(fields["total_cost"], &node.TotalCost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plan_rows"] != nil {
+		err = json.Unmarshal(fields["plan_rows"], &node.PlanRows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["plan_width"] != nil {
+		err = json.Unmarshal(fields["plan_width"], &node.PlanWidth)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["targetlist"] != nil {
+		node.Targetlist, err = UnmarshalNodeArrayJSON(fields["targetlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["qual"] != nil {
+		node.Qual, err = UnmarshalNodeArrayJSON(fields["qual"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lefttree"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["lefttree"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Plan)
+			node.Lefttree = &val
+		}
+	}
+
+	if fields["righttree"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["righttree"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Plan)
+			node.Righttree = &val
+		}
+	}
+
+	if fields["initPlan"] != nil {
+		node.InitPlan, err = UnmarshalNodeArrayJSON(fields["initPlan"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["extParam"] != nil {
+		err = json.Unmarshal(fields["extParam"], &node.ExtParam)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["allParam"] != nil {
+		err = json.Unmarshal(fields["allParam"], &node.AllParam)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

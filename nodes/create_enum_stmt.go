@@ -17,6 +17,26 @@ func (node CreateEnumStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateEnumStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["typeName"] != nil {
+		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["vals"] != nil {
+		node.Vals, err = UnmarshalNodeArrayJSON(fields["vals"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -20,6 +20,47 @@ func (node SortGroupClause) MarshalJSON() ([]byte, error) {
 }
 
 func (node *SortGroupClause) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["tleSortGroupRef"] != nil {
+		err = json.Unmarshal(fields["tleSortGroupRef"], &node.TleSortGroupRef)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["eqop"] != nil {
+		err = json.Unmarshal(fields["eqop"], &node.Eqop)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sortop"] != nil {
+		err = json.Unmarshal(fields["sortop"], &node.Sortop)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nulls_first"] != nil {
+		err = json.Unmarshal(fields["nulls_first"], &node.NullsFirst)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hashable"] != nil {
+		err = json.Unmarshal(fields["hashable"], &node.Hashable)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

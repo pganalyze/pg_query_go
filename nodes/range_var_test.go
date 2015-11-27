@@ -8,6 +8,10 @@ import (
 	nodes "github.com/lfittl/pg_query.go/nodes"
 )
 
+func strPtr(str string) *string {
+	return &str
+}
+
 var rangeVarTests = []struct {
 	jsonText     string
 	expectedNode nodes.RangeVar

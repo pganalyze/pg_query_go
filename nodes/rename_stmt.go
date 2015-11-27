@@ -12,6 +12,7 @@ type RenameStmt struct {
 	Objarg       []Node     `json:"objarg"`       /* argument types, if applicable */
 	Subname      *string    `json:"subname"`      /* name of contained object (column, rule,
 	 * trigger, etc) */
+
 	Newname   *string      `json:"newname"`    /* the new name */
 	Behavior  DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE behavior */
 	MissingOk bool         `json:"missing_ok"` /* skip error if missing? */
@@ -25,6 +26,80 @@ func (node RenameStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RenameStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["renameType"] != nil {
+		err = json.Unmarshal(fields["renameType"], &node.RenameType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relationType"] != nil {
+		err = json.Unmarshal(fields["relationType"], &node.RelationType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["object"] != nil {
+		node.Object, err = UnmarshalNodeArrayJSON(fields["object"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objarg"] != nil {
+		node.Objarg, err = UnmarshalNodeArrayJSON(fields["objarg"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subname"] != nil {
+		err = json.Unmarshal(fields["subname"], &node.Subname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newname"] != nil {
+		err = json.Unmarshal(fields["newname"], &node.Newname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

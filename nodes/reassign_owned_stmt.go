@@ -17,6 +17,26 @@ func (node ReassignOwnedStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ReassignOwnedStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["roles"] != nil {
+		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newrole"] != nil {
+		err = json.Unmarshal(fields["newrole"], &node.Newrole)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

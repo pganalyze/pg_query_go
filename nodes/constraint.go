@@ -28,6 +28,7 @@ type Constraint struct {
 	Options    []Node  `json:"options"`    /* options from WITH clause */
 	Indexname  *string `json:"indexname"`  /* existing index to use; otherwise NULL */
 	Indexspace *string `json:"indexspace"` /* index tablespace; NULL for default */
+
 	/* These could be, but currently are not, used for UNIQUE/PKEY: */
 	AccessMethod *string `json:"access_method"` /* index access method; NULL for default */
 	WhereClause  Node    `json:"where_clause"`  /* partial index predicate */
@@ -55,6 +56,198 @@ func (node Constraint) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["contype"] != nil {
+		err = json.Unmarshal(fields["contype"], &node.Contype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["conname"] != nil {
+		err = json.Unmarshal(fields["conname"], &node.Conname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["deferrable"] != nil {
+		err = json.Unmarshal(fields["deferrable"], &node.Deferrable)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["initdeferred"] != nil {
+		err = json.Unmarshal(fields["initdeferred"], &node.Initdeferred)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["is_no_inherit"] != nil {
+		err = json.Unmarshal(fields["is_no_inherit"], &node.IsNoInherit)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["raw_expr"] != nil {
+		node.RawExpr, err = UnmarshalNodeJSON(fields["raw_expr"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cooked_expr"] != nil {
+		err = json.Unmarshal(fields["cooked_expr"], &node.CookedExpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["keys"] != nil {
+		node.Keys, err = UnmarshalNodeArrayJSON(fields["keys"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["exclusions"] != nil {
+		node.Exclusions, err = UnmarshalNodeArrayJSON(fields["exclusions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexname"] != nil {
+		err = json.Unmarshal(fields["indexname"], &node.Indexname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexspace"] != nil {
+		err = json.Unmarshal(fields["indexspace"], &node.Indexspace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["access_method"] != nil {
+		err = json.Unmarshal(fields["access_method"], &node.AccessMethod)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["where_clause"] != nil {
+		node.WhereClause, err = UnmarshalNodeJSON(fields["where_clause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pktable"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["pktable"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Pktable = &val
+		}
+	}
+
+	if fields["fk_attrs"] != nil {
+		node.FkAttrs, err = UnmarshalNodeArrayJSON(fields["fk_attrs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pk_attrs"] != nil {
+		node.PkAttrs, err = UnmarshalNodeArrayJSON(fields["pk_attrs"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fk_matchtype"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["fk_matchtype"], &strVal)
+		node.FkMatchtype = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fk_upd_action"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["fk_upd_action"], &strVal)
+		node.FkUpdAction = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fk_del_action"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["fk_del_action"], &strVal)
+		node.FkDelAction = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["old_conpfeqop"] != nil {
+		node.OldConpfeqop, err = UnmarshalNodeArrayJSON(fields["old_conpfeqop"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["old_pktable_oid"] != nil {
+		err = json.Unmarshal(fields["old_pktable_oid"], &node.OldPktableOid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["skip_validation"] != nil {
+		err = json.Unmarshal(fields["skip_validation"], &node.SkipValidation)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["initially_valid"] != nil {
+		err = json.Unmarshal(fields["initially_valid"], &node.InitiallyValid)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

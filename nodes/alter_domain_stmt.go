@@ -13,6 +13,7 @@ type AlterDomainStmt struct {
 	 *	X = drop constraint
 	 *------------
 	 */
+
 	TypeName  []Node       `json:"typeName"`   /* domain to work on */
 	Name      *string      `json:"name"`       /* column or constraint name to act on */
 	Def       Node         `json:"def"`        /* definition of default or constraint */
@@ -28,6 +29,56 @@ func (node AlterDomainStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterDomainStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["subtype"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["subtype"], &strVal)
+		node.Subtype = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typeName"] != nil {
+		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["def"] != nil {
+		node.Def, err = UnmarshalNodeJSON(fields["def"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["behavior"] != nil {
+		err = json.Unmarshal(fields["behavior"], &node.Behavior)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["missing_ok"] != nil {
+		err = json.Unmarshal(fields["missing_ok"], &node.MissingOk)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

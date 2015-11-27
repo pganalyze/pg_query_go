@@ -42,19 +42,23 @@ type RelOptInfo struct {
 	Pages              BlockNumber `json:"pages"`               /* size estimates derived from pg_class */
 	Tuples             float64     `json:"tuples"`
 	Allvisfrac         float64     `json:"allvisfrac"`
+
 	/* use "struct Plan" to avoid including plannodes.h here */
 	Subplan       *Plan        `json:"subplan"`        /* if subquery */
 	Subroot       *PlannerInfo `json:"subroot"`        /* if subquery */
 	SubplanParams []Node       `json:"subplan_params"` /* if subquery */
+
 	/* use "struct FdwRoutine" to avoid including fdwapi.h here */
 	FdwPrivate interface{} `json:"fdw_private"` /* if foreign table */
 
 	/* used by various scans and joins: */
 	Baserestrictinfo []Node `json:"baserestrictinfo"` /* RestrictInfo structures (if base
 	 * rel) */
+
 	Baserestrictcost QualCost `json:"baserestrictcost"` /* cost of evaluating the above */
 	Joininfo         []Node   `json:"joininfo"`         /* RestrictInfo structures for join clauses
 	 * involving this rel */
+
 	HasEclassJoins bool `json:"has_eclass_joins"` /* T means joininfo is incomplete */
 }
 
@@ -66,6 +70,282 @@ func (node RelOptInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RelOptInfo) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["reloptkind"] != nil {
+		err = json.Unmarshal(fields["reloptkind"], &node.Reloptkind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relids"] != nil {
+		err = json.Unmarshal(fields["relids"], &node.Relids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rows"] != nil {
+		err = json.Unmarshal(fields["rows"], &node.Rows)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["width"] != nil {
+		err = json.Unmarshal(fields["width"], &node.Width)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["consider_startup"] != nil {
+		err = json.Unmarshal(fields["consider_startup"], &node.ConsiderStartup)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["consider_param_startup"] != nil {
+		err = json.Unmarshal(fields["consider_param_startup"], &node.ConsiderParamStartup)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["reltargetlist"] != nil {
+		node.Reltargetlist, err = UnmarshalNodeArrayJSON(fields["reltargetlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pathlist"] != nil {
+		node.Pathlist, err = UnmarshalNodeArrayJSON(fields["pathlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ppilist"] != nil {
+		node.Ppilist, err = UnmarshalNodeArrayJSON(fields["ppilist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cheapest_startup_path"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["cheapest_startup_path"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.CheapestStartupPath = &val
+		}
+	}
+
+	if fields["cheapest_total_path"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["cheapest_total_path"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.CheapestTotalPath = &val
+		}
+	}
+
+	if fields["cheapest_unique_path"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["cheapest_unique_path"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Path)
+			node.CheapestUniquePath = &val
+		}
+	}
+
+	if fields["cheapest_parameterized_paths"] != nil {
+		node.CheapestParameterizedPaths, err = UnmarshalNodeArrayJSON(fields["cheapest_parameterized_paths"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relid"] != nil {
+		err = json.Unmarshal(fields["relid"], &node.Relid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["reltablespace"] != nil {
+		err = json.Unmarshal(fields["reltablespace"], &node.Reltablespace)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rtekind"] != nil {
+		err = json.Unmarshal(fields["rtekind"], &node.Rtekind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["min_attr"] != nil {
+		err = json.Unmarshal(fields["min_attr"], &node.MinAttr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["max_attr"] != nil {
+		err = json.Unmarshal(fields["max_attr"], &node.MaxAttr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["attr_needed"] != nil {
+		err = json.Unmarshal(fields["attr_needed"], &node.AttrNeeded)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["attr_widths"] != nil {
+		err = json.Unmarshal(fields["attr_widths"], &node.AttrWidths)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lateral_vars"] != nil {
+		node.LateralVars, err = UnmarshalNodeArrayJSON(fields["lateral_vars"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lateral_relids"] != nil {
+		err = json.Unmarshal(fields["lateral_relids"], &node.LateralRelids)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["lateral_referencers"] != nil {
+		err = json.Unmarshal(fields["lateral_referencers"], &node.LateralReferencers)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["indexlist"] != nil {
+		node.Indexlist, err = UnmarshalNodeArrayJSON(fields["indexlist"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["pages"] != nil {
+		err = json.Unmarshal(fields["pages"], &node.Pages)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tuples"] != nil {
+		err = json.Unmarshal(fields["tuples"], &node.Tuples)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["allvisfrac"] != nil {
+		err = json.Unmarshal(fields["allvisfrac"], &node.Allvisfrac)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["subplan"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subplan"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Plan)
+			node.Subplan = &val
+		}
+	}
+
+	if fields["subroot"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["subroot"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PlannerInfo)
+			node.Subroot = &val
+		}
+	}
+
+	if fields["subplan_params"] != nil {
+		node.SubplanParams, err = UnmarshalNodeArrayJSON(fields["subplan_params"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fdw_private"] != nil {
+		err = json.Unmarshal(fields["fdw_private"], &node.FdwPrivate)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["baserestrictinfo"] != nil {
+		node.Baserestrictinfo, err = UnmarshalNodeArrayJSON(fields["baserestrictinfo"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["baserestrictcost"] != nil {
+		err = json.Unmarshal(fields["baserestrictcost"], &node.Baserestrictcost)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["joininfo"] != nil {
+		node.Joininfo, err = UnmarshalNodeArrayJSON(fields["joininfo"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["has_eclass_joins"] != nil {
+		err = json.Unmarshal(fields["has_eclass_joins"], &node.HasEclassJoins)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

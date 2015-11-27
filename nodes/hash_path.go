@@ -18,6 +18,33 @@ func (node HashPath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *HashPath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["jpath"] != nil {
+		err = json.Unmarshal(fields["jpath"], &node.Jpath)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["path_hashclauses"] != nil {
+		node.PathHashclauses, err = UnmarshalNodeArrayJSON(fields["path_hashclauses"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["num_batches"] != nil {
+		err = json.Unmarshal(fields["num_batches"], &node.NumBatches)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

@@ -17,6 +17,26 @@ func (node HashJoin) MarshalJSON() ([]byte, error) {
 }
 
 func (node *HashJoin) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["join"] != nil {
+		err = json.Unmarshal(fields["join"], &node.Join)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hashclauses"] != nil {
+		node.Hashclauses, err = UnmarshalNodeArrayJSON(fields["hashclauses"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

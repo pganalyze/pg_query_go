@@ -25,6 +25,82 @@ func (node XmlExpr) MarshalJSON() ([]byte, error) {
 }
 
 func (node *XmlExpr) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["op"] != nil {
+		err = json.Unmarshal(fields["op"], &node.Op)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["named_args"] != nil {
+		node.NamedArgs, err = UnmarshalNodeArrayJSON(fields["named_args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["arg_names"] != nil {
+		node.ArgNames, err = UnmarshalNodeArrayJSON(fields["arg_names"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["args"] != nil {
+		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["xmloption"] != nil {
+		err = json.Unmarshal(fields["xmloption"], &node.Xmloption)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["type"] != nil {
+		err = json.Unmarshal(fields["type"], &node.Type)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["typmod"] != nil {
+		err = json.Unmarshal(fields["typmod"], &node.Typmod)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

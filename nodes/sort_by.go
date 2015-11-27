@@ -20,6 +20,47 @@ func (node SortBy) MarshalJSON() ([]byte, error) {
 }
 
 func (node *SortBy) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["node"] != nil {
+		node.Node, err = UnmarshalNodeJSON(fields["node"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sortby_dir"] != nil {
+		err = json.Unmarshal(fields["sortby_dir"], &node.SortbyDir)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sortby_nulls"] != nil {
+		err = json.Unmarshal(fields["sortby_nulls"], &node.SortbyNulls)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["useOp"] != nil {
+		node.UseOp, err = UnmarshalNodeArrayJSON(fields["useOp"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

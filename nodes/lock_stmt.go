@@ -18,6 +18,33 @@ func (node LockStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *LockStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["relations"] != nil {
+		node.Relations, err = UnmarshalNodeArrayJSON(fields["relations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["mode"] != nil {
+		err = json.Unmarshal(fields["mode"], &node.Mode)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["nowait"] != nil {
+		err = json.Unmarshal(fields["nowait"], &node.Nowait)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

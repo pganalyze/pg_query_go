@@ -19,6 +19,45 @@ func (node CreateTableAsStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateTableAsStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["query"] != nil {
+		node.Query, err = UnmarshalNodeJSON(fields["query"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["into"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["into"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(IntoClause)
+			node.Into = &val
+		}
+	}
+
+	if fields["relkind"] != nil {
+		err = json.Unmarshal(fields["relkind"], &node.Relkind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["is_select_into"] != nil {
+		err = json.Unmarshal(fields["is_select_into"], &node.IsSelectInto)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

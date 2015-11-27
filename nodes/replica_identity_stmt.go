@@ -17,6 +17,28 @@ func (node ReplicaIdentityStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ReplicaIdentityStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["identity_type"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["identity_type"], &strVal)
+		node.IdentityType = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["name"] != nil {
+		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

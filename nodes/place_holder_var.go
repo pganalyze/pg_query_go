@@ -20,6 +20,52 @@ func (node PlaceHolderVar) MarshalJSON() ([]byte, error) {
 }
 
 func (node *PlaceHolderVar) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["xpr"] != nil {
+		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["phexpr"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["phexpr"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(Expr)
+			node.Phexpr = &val
+		}
+	}
+
+	if fields["phrels"] != nil {
+		err = json.Unmarshal(fields["phrels"], &node.Phrels)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["phid"] != nil {
+		err = json.Unmarshal(fields["phid"], &node.Phid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["phlevelsup"] != nil {
+		err = json.Unmarshal(fields["phlevelsup"], &node.Phlevelsup)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

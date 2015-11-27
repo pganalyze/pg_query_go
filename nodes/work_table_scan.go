@@ -17,6 +17,26 @@ func (node WorkTableScan) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WorkTableScan) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["scan"] != nil {
+		err = json.Unmarshal(fields["scan"], &node.Scan)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["wtParam"] != nil {
+		err = json.Unmarshal(fields["wtParam"], &node.WtParam)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

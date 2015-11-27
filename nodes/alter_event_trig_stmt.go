@@ -8,6 +8,7 @@ type AlterEventTrigStmt struct {
 	Trigname  *string `json:"trigname"`  /* TRIGGER's name */
 	Tgenabled byte    `json:"tgenabled"` /* trigger's firing configuration WRT
 	 * session_replication_role */
+
 }
 
 func (node AlterEventTrigStmt) MarshalJSON() ([]byte, error) {
@@ -18,6 +19,28 @@ func (node AlterEventTrigStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterEventTrigStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["trigname"] != nil {
+		err = json.Unmarshal(fields["trigname"], &node.Trigname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["tgenabled"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["tgenabled"], &strVal)
+		node.Tgenabled = strVal[0]
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

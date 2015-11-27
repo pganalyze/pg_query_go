@@ -16,6 +16,19 @@ func (node RangeTblRef) MarshalJSON() ([]byte, error) {
 }
 
 func (node *RangeTblRef) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["rtindex"] != nil {
+		err = json.Unmarshal(fields["rtindex"], &node.Rtindex)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

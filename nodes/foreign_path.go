@@ -17,6 +17,26 @@ func (node ForeignPath) MarshalJSON() ([]byte, error) {
 }
 
 func (node *ForeignPath) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["path"] != nil {
+		err = json.Unmarshal(fields["path"], &node.Path)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["fdw_private"] != nil {
+		node.FdwPrivate, err = UnmarshalNodeArrayJSON(fields["fdw_private"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

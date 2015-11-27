@@ -20,6 +20,52 @@ func (node AlterOwnerStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *AlterOwnerStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["objectType"] != nil {
+		err = json.Unmarshal(fields["objectType"], &node.ObjectType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relation"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["relation"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Relation = &val
+		}
+	}
+
+	if fields["object"] != nil {
+		node.Object, err = UnmarshalNodeArrayJSON(fields["object"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["objarg"] != nil {
+		node.Objarg, err = UnmarshalNodeArrayJSON(fields["objarg"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newowner"] != nil {
+		err = json.Unmarshal(fields["newowner"], &node.Newowner)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

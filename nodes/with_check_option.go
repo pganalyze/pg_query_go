@@ -18,6 +18,33 @@ func (node WithCheckOption) MarshalJSON() ([]byte, error) {
 }
 
 func (node *WithCheckOption) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["viewname"] != nil {
+		err = json.Unmarshal(fields["viewname"], &node.Viewname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["qual"] != nil {
+		node.Qual, err = UnmarshalNodeJSON(fields["qual"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cascaded"] != nil {
+		err = json.Unmarshal(fields["cascaded"], &node.Cascaded)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

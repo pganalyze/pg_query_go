@@ -58,6 +58,7 @@ type Query struct {
 
 	ConstraintDeps []Node `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
 	 * depends on to be semantically valid */
+
 }
 
 func (node Query) MarshalJSON() ([]byte, error) {
@@ -68,6 +69,220 @@ func (node Query) MarshalJSON() ([]byte, error) {
 }
 
 func (node *Query) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["commandType"] != nil {
+		err = json.Unmarshal(fields["commandType"], &node.CommandType)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["querySource"] != nil {
+		err = json.Unmarshal(fields["querySource"], &node.QuerySource)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["queryId"] != nil {
+		err = json.Unmarshal(fields["queryId"], &node.QueryId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["canSetTag"] != nil {
+		err = json.Unmarshal(fields["canSetTag"], &node.CanSetTag)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["utilityStmt"] != nil {
+		node.UtilityStmt, err = UnmarshalNodeJSON(fields["utilityStmt"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["resultRelation"] != nil {
+		err = json.Unmarshal(fields["resultRelation"], &node.ResultRelation)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasAggs"] != nil {
+		err = json.Unmarshal(fields["hasAggs"], &node.HasAggs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasWindowFuncs"] != nil {
+		err = json.Unmarshal(fields["hasWindowFuncs"], &node.HasWindowFuncs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasSubLinks"] != nil {
+		err = json.Unmarshal(fields["hasSubLinks"], &node.HasSubLinks)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasDistinctOn"] != nil {
+		err = json.Unmarshal(fields["hasDistinctOn"], &node.HasDistinctOn)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasRecursive"] != nil {
+		err = json.Unmarshal(fields["hasRecursive"], &node.HasRecursive)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasModifyingCTE"] != nil {
+		err = json.Unmarshal(fields["hasModifyingCTE"], &node.HasModifyingCte)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasForUpdate"] != nil {
+		err = json.Unmarshal(fields["hasForUpdate"], &node.HasForUpdate)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["cteList"] != nil {
+		node.CteList, err = UnmarshalNodeArrayJSON(fields["cteList"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rtable"] != nil {
+		node.Rtable, err = UnmarshalNodeArrayJSON(fields["rtable"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["jointree"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["jointree"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(FromExpr)
+			node.Jointree = &val
+		}
+	}
+
+	if fields["targetList"] != nil {
+		node.TargetList, err = UnmarshalNodeArrayJSON(fields["targetList"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withCheckOptions"] != nil {
+		node.WithCheckOptions, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["returningList"] != nil {
+		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["groupClause"] != nil {
+		node.GroupClause, err = UnmarshalNodeArrayJSON(fields["groupClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["havingQual"] != nil {
+		node.HavingQual, err = UnmarshalNodeJSON(fields["havingQual"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["windowClause"] != nil {
+		node.WindowClause, err = UnmarshalNodeArrayJSON(fields["windowClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["distinctClause"] != nil {
+		node.DistinctClause, err = UnmarshalNodeArrayJSON(fields["distinctClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["sortClause"] != nil {
+		node.SortClause, err = UnmarshalNodeArrayJSON(fields["sortClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["limitOffset"] != nil {
+		node.LimitOffset, err = UnmarshalNodeJSON(fields["limitOffset"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["limitCount"] != nil {
+		node.LimitCount, err = UnmarshalNodeJSON(fields["limitCount"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["rowMarks"] != nil {
+		node.RowMarks, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["setOperations"] != nil {
+		node.SetOperations, err = UnmarshalNodeJSON(fields["setOperations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["constraintDeps"] != nil {
+		node.ConstraintDeps, err = UnmarshalNodeArrayJSON(fields["constraintDeps"])
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

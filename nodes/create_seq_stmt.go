@@ -18,6 +18,38 @@ func (node CreateSeqStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateSeqStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["sequence"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["sequence"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RangeVar)
+			node.Sequence = &val
+		}
+	}
+
+	if fields["options"] != nil {
+		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["ownerId"] != nil {
+		err = json.Unmarshal(fields["ownerId"], &node.OwnerId)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }

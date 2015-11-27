@@ -19,6 +19,40 @@ func (node CreateSchemaStmt) MarshalJSON() ([]byte, error) {
 }
 
 func (node *CreateSchemaStmt) UnmarshalJSON(input []byte) (err error) {
-	err = UnmarshalNodeFieldJSON(input, node)
+	var fields map[string]json.RawMessage
+
+	err = json.Unmarshal(input, &fields)
+	if err != nil {
+		return
+	}
+
+	if fields["schemaname"] != nil {
+		err = json.Unmarshal(fields["schemaname"], &node.Schemaname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["authid"] != nil {
+		err = json.Unmarshal(fields["authid"], &node.Authid)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["schemaElts"] != nil {
+		node.SchemaElts, err = UnmarshalNodeArrayJSON(fields["schemaElts"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
