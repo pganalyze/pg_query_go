@@ -1,6 +1,7 @@
 package pg_query_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -12,7 +13,7 @@ func strPtr(str string) *string {
 	return &str
 }
 
-var queryTests = []struct {
+var parseTests = []struct {
 	input        string
 	expectedJSON string
 	expectedTree pg_query.ParsetreeList
@@ -229,9 +230,11 @@ var queryTests = []struct {
 }
 
 func TestParse(t *testing.T) {
-	for _, test := range queryTests {
-		actualJSON := pg_query.ParseToJSON(test.input)
-		if actualJSON != test.expectedJSON {
+	for _, test := range parseTests {
+		actualJSON, err := pg_query.ParseToJSON(test.input)
+		if err != nil {
+			t.Errorf("Parse(%s)\nerror %s\n\n", test.input, err)
+		} else if actualJSON != test.expectedJSON {
 			t.Errorf("Parse(%s)\nexpected %s\nactual %s\n\n", test.input, test.expectedJSON, actualJSON)
 		}
 
@@ -241,6 +244,32 @@ func TestParse(t *testing.T) {
 			t.Errorf("Unmarshal(%s)\nerror %s\n\n", actualJSON, err)
 		} else if !reflect.DeepEqual(actualTree, test.expectedTree) {
 			t.Errorf("Unmarshal(%s)\nexpected %s\nactual %s\n\n", actualJSON, test.expectedTree, actualTree)
+		}
+	}
+}
+
+var parseErrorTests = []struct {
+	input       string
+	expectedErr error
+}{
+	{
+		"SELECT $",
+		errors.New("syntax error at or near \"$\""),
+	},
+	{
+		"SELECT * FROM y WHERE x IN (?, ",
+		errors.New("syntax error at end of input"),
+	},
+}
+
+func TestParseError(t *testing.T) {
+	for _, test := range parseErrorTests {
+		_, actualErr := pg_query.Parse(test.input)
+
+		if actualErr == nil {
+			t.Errorf("Parse(%s)\nexpected error but none returned\n\n", test.input)
+		} else if !reflect.DeepEqual(actualErr, test.expectedErr) {
+			t.Errorf("Parse(%s)\nexpected error %s\nactual error %s\n\n", test.input, test.expectedErr, actualErr)
 		}
 	}
 }
