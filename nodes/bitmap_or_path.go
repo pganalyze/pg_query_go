@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * BitmapOrPath represents a BitmapOr plan node; it can only appear as
+ * part of the substructure of a BitmapHeapPath.  The Path structure is
+ * a bit more heavyweight than we really need for this, but for simplicity
+ * we make it a derivative of Path anyway.
+ */
 type BitmapOrPath struct {
 	Path              Path        `json:"path"`
 	Bitmapquals       []Node      `json:"bitmapquals"` /* IndexPaths and BitmapAndPaths */

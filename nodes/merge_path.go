@@ -4,6 +4,33 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A mergejoin path has these fields.
+ *
+ * Unlike other path types, a MergePath node doesn't represent just a single
+ * run-time plan node: it can represent up to four.  Aside from the MergeJoin
+ * node itself, there can be a Sort node for the outer input, a Sort node
+ * for the inner input, and/or a Material node for the inner input.  We could
+ * represent these nodes by separate path nodes, but considering how many
+ * different merge paths are investigated during a complex join problem,
+ * it seems better to avoid unnecessary palloc overhead.
+ *
+ * path_mergeclauses lists the clauses (in the form of RestrictInfos)
+ * that will be used in the merge.
+ *
+ * Note that the mergeclauses are a subset of the parent relation's
+ * restriction-clause list.  Any join clauses that are not mergejoinable
+ * appear only in the parent's restrict list, and must be checked by a
+ * qpqual at execution time.
+ *
+ * outersortkeys (resp. innersortkeys) is NIL if the outer path
+ * (resp. inner path) is already ordered appropriately for the
+ * mergejoin.  If it is not NIL then it is a PathKeys list describing
+ * the ordering that must be created by an explicit Sort node.
+ *
+ * materialize_inner is TRUE if a Material node should be placed atop the
+ * inner input.  This may appear with or without an inner Sort step.
+ */
 type MergePath struct {
 	Jpath            JoinPath `json:"jpath"`
 	PathMergeclauses []Node   `json:"path_mergeclauses"` /* join clauses to be used for merge */

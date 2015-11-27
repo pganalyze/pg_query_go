@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * SortBy - for ORDER BY clause
+ */
 type SortBy struct {
 	Node        Node        `json:"node"`         /* expression to sort on */
 	SortbyDir   SortByDir   `json:"sortby_dir"`   /* ASC/DESC/USING/default */

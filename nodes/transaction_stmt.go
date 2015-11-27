@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		{Begin|Commit|Rollback} Transaction Statement
+ * ----------------------
+ */
 type TransactionStmt struct {
 	Kind    TransactionStmtKind `json:"kind"`    /* see above */
 	Options []Node              `json:"options"` /* for BEGIN/START and savepoint commands */

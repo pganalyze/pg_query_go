@@ -2,11 +2,14 @@
 
 package pg_query
 
+/*
+ * A_Expr - infix, prefix, and postfix expressions
+ */
 type A_Expr_Kind uint
 
 const (
-	AEXPR_OP  = iota /* normal operator */
-	AEXPR_AND        /* booleans - name field is unused */
+	AEXPR_OP  A_Expr_Kind = iota /* normal operator */
+	AEXPR_AND                    /* booleans - name field is unused */
 	AEXPR_OR
 	AEXPR_NOT
 	AEXPR_OP_ANY   /* scalar op ANY (array) */

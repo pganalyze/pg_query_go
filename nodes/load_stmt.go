@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Load Statement
+ * ----------------------
+ */
 type LoadStmt struct {
 	Filename *string `json:"filename"` /* file to load */
 }

@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		limit node
+ *
+ * Note: as of Postgres 8.2, the offset and count expressions are expected
+ * to yield int8, rather than int4 as before.
+ * ----------------
+ */
 type Limit struct {
 	Plan        Plan `json:"plan"`
 	LimitOffset Node `json:"limitOffset"` /* OFFSET parameter, or NULL if none */

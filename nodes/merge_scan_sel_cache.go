@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Since mergejoinscansel() is a relatively expensive function, and would
+ * otherwise be invoked many times while planning a large join tree,
+ * we go out of our way to cache its results.  Each mergejoinable
+ * RestrictInfo carries a list of the specific sort orderings that have
+ * been considered for use with it, and the resulting selectivities.
+ */
 type MergeScanSelCache struct {
 	/* Ordering details (cache lookup key) */
 	Opfamily   Oid  `json:"opfamily"`    /* btree opfamily defining the ordering */

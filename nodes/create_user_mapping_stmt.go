@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Drop USER MAPPING Statements
+ * ----------------------
+ */
 type CreateUserMappingStmt struct {
 	Username   *string `json:"username"`   /* username or PUBLIC/CURRENT_USER */
 	Servername *string `json:"servername"` /* server name */

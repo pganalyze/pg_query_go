@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Close Portal Statement
+ * ----------------------
+ */
 type ClosePortalStmt struct {
 	Portalname *string `json:"portalname"` /* name of the portal (cursor) */
 

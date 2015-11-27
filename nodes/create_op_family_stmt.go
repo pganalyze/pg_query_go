@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Operator Family Statement
+ * ----------------------
+ */
 type CreateOpFamilyStmt struct {
 	Opfamilyname []Node  `json:"opfamilyname"` /* qualified name (list of Value strings) */
 	Amname       *string `json:"amname"`       /* name of index AM opfamily is for */

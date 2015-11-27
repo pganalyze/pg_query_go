@@ -4,6 +4,44 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * SubPlan - executable expression node for a subplan (sub-SELECT)
+ *
+ * The planner replaces SubLink nodes in expression trees with SubPlan
+ * nodes after it has finished planning the subquery.  SubPlan references
+ * a sub-plantree stored in the subplans list of the toplevel PlannedStmt.
+ * (We avoid a direct link to make it easier to copy expression trees
+ * without causing multiple processing of the subplan.)
+ *
+ * In an ordinary subplan, testexpr points to an executable expression
+ * (OpExpr, an AND/OR tree of OpExprs, or RowCompareExpr) for the combining
+ * operator(s); the left-hand arguments are the original lefthand expressions,
+ * and the right-hand arguments are PARAM_EXEC Param nodes representing the
+ * outputs of the sub-select.  (NOTE: runtime coercion functions may be
+ * inserted as well.)  This is just the same expression tree as testexpr in
+ * the original SubLink node, but the PARAM_SUBLINK nodes are replaced by
+ * suitably numbered PARAM_EXEC nodes.
+ *
+ * If the sub-select becomes an initplan rather than a subplan, the executable
+ * expression is part of the outer plan's expression tree (and the SubPlan
+ * node itself is not, but rather is found in the outer plan's initPlan
+ * list).  In this case testexpr is NULL to avoid duplication.
+ *
+ * The planner also derives lists of the values that need to be passed into
+ * and out of the subplan.  Input values are represented as a list "args" of
+ * expressions to be evaluated in the outer-query context (currently these
+ * args are always just Vars, but in principle they could be any expression).
+ * The values are assigned to the global PARAM_EXEC params indexed by parParam
+ * (the parParam and args lists must have the same ordering).  setParam is a
+ * list of the PARAM_EXEC params that are computed by the sub-select, if it
+ * is an initplan; they are listed in order by sub-select output column
+ * position.  (parParam and setParam are integer Lists, not Bitmapsets,
+ * because their ordering is significant.)
+ *
+ * Also, the planner computes startup and per-call costs for use of the
+ * SubPlan.  Note that these include the cost of the subquery proper,
+ * evaluation of the testexpr if any, and any hashtable management overhead.
+ */
 type SubPlan struct {
 	Xpr Expr `json:"xpr"`
 

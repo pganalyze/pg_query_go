@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Costing aggregate function execution requires these statistics about
+ * the aggregates to be executed by a given Agg node.  Note that the costs
+ * include the execution costs of the aggregates' argument expressions as
+ * well as the aggregate functions themselves.
+ */
 type AggClauseCosts struct {
 	NumAggs         int      `json:"numAggs"`         /* total number of aggregate functions */
 	NumOrderedAggs  int      `json:"numOrderedAggs"`  /* number w/ DISTINCT/ORDER BY/WITHIN GROUP */

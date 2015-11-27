@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Function Statement
+ * ----------------------
+ */
 type AlterFunctionStmt struct {
 	Func    *FuncWithArgs `json:"func"`    /* name and args of function */
 	Actions []Node        `json:"actions"` /* list of DefElem */

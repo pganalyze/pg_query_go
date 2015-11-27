@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Placeholder node for the test value to be processed by a CASE expression.
+ * This is effectively like a Param, but can be implemented more simply
+ * since we need only one replacement value at a time.
+ *
+ * We also use this in nested UPDATE expressions.
+ * See transformAssignmentIndirection().
+ */
 type CaseTestExpr struct {
 	Xpr       Expr  `json:"xpr"`
 	TypeId    Oid   `json:"typeId"`    /* type for substituted value */

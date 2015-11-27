@@ -4,6 +4,39 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Append-relation info.
+ *
+ * When we expand an inheritable table or a UNION-ALL subselect into an
+ * "append relation" (essentially, a list of child RTEs), we build an
+ * AppendRelInfo for each child RTE.  The list of AppendRelInfos indicates
+ * which child RTEs must be included when expanding the parent, and each
+ * node carries information needed to translate Vars referencing the parent
+ * into Vars referencing that child.
+ *
+ * These structs are kept in the PlannerInfo node's append_rel_list.
+ * Note that we just throw all the structs into one list, and scan the
+ * whole list when desiring to expand any one parent.  We could have used
+ * a more complex data structure (eg, one list per parent), but this would
+ * be harder to update during operations such as pulling up subqueries,
+ * and not really any easier to scan.  Considering that typical queries
+ * will not have many different append parents, it doesn't seem worthwhile
+ * to complicate things.
+ *
+ * Note: after completion of the planner prep phase, any given RTE is an
+ * append parent having entries in append_rel_list if and only if its
+ * "inh" flag is set.  We clear "inh" for plain tables that turn out not
+ * to have inheritance children, and (in an abuse of the original meaning
+ * of the flag) we set "inh" for subquery RTEs that turn out to be
+ * flattenable UNION ALL queries.  This lets us avoid useless searches
+ * of append_rel_list.
+ *
+ * Note: the data structure assumes that append-rel members are single
+ * baserels.  This is OK for inheritance, but it prevents us from pulling
+ * up a UNION ALL member subquery if it contains a join.  While that could
+ * be fixed with a more complex data structure, at present there's not much
+ * point because no improvement in the plan could result.
+ */
 type AppendRelInfo struct {
 	/*
 	 * These fields uniquely identify this append relationship.  There can be

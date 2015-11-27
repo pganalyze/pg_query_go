@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *				Comment On Statement
+ * ----------------------
+ */
 type CommentStmt struct {
 	Objtype ObjectType `json:"objtype"` /* Object's type */
 	Objname []Node     `json:"objname"` /* Qualified name of the object */

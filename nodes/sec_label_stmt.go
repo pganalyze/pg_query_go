@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *				SECURITY LABEL Statement
+ * ----------------------
+ */
 type SecLabelStmt struct {
 	Objtype  ObjectType `json:"objtype"`  /* Object's type */
 	Objname  []Node     `json:"objname"`  /* Qualified name of the object */

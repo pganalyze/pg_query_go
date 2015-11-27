@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *				Truncate Table Statement
+ * ----------------------
+ */
 type TruncateStmt struct {
 	Relations   []Node       `json:"relations"`    /* relations (RangeVars) to be truncated */
 	RestartSeqs bool         `json:"restart_seqs"` /* restart owned sequences? */

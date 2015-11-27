@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Alter FOREIGN SERVER Statements
+ * ----------------------
+ */
 type CreateForeignServerStmt struct {
 	Servername *string `json:"servername"` /* server name */
 	Servertype *string `json:"servertype"` /* optional server type */

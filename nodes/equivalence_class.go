@@ -4,6 +4,46 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * EquivalenceClasses
+ *
+ * Whenever we can determine that a mergejoinable equality clause A = B is
+ * not delayed by any outer join, we create an EquivalenceClass containing
+ * the expressions A and B to record this knowledge.  If we later find another
+ * equivalence B = C, we add C to the existing EquivalenceClass; this may
+ * require merging two existing EquivalenceClasses.  At the end of the qual
+ * distribution process, we have sets of values that are known all transitively
+ * equal to each other, where "equal" is according to the rules of the btree
+ * operator family(s) shown in ec_opfamilies, as well as the collation shown
+ * by ec_collation.  (We restrict an EC to contain only equalities whose
+ * operators belong to the same set of opfamilies.  This could probably be
+ * relaxed, but for now it's not worth the trouble, since nearly all equality
+ * operators belong to only one btree opclass anyway.  Similarly, we suppose
+ * that all or none of the input datatypes are collatable, so that a single
+ * collation value is sufficient.)
+ *
+ * We also use EquivalenceClasses as the base structure for PathKeys, letting
+ * us represent knowledge about different sort orderings being equivalent.
+ * Since every PathKey must reference an EquivalenceClass, we will end up
+ * with single-member EquivalenceClasses whenever a sort key expression has
+ * not been equivalenced to anything else.  It is also possible that such an
+ * EquivalenceClass will contain a volatile expression ("ORDER BY random()"),
+ * which is a case that can't arise otherwise since clauses containing
+ * volatile functions are never considered mergejoinable.  We mark such
+ * EquivalenceClasses specially to prevent them from being merged with
+ * ordinary EquivalenceClasses.  Also, for volatile expressions we have
+ * to be careful to match the EquivalenceClass to the correct targetlist
+ * entry: consider SELECT random() AS a, random() AS b ... ORDER BY b,a.
+ * So we record the SortGroupRef of the originating sort clause.
+ *
+ * We allow equality clauses appearing below the nullable side of an outer join
+ * to form EquivalenceClasses, but these have a slightly different meaning:
+ * the included values might be all NULL rather than all the same non-null
+ * values.  See src/backend/optimizer/README for more on that point.
+ *
+ * NB: if ec_merged isn't NULL, this class has been merged into another, and
+ * should be ignored in favor of using the pointed-to class.
+ */
 type EquivalenceClass struct {
 	EcOpfamilies []Node   `json:"ec_opfamilies"` /* btree operator family OIDs */
 	EcCollation  Oid      `json:"ec_collation"`  /* collation, if datatypes are collatable */

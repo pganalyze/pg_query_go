@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Alias -
+ *	  specifies an alias for a range variable; the alias might also
+ *	  specify renaming of columns within the table.
+ *
+ * Note: colnames is a list of Value nodes (always strings).  In Alias structs
+ * associated with RTEs, there may be entries corresponding to dropped
+ * columns; these are normally empty strings ("").  See parsenodes.h for info.
+ */
 type Alias struct {
 	Aliasname *string `json:"aliasname"` /* aliased rel name (never qualified) */
 	Colnames  []Node  `json:"colnames"`  /* optional list of column aliases */

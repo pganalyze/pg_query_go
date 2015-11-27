@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		CteScan node
+ * ----------------
+ */
 type CteScan struct {
 	Scan      Scan `json:"scan"`
 	CtePlanId int  `json:"ctePlanId"` /* ID of init SubPlan for CTE */

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create EVENT TRIGGER Statement
+ * ----------------------
+ */
 type CreateEventTrigStmt struct {
 	Trigname   *string `json:"trigname"`   /* TRIGGER's name */
 	Eventname  *string `json:"eventname"`  /* event's identifier */

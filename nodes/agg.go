@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/* ---------------
+ *		aggregate node
+ *
+ * An Agg node implements plain or grouped aggregation.  For grouped
+ * aggregation, we can work with presorted input or unsorted input;
+ * the latter strategy uses an internal hashtable.
+ *
+ * Notice the lack of any direct info about the aggregate functions to be
+ * computed.  They are found by scanning the node's tlist and quals during
+ * executor startup.  (It is possible that there are no aggregate functions;
+ * this could happen if they get optimized away by constant-folding, or if
+ * we are using the Agg node to implement hash-based grouping.)
+ * ---------------
+ */
 type Agg struct {
 	Plan         Plan        `json:"plan"`
 	Aggstrategy  AggStrategy `json:"aggstrategy"`

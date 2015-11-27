@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		tid scan node
+ *
+ * tidquals is an implicitly OR'ed list of qual expressions of the form
+ * "CTID = pseudoconstant" or "CTID = ANY(pseudoconstant_array)".
+ * ----------------
+ */
 type TidScan struct {
 	Scan     Scan   `json:"scan"`
 	Tidquals []Node `json:"tidquals"` /* qual(s) involving CTID = something */

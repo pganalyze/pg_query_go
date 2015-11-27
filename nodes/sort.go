@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		sort node
+ * ----------------
+ */
 type Sort struct {
 	Plan          Plan        `json:"plan"`
 	NumCols       int         `json:"numCols"`       /* number of sort-key columns */

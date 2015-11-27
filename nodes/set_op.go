@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		setop node
+ * ----------------
+ */
 type SetOp struct {
 	Plan     Plan          `json:"plan"`
 	Cmd      SetOpCmd      `json:"cmd"`      /* what to do */

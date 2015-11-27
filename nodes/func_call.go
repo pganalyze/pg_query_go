@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * FuncCall - a function or aggregate invocation
+ *
+ * agg_order (if not NIL) indicates we saw 'foo(... ORDER BY ...)', or if
+ * agg_within_group is true, it was 'foo(...) WITHIN GROUP (ORDER BY ...)'.
+ * agg_star indicates we saw a 'foo(*)' construct, while agg_distinct
+ * indicates we saw 'foo(DISTINCT ...)'.  In any of these cases, the
+ * construct *must* be an aggregate call.  Otherwise, it might be either an
+ * aggregate or some other kind of function.  However, if FILTER or OVER is
+ * present it had better be an aggregate or window function.
+ *
+ * Normally, you'd initialize this via makeFuncCall() and then only change the
+ * parts of the struct its defaults don't match afterwards, as needed.
+ */
 type FuncCall struct {
 	Funcname       []Node     `json:"funcname"`         /* qualified name of function */
 	Args           []Node     `json:"args"`             /* the arguments (list of exprs) */

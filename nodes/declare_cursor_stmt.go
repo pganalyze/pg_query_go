@@ -4,6 +4,7 @@ package pg_query
 
 import "encoding/json"
 
+/* these planner-control flags do not correspond to any SQL grammar: */
 type DeclareCursorStmt struct {
 	Portalname *string `json:"portalname"` /* name of the portal (cursor) */
 	Options    int     `json:"options"`    /* bitmask of options (see above) */

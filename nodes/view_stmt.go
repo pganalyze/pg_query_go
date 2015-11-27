@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create View Statement
+ * ----------------------
+ */
 type ViewStmt struct {
 	View            *RangeVar       `json:"view"`            /* the view to be created */
 	Aliases         []Node          `json:"aliases"`         /* target column names */

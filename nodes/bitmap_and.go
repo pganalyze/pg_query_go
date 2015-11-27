@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	 BitmapAnd node -
+ *		Generate the intersection of the results of sub-plans.
+ *
+ * The subplans must be of types that yield tuple bitmaps.  The targetlist
+ * and qual fields of the plan are unused and are always NIL.
+ * ----------------
+ */
 type BitmapAnd struct {
 	Plan        Plan   `json:"plan"`
 	Bitmapplans []Node `json:"bitmapplans"`

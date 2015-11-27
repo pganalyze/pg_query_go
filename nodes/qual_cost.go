@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * The cost estimate produced by cost_qual_eval() includes both a one-time
+ * (startup) cost, and a per-tuple cost.
+ */
 type QualCost struct {
 	Startup  Cost `json:"startup"`   /* one-time cost */
 	PerTuple Cost `json:"per_tuple"` /* per-evaluation cost */

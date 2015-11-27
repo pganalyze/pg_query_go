@@ -2,10 +2,14 @@
 
 package pg_query
 
+/* ----------------------
+ * Discard Statement
+ * ----------------------
+ */
 type DiscardMode uint
 
 const (
-	DISCARD_ALL = iota
+	DISCARD_ALL DiscardMode = iota
 	DISCARD_PLANS
 	DISCARD_SEQUENCES
 	DISCARD_TEMP

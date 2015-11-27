@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A_Expr - infix, prefix, and postfix expressions
+ */
 type A_Expr struct {
 	Kind     A_Expr_Kind `json:"kind"`     /* see above */
 	Name     []Node      `json:"name"`     /* possibly-qualified name of operator */

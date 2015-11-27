@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Create/Alter/Drop Role Statements
+ *
+ * Note: these node types are also used for the backwards-compatible
+ * Create/Alter/Drop User/Group statements.  In the ALTER and DROP cases
+ * there's really no need to distinguish what the original spelling was,
+ * but for CREATE we mark the type because the defaults vary.
+ * ----------------------
+ */
 type AlterRoleStmt struct {
 	Role    *string `json:"role"`    /* role name */
 	Options []Node  `json:"options"` /* List of DefElem nodes */

@@ -4,6 +4,16 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ScalarArrayOpExpr - expression node for "scalar op ANY/ALL (array)"
+ *
+ * The operator must yield boolean.  It is applied to the left operand
+ * and each element of the righthand array, and the results are combined
+ * with OR or AND (for ANY or ALL respectively).  The node representation
+ * is almost the same as for the underlying operator, but we need a useOr
+ * flag to remember whether it's ANY or ALL, and we don't have to store
+ * the result type (or the collation) because it must be boolean.
+ */
 type ScalarArrayOpExpr struct {
 	Xpr         Expr   `json:"xpr"`
 	Opno        Oid    `json:"opno"`        /* PG_OPERATOR OID of the operator */

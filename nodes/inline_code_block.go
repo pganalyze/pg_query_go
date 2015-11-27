@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		DO Statement
+ *
+ * DoStmt is the raw parser output, InlineCodeBlock is the execution-time API
+ * ----------------------
+ */
 type InlineCodeBlock struct {
 	SourceText    *string `json:"source_text"`   /* source text of anonymous code block */
 	LangOid       Oid     `json:"langOid"`       /* OID of selected language */

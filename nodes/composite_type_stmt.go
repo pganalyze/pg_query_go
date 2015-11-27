@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Type Statement, composite types
+ * ----------------------
+ */
 type CompositeTypeStmt struct {
 	Typevar    *RangeVar `json:"typevar"`    /* the composite type to be created */
 	Coldeflist []Node    `json:"coldeflist"` /* list of ColumnDef nodes */

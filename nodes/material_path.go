@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * MaterialPath represents use of a Material plan node, i.e., caching of
+ * the output of its subpath.  This is used when the subpath is expensive
+ * and needs to be scanned repeatedly, or when we need mark/restore ability
+ * and the subpath doesn't have it.
+ */
 type MaterialPath struct {
 	Path    Path  `json:"path"`
 	Subpath *Path `json:"subpath"`

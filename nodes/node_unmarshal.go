@@ -1472,6 +1472,20 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "NULLTEST":
+			var outNode NullTest
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "BOOLEANTEST":
+			var outNode BooleanTest
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "COERCETODOMAIN":
 			var outNode CoerceToDomain
 			err = json.Unmarshal(jsonText, &outNode)

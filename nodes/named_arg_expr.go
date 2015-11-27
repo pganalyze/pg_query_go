@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * NamedArgExpr - a named argument of a function
+ *
+ * This node type can only appear in the args list of a FuncCall or FuncExpr
+ * node.  We support pure positional call notation (no named arguments),
+ * named notation (all arguments are named), and mixed notation (unnamed
+ * arguments followed by named ones).
+ *
+ * Parse analysis sets argnumber to the positional index of the argument,
+ * but doesn't rearrange the argument list.
+ *
+ * The planner will convert argument lists to pure positional notation
+ * during expression preprocessing, so execution never sees a NamedArgExpr.
+ */
 type NamedArgExpr struct {
 	Xpr       Expr    `json:"xpr"`
 	Arg       *Expr   `json:"arg"`       /* the argument expression */

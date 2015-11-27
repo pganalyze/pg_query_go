@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * For speed reasons, cost estimation for join paths is performed in two
+ * phases: the first phase tries to quickly derive a lower bound for the
+ * join cost, and then we check if that's sufficient to reject the path.
+ * If not, we come back for a more refined cost estimate.  The first phase
+ * fills a JoinCostWorkspace struct with its preliminary cost estimates
+ * and possibly additional intermediate values.  The second phase takes
+ * these values as inputs to avoid repeating work.
+ *
+ * (Ideally we'd declare this in cost.h, but it's also needed in pathnode.h,
+ * so seems best to put it here.)
+ */
 type JoinCostWorkspace struct {
 	/* Preliminary cost estimates --- must not be larger than final ones! */
 	StartupCost Cost `json:"startup_cost"` /* cost expended before fetching any tuples */

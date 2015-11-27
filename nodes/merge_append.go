@@ -4,6 +4,11 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	 MergeAppend node -
+ *		Merge the results of pre-sorted sub-plans to preserve the ordering.
+ * ----------------
+ */
 type MergeAppend struct {
 	Plan       Plan   `json:"plan"`
 	Mergeplans []Node `json:"mergeplans"`

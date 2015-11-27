@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * AppendPath represents an Append plan, ie, successive execution of
+ * several member plans.
+ *
+ * Note: it is possible for "subpaths" to contain only one, or even no,
+ * elements.  These cases are optimized during create_append_plan.
+ * In particular, an AppendPath with no subpaths is a "dummy" path that
+ * is created to represent the case that a relation is provably empty.
+ */
 type AppendPath struct {
 	Path     Path   `json:"path"`
 	Subpaths []Node `json:"subpaths"` /* list of component Paths */

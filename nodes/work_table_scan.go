@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		WorkTableScan node
+ * ----------------
+ */
 type WorkTableScan struct {
 	Scan    Scan `json:"scan"`
 	WtParam int  `json:"wtParam"` /* ID of Param representing work table */

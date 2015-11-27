@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*----------
+ * FromExpr - represents a FROM ... WHERE ... construct
+ *
+ * This is both more flexible than a JoinExpr (it can have any number of
+ * children, including zero) and less so --- we don't need to deal with
+ * aliases and so on.  The output column set is implicitly just the union
+ * of the outputs of the children.
+ *----------
+ */
 type FromExpr struct {
 	Fromlist []Node `json:"fromlist"` /* List of join subtrees */
 	Quals    Node   `json:"quals"`    /* qualifiers on join, if any */

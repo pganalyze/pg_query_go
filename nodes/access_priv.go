@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * An access privilege, with optional list of column names
+ * priv_name == NULL denotes ALL PRIVILEGES (only used with a column list)
+ * cols == NIL denotes "all columns"
+ * Note that simple "ALL PRIVILEGES" is represented as a NIL list, not
+ * an AccessPriv with both fields null.
+ */
 type AccessPriv struct {
 	PrivName *string `json:"priv_name"` /* string name of privilege */
 	Cols     []Node  `json:"cols"`      /* list of Value strings */

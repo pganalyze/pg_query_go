@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Database
+ * ----------------------
+ */
 type AlterDatabaseSetStmt struct {
 	Dbname  *string          `json:"dbname"`  /* database name */
 	Setstmt *VariableSetStmt `json:"setstmt"` /* SET or RESET subcommand */

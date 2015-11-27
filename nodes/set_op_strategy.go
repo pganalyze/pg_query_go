@@ -5,6 +5,6 @@ package pg_query
 type SetOpStrategy uint
 
 const (
-	SETOP_SORTED = iota /* input must be sorted */
-	SETOP_HASHED        /* use internal hashtable */
+	SETOP_SORTED SetOpStrategy = iota /* input must be sorted */
+	SETOP_HASHED                      /* use internal hashtable */
 )

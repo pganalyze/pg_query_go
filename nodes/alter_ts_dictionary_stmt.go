@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * TS Dictionary stmts: DefineStmt, RenameStmt and DropStmt are default
+ */
 type AlterTSDictionaryStmt struct {
 	Dictname []Node `json:"dictname"` /* qualified name (list of Value strings) */
 	Options  []Node `json:"options"`  /* List of DefElem nodes */

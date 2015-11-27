@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Const
+ */
 type Const struct {
 	Xpr         Expr  `json:"xpr"`
 	Consttype   Oid   `json:"consttype"`   /* pg_type OID of the constant's datatype */

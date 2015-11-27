@@ -2,9 +2,12 @@
 
 package pg_query
 
+/*
+ * MinMaxExpr - a GREATEST or LEAST function
+ */
 type MinMaxOp uint
 
 const (
-	IS_GREATEST = iota
+	IS_GREATEST MinMaxOp = iota
 	IS_LEAST
 )

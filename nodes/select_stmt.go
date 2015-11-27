@@ -4,6 +4,19 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Select Statement
+ *
+ * A "simple" SELECT is represented in the output of gram.y by a single
+ * SelectStmt node; so is a VALUES construct.  A query containing set
+ * operators (UNION, INTERSECT, EXCEPT) is represented by a tree of SelectStmt
+ * nodes, in which the leaf nodes are component SELECTs and the internal nodes
+ * represent UNION, INTERSECT, or EXCEPT operators.  Using the same node
+ * type for both leaf and internal nodes allows gram.y to stick ORDER BY,
+ * LIMIT, etc, clause values into a SELECT statement without worrying
+ * whether it is a simple or compound SELECT.
+ * ----------------------
+ */
 type SelectStmt struct {
 	/*
 	 * These fields are used only in "leaf" SelectStmts.

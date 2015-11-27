@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ *		DROP OWNED statement
+ */
 type DropOwnedStmt struct {
 	Roles    []Node       `json:"roles"`
 	Behavior DropBehavior `json:"behavior"`

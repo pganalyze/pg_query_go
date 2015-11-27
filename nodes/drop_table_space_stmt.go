@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Drop Table Space Statements
+ * ----------------------
+ */
 type DropTableSpaceStmt struct {
 	Tablespacename *string `json:"tablespacename"`
 	MissingOk      bool    `json:"missing_ok"` /* skip error if missing? */

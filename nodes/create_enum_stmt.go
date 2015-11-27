@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Type Statement, enum types
+ * ----------------------
+ */
 type CreateEnumStmt struct {
 	TypeName []Node `json:"typeName"` /* qualified name (list of Value strings) */
 	Vals     []Node `json:"vals"`     /* enum values (list of Value strings) */

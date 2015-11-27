@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Grant/Revoke Role Statement
+ *
+ * Note: because of the parsing ambiguity with the GRANT <privileges>
+ * statement, granted_roles is a list of AccessPriv; the execution code
+ * should complain if any column lists appear.  grantee_roles is a list
+ * of role names, as Value strings.
+ * ----------------------
+ */
 type GrantRoleStmt struct {
 	GrantedRoles []Node       `json:"granted_roles"` /* list of roles to be granted/revoked */
 	GranteeRoles []Node       `json:"grantee_roles"` /* list of member roles to add/delete */

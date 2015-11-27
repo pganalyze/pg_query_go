@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Placeholder node for the value to be processed by a domain's check
+ * constraint.  This is effectively like a Param, but can be implemented more
+ * simply since we need only one replacement value at a time.
+ *
+ * Note: the typeId/typeMod/collation will be set from the domain's base type,
+ * not the domain itself.  This is because we shouldn't consider the value
+ * to be a member of the domain if we haven't yet checked its constraints.
+ */
 type CoerceToDomainValue struct {
 	Xpr       Expr  `json:"xpr"`
 	TypeId    Oid   `json:"typeId"`    /* type for substituted value */

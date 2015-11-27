@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * TypeCast - a CAST expression
+ */
 type TypeCast struct {
 	Arg      Node      `json:"arg"`      /* the expression being casted */
 	TypeName *TypeName `json:"typeName"` /* the target type */

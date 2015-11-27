@@ -4,6 +4,7 @@ package pg_query
 
 import "encoding/json"
 
+/* Foreign key matchtype codes */
 type Constraint struct {
 	Contype ConstrType `json:"contype"` /* see above */
 

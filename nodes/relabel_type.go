@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * RelabelType
+ *
+ * RelabelType represents a "dummy" type coercion between two binary-
+ * compatible datatypes, such as reinterpreting the result of an OID
+ * expression as an int4.  It is a no-op at runtime; we only need it
+ * to provide a place to store the correct type to be attributed to
+ * the expression result during type resolution.  (We can't get away
+ * with just overwriting the type field of the input expression node,
+ * so we need a separate node to show the coercion's result type.)
+ * ----------------
+ */
 type RelabelType struct {
 	Xpr           Expr         `json:"xpr"`
 	Arg           *Expr        `json:"arg"`           /* input expression */

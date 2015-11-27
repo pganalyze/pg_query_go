@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Operator Class Statement
+ * ----------------------
+ */
 type CreateOpClassStmt struct {
 	Opclassname  []Node    `json:"opclassname"`  /* qualified name (list of Value strings) */
 	Opfamilyname []Node    `json:"opfamilyname"` /* qualified name (ditto); NIL if omitted */

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		REINDEX Statement
+ * ----------------------
+ */
 type ReindexStmt struct {
 	Kind     ObjectType `json:"kind"`      /* OBJECT_INDEX, OBJECT_TABLE, etc. */
 	Relation *RangeVar  `json:"relation"`  /* Table or index to reindex */

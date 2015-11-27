@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		CREATE CONVERSION Statement
+ * ----------------------
+ */
 type CreateConversionStmt struct {
 	ConversionName  []Node  `json:"conversion_name"`   /* Name of the conversion */
 	ForEncodingName *string `json:"for_encoding_name"` /* source encoding name */

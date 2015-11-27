@@ -4,6 +4,16 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Table Statement
+ *
+ * NOTE: in the raw gram.y output, ColumnDef and Constraint nodes are
+ * intermixed in tableElts, and constraints is NIL.  After parse analysis,
+ * tableElts contains just ColumnDefs, and constraints contains just
+ * Constraint nodes (in fact, only CONSTR_CHECK nodes, in the present
+ * implementation).
+ * ----------------------
+ */
 type CreateStmt struct {
 	Relation     *RangeVar `json:"relation"`     /* relation to create */
 	TableElts    []Node    `json:"tableElts"`    /* column definitions (list of ColumnDef) */

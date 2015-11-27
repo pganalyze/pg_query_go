@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter Type Statement, enum types
+ * ----------------------
+ */
 type AlterEnumStmt struct {
 	TypeName       []Node  `json:"typeName"`       /* qualified name (list of Value strings) */
 	NewVal         *string `json:"newVal"`         /* new enum value's name */

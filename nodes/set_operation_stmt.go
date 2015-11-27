@@ -4,6 +4,25 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Set Operation node for post-analysis query trees
+ *
+ * After parse analysis, a SELECT with set operations is represented by a
+ * top-level Query node containing the leaf SELECTs as subqueries in its
+ * range table.  Its setOperations field shows the tree of set operations,
+ * with leaf SelectStmt nodes replaced by RangeTblRef nodes, and internal
+ * nodes replaced by SetOperationStmt nodes.  Information about the output
+ * column types is added, too.  (Note that the child nodes do not necessarily
+ * produce these types directly, but we've checked that their output types
+ * can be coerced to the output column type.)  Also, if it's not UNION ALL,
+ * information about the types' sort/group semantics is provided in the form
+ * of a SortGroupClause list (same representation as, eg, DISTINCT).
+ * The resolved common column collations are provided too; but note that if
+ * it's not UNION ALL, it's okay for a column to not have a common collation,
+ * so a member of the colCollations list could be InvalidOid even though the
+ * column has a collatable type.
+ * ----------------------
+ */
 type SetOperationStmt struct {
 	Op   SetOperation `json:"op"`   /* type of set op */
 	All  bool         `json:"all"`  /* ALL specified? */

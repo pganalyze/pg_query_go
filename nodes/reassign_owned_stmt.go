@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ *		REASSIGN OWNED statement
+ */
 type ReassignOwnedStmt struct {
 	Roles   []Node  `json:"roles"`
 	Newrole *string `json:"newrole"`

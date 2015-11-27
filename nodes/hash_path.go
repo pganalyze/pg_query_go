@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A hashjoin path has these fields.
+ *
+ * The remarks above for mergeclauses apply for hashclauses as well.
+ *
+ * Hashjoin does not care what order its inputs appear in, so we have
+ * no need for sortkeys.
+ */
 type HashPath struct {
 	Jpath           JoinPath `json:"jpath"`
 	PathHashclauses []Node   `json:"path_hashclauses"` /* join clauses used for hashing */

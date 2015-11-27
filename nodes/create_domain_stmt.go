@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Domain Statement
+ * ----------------------
+ */
 type CreateDomainStmt struct {
 	Domainname  []Node         `json:"domainname"`  /* qualified name (list of Value strings) */
 	TypeName    *TypeName      `json:"typeName"`    /* the base type */

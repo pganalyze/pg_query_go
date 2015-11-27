@@ -4,6 +4,7 @@ package pg_query
 
 import "encoding/json"
 
+/* Only used for ALTER EXTENSION UPDATE; later might need an action field */
 type AlterExtensionStmt struct {
 	Extname *string `json:"extname"`
 	Options []Node  `json:"options"` /* List of DefElem nodes */

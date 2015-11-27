@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * CoerceToDomain
+ *
+ * CoerceToDomain represents the operation of coercing a value to a domain
+ * type.  At runtime (and not before) the precise set of constraints to be
+ * checked will be determined.  If the value passes, it is returned as the
+ * result; if not, an error is raised.  Note that this is equivalent to
+ * RelabelType in the scenario where no constraints are applied.
+ */
 type CoerceToDomain struct {
 	Xpr            Expr         `json:"xpr"`
 	Arg            *Expr        `json:"arg"`            /* input expression */

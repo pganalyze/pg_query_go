@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		SET CONSTRAINTS Statement
+ * ----------------------
+ */
 type ConstraintsSetStmt struct {
 	Constraints []Node `json:"constraints"` /* List of names as RangeVars */
 	Deferred    bool   `json:"deferred"`

@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A_Star - '*' representing all columns of a table or compound field
+ *
+ * This can appear within ColumnRef.fields, A_Indirection.indirection, and
+ * ResTarget.indirection lists.
+ */
 type A_Star struct {
 }
 

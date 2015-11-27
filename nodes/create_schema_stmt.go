@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Schema Statement
+ *
+ * NOTE: the schemaElts list contains raw parsetrees for component statements
+ * of the schema, such as CREATE TABLE, GRANT, etc.  These are analyzed and
+ * executed after the schema itself is created.
+ * ----------------------
+ */
 type CreateSchemaStmt struct {
 	Schemaname  *string `json:"schemaname"`    /* the name of the schema to create */
 	Authid      *string `json:"authid"`        /* the owner of the created schema */

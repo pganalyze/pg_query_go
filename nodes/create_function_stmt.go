@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Function Statement
+ * ----------------------
+ */
 type CreateFunctionStmt struct {
 	Replace    bool      `json:"replace"`    /* T => replace if already exists */
 	Funcname   []Node    `json:"funcname"`   /* qualified name of function to create */

@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	 BitmapOr node -
+ *		Generate the union of the results of sub-plans.
+ *
+ * The subplans must be of types that yield tuple bitmaps.  The targetlist
+ * and qual fields of the plan are unused and are always NIL.
+ * ----------------
+ */
 type BitmapOr struct {
 	Plan        Plan   `json:"plan"`
 	Bitmapplans []Node `json:"bitmapplans"`

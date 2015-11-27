@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		DEALLOCATE Statement
+ * ----------------------
+ */
 type DeallocateStmt struct {
 	Name *string `json:"name"` /* The name of the plan to remove */
 

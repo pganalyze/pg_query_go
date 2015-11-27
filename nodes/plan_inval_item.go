@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Plan invalidation info
+ *
+ * We track the objects on which a PlannedStmt depends in two ways:
+ * relations are recorded as a simple list of OIDs, and everything else
+ * is represented as a list of PlanInvalItems.  A PlanInvalItem is designed
+ * to be used with the syscache invalidation mechanism, so it identifies a
+ * system catalog entry by cache ID and hash value.
+ */
 type PlanInvalItem struct {
 	CacheId   int    `json:"cacheId"`   /* a syscache ID, see utils/syscache.h */
 	HashValue uint32 `json:"hashValue"` /* hash value of object's cache lookup key */

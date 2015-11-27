@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Notify Statement
+ * ----------------------
+ */
 type NotifyStmt struct {
 	Conditionname *string `json:"conditionname"` /* condition name to notify */
 	Payload       *string `json:"payload"`       /* the payload string, or NULL if none */

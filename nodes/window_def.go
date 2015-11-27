@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * WindowDef - raw representation of WINDOW and OVER clauses
+ *
+ * For entries in a WINDOW list, "name" is the window name being defined.
+ * For OVER clauses, we use "name" for the "OVER window" syntax, or "refname"
+ * for the "OVER (window)" syntax, which is subtly different --- the latter
+ * implies overriding the window frame clause.
+ */
 type WindowDef struct {
 	Name            *string `json:"name"`            /* window's own name */
 	Refname         *string `json:"refname"`         /* referenced window name, if any */

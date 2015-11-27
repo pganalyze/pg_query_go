@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Drop Table|Sequence|View|Index|Type|Domain|Conversion|Schema Statement
+ * ----------------------
+ */
 type DropStmt struct {
 	Objects    []Node       `json:"objects"`    /* list of sublists of names (as Values) */
 	Arguments  []Node       `json:"arguments"`  /* list of sublists of arguments (as Values) */

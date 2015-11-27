@@ -5,27 +5,27 @@ package pg_query
 type AlterTableType uint
 
 const (
-	AT_AddColumn                 = iota /* add column */
-	AT_AddColumnRecurse                 /* internal to commands/tablecmds.c */
-	AT_AddColumnToView                  /* implicitly via CREATE OR REPLACE VIEW */
-	AT_ColumnDefault                    /* alter column default */
-	AT_DropNotNull                      /* alter column drop not null */
-	AT_SetNotNull                       /* alter column set not null */
-	AT_SetStatistics                    /* alter column set statistics */
-	AT_SetOptions                       /* alter column set ( options ) */
-	AT_ResetOptions                     /* alter column reset ( options ) */
-	AT_SetStorage                       /* alter column set storage */
-	AT_DropColumn                       /* drop column */
-	AT_DropColumnRecurse                /* internal to commands/tablecmds.c */
-	AT_AddIndex                         /* add index */
-	AT_ReAddIndex                       /* internal to commands/tablecmds.c */
-	AT_AddConstraint                    /* add constraint */
-	AT_AddConstraintRecurse             /* internal to commands/tablecmds.c */
-	AT_ReAddConstraint                  /* internal to commands/tablecmds.c */
-	AT_AlterConstraint                  /* alter constraint */
-	AT_ValidateConstraint               /* validate constraint */
-	AT_ValidateConstraintRecurse        /* internal to commands/tablecmds.c */
-	AT_ProcessedConstraint              /* pre-processed add constraint (local in
+	AT_AddColumn                 AlterTableType = iota /* add column */
+	AT_AddColumnRecurse                                /* internal to commands/tablecmds.c */
+	AT_AddColumnToView                                 /* implicitly via CREATE OR REPLACE VIEW */
+	AT_ColumnDefault                                   /* alter column default */
+	AT_DropNotNull                                     /* alter column drop not null */
+	AT_SetNotNull                                      /* alter column set not null */
+	AT_SetStatistics                                   /* alter column set statistics */
+	AT_SetOptions                                      /* alter column set ( options ) */
+	AT_ResetOptions                                    /* alter column reset ( options ) */
+	AT_SetStorage                                      /* alter column set storage */
+	AT_DropColumn                                      /* drop column */
+	AT_DropColumnRecurse                               /* internal to commands/tablecmds.c */
+	AT_AddIndex                                        /* add index */
+	AT_ReAddIndex                                      /* internal to commands/tablecmds.c */
+	AT_AddConstraint                                   /* add constraint */
+	AT_AddConstraintRecurse                            /* internal to commands/tablecmds.c */
+	AT_ReAddConstraint                                 /* internal to commands/tablecmds.c */
+	AT_AlterConstraint                                 /* alter constraint */
+	AT_ValidateConstraint                              /* validate constraint */
+	AT_ValidateConstraintRecurse                       /* internal to commands/tablecmds.c */
+	AT_ProcessedConstraint                             /* pre-processed add constraint (local in
 	 * parser/parse_utilcmd.c) */
 
 	AT_AddIndexConstraint        /* add constraint using existing index */

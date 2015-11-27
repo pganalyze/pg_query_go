@@ -4,6 +4,29 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RowExpr - a ROW() expression
+ *
+ * Note: the list of fields must have a one-for-one correspondence with
+ * physical fields of the associated rowtype, although it is okay for it
+ * to be shorter than the rowtype.  That is, the N'th list element must
+ * match up with the N'th physical field.  When the N'th physical field
+ * is a dropped column (attisdropped) then the N'th list element can just
+ * be a NULL constant.  (This case can only occur for named composite types,
+ * not RECORD types, since those are built from the RowExpr itself rather
+ * than vice versa.)  It is important not to assume that length(args) is
+ * the same as the number of columns logically present in the rowtype.
+ *
+ * colnames provides field names in cases where the names can't easily be
+ * obtained otherwise.  Names *must* be provided if row_typeid is RECORDOID.
+ * If row_typeid identifies a known composite type, colnames can be NIL to
+ * indicate the type's cataloged field names apply.  Note that colnames can
+ * be non-NIL even for a composite type, and typically is when the RowExpr
+ * was created by expanding a whole-row Var.  This is so that we can retain
+ * the column alias names of the RTE that the Var referenced (which would
+ * otherwise be very difficult to extract from the parsetree).  Like the
+ * args list, colnames is one-for-one with physical fields of the rowtype.
+ */
 type RowExpr struct {
 	Xpr       Expr   `json:"xpr"`
 	Args      []Node `json:"args"`       /* the fields */

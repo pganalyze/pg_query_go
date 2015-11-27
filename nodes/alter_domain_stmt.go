@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Domain
+ *
+ * The fields are used in different ways by the different variants of
+ * this command.
+ * ----------------------
+ */
 type AlterDomainStmt struct {
 	Subtype byte `json:"subtype"` /*------------
 	 *	T = alter column default

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ * Show Statement
+ * ----------------------
+ */
 type VariableShowStmt struct {
 	Name *string `json:"name"`
 }

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Grant|Revoke Statement
+ * ----------------------
+ */
 type PrivGrantee struct {
 	Rolname *string `json:"rolname"` /* if NULL then PUBLIC */
 }

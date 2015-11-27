@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	CREATE CAST Statement
+ * ----------------------
+ */
 type CreateCastStmt struct {
 	Sourcetype *TypeName       `json:"sourcetype"`
 	Targettype *TypeName       `json:"targettype"`

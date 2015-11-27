@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Default Privileges Statement
+ * ----------------------
+ */
 type AlterDefaultPrivilegesStmt struct {
 	Options []Node     `json:"options"` /* list of DefElem */
 	Action  *GrantStmt `json:"action"`  /* GRANT/REVOKE action (with objects=NIL) */

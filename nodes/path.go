@@ -4,6 +4,30 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Type "Path" is used as-is for sequential-scan paths, as well as some other
+ * simple plan types that we don't need any extra information in the path for.
+ * For other path types it is the first component of a larger struct.
+ *
+ * "pathtype" is the NodeTag of the Plan node we could build from this Path.
+ * It is partially redundant with the Path's NodeTag, but allows us to use
+ * the same Path type for multiple Plan types when there is no need to
+ * distinguish the Plan type during path processing.
+ *
+ * "param_info", if not NULL, links to a ParamPathInfo that identifies outer
+ * relation(s) that provide parameter values to each scan of this path.
+ * That means this path can only be joined to those rels by means of nestloop
+ * joins with this path on the inside.  Also note that a parameterized path
+ * is responsible for testing all "movable" joinclauses involving this rel
+ * and the specified outer rel(s).
+ *
+ * "rows" is the same as parent->rows in simple paths, but in parameterized
+ * paths and UniquePaths it can be less than parent->rows, reflecting the
+ * fact that we've filtered by extra join conditions or removed duplicates.
+ *
+ * "pathkeys" is a List of PathKey nodes (see above), describing the sort
+ * ordering of the path's output rows.
+ */
 type Path struct {
 	Parent    *RelOptInfo    `json:"parent"`     /* the relation this path can build */
 	ParamInfo *ParamPathInfo `json:"param_info"` /* parameterization info, or NULL if none */

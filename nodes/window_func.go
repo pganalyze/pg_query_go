@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * WindowFunc
+ */
 type WindowFunc struct {
 	Xpr         Expr   `json:"xpr"`
 	Winfnoid    Oid    `json:"winfnoid"`    /* pg_proc Oid of the function */

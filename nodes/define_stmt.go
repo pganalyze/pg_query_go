@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create {Aggregate|Operator|Type} Statement
+ * ----------------------
+ */
 type DefineStmt struct {
 	Kind       ObjectType `json:"kind"`       /* aggregate, operator, type */
 	Oldstyle   bool       `json:"oldstyle"`   /* hack to signal old CREATE AGG syntax */

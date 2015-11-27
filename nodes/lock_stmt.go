@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		LOCK Statement
+ * ----------------------
+ */
 type LockStmt struct {
 	Relations []Node `json:"relations"` /* relations to lock */
 	Mode      int    `json:"mode"`      /* lock mode */

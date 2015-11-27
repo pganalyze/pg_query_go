@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		ValuesScan node
+ * ----------------
+ */
 type ValuesScan struct {
 	Scan        Scan   `json:"scan"`
 	ValuesLists []Node `json:"values_lists"` /* list of expression lists */

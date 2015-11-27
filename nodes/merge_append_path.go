@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * MergeAppendPath represents a MergeAppend plan, ie, the merging of sorted
+ * results from several member plans to produce similarly-sorted output.
+ */
 type MergeAppendPath struct {
 	Path        Path    `json:"path"`
 	Subpaths    []Node  `json:"subpaths"`     /* list of component Paths */

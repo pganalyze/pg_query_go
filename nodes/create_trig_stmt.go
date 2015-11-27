@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create TRIGGER Statement
+ * ----------------------
+ */
 type CreateTrigStmt struct {
 	Trigname *string   `json:"trigname"` /* TRIGGER's name */
 	Relation *RangeVar `json:"relation"` /* relation trigger is on */

@@ -4,6 +4,19 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Query -
+ *	  Parse analysis turns all statements into a Query tree
+ *	  for further processing by the rewriter and planner.
+ *
+ *	  Utility statements (i.e. non-optimizable statements) have the
+ *	  utilityStmt field set, and the Query itself is mostly dummy.
+ *	  DECLARE CURSOR is a special case: it is represented like a SELECT,
+ *	  but the original DeclareCursorStmt is stored in utilityStmt.
+ *
+ *	  Planning converts a Query tree into a Plan tree headed by a PlannedStmt
+ *	  node --- the Query structure is not used by the executor.
+ */
 type Query struct {
 	CommandType CmdType `json:"commandType"` /* select|insert|update|delete|utility */
 

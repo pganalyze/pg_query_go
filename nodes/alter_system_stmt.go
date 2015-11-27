@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter System Statement
+ * ----------------------
+ */
 type AlterSystemStmt struct {
 	Setstmt *VariableSetStmt `json:"setstmt"` /* SET subcommand */
 }

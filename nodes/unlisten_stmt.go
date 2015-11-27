@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Unlisten Statement
+ * ----------------------
+ */
 type UnlistenStmt struct {
 	Conditionname *string `json:"conditionname"` /* name to unlisten on, or NULL for all */
 }

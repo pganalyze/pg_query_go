@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Table
+ * ----------------------
+ */
 type ReplicaIdentityStmt struct {
 	IdentityType byte    `json:"identity_type"`
 	Name         *string `json:"name"`

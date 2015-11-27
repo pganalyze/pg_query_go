@@ -4,6 +4,19 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * TypeName - specifies a type in definitions
+ *
+ * For TypeName structures generated internally, it is often easier to
+ * specify the type by OID than by name.  If "names" is NIL then the
+ * actual type OID is given by typeOid, otherwise typeOid is unused.
+ * Similarly, if "typmods" is NIL then the actual typmod is expected to
+ * be prespecified in typemod, otherwise typemod is unused.
+ *
+ * If pct_type is TRUE, then names is actually a field name and we look up
+ * the type of that field.  Otherwise (the normal case), names is a type
+ * name possibly qualified with schema and database name.
+ */
 type TypeName struct {
 	Names       []Node `json:"names"`       /* qualified name (list of Value strings) */
 	TypeOid     Oid    `json:"typeOid"`     /* type identified by OID */

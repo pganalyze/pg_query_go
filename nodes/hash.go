@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		hash build node
+ *
+ * If the executor is supposed to try to apply skew join optimization, then
+ * skewTable/skewColumn/skewInherit identify the outer relation's join key
+ * column, from which the relevant MCV statistics can be fetched.  Also, its
+ * type information is provided to save a lookup.
+ * ----------------
+ */
 type Hash struct {
 	Plan          Plan       `json:"plan"`
 	SkewTable     Oid        `json:"skewTable"`     /* outer join key's table OID, or InvalidOid */

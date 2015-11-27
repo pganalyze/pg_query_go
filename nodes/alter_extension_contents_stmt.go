@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Alter Extension Statements
+ * ----------------------
+ */
 type AlterExtensionContentsStmt struct {
 	Extname *string    `json:"extname"` /* Extension's name */
 	Action  int        `json:"action"`  /* +1 = add object, -1 = drop object */

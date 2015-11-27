@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter Object Rename Statement
+ * ----------------------
+ */
 type RenameStmt struct {
 	RenameType   ObjectType `json:"renameType"`   /* OBJECT_TABLE, OBJECT_COLUMN, etc */
 	RelationType ObjectType `json:"relationType"` /* if column name, associated relation type */

@@ -4,6 +4,7 @@ package pg_query
 
 import "encoding/json"
 
+/* Symbols for the indexes of the special RTE entries in rules */
 type Var struct {
 	Xpr   Expr  `json:"xpr"`
 	Varno Index `json:"varno"` /* index of this var's relation in the range

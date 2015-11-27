@@ -4,6 +4,22 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RangeTblFunction -
+ *	  RangeTblEntry subsidiary data for one function in a FUNCTION RTE.
+ *
+ * If the function had a column definition list (required for an
+ * otherwise-unspecified RECORD result), funccolnames lists the names given
+ * in the definition list, funccoltypes lists their declared column types,
+ * funccoltypmods lists their typmods, funccolcollations their collations.
+ * Otherwise, those fields are NIL.
+ *
+ * Notice we don't attempt to store info about the results of functions
+ * returning named composite types, because those can change from time to
+ * time.  We do however remember how many columns we thought the type had
+ * (including dropped columns!), so that we can successfully ignore any
+ * columns added after the query was parsed.
+ */
 type RangeTblFunction struct {
 	Funcexpr     Node `json:"funcexpr"`     /* expression tree for func call */
 	Funccolcount int  `json:"funccolcount"` /* number of columns it contributes to RTE */

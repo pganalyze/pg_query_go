@@ -4,6 +4,23 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		index-only scan node
+ *
+ * IndexOnlyScan is very similar to IndexScan, but it specifies an
+ * index-only scan, in which the data comes from the index not the heap.
+ * Because of this, *all* Vars in the plan node's targetlist, qual, and
+ * index expressions reference index columns and have varno = INDEX_VAR.
+ * Hence we do not need separate indexqualorig and indexorderbyorig lists,
+ * since their contents would be equivalent to indexqual and indexorderby.
+ *
+ * To help EXPLAIN interpret the index Vars for display, we provide
+ * indextlist, which represents the contents of the index as a targetlist
+ * with one TLE per index column.  Vars appearing in this list reference
+ * the base table, and this is the only field in the plan node that may
+ * contain such Vars.
+ * ----------------
+ */
 type IndexOnlyScan struct {
 	Scan          Scan          `json:"scan"`
 	Indexid       Oid           `json:"indexid"`       /* OID of index to scan */

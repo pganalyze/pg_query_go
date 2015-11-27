@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Listen Statement
+ * ----------------------
+ */
 type ListenStmt struct {
 	Conditionname *string `json:"conditionname"` /* condition name to listen on */
 }

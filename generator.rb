@@ -43,7 +43,7 @@ class Generator
   IGNORE_LIST = [
     'Node', 'NodeTag', 'varlena', 'IntArray', 'nameData', 'bool',
     'sig_atomic_t', 'size_t', 'varatt_indirect',
-    'NullTest', 'BooleanTest', # These fail the compilation process - tbd why
+    # 'NullTest', 'BooleanTest', # These fail the compilation process - tbd why
     'A_Const', # Need to do some special handling because of how we do Value nodes
   ]
 
@@ -118,11 +118,13 @@ class Generator
   end
 
   def handle_enum(line)
-    if line[/^\s+([A-z0-9_]+),?\s*(\/\*.+)?/]
+    if line[/^\s+([A-z0-9_]+),?\s*([A-z0-9_]+)?(\/\*.+)?/]
       name = $1
-      comment = $2
+      other_name = $2
+      comment = $3
 
       @current_enum_def[:values] << { name: name, comment: comment }
+      @current_enum_def[:values] << { name: other_name } if other_name
 
       @open_comment = line.include?('/*') && !line.include?('*/')
     elsif line[/^\}\s+([A-z]+);/]
@@ -219,9 +221,85 @@ class Generator
     end
   end
 
+  # Top-of-struct comment special cases - we might want to merge these into the same output files at some point
+  COMMENT_ENUM_TO_STRUCT = {
+    'nodes/parsenodes' => {
+      'SelectStmt' => 'SetOperation',
+      'CreateRoleStmt' => 'RoleStmtType',
+      'AlterRoleStmt' => 'RoleStmtType',
+      'AlterRoleSetStmt' => 'RoleStmtType',
+      'DropRoleStmt' => 'RoleStmtType',
+      'A_Expr' => 'A_Expr_Kind',
+      'DefElem' => 'DefElemAction',
+      'DiscardStmt' => 'DiscardMode',
+      'FetchStmt' => 'FetchDirection',
+      'GrantStmt' => 'GrantTargetType',
+      'PrivGrantee' => 'GrantTargetType',
+      'LockingClause' => 'LockClauseStrength',
+      'RangeTblEntry' => 'RTEKind',
+      'TransactionStmt' => 'TransactionStmtKind',
+      'VacuumStmt' => 'VacuumOption',
+      'ViewStmt' => 'ViewCheckOption',
+    },
+    'nodes/plannodes' => {
+      'Agg' => 'AggStrategy',
+      'SetOp' => 'SetOpCmd',
+    },
+    'nodes/primnodes' => {
+      'MinMaxExpr' => 'MinMaxOp',
+      'Param' => 'ParamKind',
+      'RowCompareExpr' => 'RowCompareType',
+      'SubLink' => 'SubLinkType',
+      'BooleanTest' => 'BoolTestType',
+      'NullTest' => 'NullTestType',
+    },
+    'nodes/relation' => {
+      'RelOptInfo' => 'RelOptKind',
+    }
+  }
+  COMMENT_STRUCT_TO_STRUCT = {
+    'nodes/parsenodes' => {
+      'AlterDatabaseSetStmt' => 'AlterDatabaseStmt',
+      # 'AlterExtensionStmt' => 'CreateExtensionStmt', # FIXME: This overrides an existing sub-comment
+      'AlterExtensionContentsStmt' => 'CreateExtensionStmt',
+      'AlterFdwStmt' => 'CreateFdwStmt',
+      'AlterForeignServerStmt' => 'CreateForeignServerStmt',
+      'AlterFunctionStmt' => 'CreateFunctionStmt',
+      'AlterSeqStmt' => 'CreateSeqStmt',
+      'AlterTableCmd' => 'AlterTableStmt',
+      'ReplicaIdentityStmt' => 'AlterTableStmt',
+      'AlterUserMappingStmt' => 'CreateUserMappingStmt',
+      'DropUserMappingStmt' => 'CreateUserMappingStmt',
+      'CreateOpClassItem' => 'CreateOpClassStmt',
+      'DropTableSpaceStmt' => 'CreateTableSpaceStmt',
+      'FunctionParameter' => 'CreateFunctionStmt',
+      'InlineCodeBlock' => 'DoStmt',
+    },
+    'nodes/plannodes' => {
+      'NestLoopParam' => 'NestLoop',
+    },
+    'nodes/params' => {
+      'ParamListInfoData' => 'ParamExternData',
+    },
+  }
+  def transform_toplevel_comments!
+    COMMENT_ENUM_TO_STRUCT.each do |file, mapping|
+      mapping.each do |target, source|
+        @struct_defs[file][target][:comment] = @enum_defs[file][source][:comment]
+      end
+    end
+
+    COMMENT_STRUCT_TO_STRUCT.each do |file, mapping|
+      mapping.each do |target, source|
+        @struct_defs[file][target][:comment] = @struct_defs[file][source][:comment]
+      end
+    end
+  end
+
   def generate!
     generate_nodetypes!
     generate_defs!
+    transform_toplevel_comments!
 
     node_unmarshal_cases = []
 
@@ -279,6 +357,7 @@ class Generator
         write_nodes_file type, %(
 import "encoding/json"
 
+#{struct_def[:comment] && struct_def[:comment].strip}
 type #{type} struct {
 #{struct_def_go.strip}
 }
@@ -378,7 +457,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
           end
 
           if !output_first_type_field
-            go_enum_def += format("%s\t= iota\t%s\n", field[:name], field[:comment])
+            go_enum_def += format("%s %s = iota %s\n", field[:name], type, field[:comment])
             output_first_type_field = true
           else
             go_enum_def += format("%s\t%s\n", field[:name], field[:comment])
@@ -386,6 +465,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
         end
 
         write_nodes_file type, %(
+          #{enum_def[:comment] && enum_def[:comment].strip}
           type #{type} uint
 
           const (
@@ -405,6 +485,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
   end
 
   def write_nodes_file(name, content, overwrite = true, source_file = nil)
+    name += '_expr' if name.end_with?('Test')
     path = format('./nodes/%s.go', underscore(name))
     return if !overwrite && File.exist?(path)
 

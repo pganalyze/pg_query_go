@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		FunctionScan node
+ * ----------------
+ */
 type FunctionScan struct {
 	Scan           Scan   `json:"scan"`
 	Functions      []Node `json:"functions"`      /* list of RangeTblFunction nodes */

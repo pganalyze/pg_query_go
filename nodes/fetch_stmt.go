@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Fetch Statement (also Move)
+ * ----------------------
+ */
 type FetchStmt struct {
 	Direction  FetchDirection `json:"direction"`  /* see above */
 	HowMany    int64          `json:"howMany"`    /* number of rows, or position argument */

@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * LockingClause - raw representation of FOR [NO KEY] UPDATE/[KEY] SHARE
+ *		options
+ *
+ * Note: lockedRels == NIL means "all relations in query".  Otherwise it
+ * is a list of RangeVar nodes.  (We use RangeVar mainly because it carries
+ * a location field --- currently, parse analysis insists on unqualified
+ * names in LockingClause.)
+ */
 type LockingClause struct {
 	LockedRels []Node             `json:"lockedRels"` /* FOR [KEY] UPDATE/SHARE relations */
 	Strength   LockClauseStrength `json:"strength"`

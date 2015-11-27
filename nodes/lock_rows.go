@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		lock-rows node
+ *
+ * rowMarks identifies the rels to be locked by this node; it should be
+ * a subset of the rowMarks listed in the top-level PlannedStmt.
+ * epqParam is a Param that all scan nodes below this one must depend on.
+ * It is used to force re-evaluation of the plan during EvalPlanQual.
+ * ----------------
+ */
 type LockRows struct {
 	Plan     Plan   `json:"plan"`
 	RowMarks []Node `json:"rowMarks"` /* a list of PlanRowMark's */

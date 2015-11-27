@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * XMLSERIALIZE (in raw parse tree only)
+ */
 type XmlSerialize struct {
 	Xmloption XmlOptionType `json:"xmloption"` /* DOCUMENT or CONTENT */
 	Expr      Node          `json:"expr"`

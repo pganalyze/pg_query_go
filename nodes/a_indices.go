@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A_Indices - array subscript or slice bounds ([lidx:uidx] or [uidx])
+ */
 type A_Indices struct {
 	Lidx Node `json:"lidx"` /* NULL if it's a single subscript */
 	Uidx Node `json:"uidx"`

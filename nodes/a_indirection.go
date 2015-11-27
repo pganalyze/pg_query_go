@@ -4,6 +4,21 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A_Indirection - select a field and/or array element from an expression
+ *
+ * The indirection list can contain A_Indices nodes (representing
+ * subscripting), string Value nodes (representing field selection --- the
+ * string value is the name of the field to select), and A_Star nodes
+ * (representing selection of all fields of a composite type).
+ * For example, a complex selection operation like
+ *				(foo).field1[42][7].field2
+ * would be represented with a single A_Indirection node having a 4-element
+ * indirection list.
+ *
+ * Currently, A_Star must appear only as the last list element --- the grammar
+ * is responsible for enforcing this!
+ */
 type A_Indirection struct {
 	Arg         Node   `json:"arg"`         /* the thing being selected from */
 	Indirection []Node `json:"indirection"` /* subscripts and/or field names and/or * */

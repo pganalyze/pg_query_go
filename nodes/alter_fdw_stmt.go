@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Alter FOREIGN DATA WRAPPER Statements
+ * ----------------------
+ */
 type AlterFdwStmt struct {
 	Fdwname     *string `json:"fdwname"`      /* foreign-data wrapper name */
 	FuncOptions []Node  `json:"func_options"` /* HANDLER/VALIDATOR options */

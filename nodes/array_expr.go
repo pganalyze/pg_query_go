@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ArrayExpr - an ARRAY[] expression
+ *
+ * Note: if multidims is false, the constituent expressions all yield the
+ * scalar type identified by element_typeid.  If multidims is true, the
+ * constituent expressions all yield arrays of element_typeid (ie, the same
+ * type as array_typeid); at runtime we must check for compatible subscripts.
+ */
 type ArrayExpr struct {
 	Xpr           Expr   `json:"xpr"`
 	ArrayTypeid   Oid    `json:"array_typeid"`   /* type of expression result */

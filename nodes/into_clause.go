@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * IntoClause - target information for SELECT INTO, CREATE TABLE AS, and
+ * CREATE MATERIALIZED VIEW
+ *
+ * For CREATE MATERIALIZED VIEW, viewQuery is the parsed-but-not-rewritten
+ * SELECT Query for the view; otherwise it's NULL.  (Although it's actually
+ * Query*, we declare it as Node* to avoid a forward reference.)
+ */
 type IntoClause struct {
 	Rel            *RangeVar      `json:"rel"`            /* target relation name */
 	ColNames       []Node         `json:"colNames"`       /* column names to assign, or NIL */

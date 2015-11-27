@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * TableLikeClause - CREATE TABLE ( ... LIKE ... ) clause
+ */
 type TableLikeClause struct {
 	Relation *RangeVar `json:"relation"`
 	Options  uint32    `json:"options"` /* OR of TableLikeOption flags */

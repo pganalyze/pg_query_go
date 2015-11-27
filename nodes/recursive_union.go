@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	RecursiveUnion node -
+ *		Generate a recursive union of two subplans.
+ *
+ * The "outer" subplan is always the non-recursive term, and the "inner"
+ * subplan is the recursive term.
+ * ----------------
+ */
 type RecursiveUnion struct {
 	Plan    Plan `json:"plan"`
 	WtParam int  `json:"wtParam"` /* ID of Param representing work table */

@@ -2,6 +2,16 @@
 
 package pg_query
 
+/*
+ * JoinType -
+ *	  enums for types of relation joins
+ *
+ * JoinType determines the exact semantics of joining two relations using
+ * a matching qualification.  For example, it tells what to do with a tuple
+ * that has no match in the other relation.
+ *
+ * This is needed in both parsenodes.h and plannodes.h, so put it here...
+ */
 type JoinType uint
 
 const (
@@ -9,10 +19,10 @@ const (
 	 * The canonical kinds of joins according to the SQL JOIN syntax. Only
 	 * these codes can appear in parser output (e.g., JoinExpr nodes).
 	 */
-	JOIN_INNER = iota /* matching tuple pairs only */
-	JOIN_LEFT         /* pairs + unmatched LHS tuples */
-	JOIN_FULL         /* pairs + unmatched LHS + unmatched RHS */
-	JOIN_RIGHT        /* pairs + unmatched RHS tuples */
+	JOIN_INNER JoinType = iota /* matching tuple pairs only */
+	JOIN_LEFT                  /* pairs + unmatched LHS tuples */
+	JOIN_FULL                  /* pairs + unmatched LHS + unmatched RHS */
+	JOIN_RIGHT                 /* pairs + unmatched RHS tuples */
 
 	/*
 	 * Semijoins and anti-semijoins (as defined in relational theory) do not

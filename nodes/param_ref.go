@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ParamRef - specifies a $n parameter reference
+ */
 type ParamRef struct {
 	Number   int `json:"number"`   /* the number of the parameter */
 	Location int `json:"location"` /* token location, or -1 if unknown */

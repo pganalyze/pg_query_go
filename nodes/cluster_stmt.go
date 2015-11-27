@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Cluster Statement (support pbrown's cluster index implementation)
+ * ----------------------
+ */
 type ClusterStmt struct {
 	Relation  *RangeVar `json:"relation"`  /* relation being indexed, or NULL if all */
 	Indexname *string   `json:"indexname"` /* original index defined */

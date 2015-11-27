@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * WindowClause -
+ *		transformed representation of WINDOW and OVER clauses
+ *
+ * A parsed Query's windowClause list contains these structs.  "name" is set
+ * if the clause originally came from WINDOW, and is NULL if it originally
+ * was an OVER clause (but note that we collapse out duplicate OVERs).
+ * partitionClause and orderClause are lists of SortGroupClause structs.
+ * winref is an ID number referenced by WindowFunc nodes; it must be unique
+ * among the members of a Query's windowClause list.
+ * When refname isn't null, the partitionClause is always copied from there;
+ * the orderClause might or might not be copied (see copiedOrder); the framing
+ * options are never copied, per spec.
+ */
 type WindowClause struct {
 	Name            *string `json:"name"`            /* window name (NULL in an OVER clause) */
 	Refname         *string `json:"refname"`         /* referenced window name, if any */

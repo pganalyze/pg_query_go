@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * FieldStore
+ *
+ * FieldStore represents the operation of modifying one field in a tuple
+ * value, yielding a new tuple value (the input is not touched!).  Like
+ * the assign case of ArrayRef, this is used to implement UPDATE of a
+ * portion of a column.
+ *
+ * A single FieldStore can actually represent updates of several different
+ * fields.  The parser only generates FieldStores with single-element lists,
+ * but the planner will collapse multiple updates of the same base column
+ * into one FieldStore.
+ * ----------------
+ */
 type FieldStore struct {
 	Xpr        Expr   `json:"xpr"`
 	Arg        *Expr  `json:"arg"`        /* input tuple value */

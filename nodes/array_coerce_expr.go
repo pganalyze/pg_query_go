@@ -4,6 +4,17 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * ArrayCoerceExpr
+ *
+ * ArrayCoerceExpr represents a type coercion from one array type to another,
+ * which is implemented by applying the indicated element-type coercion
+ * function to each element of the source array.  If elemfuncid is InvalidOid
+ * then the element types are binary-compatible, but the coercion still
+ * requires some effort (we have to fix the element type ID stored in the
+ * array header).
+ * ----------------
+ */
 type ArrayCoerceExpr struct {
 	Xpr          Expr         `json:"xpr"`
 	Arg          *Expr        `json:"arg"`          /* input expression (yields an array) */

@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * struct varatt_external is a traditional "TOAST pointer", that is, the
+ * information needed to fetch a Datum stored out-of-line in a TOAST table.
+ * The data is compressed if and only if va_extsize < va_rawsize - VARHDRSZ.
+ * This struct must not contain any padding, because we sometimes compare
+ * these pointers using memcmp.
+ *
+ * Note that this information is stored unaligned within actual tuples, so
+ * you need to memcpy from the tuple into a local struct variable before
+ * you can look at these fields!  (The reason we use memcmp is to avoid
+ * having to do that just to detect equality of two TOAST pointers...)
+ */
 type varatt_external struct {
 	VaRawsize    int32 `json:"va_rawsize"`    /* Original data size (includes header) */
 	VaExtsize    int32 `json:"va_extsize"`    /* External saved size (doesn't) */

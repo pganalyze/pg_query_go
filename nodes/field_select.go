@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * FieldSelect
+ *
+ * FieldSelect represents the operation of extracting one field from a tuple
+ * value.  At runtime, the input expression is expected to yield a rowtype
+ * Datum.  The specified field number is extracted and returned as a Datum.
+ * ----------------
+ */
 type FieldSelect struct {
 	Xpr        Expr       `json:"xpr"`
 	Arg        *Expr      `json:"arg"`        /* input expression */

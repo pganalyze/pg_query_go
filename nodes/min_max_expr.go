@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * MinMaxExpr - a GREATEST or LEAST function
+ */
 type MinMaxExpr struct {
 	Xpr          Expr     `json:"xpr"`
 	Minmaxtype   Oid      `json:"minmaxtype"`   /* common type of arguments and result */

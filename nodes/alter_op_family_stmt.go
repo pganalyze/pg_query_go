@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter Operator Family Statement
+ * ----------------------
+ */
 type AlterOpFamilyStmt struct {
 	Opfamilyname []Node  `json:"opfamilyname"` /* qualified name (list of Value strings) */
 	Amname       *string `json:"amname"`       /* name of index AM opfamily is for */

@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RowMarkClause -
+ *	   parser output representation of FOR [KEY] UPDATE/SHARE clauses
+ *
+ * Query.rowMarks contains a separate RowMarkClause node for each relation
+ * identified as a FOR [KEY] UPDATE/SHARE target.  If one of these clauses
+ * is applied to a subquery, we generate RowMarkClauses for all normal and
+ * subquery rels in the subquery, but they are marked pushedDown = true to
+ * distinguish them from clauses that were explicitly written at this query
+ * level.  Also, Query.hasForUpdate tells whether there were explicit FOR
+ * UPDATE/SHARE/KEY SHARE clauses in the current query level.
+ */
 type RowMarkClause struct {
 	Rti        Index              `json:"rti"` /* range table index of target relation */
 	Strength   LockClauseStrength `json:"strength"`

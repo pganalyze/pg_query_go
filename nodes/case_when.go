@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * CaseWhen - one arm of a CASE expression
+ */
 type CaseWhen struct {
 	Xpr      Expr  `json:"xpr"`
 	Expr     *Expr `json:"expr"`     /* condition expression */

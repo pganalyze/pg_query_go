@@ -4,6 +4,11 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Note: FuncWithArgs carries only the types of the input parameters of the
+ * function.  So it is sufficient to identify an existing function, but it
+ * is not enough info to define a function nor to call it.
+ */
 type FuncWithArgs struct {
 	Funcname []Node `json:"funcname"` /* qualified name of function */
 	Funcargs []Node `json:"funcargs"` /* list of Typename nodes */

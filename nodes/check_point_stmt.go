@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ * Checkpoint Statement
+ * ----------------------
+ */
 type CheckPointStmt struct {
 }
 

@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * CommonTableExpr -
+ *	   representation of WITH list element
+ *
+ * We don't currently support the SEARCH or CYCLE clause.
+ */
 type CommonTableExpr struct {
 	Ctename       *string `json:"ctename"`       /* query name (never qualified) */
 	Aliascolnames []Node  `json:"aliascolnames"` /* optional list of column names */

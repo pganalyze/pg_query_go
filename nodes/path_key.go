@@ -4,6 +4,23 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * PathKeys
+ *
+ * The sort ordering of a path is represented by a list of PathKey nodes.
+ * An empty list implies no known ordering.  Otherwise the first item
+ * represents the primary sort key, the second the first secondary sort key,
+ * etc.  The value being sorted is represented by linking to an
+ * EquivalenceClass containing that value and including pk_opfamily among its
+ * ec_opfamilies.  The EquivalenceClass tells which collation to use, too.
+ * This is a convenient method because it makes it trivial to detect
+ * equivalent and closely-related orderings. (See optimizer/README for more
+ * information.)
+ *
+ * Note: pk_strategy is either BTLessStrategyNumber (for ASC) or
+ * BTGreaterStrategyNumber (for DESC).  We assume that all ordering-capable
+ * index types will use btree-compatible strategy numbers.
+ */
 type PathKey struct {
 	PkEclass     *EquivalenceClass `json:"pk_eclass"`      /* the value that is ordered */
 	PkOpfamily   Oid               `json:"pk_opfamily"`    /* btree opfamily defining the ordering */

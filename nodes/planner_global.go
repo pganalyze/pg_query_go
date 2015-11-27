@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*----------
+ * PlannerGlobal
+ *		Global information for planning/optimization
+ *
+ * PlannerGlobal holds state for an entire planner invocation; this state
+ * is shared across all levels of sub-Queries that exist in the command being
+ * planned.
+ *----------
+ */
 type PlannerGlobal struct {
 	BoundParams ParamListInfo `json:"boundParams"` /* Param values provided to planner() */
 

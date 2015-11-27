@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/* ---------------
+ *	 group node -
+ *		Used for queries with GROUP BY (but no aggregates) specified.
+ *		The input must be presorted according to the grouping columns.
+ * ---------------
+ */
 type Group struct {
 	Plan         Plan        `json:"plan"`
 	NumCols      int         `json:"numCols"`      /* number of grouping columns */

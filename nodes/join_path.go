@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * All join-type paths share these fields.
+ */
 type JoinPath struct {
 	Path Path `json:"path"`
 

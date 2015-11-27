@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Update Statement
+ * ----------------------
+ */
 type UpdateStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to update */
 	TargetList    []Node      `json:"targetList"`    /* the target list (of ResTarget) */

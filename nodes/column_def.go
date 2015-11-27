@@ -4,6 +4,24 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ColumnDef - column definition (used in various creates)
+ *
+ * If the column has a default value, we may have the value expression
+ * in either "raw" form (an untransformed parse tree) or "cooked" form
+ * (a post-parse-analysis, executable expression tree), depending on
+ * how this ColumnDef node was created (by parsing, or by inheritance
+ * from an existing relation).  We should never have both in the same node!
+ *
+ * Similarly, we may have a COLLATE specification in either raw form
+ * (represented as a CollateClause with arg==NULL) or cooked form
+ * (the collation's OID).
+ *
+ * The constraints list may contain a CONSTR_DEFAULT item in a raw
+ * parsetree produced by gram.y, but transformCreateStmt will remove
+ * the item and set raw_default instead.  CONSTR_DEFAULT items
+ * should not appear in any subsequent processing.
+ */
 type ColumnDef struct {
 	Colname       *string        `json:"colname"`        /* name of column */
 	TypeName      *TypeName      `json:"typeName"`       /* type of column */

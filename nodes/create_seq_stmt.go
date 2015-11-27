@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		{Create|Alter} SEQUENCE Statement
+ * ----------------------
+ */
 type CreateSeqStmt struct {
 	Sequence *RangeVar `json:"sequence"` /* the sequence to create */
 	Options  []Node    `json:"options"`

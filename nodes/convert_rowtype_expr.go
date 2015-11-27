@@ -4,6 +4,17 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * ConvertRowtypeExpr
+ *
+ * ConvertRowtypeExpr represents a type coercion from one composite type
+ * to another, where the source type is guaranteed to contain all the columns
+ * needed for the destination type plus possibly others; the columns need not
+ * be in the same positions, but are matched up by name.  This is primarily
+ * used to convert a whole-row value of an inheritance child table into a
+ * valid whole-row value of its parent table's rowtype.
+ * ----------------
+ */
 type ConvertRowtypeExpr struct {
 	Xpr        Expr  `json:"xpr"`
 	Arg        *Expr `json:"arg"`        /* input expression */

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * For each potentially index-optimizable MIN/MAX aggregate function,
+ * root->minmax_aggs stores a MinMaxAggInfo describing it.
+ */
 type MinMaxAggInfo struct {
 	Aggfnoid  Oid          `json:"aggfnoid"`  /* pg_proc Oid of the aggregate */
 	Aggsortop Oid          `json:"aggsortop"` /* Oid of its sort operator */

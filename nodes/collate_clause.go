@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * CollateClause - a COLLATE expression
+ */
 type CollateClause struct {
 	Arg      Node   `json:"arg"`      /* input expression */
 	Collname []Node `json:"collname"` /* possibly-qualified collation name */

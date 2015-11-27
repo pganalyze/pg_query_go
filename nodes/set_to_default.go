@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Placeholder node for a DEFAULT marker in an INSERT or UPDATE command.
+ *
+ * This is not an executable expression: it must be replaced by the actual
+ * column default expression during rewriting.  But it is convenient to
+ * treat it as an expression node during parsing and rewriting.
+ */
 type SetToDefault struct {
 	Xpr       Expr  `json:"xpr"`
 	TypeId    Oid   `json:"typeId"`    /* type for substituted value */

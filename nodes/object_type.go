@@ -2,11 +2,16 @@
 
 package pg_query
 
+/*
+ * When a command can act on several kinds of objects with only one
+ * parse structure required, use these constants to designate the
+ * object type.  Note that commands typically don't support all the types.
+ */
 type ObjectType uint
 
 const (
-	OBJECT_AGGREGATE = iota
-	OBJECT_ATTRIBUTE /* type's attribute, when distinct from column */
+	OBJECT_AGGREGATE ObjectType = iota
+	OBJECT_ATTRIBUTE            /* type's attribute, when distinct from column */
 	OBJECT_CAST
 	OBJECT_COLUMN
 	OBJECT_CONSTRAINT

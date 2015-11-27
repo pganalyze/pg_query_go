@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Grant|Revoke Statement
+ * ----------------------
+ */
 type GrantStmt struct {
 	IsGrant  bool            `json:"is_grant"` /* true = GRANT, false = REVOKE */
 	Targtype GrantTargetType `json:"targtype"` /* type of the grant target */

@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * OpExpr - expression node for an operator invocation
+ *
+ * Semantically, this is essentially the same as a function call.
+ *
+ * Note that opfuncid is not necessarily filled in immediately on creation
+ * of the node.  The planner makes sure it is valid before passing the node
+ * tree to the executor, but during parsing/planning opfuncid can be 0.
+ */
 type OpExpr struct {
 	Xpr          Expr   `json:"xpr"`
 	Opno         Oid    `json:"opno"`         /* PG_OPERATOR OID of the operator */

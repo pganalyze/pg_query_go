@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		Plan node
+ *
+ * All plan nodes "derive" from the Plan structure by having the
+ * Plan structure as the first field.  This ensures that everything works
+ * when nodes are cast to Plan's.  (node pointers are frequently cast to Plan*
+ * when passed around generically in the executor)
+ *
+ * We never actually instantiate any Plan nodes; this is just the common
+ * abstract superclass for all Plan-type nodes.
+ * ----------------
+ */
 type Plan struct {
 	/*
 	 * estimated execution costs for plan (see costsize.c for more info)

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Operator Class Statement
+ * ----------------------
+ */
 type CreateOpClassItem struct {
 	Itemtype int `json:"itemtype"` /* see codes above */
 

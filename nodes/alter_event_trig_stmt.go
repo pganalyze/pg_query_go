@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter EVENT TRIGGER Statement
+ * ----------------------
+ */
 type AlterEventTrigStmt struct {
 	Trigname  *string `json:"trigname"`  /* TRIGGER's name */
 	Tgenabled byte    `json:"tgenabled"` /* trigger's firing configuration WRT

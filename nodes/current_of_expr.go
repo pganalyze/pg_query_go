@@ -4,6 +4,18 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Node representing [WHERE] CURRENT OF cursor_name
+ *
+ * CURRENT OF is a bit like a Var, in that it carries the rangetable index
+ * of the target relation being constrained; this aids placing the expression
+ * correctly during planning.  We can assume however that its "levelsup" is
+ * always zero, due to the syntactic constraints on where it can appear.
+ *
+ * The referenced cursor can be represented either as a hardwired string
+ * or as a reference to a run-time parameter of type REFCURSOR.  The latter
+ * case is for the convenience of plpgsql.
+ */
 type CurrentOfExpr struct {
 	Xpr         Expr    `json:"xpr"`
 	Cvarno      Index   `json:"cvarno"`       /* RT index of target relation */

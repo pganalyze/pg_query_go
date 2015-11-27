@@ -4,6 +4,16 @@ package pg_query
 
 import "encoding/json"
 
+/*----------
+ * PlannerInfo
+ *		Per-query information for planning/optimization
+ *
+ * This struct is conventionally called "root" in all the planner routines.
+ * It holds links to all of the planner's working state, in addition to the
+ * original Query.  Note that at present the planner extensively modifies
+ * the passed-in Query data structure; someday that should stop.
+ *----------
+ */
 type PlannerInfo struct {
 	Parse *Query `json:"parse"` /* the Query being planned */
 

@@ -4,6 +4,11 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * WithCheckOption -
+ *		representation of WITH CHECK OPTION checks to be applied to new tuples
+ *		when inserting/updating an auto-updatable view.
+ */
 type WithCheckOption struct {
 	Viewname *string `json:"viewname"` /* name of view that specified the WCO */
 	Qual     Node    `json:"qual"`     /* constraint qual to check */

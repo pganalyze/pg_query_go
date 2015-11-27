@@ -4,6 +4,11 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	 Append node -
+ *		Generate the concatenation of the results of sub-plans.
+ * ----------------
+ */
 type Append struct {
 	Plan        Plan   `json:"plan"`
 	Appendplans []Node `json:"appendplans"`

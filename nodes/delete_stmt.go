@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Delete Statement
+ * ----------------------
+ */
 type DeleteStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to delete from */
 	UsingClause   []Node      `json:"usingClause"`   /* optional using clause for more tables */

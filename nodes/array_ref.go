@@ -4,6 +4,28 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	ArrayRef: describes an array subscripting operation
+ *
+ * An ArrayRef can describe fetching a single element from an array,
+ * fetching a subarray (array slice), storing a single element into
+ * an array, or storing a slice.  The "store" cases work with an
+ * initial array value and a source value that is inserted into the
+ * appropriate part of the array; the result of the operation is an
+ * entire new modified array value.
+ *
+ * If reflowerindexpr = NIL, then we are fetching or storing a single array
+ * element at the subscripts given by refupperindexpr.  Otherwise we are
+ * fetching or storing an array slice, that is a rectangular subarray
+ * with lower and upper bounds given by the index expressions.
+ * reflowerindexpr must be the same length as refupperindexpr when it
+ * is not NIL.
+ *
+ * Note: the result datatype is the element type when fetching a single
+ * element; but it is the array type when doing subarray fetch or either
+ * type of store.
+ * ----------------
+ */
 type ArrayRef struct {
 	Xpr             Expr   `json:"xpr"`
 	Refarraytype    Oid    `json:"refarraytype"`    /* type of the array proper */

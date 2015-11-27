@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * IndexElem - index parameters (used in CREATE INDEX)
+ *
+ * For a plain index attribute, 'name' is the name of the table column to
+ * index, and 'expr' is NULL.  For an index expression, 'name' is NULL and
+ * 'expr' is the expression tree.
+ */
 type IndexElem struct {
 	Name          *string     `json:"name"`           /* name of attribute to index, or NULL */
 	Expr          Node        `json:"expr"`           /* expression to index, or NULL */

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ * Discard Statement
+ * ----------------------
+ */
 type DiscardStmt struct {
 	Target DiscardMode `json:"target"`
 }

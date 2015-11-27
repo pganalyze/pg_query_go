@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Alter Extension Statements
+ * ----------------------
+ */
 type CreateExtensionStmt struct {
 	Extname     *string `json:"extname"`
 	IfNotExists bool    `json:"if_not_exists"` /* just do nothing if it already exists? */

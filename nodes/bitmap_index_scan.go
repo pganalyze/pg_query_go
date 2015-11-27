@@ -4,6 +4,23 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		bitmap index scan node
+ *
+ * BitmapIndexScan delivers a bitmap of potential tuple locations;
+ * it does not access the heap itself.  The bitmap is used by an
+ * ancestor BitmapHeapScan node, possibly after passing through
+ * intermediate BitmapAnd and/or BitmapOr nodes to combine it with
+ * the results of other BitmapIndexScans.
+ *
+ * The fields have the same meanings as for IndexScan, except we don't
+ * store a direction flag because direction is uninteresting.
+ *
+ * In a BitmapIndexScan plan node, the targetlist and qual fields are
+ * not used and are always NIL.  The indexqualorig field is unused at
+ * run time too, but is saved for the benefit of EXPLAIN.
+ * ----------------
+ */
 type BitmapIndexScan struct {
 	Scan          Scan   `json:"scan"`
 	Indexid       Oid    `json:"indexid"`       /* OID of index to scan */

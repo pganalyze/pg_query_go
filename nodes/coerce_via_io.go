@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ * CoerceViaIO
+ *
+ * CoerceViaIO represents a type coercion between two types whose textual
+ * representations are compatible, implemented by invoking the source type's
+ * typoutput function then the destination type's typinput function.
+ * ----------------
+ */
 type CoerceViaIO struct {
 	Xpr        Expr  `json:"xpr"`
 	Arg        *Expr `json:"arg"`        /* input expression */

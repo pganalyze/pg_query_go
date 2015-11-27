@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * TS Configuration stmts: DefineStmt, RenameStmt and DropStmt are default
+ */
 type AlterTSConfigurationStmt struct {
 	Cfgname []Node `json:"cfgname"` /* qualified name (list of Value strings) */
 

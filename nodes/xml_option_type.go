@@ -5,6 +5,6 @@ package pg_query
 type XmlOptionType uint
 
 const (
-	XMLOPTION_DOCUMENT = iota
+	XMLOPTION_DOCUMENT XmlOptionType = iota
 	XMLOPTION_CONTENT
 )

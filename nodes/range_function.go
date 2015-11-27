@@ -4,6 +4,20 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RangeFunction - function call appearing in a FROM clause
+ *
+ * functions is a List because we use this to represent the construct
+ * ROWS FROM(func1(...), func2(...), ...).  Each element of this list is a
+ * two-element sublist, the first element being the untransformed function
+ * call tree, and the second element being a possibly-empty list of ColumnDef
+ * nodes representing any columndef list attached to that function within the
+ * ROWS FROM() syntax.
+ *
+ * alias and coldeflist represent any alias and/or columndef list attached
+ * at the top level.  (We disallow coldeflist appearing both here and
+ * per-function, but that's checked in parse analysis, not by the grammar.)
+ */
 type RangeFunction struct {
 	Lateral    bool   `json:"lateral"`     /* does it have LATERAL prefix? */
 	Ordinality bool   `json:"ordinality"`  /* does it have WITH ORDINALITY suffix? */

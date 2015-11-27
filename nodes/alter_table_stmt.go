@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Table
+ * ----------------------
+ */
 type AlterTableStmt struct {
 	Relation  *RangeVar  `json:"relation"`   /* table to work on */
 	Cmds      []Node     `json:"cmds"`       /* list of subcommands */

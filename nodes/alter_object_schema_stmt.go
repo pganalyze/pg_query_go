@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		ALTER object SET SCHEMA Statement
+ * ----------------------
+ */
 type AlterObjectSchemaStmt struct {
 	ObjectType ObjectType `json:"objectType"` /* OBJECT_TABLE, OBJECT_TYPE, etc */
 	Relation   *RangeVar  `json:"relation"`   /* in case it's a table */

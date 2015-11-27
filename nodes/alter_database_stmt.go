@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Database
+ * ----------------------
+ */
 type AlterDatabaseStmt struct {
 	Dbname  *string `json:"dbname"`  /* name of database to alter */
 	Options []Node  `json:"options"` /* List of DefElem nodes */

@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *	 ModifyTable node -
+ *		Apply rows produced by subplan(s) to result table(s),
+ *		by inserting, updating, or deleting.
+ *
+ * Note that rowMarks and epqParam are presumed to be valid for all the
+ * subplan(s); they can't contain any info that varies across subplans.
+ * ----------------
+ */
 type ModifyTable struct {
 	Plan                 Plan    `json:"plan"`
 	Operation            CmdType `json:"operation"`            /* INSERT, UPDATE, or DELETE */

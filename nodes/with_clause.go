@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * WithClause -
+ *	   representation of WITH clause
+ *
+ * Note: WithClause does not propagate into the Query representation;
+ * but CommonTableExpr does.
+ */
 type WithClause struct {
 	Ctes      []Node `json:"ctes"`      /* list of CommonTableExprs */
 	Recursive bool   `json:"recursive"` /* true = WITH RECURSIVE */

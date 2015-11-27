@@ -4,6 +4,32 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * IndexOptInfo
+ *		Per-index information for planning/optimization
+ *
+ *		indexkeys[], indexcollations[], opfamily[], and opcintype[]
+ *		each have ncolumns entries.
+ *
+ *		sortopfamily[], reverse_sort[], and nulls_first[] likewise have
+ *		ncolumns entries, if the index is ordered; but if it is unordered,
+ *		those pointers are NULL.
+ *
+ *		Zeroes in the indexkeys[] array indicate index columns that are
+ *		expressions; there is one element in indexprs for each such column.
+ *
+ *		For an ordered index, reverse_sort[] and nulls_first[] describe the
+ *		sort ordering of a forward indexscan; we can also consider a backward
+ *		indexscan, which will generate the reverse ordering.
+ *
+ *		The indexprs and indpred expressions have been run through
+ *		prepqual.c and eval_const_expressions() for ease of matching to
+ *		WHERE clauses. indpred is in implicit-AND form.
+ *
+ *		indextlist is a TargetEntry list representing the index columns.
+ *		It provides an equivalent base-relation Var for each simple column,
+ *		and links to the matching indexprs element for each expression column.
+ */
 type IndexOptInfo struct {
 	Indexoid      Oid         `json:"indexoid"`      /* OID of the index relation */
 	Reltablespace Oid         `json:"reltablespace"` /* tablespace of index (not table) */

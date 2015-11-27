@@ -2,6 +2,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * A_Const - a literal constant
+ */
 type A_Const struct {
 	Type     string `json:"type"`
 	Val      Value  `json:"val"`      /* value (includes type info, see value.h) */

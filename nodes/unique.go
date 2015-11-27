@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		unique node
+ * ----------------
+ */
 type Unique struct {
 	Plan          Plan        `json:"plan"`
 	NumCols       int         `json:"numCols"`       /* number of columns to check for uniqueness */

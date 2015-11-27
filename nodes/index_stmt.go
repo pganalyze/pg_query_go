@@ -4,6 +4,17 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Index Statement
+ *
+ * This represents creation of an index and/or an associated constraint.
+ * If isconstraint is true, we should create a pg_constraint entry along
+ * with the index.  But if indexOid isn't InvalidOid, we are not creating an
+ * index, just a UNIQUE/PKEY constraint using an existing index.  isconstraint
+ * must always be true in this case, and the fields describing the index
+ * properties are empty.
+ * ----------------------
+ */
 type IndexStmt struct {
 	Idxname        *string   `json:"idxname"`        /* name of new index, or NULL for default */
 	Relation       *RangeVar `json:"relation"`       /* relation to build index on */

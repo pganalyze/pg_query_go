@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * FuncExpr - expression node for a function call
+ */
 type FuncExpr struct {
 	Xpr            Expr `json:"xpr"`
 	Funcid         Oid  `json:"funcid"`         /* PG_PROC OID of the function */

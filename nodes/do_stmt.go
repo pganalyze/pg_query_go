@@ -4,6 +4,12 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		DO Statement
+ *
+ * DoStmt is the raw parser output, InlineCodeBlock is the execution-time API
+ * ----------------------
+ */
 type DoStmt struct {
 	Args []Node `json:"args"` /* List of DefElem nodes */
 }

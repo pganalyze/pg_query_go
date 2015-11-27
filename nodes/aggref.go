@@ -4,6 +4,28 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Aggref
+ *
+ * The aggregate's args list is a targetlist, ie, a list of TargetEntry nodes.
+ *
+ * For a normal (non-ordered-set) aggregate, the non-resjunk TargetEntries
+ * represent the aggregate's regular arguments (if any) and resjunk TLEs can
+ * be added at the end to represent ORDER BY expressions that are not also
+ * arguments.  As in a top-level Query, the TLEs can be marked with
+ * ressortgroupref indexes to let them be referenced by SortGroupClause
+ * entries in the aggorder and/or aggdistinct lists.  This represents ORDER BY
+ * and DISTINCT operations to be applied to the aggregate input rows before
+ * they are passed to the transition function.  The grammar only allows a
+ * simple "DISTINCT" specifier for the arguments, but we use the full
+ * query-level representation to allow more code sharing.
+ *
+ * For an ordered-set aggregate, the args list represents the WITHIN GROUP
+ * (aggregated) arguments, all of which will be listed in the aggorder list.
+ * DISTINCT is not supported in this case, so aggdistinct will be NIL.
+ * The direct arguments appear in aggdirectargs (as a list of plain
+ * expressions, not TargetEntry nodes).
+ */
 type Aggref struct {
 	Xpr           Expr   `json:"xpr"`
 	Aggfnoid      Oid    `json:"aggfnoid"`      /* pg_proc Oid of the aggregate */

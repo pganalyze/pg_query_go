@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Copy Statement
+ *
+ * We support "COPY relation FROM file", "COPY relation TO file", and
+ * "COPY (query) TO file".  In any given CopyStmt, exactly one of "relation"
+ * and "query" must be non-NULL.
+ * ----------------------
+ */
 type CopyStmt struct {
 	Relation *RangeVar `json:"relation"` /* the relation to copy */
 	Query    Node      `json:"query"`    /* the SELECT query to copy */

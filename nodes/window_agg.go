@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		window aggregate node
+ * ----------------
+ */
 type WindowAgg struct {
 	Plan          Plan        `json:"plan"`
 	Winref        Index       `json:"winref"`        /* ID referenced by window functions */

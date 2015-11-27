@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *	Alter Table
+ * ----------------------
+ */
 type AlterTableCmd struct {
 	Subtype AlterTableType `json:"subtype"` /* Type of table alteration to apply */
 	Name    *string        `json:"name"`    /* column, constraint, or trigger to act on,

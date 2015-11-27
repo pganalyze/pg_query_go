@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Createdb Statement
+ * ----------------------
+ */
 type CreatedbStmt struct {
 	Dbname  *string `json:"dbname"`  /* name of database to create */
 	Options []Node  `json:"options"` /* List of DefElem nodes */

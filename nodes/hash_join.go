@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		hash join node
+ * ----------------
+ */
 type HashJoin struct {
 	Join        Join   `json:"join"`
 	Hashclauses []Node `json:"hashclauses"`

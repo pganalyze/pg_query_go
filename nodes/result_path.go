@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ResultPath represents use of a Result plan node to compute a variable-free
+ * targetlist with no underlying tables (a "SELECT expressions" query).
+ * The query could have a WHERE clause, too, represented by "quals".
+ *
+ * Note that quals is a list of bare clauses, not RestrictInfos.
+ */
 type ResultPath struct {
 	Path  Path   `json:"path"`
 	Quals []Node `json:"quals"`

@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		materialization node
+ * ----------------
+ */
 type Material struct {
 	Plan Plan `json:"plan"`
 }

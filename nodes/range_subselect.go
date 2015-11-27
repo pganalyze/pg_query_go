@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RangeSubselect - subquery appearing in a FROM clause
+ */
 type RangeSubselect struct {
 	Lateral  bool   `json:"lateral"`  /* does it have LATERAL prefix? */
 	Subquery Node   `json:"subquery"` /* the untransformed sub-select clause */

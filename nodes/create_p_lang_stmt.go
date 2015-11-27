@@ -4,6 +4,11 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create/Drop PROCEDURAL LANGUAGE Statements
+ *		Create PROCEDURAL LANGUAGE Statements
+ * ----------------------
+ */
 type CreatePLangStmt struct {
 	Replace     bool    `json:"replace"`     /* T => replace if already exists */
 	Plname      *string `json:"plname"`      /* PL name */

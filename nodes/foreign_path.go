@@ -4,6 +4,15 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * ForeignPath represents a potential scan of a foreign table
+ *
+ * fdw_private stores FDW private data about the scan.  While fdw_private is
+ * not actually touched by the core code during normal operations, it's
+ * generally a good idea to use a representation that can be dumped by
+ * nodeToString(), so that you can examine the structure during debugging
+ * with tools like pprint().
+ */
 type ForeignPath struct {
 	Path       Path   `json:"path"`
 	FdwPrivate []Node `json:"fdw_private"`

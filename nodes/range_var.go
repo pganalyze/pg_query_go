@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * RangeVar - range variable, used in FROM clauses
+ *
+ * Also used to represent table names in utility statements; there, the alias
+ * field is not used, and inhOpt shows whether to apply the operation
+ * recursively to child tables.  In some contexts it is also useful to carry
+ * a TEMP table indication here.
+ */
 type RangeVar struct {
 	Catalogname *string   `json:"catalogname"` /* the catalog (database) name, or NULL */
 	Schemaname  *string   `json:"schemaname"`  /* the schema name, or NULL */

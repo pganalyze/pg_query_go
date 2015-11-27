@@ -4,6 +4,19 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * Placeholder node for an expression to be evaluated below the top level
+ * of a plan tree.  This is used during planning to represent the contained
+ * expression.  At the end of the planning process it is replaced by either
+ * the contained expression or a Var referring to a lower-level evaluation of
+ * the contained expression.  Typically the evaluation occurs below an outer
+ * join, and Var references above the outer join might thereby yield NULL
+ * instead of the expression value.
+ *
+ * Although the planner treats this as an expression node type, it is not
+ * recognized by the parser or executor, so we declare it here rather than
+ * in primnodes.h.
+ */
 type PlaceHolderVar struct {
 	Xpr        Expr     `json:"xpr"`
 	Phexpr     *Expr    `json:"phexpr"`     /* the represented expression */

@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Insert Statement
+ *
+ * The source expression is represented by SelectStmt for both the
+ * SELECT and VALUES cases.  If selectStmt is NULL, then the query
+ * is INSERT ... DEFAULT VALUES.
+ * ----------------------
+ */
 type InsertStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to insert into */
 	Cols          []Node      `json:"cols"`          /* optional: names of the target columns */

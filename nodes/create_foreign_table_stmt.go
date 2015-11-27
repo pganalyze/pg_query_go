@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create FOREIGN TABLE Statements
+ * ----------------------
+ */
 type CreateForeignTableStmt struct {
 	Base       CreateStmt `json:"base"`
 	Servername *string    `json:"servername"`

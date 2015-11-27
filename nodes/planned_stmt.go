@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------
+ *		PlannedStmt node
+ *
+ * The output of the planner is a Plan tree headed by a PlannedStmt node.
+ * PlannedStmt holds the "one time" information needed by the executor.
+ * ----------------
+ */
 type PlannedStmt struct {
 	CommandType CmdType `json:"commandType"` /* select|insert|update|delete */
 

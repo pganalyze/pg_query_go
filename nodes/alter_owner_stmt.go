@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Alter Object Owner Statement
+ * ----------------------
+ */
 type AlterOwnerStmt struct {
 	ObjectType ObjectType `json:"objectType"` /* OBJECT_TABLE, OBJECT_TYPE, etc */
 	Relation   *RangeVar  `json:"relation"`   /* in case it's a table */

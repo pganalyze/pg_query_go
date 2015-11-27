@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		REFRESH MATERIALIZED VIEW Statement
+ * ----------------------
+ */
 type RefreshMatViewStmt struct {
 	Concurrent bool      `json:"concurrent"` /* allow concurrent access? */
 	SkipData   bool      `json:"skipData"`   /* true for WITH NO DATA */

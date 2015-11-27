@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Rule Statement
+ * ----------------------
+ */
 type RuleStmt struct {
 	Relation    *RangeVar `json:"relation"`    /* relation the rule is for */
 	Rulename    *string   `json:"rulename"`    /* name of the rule */

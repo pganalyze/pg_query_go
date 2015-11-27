@@ -4,6 +4,10 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Create Function Statement
+ * ----------------------
+ */
 type FunctionParameter struct {
 	Name    *string               `json:"name"`    /* parameter name, or NULL if not given */
 	ArgType *TypeName             `json:"argType"` /* TypeName for parameter type */

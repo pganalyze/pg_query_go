@@ -4,6 +4,31 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * For each distinct placeholder expression generated during planning, we
+ * store a PlaceHolderInfo node in the PlannerInfo node's placeholder_list.
+ * This stores info that is needed centrally rather than in each copy of the
+ * PlaceHolderVar.  The phid fields identify which PlaceHolderInfo goes with
+ * each PlaceHolderVar.  Note that phid is unique throughout a planner run,
+ * not just within a query level --- this is so that we need not reassign ID's
+ * when pulling a subquery into its parent.
+ *
+ * The idea is to evaluate the expression at (only) the ph_eval_at join level,
+ * then allow it to bubble up like a Var until the ph_needed join level.
+ * ph_needed has the same definition as attr_needed for a regular Var.
+ *
+ * The PlaceHolderVar's expression might contain LATERAL references to vars
+ * coming from outside its syntactic scope.  If so, those rels are *not*
+ * included in ph_eval_at, but they are recorded in ph_lateral.
+ *
+ * Notice that when ph_eval_at is a join rather than a single baserel, the
+ * PlaceHolderInfo may create constraints on join order: the ph_eval_at join
+ * has to be formed below any outer joins that should null the PlaceHolderVar.
+ *
+ * We create a PlaceHolderInfo only after determining that the PlaceHolderVar
+ * is actually referenced in the plan tree, so that unreferenced placeholders
+ * don't result in unnecessary constraints on join order.
+ */
 type PlaceHolderInfo struct {
 	Phid      Index           `json:"phid"`       /* ID for PH (unique within planner run) */
 	PhVar     *PlaceHolderVar `json:"ph_var"`     /* copy of PlaceHolderVar tree */

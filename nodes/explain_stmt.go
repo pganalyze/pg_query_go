@@ -4,6 +4,14 @@ package pg_query
 
 import "encoding/json"
 
+/* ----------------------
+ *		Explain Statement
+ *
+ * The "query" field is either a raw parse tree (SelectStmt, InsertStmt, etc)
+ * or a Query node if parse analysis has been done.  Note that rewriting and
+ * planning of the query are always postponed until execution of EXPLAIN.
+ * ----------------------
+ */
 type ExplainStmt struct {
 	Query   Node   `json:"query"`   /* the query (see comments above) */
 	Options []Node `json:"options"` /* list of DefElem nodes */

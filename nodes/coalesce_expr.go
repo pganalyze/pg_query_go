@@ -4,6 +4,9 @@ package pg_query
 
 import "encoding/json"
 
+/*
+ * CoalesceExpr - a COALESCE expression
+ */
 type CoalesceExpr struct {
 	Xpr            Expr   `json:"xpr"`
 	Coalescetype   Oid    `json:"coalescetype"`   /* type of expression result */

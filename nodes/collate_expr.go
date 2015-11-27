@@ -4,6 +4,13 @@ package pg_query
 
 import "encoding/json"
 
+/*----------
+ * CollateExpr - COLLATE
+ *
+ * The planner replaces CollateExpr with RelabelType during expression
+ * preprocessing, so execution never sees a CollateExpr.
+ *----------
+ */
 type CollateExpr struct {
 	Xpr      Expr  `json:"xpr"`
 	Arg      *Expr `json:"arg"`      /* input expression */
