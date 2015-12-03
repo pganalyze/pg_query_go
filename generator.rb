@@ -177,6 +177,7 @@ class Generator
     ['SelectStmt', 'valuesLists'] => '[][]Node'
   }
 
+  GO_INT_TYPES = ['int64', 'uint32', 'uint64']
   def map_to_go_type(c_type)
     return if c_type == 'NodeTag' # Ignore
     return if ['ParamFetchHook', 'ParserSetupHook', 'FdwRoutine*'].include?(c_type) # Ignore (function pointers)
@@ -323,8 +324,8 @@ class Generator
           next unless go_type
 
           struct_def_go += format("%s\t%s\t`json:\"%s\"`\t%s\n", go_name, go_type, field[:name], field[:comment])
-
           unmarshal_def += format("if fields[\"%s\"] != nil {\n", field[:name])
+
           if go_type == '[][]Node'
             unmarshal_def += format("node.%s, err = UnmarshalNodeArrayArrayJSON(fields[\"%s\"])\n", go_name, field[:name])
             unmarshal_def += "if err != nil {\nreturn\n}\n"
@@ -352,6 +353,45 @@ class Generator
             unmarshal_def += "if err != nil {\nreturn\n}\n"
           end
           unmarshal_def += "}\n\n"
+        end
+
+        fingerprint_def = format("io.WriteString(ctx.hash, \"%s\")\n", type)
+        struct_def[:fields].reject {|f| f[:name].nil? }.sort_by {|f| f[:name] }.each do |field|
+          go_name = classify(field[:name])
+          go_type = GO_TYPE_OVERRIDES[[type, field[:name]]] || map_to_go_type(field[:c_type])
+          next unless go_type
+
+          case go_type
+          when '[][]Node'
+            fingerprint_def += format("\nfor _, nodeList := range node.%s {\n", go_name)
+            fingerprint_def += "for _, subNode := range nodeList {\n"
+            fingerprint_def += "subNode.Fingerprint(ctx)\n"
+          	fingerprint_def += "}\n\n"
+          	fingerprint_def += "}\n\n"
+          when '[]Node'
+            fingerprint_def += format("\nfor _, subNode := range node.%s {\n", go_name)
+            fingerprint_def += "subNode.Fingerprint(ctx)\n"
+          	fingerprint_def += "}\n\n"
+          when 'Node'
+            fingerprint_def += format("if node.%s != nil {", go_name)
+            fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+            fingerprint_def += "}\n\n"
+          when 'byte'
+            # FIXME
+          when 'string'
+            fingerprint_def += format("io.WriteString(ctx.hash, node.%s)\n", go_name)
+          when GO_INT_TYPES
+            fingerprint_def += format("io.WriteString(ctx.hash, strconv.Itoa(node.%s))\n", go_name)
+          else
+            if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
+              fingerprint_def += format("if node.%s != nil {", go_name)
+              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+            	fingerprint_def += "}\n\n"
+            else
+              # FIXME
+              # Enum: io.WriteString(ctx.hash, strconv.Itoa(int(node.Type)))
+            end
+          end
         end
 
         write_nodes_file type, %(
@@ -387,7 +427,18 @@ func (node *#{type}) UnmarshalJSON(input []byte) (err error) {
 func (node #{type}) Deparse() string {
   panic("Not Implemented")
 }
-        ), false)
+        ), true)
+
+        write_nodes_file(type + '_fingerprint', %(
+import (
+	"io"
+	"strconv"
+)
+
+func (node #{type}) Fingerprint(ctx *FingerprintContext) {
+  #{fingerprint_def.strip}
+}
+        ), true)
 
         node_unmarshal_cases << [json_key, type]
       end
@@ -497,6 +548,7 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
     content = header + "\npackage pg_query\n\n" + content
     File.write(path, content)
     system format('go fmt %s', path)
+    system format('goimports -w %s', path)
   end
 end
 
