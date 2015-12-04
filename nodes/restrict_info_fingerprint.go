@@ -2,13 +2,20 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node RestrictInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RestrictInfo")
+	io.WriteString(ctx.hash, "RESTRICTINFO")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.CanJoin))
+
 	if node.Clause != nil {
 		node.Clause.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.IsPushedDown))
 
 	if node.LeftEc != nil {
 		node.LeftEc.Fingerprint(ctx)
@@ -26,9 +33,14 @@ func (node RestrictInfo) Fingerprint(ctx *FingerprintContext) {
 		node.Orclause.Fingerprint(ctx)
 	}
 
+	io.WriteString(ctx.hash, strconv.FormatBool(node.OuterIsLeft))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.OuterjoinDelayed))
+
 	if node.ParentEc != nil {
 		node.ParentEc.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.Pseudoconstant))
 
 	if node.RightEc != nil {
 		node.RightEc.Fingerprint(ctx)

@@ -2,8 +2,12 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node Hash) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "Hash")
+	io.WriteString(ctx.hash, "HASH")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.SkewInherit))
 }

@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node RowExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RowExpr")
+	io.WriteString(ctx.hash, "ROW")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -14,4 +17,8 @@ func (node RowExpr) Fingerprint(ctx *FingerprintContext) {
 	for _, subNode := range node.Colnames {
 		subNode.Fingerprint(ctx)
 	}
+
+	// Intentionally ignoring node.Location for fingerprinting
+
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.RowFormat)))
 }

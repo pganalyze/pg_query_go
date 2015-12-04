@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node PlannerGlobal) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PlannerGlobal")
+	io.WriteString(ctx.hash, "PLANNERGLOBAL")
 
 	for _, subNode := range node.Finalrowmarks {
 		subNode.Fingerprint(ctx)
@@ -34,4 +37,6 @@ func (node PlannerGlobal) Fingerprint(ctx *FingerprintContext) {
 	for _, subNode := range node.Subroots {
 		subNode.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.TransientPlan))
 }

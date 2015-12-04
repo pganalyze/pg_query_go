@@ -2,8 +2,16 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node DropTableSpaceStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DropTableSpaceStmt")
+	io.WriteString(ctx.hash, "DROPTABLESPACESTMT")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+
+	if node.Tablespacename != nil {
+		io.WriteString(ctx.hash, *node.Tablespacename)
+	}
 }

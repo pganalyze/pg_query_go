@@ -5,7 +5,7 @@ package pg_query
 import "io"
 
 func (node BitmapIndexScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BitmapIndexScan")
+	io.WriteString(ctx.hash, "BITMAPINDEXSCAN")
 
 	for _, subNode := range node.Indexqual {
 		subNode.Fingerprint(ctx)

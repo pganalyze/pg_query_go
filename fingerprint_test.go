@@ -12,7 +12,15 @@ var fingerprintTests = []struct {
 }{
 	{
 		"SELECT 1",
-		"d64b6e1a3dad7d86c19ca57621fb29e3",
+		"4a76edca1a5766d542e5bde019dc8a7ee4f51726",
+	},
+	{
+		"SELECT 2",
+		"4a76edca1a5766d542e5bde019dc8a7ee4f51726",
+	},
+	{
+		"SELECT COUNT(DISTINCT id), * FROM targets WHERE something IS NOT NULL AND elsewhere::interval < now()",
+		"feb7587c16f46a5fd771c841cf8cb66aa21c692a",
 	},
 }
 

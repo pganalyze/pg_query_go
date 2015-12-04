@@ -2,13 +2,23 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node CreateOpClassStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CreateOpClassStmt")
+	io.WriteString(ctx.hash, "CREATEOPCLASSSTMT")
+
+	if node.Amname != nil {
+		io.WriteString(ctx.hash, *node.Amname)
+	}
+
 	if node.Datatype != nil {
 		node.Datatype.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.IsDefault))
 
 	for _, subNode := range node.Items {
 		subNode.Fingerprint(ctx)

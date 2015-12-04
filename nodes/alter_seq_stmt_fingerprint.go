@@ -2,10 +2,14 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node AlterSeqStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AlterSeqStmt")
+	io.WriteString(ctx.hash, "ALTERSEQSTMT")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

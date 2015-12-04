@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node CteScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CteScan")
+	io.WriteString(ctx.hash, "CTESCAN")
 }

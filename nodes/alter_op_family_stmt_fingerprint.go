@@ -2,10 +2,19 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node AlterOpFamilyStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AlterOpFamilyStmt")
+	io.WriteString(ctx.hash, "ALTEROPFAMILYSTMT")
+
+	if node.Amname != nil {
+		io.WriteString(ctx.hash, *node.Amname)
+	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.IsDrop))
 
 	for _, subNode := range node.Items {
 		subNode.Fingerprint(ctx)

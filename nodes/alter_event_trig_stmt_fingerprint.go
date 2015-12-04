@@ -5,5 +5,9 @@ package pg_query
 import "io"
 
 func (node AlterEventTrigStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AlterEventTrigStmt")
+	io.WriteString(ctx.hash, "ALTEREVENTTRIGSTMT")
+
+	if node.Trigname != nil {
+		io.WriteString(ctx.hash, *node.Trigname)
+	}
 }

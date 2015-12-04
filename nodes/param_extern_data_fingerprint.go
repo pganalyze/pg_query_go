@@ -2,8 +2,12 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node ParamExternData) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ParamExternData")
+	io.WriteString(ctx.hash, "PARAMEXTERNDATA")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.Isnull))
 }

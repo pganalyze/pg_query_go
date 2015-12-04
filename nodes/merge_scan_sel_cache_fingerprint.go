@@ -2,8 +2,12 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node MergeScanSelCache) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MergeScanSelCache")
+	io.WriteString(ctx.hash, "MERGESCANSELCACHE")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.NullsFirst))
 }

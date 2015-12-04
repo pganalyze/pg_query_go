@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node DeleteStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DeleteStmt")
+	io.WriteString(ctx.hash, "DELETE FROM")
+
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}

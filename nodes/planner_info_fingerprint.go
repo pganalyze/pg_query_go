@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node PlannerInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PlannerInfo")
+	io.WriteString(ctx.hash, "PLANNERINFO")
 
 	for _, subNode := range node.AppendRelList {
 		subNode.Fingerprint(ctx)
@@ -42,6 +45,13 @@ func (node PlannerInfo) Fingerprint(ctx *FingerprintContext) {
 	for _, subNode := range node.GroupPathkeys {
 		subNode.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasHavingQual))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasInheritedTarget))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasJoinRtes))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasLateralRtes))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasPseudoConstantQuals))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasRecursion))
 
 	for _, subNode := range node.InitPlans {
 		subNode.Fingerprint(ctx)

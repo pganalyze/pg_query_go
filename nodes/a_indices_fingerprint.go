@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node A_Indices) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "A_Indices")
+	io.WriteString(ctx.hash, "A_INDICES")
+
 	if node.Lidx != nil {
 		node.Lidx.Fingerprint(ctx)
 	}

@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node JoinCostWorkspace) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "JoinCostWorkspace")
+	io.WriteString(ctx.hash, "JOINCOSTWORKSPACE")
 }

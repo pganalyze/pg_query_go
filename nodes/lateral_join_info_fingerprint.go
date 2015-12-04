@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node LateralJoinInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "LateralJoinInfo")
+	io.WriteString(ctx.hash, "LATERALJOININFO")
 }

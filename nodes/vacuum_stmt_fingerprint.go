@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node VacuumStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "VacuumStmt")
+	io.WriteString(ctx.hash, "VACUUM")
+
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}

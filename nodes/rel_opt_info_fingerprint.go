@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RelOptInfo")
+	io.WriteString(ctx.hash, "RELOPTINFO")
 
 	for _, subNode := range node.Baserestrictinfo {
 		subNode.Fingerprint(ctx)
@@ -27,6 +30,10 @@ func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
 		node.CheapestUniquePath.Fingerprint(ctx)
 	}
 
+	io.WriteString(ctx.hash, strconv.FormatBool(node.ConsiderParamStartup))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.ConsiderStartup))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.HasEclassJoins))
+
 	for _, subNode := range node.Indexlist {
 		subNode.Fingerprint(ctx)
 	}
@@ -47,9 +54,13 @@ func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.Reloptkind)))
+
 	for _, subNode := range node.Reltargetlist {
 		subNode.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.Rtekind)))
 
 	if node.Subplan != nil {
 		node.Subplan.Fingerprint(ctx)

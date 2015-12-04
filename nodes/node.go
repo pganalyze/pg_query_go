@@ -1,7 +1,7 @@
 package pg_query
 
 import (
-	"crypto/md5"
+	"crypto/sha1"
 	"hash"
 )
 
@@ -10,7 +10,7 @@ type FingerprintContext struct {
 }
 
 func NewFingerprintContext() *FingerprintContext {
-	return &FingerprintContext{hash: md5.New()}
+	return &FingerprintContext{hash: sha1.New()}
 }
 
 func (ctx FingerprintContext) Sum() []byte {

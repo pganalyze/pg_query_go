@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node CheckPointStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CheckPointStmt")
+	io.WriteString(ctx.hash, "CHECKPOINT")
 }

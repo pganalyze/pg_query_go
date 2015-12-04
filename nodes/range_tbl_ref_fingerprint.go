@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node RangeTblRef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RangeTblRef")
+	io.WriteString(ctx.hash, "RANGETBLREF")
 }

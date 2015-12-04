@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node A_Star) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "A_Star")
+	io.WriteString(ctx.hash, "A_STAR")
 }

@@ -51,6 +51,7 @@ class Generator
     @target_struct = nil
     @open_comment = false
 
+    @all_known_enums = []
     @enum_defs = {}
     @struct_defs = {}
     @typedefs = []
@@ -128,6 +129,7 @@ class Generator
 
       @open_comment = line.include?('/*') && !line.include?('*/')
     elsif line[/^\}\s+([A-z]+);/]
+      @all_known_enums << $1
       @enum_defs[@target_group][$1] = @current_enum_def
       @current_enum_def = nil
     elsif line.strip.start_with?('/*')
@@ -297,6 +299,16 @@ class Generator
     end
   end
 
+  # Fingerprinting additional code to be inserted
+  FINGERPRINT_OVERRIDE_NODES = {
+    'A_Const' => :skip,
+    'Alias' => :skip,
+    'Paramref' => :skip,
+  }
+  FINGERPRINT_OVERRIDE_FIELDS = {
+    'location' => :skip,
+  }
+
   def generate!
     generate_nodetypes!
     generate_defs!
@@ -355,41 +367,60 @@ class Generator
           unmarshal_def += "}\n\n"
         end
 
-        fingerprint_def = format("io.WriteString(ctx.hash, \"%s\")\n", type)
-        struct_def[:fields].reject {|f| f[:name].nil? }.sort_by {|f| f[:name] }.each do |field|
-          go_name = classify(field[:name])
-          go_type = GO_TYPE_OVERRIDES[[type, field[:name]]] || map_to_go_type(field[:c_type])
-          next unless go_type
+        if fp_override = FINGERPRINT_OVERRIDE_NODES[type]
+          fp_override = '// Intentionally ignoring all fields for fingerprinting' if fp_override == :skip
+          fingerprint_def = fp_override
+        else
+          fingerprint_def = format("io.WriteString(ctx.hash, \"%s\")\n", json_key)
+          struct_def[:fields].reject {|f| f[:name].nil? }.sort_by {|f| f[:name] }.each do |field|
+            go_name = classify(field[:name])
+            go_type = GO_TYPE_OVERRIDES[[type, field[:name]]] || map_to_go_type(field[:c_type])
+            next unless go_type
 
-          case go_type
-          when '[][]Node'
-            fingerprint_def += format("\nfor _, nodeList := range node.%s {\n", go_name)
-            fingerprint_def += "for _, subNode := range nodeList {\n"
-            fingerprint_def += "subNode.Fingerprint(ctx)\n"
-          	fingerprint_def += "}\n\n"
-          	fingerprint_def += "}\n\n"
-          when '[]Node'
-            fingerprint_def += format("\nfor _, subNode := range node.%s {\n", go_name)
-            fingerprint_def += "subNode.Fingerprint(ctx)\n"
-          	fingerprint_def += "}\n\n"
-          when 'Node'
-            fingerprint_def += format("if node.%s != nil {", go_name)
-            fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
-            fingerprint_def += "}\n\n"
-          when 'byte'
-            # FIXME
-          when 'string'
-            fingerprint_def += format("io.WriteString(ctx.hash, node.%s)\n", go_name)
-          when GO_INT_TYPES
-            fingerprint_def += format("io.WriteString(ctx.hash, strconv.Itoa(node.%s))\n", go_name)
-          else
-            if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
-              fingerprint_def += format("if node.%s != nil {", go_name)
-              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+            if fp_override = FINGERPRINT_OVERRIDE_FIELDS[field[:name]]
+              fp_override = format("// Intentionally ignoring node.%s for fingerprinting", go_name) if fp_override == :skip
+              fingerprint_def += fp_override + "\n\n"
+              next
+            end
+
+            case go_type
+            when '[][]Node'
+              fingerprint_def += format("\nfor _, nodeList := range node.%s {\n", go_name)
+              fingerprint_def += "for _, subNode := range nodeList {\n"
+              fingerprint_def += "subNode.Fingerprint(ctx)\n"
+            	fingerprint_def += "}\n"
             	fingerprint_def += "}\n\n"
-            else
+            when '[]Node'
+              fingerprint_def += format("\nfor _, subNode := range node.%s {\n", go_name)
+              fingerprint_def += "subNode.Fingerprint(ctx)\n"
+            	fingerprint_def += "}\n\n"
+            when 'Node'
+              fingerprint_def += format("\nif node.%s != nil {", go_name)
+              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+              fingerprint_def += "}\n\n"
+            when 'byte'
               # FIXME
-              # Enum: io.WriteString(ctx.hash, strconv.Itoa(int(node.Type)))
+            when 'string'
+              fingerprint_def += format("io.WriteString(ctx.hash, node.%s)\n", go_name)
+            when '*string'
+              fingerprint_def += format("\nif node.%s != nil {", go_name)
+              fingerprint_def += format("io.WriteString(ctx.hash, *node.%s)\n", go_name)
+              fingerprint_def += "}\n\n"
+            when GO_INT_TYPES
+              fingerprint_def += format("io.WriteString(ctx.hash, strconv.Itoa(node.%s))\n", go_name)
+            when 'bool'
+              fingerprint_def += format("io.WriteString(ctx.hash, strconv.FormatBool(node.%s))\n", go_name)
+            else
+              if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
+                fingerprint_def += format("\nif node.%s != nil {", go_name)
+                fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+              	fingerprint_def += "}\n\n"
+              elsif @all_known_enums.include?(go_type)
+                fingerprint_def += format("io.WriteString(ctx.hash, strconv.Itoa(int(node.%s)))\n", go_name)
+              else
+                puts go_type
+                # FIXME
+              end
             end
           end
         end

@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node RecursiveUnion) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RecursiveUnion")
+	io.WriteString(ctx.hash, "RECURSIVEUNION")
 }

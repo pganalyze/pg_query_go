@@ -2,10 +2,15 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node FuncCall) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FuncCall")
+	io.WriteString(ctx.hash, "FUNCCALL")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.AggDistinct))
+
 	if node.AggFilter != nil {
 		node.AggFilter.Fingerprint(ctx)
 	}
@@ -14,13 +19,20 @@ func (node FuncCall) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	io.WriteString(ctx.hash, strconv.FormatBool(node.AggStar))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.AggWithinGroup))
+
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
 	}
 
+	io.WriteString(ctx.hash, strconv.FormatBool(node.FuncVariadic))
+
 	for _, subNode := range node.Funcname {
 		subNode.Fingerprint(ctx)
 	}
+
+	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Over != nil {
 		node.Over.Fingerprint(ctx)

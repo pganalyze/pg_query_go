@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node RowCompareExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RowCompareExpr")
+	io.WriteString(ctx.hash, "ROWCOMPARE")
 
 	for _, subNode := range node.Inputcollids {
 		subNode.Fingerprint(ctx)
@@ -26,4 +29,6 @@ func (node RowCompareExpr) Fingerprint(ctx *FingerprintContext) {
 	for _, subNode := range node.Rargs {
 		subNode.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.Rctype)))
 }

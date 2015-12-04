@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node Group) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "Group")
+	io.WriteString(ctx.hash, "GROUP")
 }

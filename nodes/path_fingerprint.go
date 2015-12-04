@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node Path) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "Path")
+	io.WriteString(ctx.hash, "PATH")
+
 	if node.ParamInfo != nil {
 		node.ParamInfo.Fingerprint(ctx)
 	}

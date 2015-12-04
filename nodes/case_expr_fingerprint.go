@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node CaseExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CaseExpr")
+	io.WriteString(ctx.hash, "CASE")
+
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
@@ -17,4 +18,6 @@ func (node CaseExpr) Fingerprint(ctx *FingerprintContext) {
 	if node.Defresult != nil {
 		node.Defresult.Fingerprint(ctx)
 	}
+
+	// Intentionally ignoring node.Location for fingerprinting
 }

@@ -5,5 +5,5 @@ package pg_query
 import "io"
 
 func (node SemiAntiJoinFactors) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SemiAntiJoinFactors")
+	io.WriteString(ctx.hash, "SEMIANTIJOINFACTORS")
 }

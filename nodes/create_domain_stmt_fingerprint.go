@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node CreateDomainStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CreateDomainStmt")
+	io.WriteString(ctx.hash, "CREATEDOMAINSTMT")
+
 	if node.CollClause != nil {
 		node.CollClause.Fingerprint(ctx)
 	}

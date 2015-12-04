@@ -5,7 +5,8 @@ package pg_query
 import "io"
 
 func (node MinMaxAggInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MinMaxAggInfo")
+	io.WriteString(ctx.hash, "MINMAXAGGINFO")
+
 	if node.Param != nil {
 		node.Param.Fingerprint(ctx)
 	}

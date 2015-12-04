@@ -2,8 +2,14 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node PlanRowMark) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PlanRowMark")
+	io.WriteString(ctx.hash, "PLANROWMARK")
+	io.WriteString(ctx.hash, strconv.FormatBool(node.IsParent))
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.MarkType)))
+	io.WriteString(ctx.hash, strconv.FormatBool(node.NoWait))
 }

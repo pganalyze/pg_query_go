@@ -2,13 +2,20 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node A_Expr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "A_Expr")
+	io.WriteString(ctx.hash, "AEXPR")
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.Kind)))
+
 	if node.Lexpr != nil {
 		node.Lexpr.Fingerprint(ctx)
 	}
+
+	// Intentionally ignoring node.Location for fingerprinting
 
 	for _, subNode := range node.Name {
 		subNode.Fingerprint(ctx)

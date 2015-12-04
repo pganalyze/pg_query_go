@@ -2,14 +2,19 @@
 
 package pg_query
 
-import "io"
+import (
+	"io"
+	"strconv"
+)
 
 func (node IndexOnlyScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "IndexOnlyScan")
+	io.WriteString(ctx.hash, "INDEXONLYSCAN")
 
 	for _, subNode := range node.Indexorderby {
 		subNode.Fingerprint(ctx)
 	}
+
+	io.WriteString(ctx.hash, strconv.Itoa(int(node.Indexorderdir)))
 
 	for _, subNode := range node.Indexqual {
 		subNode.Fingerprint(ctx)
