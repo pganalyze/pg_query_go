@@ -2,21 +2,18 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node WindowClause) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WINDOWCLAUSE")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.CopiedOrder))
+func (node WindowClause) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WINDOWCLAUSE")
+	ctx.WriteString(strconv.FormatBool(node.CopiedOrder))
 
 	if node.EndOffset != nil {
 		node.EndOffset.Fingerprint(ctx)
 	}
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	for _, subNode := range node.OrderClause {
@@ -28,7 +25,7 @@ func (node WindowClause) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Refname != nil {
-		io.WriteString(ctx.hash, *node.Refname)
+		ctx.WriteString(*node.Refname)
 	}
 
 	if node.StartOffset != nil {

@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node MinMaxExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MINMAX")
+func (node MinMaxExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("MINMAX")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node MinMaxExpr) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Op)))
+	ctx.WriteString(strconv.Itoa(int(node.Op)))
 }

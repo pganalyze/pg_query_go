@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node DropUserMappingStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DROPUSERMAPPINGSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+func (node DropUserMappingStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DROPUSERMAPPINGSTMT")
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Servername != nil {
-		io.WriteString(ctx.hash, *node.Servername)
+		ctx.WriteString(*node.Servername)
 	}
 
 	if node.Username != nil {
-		io.WriteString(ctx.hash, *node.Username)
+		ctx.WriteString(*node.Username)
 	}
 }

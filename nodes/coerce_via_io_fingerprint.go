@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CoerceViaIO) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COERCEVIAIO")
+func (node CoerceViaIO) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COERCEVIAIO")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Coerceformat)))
+	ctx.WriteString(strconv.Itoa(int(node.Coerceformat)))
 	// Intentionally ignoring node.Location for fingerprinting
 }

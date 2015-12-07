@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node ArrayRef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ARRAYREF")
+func (node ArrayRef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ARRAYREF")
 
 	if node.Refassgnexpr != nil {
 		node.Refassgnexpr.Fingerprint(ctx)

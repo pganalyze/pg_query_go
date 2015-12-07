@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node CaseTestExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CASETESTEXPR")
+func (node CaseTestExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CASETESTEXPR")
 }

@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node CteScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CTESCAN")
+func (node CteScan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CTESCAN")
 }

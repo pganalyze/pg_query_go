@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateExtensionStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEEXTENSIONSTMT")
+func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEEXTENSIONSTMT")
 
 	if node.Extname != nil {
-		io.WriteString(ctx.hash, *node.Extname)
+		ctx.WriteString(*node.Extname)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IfNotExists))
+	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

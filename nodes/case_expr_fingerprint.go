@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CaseExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CASE")
+func (node CaseExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CASE")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

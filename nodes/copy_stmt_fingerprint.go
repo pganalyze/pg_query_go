@@ -2,24 +2,21 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CopyStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COPY")
+func (node CopyStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COPY")
 
 	for _, subNode := range node.Attlist {
 		subNode.Fingerprint(ctx)
 	}
 
 	if node.Filename != nil {
-		io.WriteString(ctx.hash, *node.Filename)
+		ctx.WriteString(*node.Filename)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsFrom))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsProgram))
+	ctx.WriteString(strconv.FormatBool(node.IsFrom))
+	ctx.WriteString(strconv.FormatBool(node.IsProgram))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

@@ -2,12 +2,10 @@
 
 package pg_query
 
-import "io"
-
-func (node ReplicaIdentityStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "REPLICAIDENTITYSTMT")
+func (node ReplicaIdentityStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("REPLICAIDENTITYSTMT")
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 }

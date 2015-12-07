@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ColumnDef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COLUMNDEF")
+func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COLUMNDEF")
 
 	if node.CollClause != nil {
 		node.CollClause.Fingerprint(ctx)
 	}
 
 	if node.Colname != nil {
-		io.WriteString(ctx.hash, *node.Colname)
+		ctx.WriteString(*node.Colname)
 	}
 
 	for _, subNode := range node.Constraints {
@@ -30,9 +27,9 @@ func (node ColumnDef) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsFromType))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsLocal))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsNotNull))
+	ctx.WriteString(strconv.FormatBool(node.IsFromType))
+	ctx.WriteString(strconv.FormatBool(node.IsLocal))
+	ctx.WriteString(strconv.FormatBool(node.IsNotNull))
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.RawDefault != nil {

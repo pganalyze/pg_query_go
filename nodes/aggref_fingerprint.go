@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Aggref) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AGGREF")
+func (node Aggref) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("AGGREF")
 
 	for _, subNode := range node.Aggdirectargs {
 		subNode.Fingerprint(ctx)
@@ -26,8 +23,8 @@ func (node Aggref) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Aggstar))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Aggvariadic))
+	ctx.WriteString(strconv.FormatBool(node.Aggstar))
+	ctx.WriteString(strconv.FormatBool(node.Aggvariadic))
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)

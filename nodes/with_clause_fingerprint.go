@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node WithClause) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WITHCLAUSE")
+func (node WithClause) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WITHCLAUSE")
 
 	for _, subNode := range node.Ctes {
 		subNode.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node WithClause) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Recursive))
+	ctx.WriteString(strconv.FormatBool(node.Recursive))
 }

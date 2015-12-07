@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterOpFamilyStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTEROPFAMILYSTMT")
+func (node AlterOpFamilyStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTEROPFAMILYSTMT")
 
 	if node.Amname != nil {
-		io.WriteString(ctx.hash, *node.Amname)
+		ctx.WriteString(*node.Amname)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsDrop))
+	ctx.WriteString(strconv.FormatBool(node.IsDrop))
 
 	for _, subNode := range node.Items {
 		subNode.Fingerprint(ctx)

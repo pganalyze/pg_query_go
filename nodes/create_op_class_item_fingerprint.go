@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateOpClassItem) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEOPCLASSITEM")
+func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEOPCLASSITEM")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)

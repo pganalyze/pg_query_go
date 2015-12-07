@@ -2,12 +2,10 @@
 
 package pg_query
 
-import "io"
-
-func (node ClosePortalStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CLOSEPORTALSTMT")
+func (node ClosePortalStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CLOSEPORTALSTMT")
 
 	if node.Portalname != nil {
-		io.WriteString(ctx.hash, *node.Portalname)
+		ctx.WriteString(*node.Portalname)
 	}
 }

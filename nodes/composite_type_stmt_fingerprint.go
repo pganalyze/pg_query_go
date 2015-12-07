@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CompositeTypeStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COMPOSITETYPESTMT")
+func (node CompositeTypeStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COMPOSITETYPESTMT")
 
 	for _, subNode := range node.Coldeflist {
 		subNode.Fingerprint(ctx)

@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node Group) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "GROUP")
+func (node Group) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("GROUP")
 }

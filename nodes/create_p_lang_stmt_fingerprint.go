@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreatePLangStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEPLANGSTMT")
+func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEPLANGSTMT")
 
 	for _, subNode := range node.Plhandler {
 		subNode.Fingerprint(ctx)
@@ -19,14 +16,14 @@ func (node CreatePLangStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Plname != nil {
-		io.WriteString(ctx.hash, *node.Plname)
+		ctx.WriteString(*node.Plname)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Pltrusted))
+	ctx.WriteString(strconv.FormatBool(node.Pltrusted))
 
 	for _, subNode := range node.Plvalidator {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Replace))
+	ctx.WriteString(strconv.FormatBool(node.Replace))
 }

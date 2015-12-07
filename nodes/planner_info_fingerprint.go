@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node PlannerInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PLANNERINFO")
+func (node PlannerInfo) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PLANNERINFO")
 
 	for _, subNode := range node.AppendRelList {
 		subNode.Fingerprint(ctx)
@@ -46,12 +43,12 @@ func (node PlannerInfo) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasHavingQual))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasInheritedTarget))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasJoinRtes))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasLateralRtes))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasPseudoConstantQuals))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasRecursion))
+	ctx.WriteString(strconv.FormatBool(node.HasHavingQual))
+	ctx.WriteString(strconv.FormatBool(node.HasInheritedTarget))
+	ctx.WriteString(strconv.FormatBool(node.HasJoinRtes))
+	ctx.WriteString(strconv.FormatBool(node.HasLateralRtes))
+	ctx.WriteString(strconv.FormatBool(node.HasPseudoConstantQuals))
+	ctx.WriteString(strconv.FormatBool(node.HasRecursion))
 
 	for _, subNode := range node.InitPlans {
 		subNode.Fingerprint(ctx)

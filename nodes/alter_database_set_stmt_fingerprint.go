@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node AlterDatabaseSetStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERDATABASESETSTMT")
+func (node AlterDatabaseSetStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERDATABASESETSTMT")
 
 	if node.Dbname != nil {
-		io.WriteString(ctx.hash, *node.Dbname)
+		ctx.WriteString(*node.Dbname)
 	}
 
 	if node.Setstmt != nil {

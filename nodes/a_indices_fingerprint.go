@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node A_Indices) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "A_INDICES")
+func (node A_Indices) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("A_INDICES")
 
 	if node.Lidx != nil {
 		node.Lidx.Fingerprint(ctx)

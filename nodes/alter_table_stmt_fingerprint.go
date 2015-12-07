@@ -2,23 +2,20 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterTableStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTER TABLE")
+func (node AlterTableStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTER TABLE")
 
 	for _, subNode := range node.Cmds {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Relkind)))
+	ctx.WriteString(strconv.Itoa(int(node.Relkind)))
 }

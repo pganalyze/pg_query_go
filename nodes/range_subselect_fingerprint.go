@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RangeSubselect) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGESUBSELECT")
+func (node RangeSubselect) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGESUBSELECT")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Lateral))
+	ctx.WriteString(strconv.FormatBool(node.Lateral))
 
 	if node.Subquery != nil {
 		node.Subquery.Fingerprint(ctx)

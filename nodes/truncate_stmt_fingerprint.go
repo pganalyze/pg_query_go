@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node TruncateStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TRUNCATE")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Behavior)))
+func (node TruncateStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TRUNCATE")
+	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 
 	for _, subNode := range node.Relations {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.RestartSeqs))
+	ctx.WriteString(strconv.FormatBool(node.RestartSeqs))
 }

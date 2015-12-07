@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERDEFAULTPRIVILEGESSTMT")
+func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERDEFAULTPRIVILEGESSTMT")
 
 	if node.Action != nil {
 		node.Action.Fingerprint(ctx)

@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node BoolExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BOOLEXPR")
+func (node BoolExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("BOOLEXPR")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Boolop)))
+	ctx.WriteString(strconv.Itoa(int(node.Boolop)))
 	// Intentionally ignoring node.Location for fingerprinting
 }

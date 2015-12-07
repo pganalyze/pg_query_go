@@ -2,16 +2,14 @@
 
 package pg_query
 
-import "io"
-
-func (node NotifyStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "NOTIFYSTMT")
+func (node NotifyStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("NOTIFYSTMT")
 
 	if node.Conditionname != nil {
-		io.WriteString(ctx.hash, *node.Conditionname)
+		ctx.WriteString(*node.Conditionname)
 	}
 
 	if node.Payload != nil {
-		io.WriteString(ctx.hash, *node.Payload)
+		ctx.WriteString(*node.Payload)
 	}
 }

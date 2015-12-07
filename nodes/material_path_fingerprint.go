@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node MaterialPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MATERIALPATH")
+func (node MaterialPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("MATERIALPATH")
 
 	if node.Subpath != nil {
 		node.Subpath.Fingerprint(ctx)

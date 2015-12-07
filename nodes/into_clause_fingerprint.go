@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node IntoClause) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "INTOCLAUSE")
+func (node IntoClause) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("INTOCLAUSE")
 
 	for _, subNode := range node.ColNames {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.OnCommit)))
+	ctx.WriteString(strconv.Itoa(int(node.OnCommit)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)
@@ -24,10 +21,10 @@ func (node IntoClause) Fingerprint(ctx *FingerprintContext) {
 		node.Rel.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.SkipData))
+	ctx.WriteString(strconv.FormatBool(node.SkipData))
 
 	if node.TableSpaceName != nil {
-		io.WriteString(ctx.hash, *node.TableSpaceName)
+		ctx.WriteString(*node.TableSpaceName)
 	}
 
 	if node.ViewQuery != nil {

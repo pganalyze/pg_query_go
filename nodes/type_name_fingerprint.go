@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node TypeName) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TYPENAME")
+func (node TypeName) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TYPENAME")
 
 	for _, subNode := range node.ArrayBounds {
 		subNode.Fingerprint(ctx)
@@ -20,8 +17,8 @@ func (node TypeName) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.PctType))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Setof))
+	ctx.WriteString(strconv.FormatBool(node.PctType))
+	ctx.WriteString(strconv.FormatBool(node.Setof))
 
 	for _, subNode := range node.Typmods {
 		subNode.Fingerprint(ctx)

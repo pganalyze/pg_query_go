@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ForeignScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FOREIGNSCAN")
+func (node ForeignScan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FOREIGNSCAN")
 
 	for _, subNode := range node.FdwExprs {
 		subNode.Fingerprint(ctx)
@@ -18,5 +15,5 @@ func (node ForeignScan) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.FsSystemCol))
+	ctx.WriteString(strconv.FormatBool(node.FsSystemCol))
 }

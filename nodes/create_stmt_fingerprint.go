@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATESTMT")
+func (node CreateStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATESTMT")
 
 	for _, subNode := range node.Constraints {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IfNotExists))
+	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 
 	for _, subNode := range node.InhRelations {
 		subNode.Fingerprint(ctx)
@@ -24,7 +21,7 @@ func (node CreateStmt) Fingerprint(ctx *FingerprintContext) {
 		node.OfTypename.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Oncommit)))
+	ctx.WriteString(strconv.Itoa(int(node.Oncommit)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)
@@ -39,6 +36,6 @@ func (node CreateStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Tablespacename != nil {
-		io.WriteString(ctx.hash, *node.Tablespacename)
+		ctx.WriteString(*node.Tablespacename)
 	}
 }

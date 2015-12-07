@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterTSConfigurationStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERTSCONFIGURATIONSTMT")
+func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERTSCONFIGURATIONSTMT")
 
 	for _, subNode := range node.Cfgname {
 		subNode.Fingerprint(ctx)
@@ -18,9 +15,9 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Override))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Replace))
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	ctx.WriteString(strconv.FormatBool(node.Override))
+	ctx.WriteString(strconv.FormatBool(node.Replace))
 
 	for _, subNode := range node.Tokentype {
 		subNode.Fingerprint(ctx)

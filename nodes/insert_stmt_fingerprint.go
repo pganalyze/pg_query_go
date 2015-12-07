@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node InsertStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "INSERT INTO")
+func (node InsertStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("INSERT INTO")
 
 	for _, subNode := range node.Cols {
 		subNode.Fingerprint(ctx)

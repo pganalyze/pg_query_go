@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ViewStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "VIEWSTMT")
+func (node ViewStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("VIEWSTMT")
 
 	for _, subNode := range node.Aliases {
 		subNode.Fingerprint(ctx)
@@ -22,11 +19,11 @@ func (node ViewStmt) Fingerprint(ctx *FingerprintContext) {
 		node.Query.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Replace))
+	ctx.WriteString(strconv.FormatBool(node.Replace))
 
 	if node.View != nil {
 		node.View.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.WithCheckOption)))
+	ctx.WriteString(strconv.Itoa(int(node.WithCheckOption)))
 }

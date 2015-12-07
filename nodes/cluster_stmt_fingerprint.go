@@ -2,21 +2,18 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ClusterStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CLUSTERSTMT")
+func (node ClusterStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CLUSTERSTMT")
 
 	if node.Indexname != nil {
-		io.WriteString(ctx.hash, *node.Indexname)
+		ctx.WriteString(*node.Indexname)
 	}
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Verbose))
+	ctx.WriteString(strconv.FormatBool(node.Verbose))
 }

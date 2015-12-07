@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ScalarArrayOpExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SCALARARRAYOPEXPR")
+func (node ScalarArrayOpExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SCALARARRAYOPEXPR")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node ScalarArrayOpExpr) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.UseOr))
+	ctx.WriteString(strconv.FormatBool(node.UseOr))
 }

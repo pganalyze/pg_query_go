@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node XmlSerialize) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "XMLSERIALIZE")
+func (node XmlSerialize) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("XMLSERIALIZE")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx)
@@ -20,5 +17,5 @@ func (node XmlSerialize) Fingerprint(ctx *FingerprintContext) {
 		node.TypeName.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Xmloption)))
+	ctx.WriteString(strconv.Itoa(int(node.Xmloption)))
 }

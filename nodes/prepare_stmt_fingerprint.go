@@ -2,17 +2,15 @@
 
 package pg_query
 
-import "io"
-
-func (node PrepareStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PREPARESTMT")
+func (node PrepareStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PREPARESTMT")
 
 	for _, subNode := range node.Argtypes {
 		subNode.Fingerprint(ctx)
 	}
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	if node.Query != nil {

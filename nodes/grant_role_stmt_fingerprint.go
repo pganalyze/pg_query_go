@@ -2,15 +2,12 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node GrantRoleStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "GRANTROLESTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.AdminOpt))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Behavior)))
+func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("GRANTROLESTMT")
+	ctx.WriteString(strconv.FormatBool(node.AdminOpt))
+	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 
 	for _, subNode := range node.GrantedRoles {
 		subNode.Fingerprint(ctx)
@@ -21,8 +18,8 @@ func (node GrantRoleStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Grantor != nil {
-		io.WriteString(ctx.hash, *node.Grantor)
+		ctx.WriteString(*node.Grantor)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsGrant))
+	ctx.WriteString(strconv.FormatBool(node.IsGrant))
 }

@@ -2,23 +2,20 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateTableAsStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATE TABLE AS")
+func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATE TABLE AS")
 
 	if node.Into != nil {
 		node.Into.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsSelectInto))
+	ctx.WriteString(strconv.FormatBool(node.IsSelectInto))
 
 	if node.Query != nil {
 		node.Query.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Relkind)))
+	ctx.WriteString(strconv.Itoa(int(node.Relkind)))
 }

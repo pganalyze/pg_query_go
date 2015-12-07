@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Param) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PARAM")
+func (node Param) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PARAM")
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Paramkind)))
+	ctx.WriteString(strconv.Itoa(int(node.Paramkind)))
 }

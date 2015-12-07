@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RenameStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RENAMESTMT")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Behavior)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+func (node RenameStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RENAMESTMT")
+	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Newname != nil {
-		io.WriteString(ctx.hash, *node.Newname)
+		ctx.WriteString(*node.Newname)
 	}
 
 	for _, subNode := range node.Objarg {
@@ -28,10 +25,10 @@ func (node RenameStmt) Fingerprint(ctx *FingerprintContext) {
 		node.Relation.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.RelationType)))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.RenameType)))
+	ctx.WriteString(strconv.Itoa(int(node.RelationType)))
+	ctx.WriteString(strconv.Itoa(int(node.RenameType)))
 
 	if node.Subname != nil {
-		io.WriteString(ctx.hash, *node.Subname)
+		ctx.WriteString(*node.Subname)
 	}
 }

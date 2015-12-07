@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateTrigStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATETRIGSTMT")
+func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATETRIGSTMT")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -22,23 +19,23 @@ func (node CreateTrigStmt) Fingerprint(ctx *FingerprintContext) {
 		node.Constrrel.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Deferrable))
+	ctx.WriteString(strconv.FormatBool(node.Deferrable))
 
 	for _, subNode := range node.Funcname {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Initdeferred))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Isconstraint))
+	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
+	ctx.WriteString(strconv.FormatBool(node.Isconstraint))
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Row))
+	ctx.WriteString(strconv.FormatBool(node.Row))
 
 	if node.Trigname != nil {
-		io.WriteString(ctx.hash, *node.Trigname)
+		ctx.WriteString(*node.Trigname)
 	}
 
 	if node.WhenClause != nil {

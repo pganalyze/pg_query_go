@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node CreatedbStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEDBSTMT")
+func (node CreatedbStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEDBSTMT")
 
 	if node.Dbname != nil {
-		io.WriteString(ctx.hash, *node.Dbname)
+		ctx.WriteString(*node.Dbname)
 	}
 
 	for _, subNode := range node.Options {

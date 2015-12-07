@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node BitmapHeapScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BITMAPHEAPSCAN")
+func (node BitmapHeapScan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("BITMAPHEAPSCAN")
 
 	for _, subNode := range node.Bitmapqualorig {
 		subNode.Fingerprint(ctx)

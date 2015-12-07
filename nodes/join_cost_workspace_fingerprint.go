@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node JoinCostWorkspace) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "JOINCOSTWORKSPACE")
+func (node JoinCostWorkspace) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("JOINCOSTWORKSPACE")
 }

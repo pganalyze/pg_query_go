@@ -2,12 +2,10 @@
 
 package pg_query
 
-import "io"
-
-func (node PrivGrantee) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PRIVGRANTEE")
+func (node PrivGrantee) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PRIVGRANTEE")
 
 	if node.Rolname != nil {
-		io.WriteString(ctx.hash, *node.Rolname)
+		ctx.WriteString(*node.Rolname)
 	}
 }

@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node FetchStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FETCHSTMT")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Direction)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Ismove))
+func (node FetchStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FETCHSTMT")
+	ctx.WriteString(strconv.Itoa(int(node.Direction)))
+	ctx.WriteString(strconv.FormatBool(node.Ismove))
 
 	if node.Portalname != nil {
-		io.WriteString(ctx.hash, *node.Portalname)
+		ctx.WriteString(*node.Portalname)
 	}
 }

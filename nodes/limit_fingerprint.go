@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node Limit) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "LIMIT")
+func (node Limit) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("LIMIT")
 
 	if node.LimitCount != nil {
 		node.LimitCount.Fingerprint(ctx)

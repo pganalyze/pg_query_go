@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node SortGroupClause) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SORTGROUPCLAUSE")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Hashable))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.NullsFirst))
+func (node SortGroupClause) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SORTGROUPCLAUSE")
+	ctx.WriteString(strconv.FormatBool(node.Hashable))
+	ctx.WriteString(strconv.FormatBool(node.NullsFirst))
 }

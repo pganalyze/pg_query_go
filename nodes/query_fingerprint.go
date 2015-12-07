@@ -2,15 +2,12 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Query) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "QUERY")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.CanSetTag))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.CommandType)))
+func (node Query) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("QUERY")
+	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
+	ctx.WriteString(strconv.Itoa(int(node.CommandType)))
 
 	for _, subNode := range node.ConstraintDeps {
 		subNode.Fingerprint(ctx)
@@ -28,13 +25,13 @@ func (node Query) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasAggs))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasDistinctOn))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasForUpdate))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasModifyingCte))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasRecursive))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasSubLinks))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasWindowFuncs))
+	ctx.WriteString(strconv.FormatBool(node.HasAggs))
+	ctx.WriteString(strconv.FormatBool(node.HasDistinctOn))
+	ctx.WriteString(strconv.FormatBool(node.HasForUpdate))
+	ctx.WriteString(strconv.FormatBool(node.HasModifyingCte))
+	ctx.WriteString(strconv.FormatBool(node.HasRecursive))
+	ctx.WriteString(strconv.FormatBool(node.HasSubLinks))
+	ctx.WriteString(strconv.FormatBool(node.HasWindowFuncs))
 
 	if node.HavingQual != nil {
 		node.HavingQual.Fingerprint(ctx)
@@ -52,7 +49,7 @@ func (node Query) Fingerprint(ctx *FingerprintContext) {
 		node.LimitOffset.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.QuerySource)))
+	ctx.WriteString(strconv.Itoa(int(node.QuerySource)))
 
 	for _, subNode := range node.ReturningList {
 		subNode.Fingerprint(ctx)

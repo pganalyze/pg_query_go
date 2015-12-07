@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateEnumStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEENUMSTMT")
+func (node CreateEnumStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEENUMSTMT")
 
 	for _, subNode := range node.TypeName {
 		subNode.Fingerprint(ctx)

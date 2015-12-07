@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node PlannedStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PLANNEDSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.CanSetTag))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.CommandType)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasModifyingCte))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasReturning))
+func (node PlannedStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PLANNEDSTMT")
+	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
+	ctx.WriteString(strconv.Itoa(int(node.CommandType)))
+	ctx.WriteString(strconv.FormatBool(node.HasModifyingCte))
+	ctx.WriteString(strconv.FormatBool(node.HasReturning))
 
 	for _, subNode := range node.InvalItems {
 		subNode.Fingerprint(ctx)
@@ -42,7 +39,7 @@ func (node PlannedStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.TransientPlan))
+	ctx.WriteString(strconv.FormatBool(node.TransientPlan))
 
 	if node.UtilityStmt != nil {
 		node.UtilityStmt.Fingerprint(ctx)

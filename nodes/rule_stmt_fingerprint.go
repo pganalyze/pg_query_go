@@ -2,29 +2,26 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RuleStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RULESTMT")
+func (node RuleStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RULESTMT")
 
 	for _, subNode := range node.Actions {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Event)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Instead))
+	ctx.WriteString(strconv.Itoa(int(node.Event)))
+	ctx.WriteString(strconv.FormatBool(node.Instead))
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Replace))
+	ctx.WriteString(strconv.FormatBool(node.Replace))
 
 	if node.Rulename != nil {
-		io.WriteString(ctx.hash, *node.Rulename)
+		ctx.WriteString(*node.Rulename)
 	}
 
 	if node.WhereClause != nil {

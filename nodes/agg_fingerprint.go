@@ -2,12 +2,9 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Agg) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AGG")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Aggstrategy)))
+func (node Agg) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("AGG")
+	ctx.WriteString(strconv.Itoa(int(node.Aggstrategy)))
 }

@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ReindexStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "REINDEXSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.DoSystem))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.DoUser))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Kind)))
+func (node ReindexStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("REINDEXSTMT")
+	ctx.WriteString(strconv.FormatBool(node.DoSystem))
+	ctx.WriteString(strconv.FormatBool(node.DoUser))
+	ctx.WriteString(strconv.Itoa(int(node.Kind)))
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	if node.Relation != nil {

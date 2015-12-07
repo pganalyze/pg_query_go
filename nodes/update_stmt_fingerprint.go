@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node UpdateStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "UPDATE")
+func (node UpdateStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("UPDATE")
 
 	for _, subNode := range node.FromClause {
 		subNode.Fingerprint(ctx)

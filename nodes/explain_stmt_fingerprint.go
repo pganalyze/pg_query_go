@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node ExplainStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "EXPLAIN")
+func (node ExplainStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("EXPLAIN")
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node FuncCall) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FUNCCALL")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.AggDistinct))
+func (node FuncCall) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FUNCCALL")
+	ctx.WriteString(strconv.FormatBool(node.AggDistinct))
 
 	if node.AggFilter != nil {
 		node.AggFilter.Fingerprint(ctx)
@@ -19,14 +16,14 @@ func (node FuncCall) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.AggStar))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.AggWithinGroup))
+	ctx.WriteString(strconv.FormatBool(node.AggStar))
+	ctx.WriteString(strconv.FormatBool(node.AggWithinGroup))
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.FuncVariadic))
+	ctx.WriteString(strconv.FormatBool(node.FuncVariadic))
 
 	for _, subNode := range node.Funcname {
 		subNode.Fingerprint(ctx)

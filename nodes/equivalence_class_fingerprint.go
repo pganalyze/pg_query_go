@@ -2,22 +2,19 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node EquivalenceClass) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "EQUIVALENCECLASS")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EcBelowOuterJoin))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EcBroken))
+func (node EquivalenceClass) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("EQUIVALENCECLASS")
+	ctx.WriteString(strconv.FormatBool(node.EcBelowOuterJoin))
+	ctx.WriteString(strconv.FormatBool(node.EcBroken))
 
 	for _, subNode := range node.EcDerives {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EcHasConst))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EcHasVolatile))
+	ctx.WriteString(strconv.FormatBool(node.EcHasConst))
+	ctx.WriteString(strconv.FormatBool(node.EcHasVolatile))
 
 	for _, subNode := range node.EcMembers {
 		subNode.Fingerprint(ctx)

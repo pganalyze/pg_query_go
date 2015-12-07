@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CollateExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COLLATE")
+func (node CollateExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COLLATE")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

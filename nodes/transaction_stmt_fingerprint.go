@@ -2,19 +2,16 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node TransactionStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TRANSACTION")
+func (node TransactionStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TRANSACTION")
 
 	if node.Gid != nil {
-		io.WriteString(ctx.hash, *node.Gid)
+		ctx.WriteString(*node.Gid)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Kind)))
+	ctx.WriteString(strconv.Itoa(int(node.Kind)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

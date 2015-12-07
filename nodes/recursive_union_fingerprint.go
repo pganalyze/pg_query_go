@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node RecursiveUnion) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RECURSIVEUNION")
+func (node RecursiveUnion) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RECURSIVEUNION")
 }

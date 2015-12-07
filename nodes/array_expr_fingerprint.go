@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ArrayExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ARRAY")
+func (node ArrayExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ARRAY")
 
 	for _, subNode := range node.Elements {
 		subNode.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node ArrayExpr) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Multidims))
+	ctx.WriteString(strconv.FormatBool(node.Multidims))
 }

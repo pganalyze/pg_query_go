@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node varatt_external) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "VARATT_EXTERNAL")
+func (node varatt_external) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("VARATT_EXTERNAL")
 }

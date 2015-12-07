@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node CheckPointStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CHECKPOINT")
+func (node CheckPointStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CHECKPOINT")
 }

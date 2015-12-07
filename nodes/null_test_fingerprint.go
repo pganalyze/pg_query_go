@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node NullTest) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "NULLTEST")
+func (node NullTest) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("NULLTEST")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Argisrow))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Nulltesttype)))
+	ctx.WriteString(strconv.FormatBool(node.Argisrow))
+	ctx.WriteString(strconv.Itoa(int(node.Nulltesttype)))
 }

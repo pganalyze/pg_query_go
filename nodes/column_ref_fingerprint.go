@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node ColumnRef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COLUMNREF")
+func (node ColumnRef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COLUMNREF")
 
 	for _, subNode := range node.Fields {
 		subNode.Fingerprint(ctx)

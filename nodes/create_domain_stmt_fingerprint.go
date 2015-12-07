@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateDomainStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEDOMAINSTMT")
+func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEDOMAINSTMT")
 
 	if node.CollClause != nil {
 		node.CollClause.Fingerprint(ctx)

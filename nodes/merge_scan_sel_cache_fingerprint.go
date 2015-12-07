@@ -2,12 +2,9 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node MergeScanSelCache) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MERGESCANSELCACHE")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.NullsFirst))
+func (node MergeScanSelCache) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("MERGESCANSELCACHE")
+	ctx.WriteString(strconv.FormatBool(node.NullsFirst))
 }

@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node WindowFunc) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WINDOWFUNC")
+func (node WindowFunc) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WINDOWFUNC")
 
 	if node.Aggfilter != nil {
 		node.Aggfilter.Fingerprint(ctx)
@@ -20,6 +17,6 @@ func (node WindowFunc) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Winagg))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Winstar))
+	ctx.WriteString(strconv.FormatBool(node.Winagg))
+	ctx.WriteString(strconv.FormatBool(node.Winstar))
 }

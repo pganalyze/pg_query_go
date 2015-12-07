@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RangeFunction) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGEFUNCTION")
+func (node RangeFunction) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGEFUNCTION")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
@@ -22,7 +19,7 @@ func (node RangeFunction) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsRowsfrom))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Lateral))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Ordinality))
+	ctx.WriteString(strconv.FormatBool(node.IsRowsfrom))
+	ctx.WriteString(strconv.FormatBool(node.Lateral))
+	ctx.WriteString(strconv.FormatBool(node.Ordinality))
 }

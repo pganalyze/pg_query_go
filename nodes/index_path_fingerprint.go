@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node IndexPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "INDEXPATH")
+func (node IndexPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("INDEXPATH")
 
 	for _, subNode := range node.Indexclauses {
 		subNode.Fingerprint(ctx)
@@ -34,5 +31,5 @@ func (node IndexPath) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Indexscandir)))
+	ctx.WriteString(strconv.Itoa(int(node.Indexscandir)))
 }

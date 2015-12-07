@@ -2,9 +2,7 @@
 
 package pg_query
 
-import "io"
-
-func (node CoerceToDomainValue) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COERCETODOMAINVALUE")
+func (node CoerceToDomainValue) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COERCETODOMAINVALUE")
 	// Intentionally ignoring node.Location for fingerprinting
 }

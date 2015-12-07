@@ -2,9 +2,7 @@
 
 package pg_query
 
-import "io"
-
-func (node ParamRef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PARAMREF")
+func (node ParamRef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PARAMREF")
 	// Intentionally ignoring node.Location for fingerprinting
 }

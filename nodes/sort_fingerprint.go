@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node Sort) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SORT")
+func (node Sort) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SORT")
 }

@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RELOPTINFO")
+func (node RelOptInfo) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RELOPTINFO")
 
 	for _, subNode := range node.Baserestrictinfo {
 		subNode.Fingerprint(ctx)
@@ -30,9 +27,9 @@ func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
 		node.CheapestUniquePath.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.ConsiderParamStartup))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.ConsiderStartup))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasEclassJoins))
+	ctx.WriteString(strconv.FormatBool(node.ConsiderParamStartup))
+	ctx.WriteString(strconv.FormatBool(node.ConsiderStartup))
+	ctx.WriteString(strconv.FormatBool(node.HasEclassJoins))
 
 	for _, subNode := range node.Indexlist {
 		subNode.Fingerprint(ctx)
@@ -54,13 +51,13 @@ func (node RelOptInfo) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Reloptkind)))
+	ctx.WriteString(strconv.Itoa(int(node.Reloptkind)))
 
 	for _, subNode := range node.Reltargetlist {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Rtekind)))
+	ctx.WriteString(strconv.Itoa(int(node.Rtekind)))
 
 	if node.Subplan != nil {
 		node.Subplan.Fingerprint(ctx)

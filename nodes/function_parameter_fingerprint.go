@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node FunctionParameter) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FUNCTIONPARAMETER")
+func (node FunctionParameter) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FUNCTIONPARAMETER")
 
 	if node.ArgType != nil {
 		node.ArgType.Fingerprint(ctx)
@@ -18,9 +15,9 @@ func (node FunctionParameter) Fingerprint(ctx *FingerprintContext) {
 		node.Defexpr.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Mode)))
+	ctx.WriteString(strconv.Itoa(int(node.Mode)))
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 }

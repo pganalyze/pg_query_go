@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node OpExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "OPEXPR")
+func (node OpExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("OPEXPR")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node OpExpr) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Opretset))
+	ctx.WriteString(strconv.FormatBool(node.Opretset))
 }

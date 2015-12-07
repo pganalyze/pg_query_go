@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node FieldStore) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FIELDSTORE")
+func (node FieldStore) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FIELDSTORE")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

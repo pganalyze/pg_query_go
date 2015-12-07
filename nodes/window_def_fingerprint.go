@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node WindowDef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WINDOWDEF")
+func (node WindowDef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WINDOWDEF")
 
 	if node.EndOffset != nil {
 		node.EndOffset.Fingerprint(ctx)
@@ -14,7 +12,7 @@ func (node WindowDef) Fingerprint(ctx *FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	for _, subNode := range node.OrderClause {
@@ -26,7 +24,7 @@ func (node WindowDef) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Refname != nil {
-		io.WriteString(ctx.hash, *node.Refname)
+		ctx.WriteString(*node.Refname)
 	}
 
 	if node.StartOffset != nil {

@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateForeignServerStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEFOREIGNSERVERSTMT")
+func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEFOREIGNSERVERSTMT")
 
 	if node.Fdwname != nil {
-		io.WriteString(ctx.hash, *node.Fdwname)
+		ctx.WriteString(*node.Fdwname)
 	}
 
 	for _, subNode := range node.Options {
@@ -16,14 +14,14 @@ func (node CreateForeignServerStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Servername != nil {
-		io.WriteString(ctx.hash, *node.Servername)
+		ctx.WriteString(*node.Servername)
 	}
 
 	if node.Servertype != nil {
-		io.WriteString(ctx.hash, *node.Servertype)
+		ctx.WriteString(*node.Servertype)
 	}
 
 	if node.Version != nil {
-		io.WriteString(ctx.hash, *node.Version)
+		ctx.WriteString(*node.Version)
 	}
 }

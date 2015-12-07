@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CommonTableExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COMMONTABLEEXPR")
+func (node CommonTableExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COMMONTABLEEXPR")
 
 	for _, subNode := range node.Aliascolnames {
 		subNode.Fingerprint(ctx)
@@ -31,13 +28,13 @@ func (node CommonTableExpr) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Ctename != nil {
-		io.WriteString(ctx.hash, *node.Ctename)
+		ctx.WriteString(*node.Ctename)
 	}
 
 	if node.Ctequery != nil {
 		node.Ctequery.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Cterecursive))
+	ctx.WriteString(strconv.FormatBool(node.Cterecursive))
 	// Intentionally ignoring node.Location for fingerprinting
 }

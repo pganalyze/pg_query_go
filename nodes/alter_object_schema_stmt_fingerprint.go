@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterObjectSchemaStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTEROBJECTSCHEMASTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTEROBJECTSCHEMASTMT")
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Newschema != nil {
-		io.WriteString(ctx.hash, *node.Newschema)
+		ctx.WriteString(*node.Newschema)
 	}
 
 	for _, subNode := range node.Objarg {
@@ -23,7 +20,7 @@ func (node AlterObjectSchemaStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.ObjectType)))
+	ctx.WriteString(strconv.Itoa(int(node.ObjectType)))
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)

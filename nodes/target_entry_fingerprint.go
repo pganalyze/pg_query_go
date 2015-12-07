@@ -2,21 +2,18 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node TargetEntry) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TARGETENTRY")
+func (node TargetEntry) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TARGETENTRY")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Resjunk))
+	ctx.WriteString(strconv.FormatBool(node.Resjunk))
 
 	if node.Resname != nil {
-		io.WriteString(ctx.hash, *node.Resname)
+		ctx.WriteString(*node.Resname)
 	}
 }

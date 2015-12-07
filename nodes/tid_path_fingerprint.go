@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node TidPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TIDPATH")
+func (node TidPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TIDPATH")
 
 	for _, subNode := range node.Tidquals {
 		subNode.Fingerprint(ctx)

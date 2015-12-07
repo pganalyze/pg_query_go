@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateOpFamilyStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEOPFAMILYSTMT")
+func (node CreateOpFamilyStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEOPFAMILYSTMT")
 
 	if node.Amname != nil {
-		io.WriteString(ctx.hash, *node.Amname)
+		ctx.WriteString(*node.Amname)
 	}
 
 	for _, subNode := range node.Opfamilyname {

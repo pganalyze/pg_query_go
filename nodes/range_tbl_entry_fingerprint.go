@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RangeTblEntry) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGETBLENTRY")
+func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGETBLENTRY")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
@@ -27,36 +24,36 @@ func (node RangeTblEntry) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Ctename != nil {
-		io.WriteString(ctx.hash, *node.Ctename)
+		ctx.WriteString(*node.Ctename)
 	}
 
 	if node.Eref != nil {
 		node.Eref.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Funcordinality))
+	ctx.WriteString(strconv.FormatBool(node.Funcordinality))
 
 	for _, subNode := range node.Functions {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.InFromCl))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Inh))
+	ctx.WriteString(strconv.FormatBool(node.InFromCl))
+	ctx.WriteString(strconv.FormatBool(node.Inh))
 
 	for _, subNode := range node.Joinaliasvars {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Jointype)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Lateral))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Rtekind)))
+	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
+	ctx.WriteString(strconv.FormatBool(node.Lateral))
+	ctx.WriteString(strconv.Itoa(int(node.Rtekind)))
 
 	for _, subNode := range node.SecurityQuals {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.SecurityBarrier))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.SelfReference))
+	ctx.WriteString(strconv.FormatBool(node.SecurityBarrier))
+	ctx.WriteString(strconv.FormatBool(node.SelfReference))
 
 	if node.Subquery != nil {
 		node.Subquery.Fingerprint(ctx)

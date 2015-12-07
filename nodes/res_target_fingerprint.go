@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node ResTarget) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RESTARGET")
+func (node ResTarget) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RESTARGET")
 
 	for _, subNode := range node.Indirection {
 		subNode.Fingerprint(ctx)
@@ -14,7 +12,7 @@ func (node ResTarget) Fingerprint(ctx *FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	if node.Val != nil {

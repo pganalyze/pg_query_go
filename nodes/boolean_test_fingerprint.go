@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node BooleanTest) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BOOLEANTEST")
+func (node BooleanTest) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("BOOLEANTEST")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Booltesttype)))
+	ctx.WriteString(strconv.Itoa(int(node.Booltesttype)))
 }

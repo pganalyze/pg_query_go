@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateCastStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATECASTSTMT")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Context)))
+func (node CreateCastStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATECASTSTMT")
+	ctx.WriteString(strconv.Itoa(int(node.Context)))
 
 	if node.Func != nil {
 		node.Func.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Inout))
+	ctx.WriteString(strconv.FormatBool(node.Inout))
 
 	if node.Sourcetype != nil {
 		node.Sourcetype.Fingerprint(ctx)

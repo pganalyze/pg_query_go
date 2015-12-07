@@ -2,16 +2,13 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CommentStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COMMENTSTMT")
+func (node CommentStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COMMENTSTMT")
 
 	if node.Comment != nil {
-		io.WriteString(ctx.hash, *node.Comment)
+		ctx.WriteString(*node.Comment)
 	}
 
 	for _, subNode := range node.Objargs {
@@ -22,5 +19,5 @@ func (node CommentStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Objtype)))
+	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
 }

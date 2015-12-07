@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node VacuumStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "VACUUM")
+func (node VacuumStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("VACUUM")
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)

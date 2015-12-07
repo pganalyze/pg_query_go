@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node PlaceHolderVar) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PLACEHOLDERVAR")
+func (node PlaceHolderVar) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PLACEHOLDERVAR")
 
 	if node.Phexpr != nil {
 		node.Phexpr.Fingerprint(ctx)

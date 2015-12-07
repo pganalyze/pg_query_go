@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node EquivalenceMember) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "EQUIVALENCEMEMBER")
+func (node EquivalenceMember) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("EQUIVALENCEMEMBER")
 
 	if node.EmExpr != nil {
 		node.EmExpr.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EmIsChild))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.EmIsConst))
+	ctx.WriteString(strconv.FormatBool(node.EmIsChild))
+	ctx.WriteString(strconv.FormatBool(node.EmIsConst))
 }

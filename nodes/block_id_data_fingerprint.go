@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node BlockIdData) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BLOCKIDDATA")
+func (node BlockIdData) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("BLOCKIDDATA")
 }

@@ -2,12 +2,9 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ParamExecData) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PARAMEXECDATA")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Isnull))
+func (node ParamExecData) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PARAMEXECDATA")
+	ctx.WriteString(strconv.FormatBool(node.Isnull))
 }

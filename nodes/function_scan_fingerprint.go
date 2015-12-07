@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node FunctionScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "FUNCTIONSCAN")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Funcordinality))
+func (node FunctionScan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("FUNCTIONSCAN")
+	ctx.WriteString(strconv.FormatBool(node.Funcordinality))
 
 	for _, subNode := range node.Functions {
 		subNode.Fingerprint(ctx)

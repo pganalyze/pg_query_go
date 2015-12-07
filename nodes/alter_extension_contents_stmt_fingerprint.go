@@ -2,16 +2,13 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterExtensionContentsStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTEREXTENSIONCONTENTSSTMT")
+func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTEREXTENSIONCONTENTSSTMT")
 
 	if node.Extname != nil {
-		io.WriteString(ctx.hash, *node.Extname)
+		ctx.WriteString(*node.Extname)
 	}
 
 	for _, subNode := range node.Objargs {
@@ -22,5 +19,5 @@ func (node AlterExtensionContentsStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Objtype)))
+	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
 }

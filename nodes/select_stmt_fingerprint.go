@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node SelectStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SELECT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.All))
+func (node SelectStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SELECT")
+	ctx.WriteString(strconv.FormatBool(node.All))
 
 	for _, subNode := range node.DistinctClause {
 		subNode.Fingerprint(ctx)
@@ -47,7 +44,7 @@ func (node SelectStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Op)))
+	ctx.WriteString(strconv.Itoa(int(node.Op)))
 
 	if node.Rarg != nil {
 		node.Rarg.Fingerprint(ctx)

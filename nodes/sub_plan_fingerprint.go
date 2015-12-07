@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node SubPlan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SUBPLAN")
+func (node SubPlan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SUBPLAN")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -23,19 +20,19 @@ func (node SubPlan) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.PlanName != nil {
-		io.WriteString(ctx.hash, *node.PlanName)
+		ctx.WriteString(*node.PlanName)
 	}
 
 	for _, subNode := range node.SetParam {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.SubLinkType)))
+	ctx.WriteString(strconv.Itoa(int(node.SubLinkType)))
 
 	if node.Testexpr != nil {
 		node.Testexpr.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.UnknownEqFalse))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.UseHashTable))
+	ctx.WriteString(strconv.FormatBool(node.UnknownEqFalse))
+	ctx.WriteString(strconv.FormatBool(node.UseHashTable))
 }

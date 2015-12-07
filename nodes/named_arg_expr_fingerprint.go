@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node NamedArgExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "NAMEDARGEXPR")
+func (node NamedArgExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("NAMEDARGEXPR")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -14,6 +12,6 @@ func (node NamedArgExpr) Fingerprint(ctx *FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 }

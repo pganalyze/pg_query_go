@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node UniquePath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "UNIQUEPATH")
+func (node UniquePath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("UNIQUEPATH")
 
 	for _, subNode := range node.InOperators {
 		subNode.Fingerprint(ctx)
@@ -18,7 +15,7 @@ func (node UniquePath) Fingerprint(ctx *FingerprintContext) {
 		node.Subpath.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Umethod)))
+	ctx.WriteString(strconv.Itoa(int(node.Umethod)))
 
 	for _, subNode := range node.UniqExprs {
 		subNode.Fingerprint(ctx)

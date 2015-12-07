@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node LockRows) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "LOCKROWS")
+func (node LockRows) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("LOCKROWS")
 
 	for _, subNode := range node.RowMarks {
 		subNode.Fingerprint(ctx)

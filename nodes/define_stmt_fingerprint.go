@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node DefineStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DEFINESTMT")
+func (node DefineStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DEFINESTMT")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -22,6 +19,6 @@ func (node DefineStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Kind)))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Oldstyle))
+	ctx.WriteString(strconv.Itoa(int(node.Kind)))
+	ctx.WriteString(strconv.FormatBool(node.Oldstyle))
 }

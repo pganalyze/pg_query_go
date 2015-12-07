@@ -2,23 +2,20 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterDomainStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERDOMAINSTMT")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Behavior)))
+func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERDOMAINSTMT")
+	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 
 	if node.Def != nil {
 		node.Def.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	for _, subNode := range node.TypeName {

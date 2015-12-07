@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node RangeTblFunction) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGETBLFUNCTION")
+func (node RangeTblFunction) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGETBLFUNCTION")
 
 	for _, subNode := range node.Funccolcollations {
 		subNode.Fingerprint(ctx)

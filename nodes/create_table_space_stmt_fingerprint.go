@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateTableSpaceStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATETABLESPACESTMT")
+func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATETABLESPACESTMT")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	for _, subNode := range node.Options {
@@ -13,10 +11,10 @@ func (node CreateTableSpaceStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Owner != nil {
-		io.WriteString(ctx.hash, *node.Owner)
+		ctx.WriteString(*node.Owner)
 	}
 
 	if node.Tablespacename != nil {
-		io.WriteString(ctx.hash, *node.Tablespacename)
+		ctx.WriteString(*node.Tablespacename)
 	}
 }

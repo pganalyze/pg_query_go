@@ -2,25 +2,22 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateSchemaStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATE SCHEMA")
+func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATE SCHEMA")
 
 	if node.Authid != nil {
-		io.WriteString(ctx.hash, *node.Authid)
+		ctx.WriteString(*node.Authid)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IfNotExists))
+	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 
 	for _, subNode := range node.SchemaElts {
 		subNode.Fingerprint(ctx)
 	}
 
 	if node.Schemaname != nil {
-		io.WriteString(ctx.hash, *node.Schemaname)
+		ctx.WriteString(*node.Schemaname)
 	}
 }

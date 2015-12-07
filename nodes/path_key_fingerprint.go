@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node PathKey) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PATHKEY")
+func (node PathKey) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PATHKEY")
 
 	if node.PkEclass != nil {
 		node.PkEclass.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.PkNullsFirst))
+	ctx.WriteString(strconv.FormatBool(node.PkNullsFirst))
 }

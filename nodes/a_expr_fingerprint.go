@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node A_Expr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "AEXPR")
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Kind)))
+func (node A_Expr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("AEXPR")
+	ctx.WriteString(strconv.Itoa(int(node.Kind)))
 
 	if node.Lexpr != nil {
 		node.Lexpr.Fingerprint(ctx)

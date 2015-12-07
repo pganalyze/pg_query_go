@@ -2,16 +2,13 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node SecLabelStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SECLABELSTMT")
+func (node SecLabelStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SECLABELSTMT")
 
 	if node.Label != nil {
-		io.WriteString(ctx.hash, *node.Label)
+		ctx.WriteString(*node.Label)
 	}
 
 	for _, subNode := range node.Objargs {
@@ -22,9 +19,9 @@ func (node SecLabelStmt) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Objtype)))
+	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
 
 	if node.Provider != nil {
-		io.WriteString(ctx.hash, *node.Provider)
+		ctx.WriteString(*node.Provider)
 	}
 }

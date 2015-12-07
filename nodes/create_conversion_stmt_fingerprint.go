@@ -2,22 +2,19 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CreateConversionStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATECONVERSIONSTMT")
+func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATECONVERSIONSTMT")
 
 	for _, subNode := range node.ConversionName {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Def))
+	ctx.WriteString(strconv.FormatBool(node.Def))
 
 	if node.ForEncodingName != nil {
-		io.WriteString(ctx.hash, *node.ForEncodingName)
+		ctx.WriteString(*node.ForEncodingName)
 	}
 
 	for _, subNode := range node.FuncName {
@@ -25,6 +22,6 @@ func (node CreateConversionStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.ToEncodingName != nil {
-		io.WriteString(ctx.hash, *node.ToEncodingName)
+		ctx.WriteString(*node.ToEncodingName)
 	}
 }

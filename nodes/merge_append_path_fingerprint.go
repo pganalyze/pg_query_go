@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node MergeAppendPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MERGEAPPENDPATH")
+func (node MergeAppendPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("MERGEAPPENDPATH")
 
 	for _, subNode := range node.Subpaths {
 		subNode.Fingerprint(ctx)

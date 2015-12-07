@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node BitmapAndPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "BITMAPANDPATH")
+func (node BitmapAndPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("BITMAPANDPATH")
 
 	for _, subNode := range node.Bitmapquals {
 		subNode.Fingerprint(ctx)

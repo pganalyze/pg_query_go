@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node AlterFunctionStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERFUNCTIONSTMT")
+func (node AlterFunctionStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERFUNCTIONSTMT")
 
 	for _, subNode := range node.Actions {
 		subNode.Fingerprint(ctx)

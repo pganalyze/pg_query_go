@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ModifyTable) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "MODIFYTABLE")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.CanSetTag))
+func (node ModifyTable) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("MODIFYTABLE")
+	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
 
 	for _, subNode := range node.FdwPrivLists {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Operation)))
+	ctx.WriteString(strconv.Itoa(int(node.Operation)))
 
 	for _, subNode := range node.Plans {
 		subNode.Fingerprint(ctx)

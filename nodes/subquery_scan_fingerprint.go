@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node SubqueryScan) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SUBQUERYSCAN")
+func (node SubqueryScan) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SUBQUERYSCAN")
 
 	if node.Subplan != nil {
 		node.Subplan.Fingerprint(ctx)

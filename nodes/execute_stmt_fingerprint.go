@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node ExecuteStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "EXECUTESTMT")
+func (node ExecuteStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("EXECUTESTMT")
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	for _, subNode := range node.Params {

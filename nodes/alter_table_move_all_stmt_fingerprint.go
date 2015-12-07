@@ -2,23 +2,20 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterTableMoveAllStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERTABLEMOVEALLSTMT")
+func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERTABLEMOVEALLSTMT")
 
 	if node.NewTablespacename != nil {
-		io.WriteString(ctx.hash, *node.NewTablespacename)
+		ctx.WriteString(*node.NewTablespacename)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Nowait))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Objtype)))
+	ctx.WriteString(strconv.FormatBool(node.Nowait))
+	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
 
 	if node.OrigTablespacename != nil {
-		io.WriteString(ctx.hash, *node.OrigTablespacename)
+		ctx.WriteString(*node.OrigTablespacename)
 	}
 
 	for _, subNode := range node.Roles {

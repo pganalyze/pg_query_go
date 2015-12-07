@@ -2,25 +2,22 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node DefElem) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DEFELEM")
+func (node DefElem) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DEFELEM")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Defaction)))
+	ctx.WriteString(strconv.Itoa(int(node.Defaction)))
 
 	if node.Defname != nil {
-		io.WriteString(ctx.hash, *node.Defname)
+		ctx.WriteString(*node.Defname)
 	}
 
 	if node.Defnamespace != nil {
-		io.WriteString(ctx.hash, *node.Defnamespace)
+		ctx.WriteString(*node.Defnamespace)
 	}
 }

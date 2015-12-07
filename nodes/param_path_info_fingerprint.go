@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node ParamPathInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PARAMPATHINFO")
+func (node ParamPathInfo) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PARAMPATHINFO")
 
 	for _, subNode := range node.PpiClauses {
 		subNode.Fingerprint(ctx)

@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Join) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "JOIN")
+func (node Join) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("JOIN")
 
 	for _, subNode := range node.Joinqual {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Jointype)))
+	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
 }

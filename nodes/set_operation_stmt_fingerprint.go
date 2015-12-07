@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node SetOperationStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SETOPERATIONSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.All))
+func (node SetOperationStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SETOPERATIONSTMT")
+	ctx.WriteString(strconv.FormatBool(node.All))
 
 	for _, subNode := range node.ColCollations {
 		subNode.Fingerprint(ctx)
@@ -31,7 +28,7 @@ func (node SetOperationStmt) Fingerprint(ctx *FingerprintContext) {
 		node.Larg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Op)))
+	ctx.WriteString(strconv.Itoa(int(node.Op)))
 
 	if node.Rarg != nil {
 		node.Rarg.Fingerprint(ctx)

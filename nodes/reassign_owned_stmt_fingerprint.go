@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node ReassignOwnedStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "REASSIGNOWNEDSTMT")
+func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("REASSIGNOWNEDSTMT")
 
 	if node.Newrole != nil {
-		io.WriteString(ctx.hash, *node.Newrole)
+		ctx.WriteString(*node.Newrole)
 	}
 
 	for _, subNode := range node.Roles {

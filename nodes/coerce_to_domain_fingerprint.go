@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node CoerceToDomain) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "COERCETODOMAIN")
+func (node CoerceToDomain) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("COERCETODOMAIN")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Coercionformat)))
+	ctx.WriteString(strconv.Itoa(int(node.Coercionformat)))
 	// Intentionally ignoring node.Location for fingerprinting
 }

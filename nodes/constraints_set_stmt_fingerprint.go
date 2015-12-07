@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ConstraintsSetStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CONSTRAINTSSETSTMT")
+func (node ConstraintsSetStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CONSTRAINTSSETSTMT")
 
 	for _, subNode := range node.Constraints {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Deferred))
+	ctx.WriteString(strconv.FormatBool(node.Deferred))
 }

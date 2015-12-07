@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node DropRoleStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DROPROLESTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+func (node DropRoleStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DROPROLESTMT")
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	for _, subNode := range node.Roles {
 		subNode.Fingerprint(ctx)

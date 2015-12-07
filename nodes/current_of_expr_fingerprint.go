@@ -2,12 +2,10 @@
 
 package pg_query
 
-import "io"
-
-func (node CurrentOfExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CURRENTOFEXPR")
+func (node CurrentOfExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CURRENTOFEXPR")
 
 	if node.CursorName != nil {
-		io.WriteString(ctx.hash, *node.CursorName)
+		ctx.WriteString(*node.CursorName)
 	}
 }

@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RowMarkClause) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ROWMARKCLAUSE")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.NoWait))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.PushedDown))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Strength)))
+func (node RowMarkClause) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ROWMARKCLAUSE")
+	ctx.WriteString(strconv.FormatBool(node.NoWait))
+	ctx.WriteString(strconv.FormatBool(node.PushedDown))
+	ctx.WriteString(strconv.Itoa(int(node.Strength)))
 }

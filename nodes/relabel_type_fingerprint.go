@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RelabelType) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RELABELTYPE")
+func (node RelabelType) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RELABELTYPE")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -16,5 +13,5 @@ func (node RelabelType) Fingerprint(ctx *FingerprintContext) {
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Relabelformat)))
+	ctx.WriteString(strconv.Itoa(int(node.Relabelformat)))
 }

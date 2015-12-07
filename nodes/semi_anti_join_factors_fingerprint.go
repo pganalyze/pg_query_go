@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node SemiAntiJoinFactors) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SEMIANTIJOINFACTORS")
+func (node SemiAntiJoinFactors) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SEMIANTIJOINFACTORS")
 }

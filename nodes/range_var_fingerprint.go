@@ -2,30 +2,27 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node RangeVar) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGEVAR")
+func (node RangeVar) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGEVAR")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
 	}
 
 	if node.Catalogname != nil {
-		io.WriteString(ctx.hash, *node.Catalogname)
+		ctx.WriteString(*node.Catalogname)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.InhOpt)))
+	ctx.WriteString(strconv.Itoa(int(node.InhOpt)))
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Relname != nil {
-		io.WriteString(ctx.hash, *node.Relname)
+		ctx.WriteString(*node.Relname)
 	}
 
 	if node.Schemaname != nil {
-		io.WriteString(ctx.hash, *node.Schemaname)
+		ctx.WriteString(*node.Schemaname)
 	}
 }

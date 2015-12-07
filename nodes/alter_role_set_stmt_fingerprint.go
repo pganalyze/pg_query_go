@@ -2,17 +2,15 @@
 
 package pg_query
 
-import "io"
-
-func (node AlterRoleSetStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERROLESETSTMT")
+func (node AlterRoleSetStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERROLESETSTMT")
 
 	if node.Database != nil {
-		io.WriteString(ctx.hash, *node.Database)
+		ctx.WriteString(*node.Database)
 	}
 
 	if node.Role != nil {
-		io.WriteString(ctx.hash, *node.Role)
+		ctx.WriteString(*node.Role)
 	}
 
 	if node.Setstmt != nil {

@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node JoinExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "JOINEXPR")
+func (node JoinExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("JOINEXPR")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsNatural))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Jointype)))
+	ctx.WriteString(strconv.FormatBool(node.IsNatural))
+	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
 
 	if node.Larg != nil {
 		node.Larg.Fingerprint(ctx)

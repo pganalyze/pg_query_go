@@ -2,17 +2,14 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node DropdbStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DROPDBSTMT")
+func (node DropdbStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DROPDBSTMT")
 
 	if node.Dbname != nil {
-		io.WriteString(ctx.hash, *node.Dbname)
+		ctx.WriteString(*node.Dbname)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.MissingOk))
+	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 }

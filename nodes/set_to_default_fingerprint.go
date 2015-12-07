@@ -2,9 +2,7 @@
 
 package pg_query
 
-import "io"
-
-func (node SetToDefault) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "SETTODEFAULT")
+func (node SetToDefault) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("SETTODEFAULT")
 	// Intentionally ignoring node.Location for fingerprinting
 }

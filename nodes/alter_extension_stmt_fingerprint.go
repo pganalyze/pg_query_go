@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node AlterExtensionStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTEREXTENSIONSTMT")
+func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTEREXTENSIONSTMT")
 
 	if node.Extname != nil {
-		io.WriteString(ctx.hash, *node.Extname)
+		ctx.WriteString(*node.Extname)
 	}
 
 	for _, subNode := range node.Options {

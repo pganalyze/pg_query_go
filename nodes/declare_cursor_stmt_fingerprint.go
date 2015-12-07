@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node DeclareCursorStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "DECLARECURSOR")
+func (node DeclareCursorStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("DECLARECURSOR")
 
 	if node.Portalname != nil {
-		io.WriteString(ctx.hash, *node.Portalname)
+		ctx.WriteString(*node.Portalname)
 	}
 
 	if node.Query != nil {

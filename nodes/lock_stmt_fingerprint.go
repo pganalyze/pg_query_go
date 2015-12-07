@@ -2,14 +2,11 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node LockStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "LOCK")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Nowait))
+func (node LockStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("LOCK")
+	ctx.WriteString(strconv.FormatBool(node.Nowait))
 
 	for _, subNode := range node.Relations {
 		subNode.Fingerprint(ctx)

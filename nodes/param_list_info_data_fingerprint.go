@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node ParamListInfoData) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PARAMLISTINFODATA")
+func (node ParamListInfoData) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PARAMLISTINFODATA")
 }

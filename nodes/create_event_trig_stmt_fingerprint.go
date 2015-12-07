@@ -2,13 +2,11 @@
 
 package pg_query
 
-import "io"
-
-func (node CreateEventTrigStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CREATEEVENTTRIGSTMT")
+func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CREATEEVENTTRIGSTMT")
 
 	if node.Eventname != nil {
-		io.WriteString(ctx.hash, *node.Eventname)
+		ctx.WriteString(*node.Eventname)
 	}
 
 	for _, subNode := range node.Funcname {
@@ -16,7 +14,7 @@ func (node CreateEventTrigStmt) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Trigname != nil {
-		io.WriteString(ctx.hash, *node.Trigname)
+		ctx.WriteString(*node.Trigname)
 	}
 
 	for _, subNode := range node.Whenclause {

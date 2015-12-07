@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node WindowAgg) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WINDOWAGG")
+func (node WindowAgg) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WINDOWAGG")
 
 	if node.EndOffset != nil {
 		node.EndOffset.Fingerprint(ctx)

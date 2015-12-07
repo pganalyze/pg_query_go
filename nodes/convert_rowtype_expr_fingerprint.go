@@ -2,18 +2,15 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node ConvertRowtypeExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CONVERTROWTYPEEXPR")
+func (node ConvertRowtypeExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CONVERTROWTYPEEXPR")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Convertformat)))
+	ctx.WriteString(strconv.Itoa(int(node.Convertformat)))
 	// Intentionally ignoring node.Location for fingerprinting
 }

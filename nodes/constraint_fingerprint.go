@@ -2,29 +2,26 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node Constraint) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "CONSTRAINT")
+func (node Constraint) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("CONSTRAINT")
 
 	if node.AccessMethod != nil {
-		io.WriteString(ctx.hash, *node.AccessMethod)
+		ctx.WriteString(*node.AccessMethod)
 	}
 
 	if node.Conname != nil {
-		io.WriteString(ctx.hash, *node.Conname)
+		ctx.WriteString(*node.Conname)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Contype)))
+	ctx.WriteString(strconv.Itoa(int(node.Contype)))
 
 	if node.CookedExpr != nil {
-		io.WriteString(ctx.hash, *node.CookedExpr)
+		ctx.WriteString(*node.CookedExpr)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Deferrable))
+	ctx.WriteString(strconv.FormatBool(node.Deferrable))
 
 	for _, subNode := range node.Exclusions {
 		subNode.Fingerprint(ctx)
@@ -35,16 +32,16 @@ func (node Constraint) Fingerprint(ctx *FingerprintContext) {
 	}
 
 	if node.Indexname != nil {
-		io.WriteString(ctx.hash, *node.Indexname)
+		ctx.WriteString(*node.Indexname)
 	}
 
 	if node.Indexspace != nil {
-		io.WriteString(ctx.hash, *node.Indexspace)
+		ctx.WriteString(*node.Indexspace)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Initdeferred))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.InitiallyValid))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsNoInherit))
+	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
+	ctx.WriteString(strconv.FormatBool(node.InitiallyValid))
+	ctx.WriteString(strconv.FormatBool(node.IsNoInherit))
 
 	for _, subNode := range node.Keys {
 		subNode.Fingerprint(ctx)
@@ -72,7 +69,7 @@ func (node Constraint) Fingerprint(ctx *FingerprintContext) {
 		node.RawExpr.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.SkipValidation))
+	ctx.WriteString(strconv.FormatBool(node.SkipValidation))
 
 	if node.WhereClause != nil {
 		node.WhereClause.Fingerprint(ctx)

@@ -2,24 +2,21 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterForeignServerStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERFOREIGNSERVERSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.HasVersion))
+func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERFOREIGNSERVERSTMT")
+	ctx.WriteString(strconv.FormatBool(node.HasVersion))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)
 	}
 
 	if node.Servername != nil {
-		io.WriteString(ctx.hash, *node.Servername)
+		ctx.WriteString(*node.Servername)
 	}
 
 	if node.Version != nil {
-		io.WriteString(ctx.hash, *node.Version)
+		ctx.WriteString(*node.Version)
 	}
 }

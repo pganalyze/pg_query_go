@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node PlannerParamItem) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PLANNERPARAMITEM")
+func (node PlannerParamItem) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PLANNERPARAMITEM")
 
 	if node.Item != nil {
 		node.Item.Fingerprint(ctx)

@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node JoinPath) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "JOINPATH")
+func (node JoinPath) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("JOINPATH")
 
 	if node.Innerjoinpath != nil {
 		node.Innerjoinpath.Fingerprint(ctx)
@@ -18,7 +15,7 @@ func (node JoinPath) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Jointype)))
+	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
 
 	if node.Outerjoinpath != nil {
 		node.Outerjoinpath.Fingerprint(ctx)

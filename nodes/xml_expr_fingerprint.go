@@ -2,13 +2,10 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node XmlExpr) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "XMLEXPR")
+func (node XmlExpr) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("XMLEXPR")
 
 	for _, subNode := range node.ArgNames {
 		subNode.Fingerprint(ctx)
@@ -21,13 +18,13 @@ func (node XmlExpr) Fingerprint(ctx *FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
-		io.WriteString(ctx.hash, *node.Name)
+		ctx.WriteString(*node.Name)
 	}
 
 	for _, subNode := range node.NamedArgs {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Op)))
-	io.WriteString(ctx.hash, strconv.Itoa(int(node.Xmloption)))
+	ctx.WriteString(strconv.Itoa(int(node.Op)))
+	ctx.WriteString(strconv.Itoa(int(node.Xmloption)))
 }

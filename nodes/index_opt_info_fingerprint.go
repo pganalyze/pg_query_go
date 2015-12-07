@@ -2,22 +2,19 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node IndexOptInfo) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "INDEXOPTINFO")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amcanorderbyop))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amhasgetbitmap))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amhasgettuple))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amoptionalkey))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amsearcharray))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Amsearchnulls))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Canreturn))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Hypothetical))
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Immediate))
+func (node IndexOptInfo) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("INDEXOPTINFO")
+	ctx.WriteString(strconv.FormatBool(node.Amcanorderbyop))
+	ctx.WriteString(strconv.FormatBool(node.Amhasgetbitmap))
+	ctx.WriteString(strconv.FormatBool(node.Amhasgettuple))
+	ctx.WriteString(strconv.FormatBool(node.Amoptionalkey))
+	ctx.WriteString(strconv.FormatBool(node.Amsearcharray))
+	ctx.WriteString(strconv.FormatBool(node.Amsearchnulls))
+	ctx.WriteString(strconv.FormatBool(node.Canreturn))
+	ctx.WriteString(strconv.FormatBool(node.Hypothetical))
+	ctx.WriteString(strconv.FormatBool(node.Immediate))
 
 	for _, subNode := range node.Indexprs {
 		subNode.Fingerprint(ctx)
@@ -31,11 +28,11 @@ func (node IndexOptInfo) Fingerprint(ctx *FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.PredOk))
+	ctx.WriteString(strconv.FormatBool(node.PredOk))
 
 	if node.Rel != nil {
 		node.Rel.Fingerprint(ctx)
 	}
 
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Unique))
+	ctx.WriteString(strconv.FormatBool(node.Unique))
 }

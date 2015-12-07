@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node TypeCast) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "TYPECAST")
+func (node TypeCast) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("TYPECAST")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

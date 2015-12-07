@@ -2,8 +2,6 @@
 
 package pg_query
 
-import "io"
-
-func (node RangeTblRef) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "RANGETBLREF")
+func (node RangeTblRef) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("RANGETBLREF")
 }

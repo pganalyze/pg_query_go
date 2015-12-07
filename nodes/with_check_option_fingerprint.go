@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node WithCheckOption) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "WITHCHECKOPTION")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.Cascaded))
+func (node WithCheckOption) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("WITHCHECKOPTION")
+	ctx.WriteString(strconv.FormatBool(node.Cascaded))
 
 	if node.Qual != nil {
 		node.Qual.Fingerprint(ctx)
 	}
 
 	if node.Viewname != nil {
-		io.WriteString(ctx.hash, *node.Viewname)
+		ctx.WriteString(*node.Viewname)
 	}
 }

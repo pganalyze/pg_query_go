@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node HashJoin) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "HASHJOIN")
+func (node HashJoin) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("HASHJOIN")
 
 	for _, subNode := range node.Hashclauses {
 		subNode.Fingerprint(ctx)

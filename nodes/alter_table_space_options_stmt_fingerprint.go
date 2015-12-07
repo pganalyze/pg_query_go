@@ -2,20 +2,17 @@
 
 package pg_query
 
-import (
-	"io"
-	"strconv"
-)
+import "strconv"
 
-func (node AlterTableSpaceOptionsStmt) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "ALTERTABLESPACEOPTIONSSTMT")
-	io.WriteString(ctx.hash, strconv.FormatBool(node.IsReset))
+func (node AlterTableSpaceOptionsStmt) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("ALTERTABLESPACEOPTIONSSTMT")
+	ctx.WriteString(strconv.FormatBool(node.IsReset))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)
 	}
 
 	if node.Tablespacename != nil {
-		io.WriteString(ctx.hash, *node.Tablespacename)
+		ctx.WriteString(*node.Tablespacename)
 	}
 }

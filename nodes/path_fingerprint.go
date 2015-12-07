@@ -2,10 +2,8 @@
 
 package pg_query
 
-import "io"
-
-func (node Path) Fingerprint(ctx *FingerprintContext) {
-	io.WriteString(ctx.hash, "PATH")
+func (node Path) Fingerprint(ctx FingerprintContext) {
+	ctx.WriteString("PATH")
 
 	if node.ParamInfo != nil {
 		node.ParamInfo.Fingerprint(ctx)
