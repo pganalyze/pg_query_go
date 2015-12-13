@@ -38,7 +38,7 @@ func (output *ParsetreeList) UnmarshalJSON(input []byte) (err error) {
 func (input ParsetreeList) Fingerprint() string {
 	ctx := nodes.NewFingerprintHashContext()
 	for _, node := range input.Statements {
-		node.Fingerprint(ctx)
+		node.Fingerprint(ctx, "")
 	}
 	return hex.EncodeToString(ctx.Sum())
 }

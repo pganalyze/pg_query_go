@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node FetchStmt) Fingerprint(ctx FingerprintContext) {
+func (node FetchStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FetchStmt")
 	ctx.WriteString(strconv.Itoa(int(node.Direction)))
 	ctx.WriteString(strconv.Itoa(int(node.HowMany)))

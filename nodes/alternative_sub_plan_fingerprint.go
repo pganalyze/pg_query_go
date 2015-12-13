@@ -2,14 +2,14 @@
 
 package pg_query
 
-func (node AlternativeSubPlan) Fingerprint(ctx FingerprintContext) {
+func (node AlternativeSubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlternativeSubPlan")
 
 	for _, subNode := range node.Subplans {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Subplans")
 	}
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

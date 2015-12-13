@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"hash"
 	"io"
+	"reflect"
 	"strings"
 )
 
@@ -43,6 +44,10 @@ func (ctx FingerprintSubContext) Sum() []string {
 	return ctx.parts
 }
 
+func (ctx FingerprintSubContext) Equal(other FingerprintSubContext) bool {
+	return reflect.DeepEqual(ctx, other)
+}
+
 func (p FingerprintSubContextSlice) Len() int {
 	return len(p)
 }
@@ -51,18 +56,25 @@ func (p FingerprintSubContextSlice) Less(i, j int) bool {
 	left := strings.Join(p[i].parts, "")
 	right := strings.Join(p[j].parts, "")
 	return left < right
-	// make a string for i
-	// make a string for j
-	// compare them
 }
 
 func (p FingerprintSubContextSlice) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
+func (p *FingerprintSubContextSlice) AddIfUnique(ctx FingerprintSubContext) {
+	for _, existing := range *p {
+		if ctx.Equal(existing) {
+			return
+		}
+	}
+
+	*p = append(*p, ctx)
+}
+
 // ...
 
 type Node interface {
 	Deparse() string
-	Fingerprint(FingerprintContext)
+	Fingerprint(FingerprintContext, string)
 }

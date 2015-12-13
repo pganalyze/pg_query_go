@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ReindexStmt) Fingerprint(ctx FingerprintContext) {
+func (node ReindexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ReindexStmt")
 	ctx.WriteString(strconv.FormatBool(node.DoSystem))
 	ctx.WriteString(strconv.FormatBool(node.DoUser))
@@ -15,6 +15,6 @@ func (node ReindexStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Relation != nil {
-		node.Relation.Fingerprint(ctx)
+		node.Relation.Fingerprint(ctx, "Relation")
 	}
 }

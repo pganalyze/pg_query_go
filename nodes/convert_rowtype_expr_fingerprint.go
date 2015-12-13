@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node ConvertRowtypeExpr) Fingerprint(ctx FingerprintContext) {
+func (node ConvertRowtypeExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ConvertRowtypeExpr")
 
 	if node.Arg != nil {
-		node.Arg.Fingerprint(ctx)
+		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Convertformat)))
@@ -17,6 +17,6 @@ func (node ConvertRowtypeExpr) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

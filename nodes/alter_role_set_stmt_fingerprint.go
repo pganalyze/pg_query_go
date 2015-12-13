@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node AlterRoleSetStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterRoleSetStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterRoleSetStmt")
 
 	if node.Database != nil {
@@ -14,6 +14,6 @@ func (node AlterRoleSetStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Setstmt != nil {
-		node.Setstmt.Fingerprint(ctx)
+		node.Setstmt.Fingerprint(ctx, "Setstmt")
 	}
 }

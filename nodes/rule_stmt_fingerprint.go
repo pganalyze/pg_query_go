@@ -4,18 +4,18 @@ package pg_query
 
 import "strconv"
 
-func (node RuleStmt) Fingerprint(ctx FingerprintContext) {
+func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RuleStmt")
 
 	for _, subNode := range node.Actions {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Actions")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Event)))
 	ctx.WriteString(strconv.FormatBool(node.Instead))
 
 	if node.Relation != nil {
-		node.Relation.Fingerprint(ctx)
+		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Replace))
@@ -25,6 +25,6 @@ func (node RuleStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.WhereClause != nil {
-		node.WhereClause.Fingerprint(ctx)
+		node.WhereClause.Fingerprint(ctx, "WhereClause")
 	}
 }

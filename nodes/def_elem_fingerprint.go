@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node DefElem) Fingerprint(ctx FingerprintContext) {
+func (node DefElem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DefElem")
 
 	if node.Arg != nil {
-		node.Arg.Fingerprint(ctx)
+		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Defaction)))

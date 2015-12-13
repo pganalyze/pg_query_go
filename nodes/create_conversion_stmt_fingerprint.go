@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateConversionStmt")
 
 	for _, subNode := range node.ConversionName {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "ConversionName")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Def))
@@ -18,7 +18,7 @@ func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.FuncName {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "FuncName")
 	}
 
 	if node.ToEncodingName != nil {

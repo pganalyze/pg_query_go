@@ -4,25 +4,25 @@ package pg_query
 
 import "strconv"
 
-func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
+func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RangeTblEntry")
 
 	if node.Alias != nil {
-		node.Alias.Fingerprint(ctx)
+		node.Alias.Fingerprint(ctx, "Alias")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.CheckAsUser)))
 
 	for _, subNode := range node.Ctecolcollations {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecolcollations")
 	}
 
 	for _, subNode := range node.Ctecoltypes {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecoltypes")
 	}
 
 	for _, subNode := range node.Ctecoltypmods {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecoltypmods")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Ctelevelsup)))
@@ -32,20 +32,20 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Eref != nil {
-		node.Eref.Fingerprint(ctx)
+		node.Eref.Fingerprint(ctx, "Eref")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Funcordinality))
 
 	for _, subNode := range node.Functions {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Functions")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.InFromCl))
 	ctx.WriteString(strconv.FormatBool(node.Inh))
 
 	for _, subNode := range node.Joinaliasvars {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Joinaliasvars")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
@@ -61,7 +61,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.Rtekind)))
 
 	for _, subNode := range node.SecurityQuals {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "SecurityQuals")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.SecurityBarrier))
@@ -73,14 +73,14 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.SelfReference))
 
 	if node.Subquery != nil {
-		node.Subquery.Fingerprint(ctx)
+		node.Subquery.Fingerprint(ctx, "Subquery")
 	}
 
 	for _, subNode := range node.ValuesCollations {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "ValuesCollations")
 	}
 
 	for _, subNode := range node.ValuesLists {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "ValuesLists")
 	}
 }

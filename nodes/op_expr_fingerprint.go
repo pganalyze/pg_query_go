@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node OpExpr) Fingerprint(ctx FingerprintContext) {
+func (node OpExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("OpExpr")
 
 	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Args")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Inputcollid)))
@@ -21,6 +21,6 @@ func (node OpExpr) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.Opretset))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

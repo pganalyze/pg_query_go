@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node WithClause) Fingerprint(ctx FingerprintContext) {
+func (node WithClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("WithClause")
 
 	for _, subNode := range node.Ctes {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctes")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting

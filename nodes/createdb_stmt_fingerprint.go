@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreatedbStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreatedbStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreatedbStmt")
 
 	if node.Dbname != nil {
@@ -10,6 +10,6 @@ func (node CreatedbStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 }

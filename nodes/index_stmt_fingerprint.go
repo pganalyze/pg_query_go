@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
+func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IndexStmt")
 
 	if node.AccessMethod != nil {
@@ -15,7 +15,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.Deferrable))
 
 	for _, subNode := range node.ExcludeOpNames {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "ExcludeOpNames")
 	}
 
 	if node.Idxcomment != nil {
@@ -29,7 +29,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.IndexOid)))
 
 	for _, subNode := range node.IndexParams {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "IndexParams")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
@@ -37,13 +37,13 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.OldNode)))
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Primary))
 
 	if node.Relation != nil {
-		node.Relation.Fingerprint(ctx)
+		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
 	if node.TableSpace != nil {
@@ -53,6 +53,6 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.Unique))
 
 	if node.WhereClause != nil {
-		node.WhereClause.Fingerprint(ctx)
+		node.WhereClause.Fingerprint(ctx, "WhereClause")
 	}
 }

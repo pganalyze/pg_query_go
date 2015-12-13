@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CreateForeignTableStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateForeignTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateForeignTableStmt")
-	node.Base.Fingerprint(ctx)
+	node.Base.Fingerprint(ctx, "Base")
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Servername != nil {

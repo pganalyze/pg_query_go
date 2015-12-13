@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateOpClassStmt")
 
 	if node.Amname != nil {
@@ -12,20 +12,20 @@ func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Datatype != nil {
-		node.Datatype.Fingerprint(ctx)
+		node.Datatype.Fingerprint(ctx, "Datatype")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.IsDefault))
 
 	for _, subNode := range node.Items {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Items")
 	}
 
 	for _, subNode := range node.Opclassname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Opclassname")
 	}
 
 	for _, subNode := range node.Opfamilyname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Opfamilyname")
 	}
 }

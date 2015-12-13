@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node TargetEntry) Fingerprint(ctx FingerprintContext) {
+func (node TargetEntry) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("TargetEntry")
 
 	if node.Expr != nil {
-		node.Expr.Fingerprint(ctx)
+		node.Expr.Fingerprint(ctx, "Expr")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Resjunk))
@@ -23,6 +23,6 @@ func (node TargetEntry) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.Ressortgroupref)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

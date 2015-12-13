@@ -2,16 +2,16 @@
 
 package pg_query
 
-func (node TypeCast) Fingerprint(ctx FingerprintContext) {
+func (node TypeCast) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("TypeCast")
 
 	if node.Arg != nil {
-		node.Arg.Fingerprint(ctx)
+		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.TypeName != nil {
-		node.TypeName.Fingerprint(ctx)
+		node.TypeName.Fingerprint(ctx, "TypeName")
 	}
 }

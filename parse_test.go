@@ -84,19 +84,23 @@ var parseTests = []struct {
 								Str: "=",
 							},
 						},
-						Lexpr: nodes.ColumnRef{
-							Fields: []nodes.Node{
-								nodes.String{
-									Str: "z",
+						Lexpr: []nodes.Node{
+							nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.String{
+										Str: "z",
+									},
 								},
+								Location: 22,
 							},
-							Location: 22,
 						},
-						Rexpr: nodes.A_Const{
-							Val: nodes.Integer{
-								Ival: 1,
+						Rexpr: []nodes.Node{
+							nodes.A_Const{
+								Val: nodes.Integer{
+									Ival: 1,
+								},
+								Location: 26,
 							},
-							Location: 26,
 						},
 						Location: 24,
 					},
@@ -202,6 +206,69 @@ var parseTests = []struct {
 							},
 							Location: 147,
 						},
+					},
+				},
+			},
+		},
+	},
+	{
+		"SELECT * FROM x WHERE y IN (?)",
+		`[{"SelectStmt": {"distinctClause": null, "intoClause": null, "targetList": ` +
+			`[{"ResTarget": {"name": null, "indirection": null, "val": {"ColumnRef": {"fields": ` +
+			`[{"A_Star": {}}], "location": 7}}, "location": 7}}], "fromClause": [{"RangeVar": ` +
+			`{"schemaname": null, "relname": "x", "inhOpt": 2, "relpersistence": "p", "alias": ` +
+			`null, "location": 14}}], "whereClause": {"A_Expr": {"kind": 9, "name": [{"String": ` +
+			`{"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "y"}}], ` +
+			`"location": 22}}, "rexpr": [{"ParamRef": {"number": 0, "location": 28}}], "location": ` +
+			`24}}, "groupClause": null, "havingClause": null, "windowClause": null, "valuesLists": null, ` +
+			`"sortClause": null, "limitOffset": null, "limitCount": null, "lockingClause": null, ` +
+			`"withClause": null, "op": 0, "all": false, "larg": null, "rarg": null}}]`,
+		pg_query.ParsetreeList{
+			Statements: []nodes.Node{
+				nodes.SelectStmt{
+					TargetList: []nodes.Node{
+						nodes.ResTarget{
+							Val: nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.A_Star{},
+								},
+								Location: 7,
+							},
+							Location: 7,
+						},
+					},
+					FromClause: []nodes.Node{
+						nodes.RangeVar{
+							Relname:        strPtr("x"),
+							InhOpt:         nodes.INH_DEFAULT,
+							Relpersistence: 'p',
+							Location:       14,
+						},
+					},
+					WhereClause: nodes.A_Expr{
+						Kind: nodes.AEXPR_IN,
+						Name: []nodes.Node{
+							nodes.String{
+								Str: "=",
+							},
+						},
+						Lexpr: []nodes.Node{
+							nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.String{
+										Str: "y",
+									},
+								},
+								Location: 22,
+							},
+						},
+						Rexpr: []nodes.Node{
+							nodes.ParamRef{
+								Number:   0,
+								Location: 28,
+							},
+						},
+						Location: 24,
 					},
 				},
 			},

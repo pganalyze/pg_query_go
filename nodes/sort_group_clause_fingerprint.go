@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node SortGroupClause) Fingerprint(ctx FingerprintContext) {
+func (node SortGroupClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SortGroupClause")
 	ctx.WriteString(strconv.Itoa(int(node.Eqop)))
 	ctx.WriteString(strconv.FormatBool(node.Hashable))

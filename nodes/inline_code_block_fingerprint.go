@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node InlineCodeBlock) Fingerprint(ctx FingerprintContext) {
+func (node InlineCodeBlock) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("InlineCodeBlock")
 	ctx.WriteString(strconv.FormatBool(node.LangIsTrusted))
 	ctx.WriteString(strconv.Itoa(int(node.LangOid)))

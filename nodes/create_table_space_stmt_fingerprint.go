@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateTableSpaceStmt")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Owner != nil {

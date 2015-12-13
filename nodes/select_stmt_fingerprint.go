@@ -7,62 +7,62 @@ import (
 	"strconv"
 )
 
-func (node SelectStmt) Fingerprint(ctx FingerprintContext) {
+func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SelectStmt")
 	ctx.WriteString(strconv.FormatBool(node.All))
 
 	for _, subNode := range node.DistinctClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "DistinctClause")
 	}
 
 	for _, subNode := range node.FromClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "FromClause")
 	}
 
 	for _, subNode := range node.GroupClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "GroupClause")
 	}
 
 	if node.HavingClause != nil {
-		node.HavingClause.Fingerprint(ctx)
+		node.HavingClause.Fingerprint(ctx, "HavingClause")
 	}
 
 	if node.IntoClause != nil {
-		node.IntoClause.Fingerprint(ctx)
+		node.IntoClause.Fingerprint(ctx, "IntoClause")
 	}
 
 	if node.Larg != nil {
-		node.Larg.Fingerprint(ctx)
+		node.Larg.Fingerprint(ctx, "Larg")
 	}
 
 	if node.LimitCount != nil {
-		node.LimitCount.Fingerprint(ctx)
+		node.LimitCount.Fingerprint(ctx, "LimitCount")
 	}
 
 	if node.LimitOffset != nil {
-		node.LimitOffset.Fingerprint(ctx)
+		node.LimitOffset.Fingerprint(ctx, "LimitOffset")
 	}
 
 	for _, subNode := range node.LockingClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "LockingClause")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Op)))
 
 	if node.Rarg != nil {
-		node.Rarg.Fingerprint(ctx)
+		node.Rarg.Fingerprint(ctx, "Rarg")
 	}
 
 	for _, subNode := range node.SortClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "SortClause")
 	}
 
 	var targetListFingerprints FingerprintSubContextSlice
 
 	for _, subNode := range node.TargetList {
-		subCtx := &FingerprintSubContext{}
-		subNode.Fingerprint(subCtx)
-		targetListFingerprints = append(targetListFingerprints, *subCtx)
+		subCtx := FingerprintSubContext{}
+		subNode.Fingerprint(&subCtx, "TargetList")
+		targetListFingerprints.AddIfUnique(subCtx)
 	}
 
 	sort.Sort(targetListFingerprints)
@@ -75,19 +75,19 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext) {
 
 	for _, nodeList := range node.ValuesLists {
 		for _, subNode := range nodeList {
-			subNode.Fingerprint(ctx)
+			subNode.Fingerprint(ctx, "ValuesLists")
 		}
 	}
 
 	if node.WhereClause != nil {
-		node.WhereClause.Fingerprint(ctx)
+		node.WhereClause.Fingerprint(ctx, "WhereClause")
 	}
 
 	for _, subNode := range node.WindowClause {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "WindowClause")
 	}
 
 	if node.WithClause != nil {
-		node.WithClause.Fingerprint(ctx)
+		node.WithClause.Fingerprint(ctx, "WithClause")
 	}
 }

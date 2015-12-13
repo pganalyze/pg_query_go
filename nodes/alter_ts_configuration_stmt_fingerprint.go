@@ -4,15 +4,15 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTSConfigurationStmt")
 
 	for _, subNode := range node.Cfgname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Cfgname")
 	}
 
 	for _, subNode := range node.Dicts {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Dicts")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
@@ -20,6 +20,6 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.Replace))
 
 	for _, subNode := range node.Tokentype {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Tokentype")
 	}
 }

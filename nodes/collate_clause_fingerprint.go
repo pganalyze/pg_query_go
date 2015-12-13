@@ -2,15 +2,15 @@
 
 package pg_query
 
-func (node CollateClause) Fingerprint(ctx FingerprintContext) {
+func (node CollateClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CollateClause")
 
 	if node.Arg != nil {
-		node.Arg.Fingerprint(ctx)
+		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
 	for _, subNode := range node.Collname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Collname")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting

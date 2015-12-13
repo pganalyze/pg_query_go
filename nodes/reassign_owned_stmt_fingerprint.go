@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext) {
+func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ReassignOwnedStmt")
 
 	if node.Newrole != nil {
@@ -10,6 +10,6 @@ func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.Roles {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Roles")
 	}
 }

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node DropdbStmt) Fingerprint(ctx FingerprintContext) {
+func (node DropdbStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropdbStmt")
 
 	if node.Dbname != nil {

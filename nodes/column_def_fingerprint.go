@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
+func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ColumnDef")
 
 	if node.CollClause != nil {
-		node.CollClause.Fingerprint(ctx)
+		node.CollClause.Fingerprint(ctx, "CollClause")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.CollOid)))
@@ -18,15 +18,15 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.Constraints {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Constraints")
 	}
 
 	if node.CookedDefault != nil {
-		node.CookedDefault.Fingerprint(ctx)
+		node.CookedDefault.Fingerprint(ctx, "CookedDefault")
 	}
 
 	for _, subNode := range node.Fdwoptions {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Fdwoptions")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Inhcount)))
@@ -36,12 +36,12 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.RawDefault != nil {
-		node.RawDefault.Fingerprint(ctx)
+		node.RawDefault.Fingerprint(ctx, "RawDefault")
 	}
 
 	ctx.WriteString(string(node.Storage))
 
 	if node.TypeName != nil {
-		node.TypeName.Fingerprint(ctx)
+		node.TypeName.Fingerprint(ctx, "TypeName")
 	}
 }

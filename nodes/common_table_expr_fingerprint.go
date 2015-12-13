@@ -4,27 +4,27 @@ package pg_query
 
 import "strconv"
 
-func (node CommonTableExpr) Fingerprint(ctx FingerprintContext) {
+func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CommonTableExpr")
 
 	for _, subNode := range node.Aliascolnames {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Aliascolnames")
 	}
 
 	for _, subNode := range node.Ctecolcollations {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecolcollations")
 	}
 
 	for _, subNode := range node.Ctecolnames {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecolnames")
 	}
 
 	for _, subNode := range node.Ctecoltypes {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecoltypes")
 	}
 
 	for _, subNode := range node.Ctecoltypmods {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Ctecoltypmods")
 	}
 
 	if node.Ctename != nil {
@@ -32,7 +32,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Ctequery != nil {
-		node.Ctequery.Fingerprint(ctx)
+		node.Ctequery.Fingerprint(ctx, "Ctequery")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Cterecursive))

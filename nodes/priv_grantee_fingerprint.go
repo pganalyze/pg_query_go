@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node PrivGrantee) Fingerprint(ctx FingerprintContext) {
+func (node PrivGrantee) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("PrivGrantee")
 
 	if node.Rolname != nil {

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Constraint) Fingerprint(ctx FingerprintContext) {
+func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("Constraint")
 
 	if node.AccessMethod != nil {
@@ -24,11 +24,11 @@ func (node Constraint) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.Deferrable))
 
 	for _, subNode := range node.Exclusions {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Exclusions")
 	}
 
 	for _, subNode := range node.FkAttrs {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "FkAttrs")
 	}
 
 	ctx.WriteString(string(node.FkDelAction))
@@ -48,36 +48,36 @@ func (node Constraint) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.IsNoInherit))
 
 	for _, subNode := range node.Keys {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Keys")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting
 
 	for _, subNode := range node.OldConpfeqop {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "OldConpfeqop")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.OldPktableOid)))
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	for _, subNode := range node.PkAttrs {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "PkAttrs")
 	}
 
 	if node.Pktable != nil {
-		node.Pktable.Fingerprint(ctx)
+		node.Pktable.Fingerprint(ctx, "Pktable")
 	}
 
 	if node.RawExpr != nil {
-		node.RawExpr.Fingerprint(ctx)
+		node.RawExpr.Fingerprint(ctx, "RawExpr")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.SkipValidation))
 
 	if node.WhereClause != nil {
-		node.WhereClause.Fingerprint(ctx)
+		node.WhereClause.Fingerprint(ctx, "WhereClause")
 	}
 }

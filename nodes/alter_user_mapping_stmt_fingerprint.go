@@ -2,11 +2,11 @@
 
 package pg_query
 
-func (node AlterUserMappingStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterUserMappingStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterUserMappingStmt")
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Servername != nil {

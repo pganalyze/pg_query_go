@@ -149,6 +149,8 @@ class Generator
     ['Float', 'str'] => 'string',
     ['String', 'str'] => 'string',
     ['BitString', 'str'] => 'string',
+    ['A_Expr', 'lexpr'] => '[]Node',
+    ['A_Expr', 'rexpr'] => '[]Node',
   }
 
   def map_to_go_type(c_type)
@@ -268,8 +270,10 @@ class Generator
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
     [nil, 'location'] => :skip,
-    ['ResTarget', 'name'] => :skip,
-    ['SelectStmt', 'targetList'] => :sorted_nodes,
+    ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(*node.Name)\n}\n",
+    ['SelectStmt', 'targetList'] => :sorted_unique_nodes,
+    ['InsertStmt', 'cols'] => :sorted_unique_nodes,
+    ['A_Expr', 'rexpr'] => :sorted_unique_nodes,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
@@ -353,12 +357,12 @@ class Generator
             if fp_override
               if fp_override == :skip
                 fp_override = format('// Intentionally ignoring node.%s for fingerprinting', go_name)
-              elsif fp_override == :sorted_nodes
+              elsif fp_override == :sorted_unique_nodes
                 fp_override = format("var %sFingerprints FingerprintSubContextSlice\n\n", field[:name])
                 fp_override += format("for _, subNode := range node.%s {\n", go_name)
-                fp_override += "subCtx := &FingerprintSubContext{}\n"
-                fp_override += "subNode.Fingerprint(subCtx)\n"
-                fp_override += format("%sFingerprints = append(%sFingerprints, *subCtx)\n", field[:name], field[:name])
+                fp_override += "subCtx := FingerprintSubContext{}\n"
+                fp_override += format("subNode.Fingerprint(&subCtx, \"%s\")\n", go_name)
+                fp_override += format("%sFingerprints.AddIfUnique(subCtx)\n", field[:name])
                 fp_override += "}\n\n"
                 fp_override += format("sort.Sort(%sFingerprints)\n\n", field[:name])
                 fp_override += format("for _, fingerprint := range %sFingerprints {\n", field[:name])
@@ -375,19 +379,19 @@ class Generator
             when '[][]Node'
               fingerprint_def += format("\nfor _, nodeList := range node.%s {\n", go_name)
               fingerprint_def += "for _, subNode := range nodeList {\n"
-              fingerprint_def += "subNode.Fingerprint(ctx)\n"
+              fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
               fingerprint_def += "}\n"
               fingerprint_def += "}\n\n"
             when '[]Node'
               fingerprint_def += format("\nfor _, subNode := range node.%s {\n", go_name)
-              fingerprint_def += "subNode.Fingerprint(ctx)\n"
+              fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
               fingerprint_def += "}\n\n"
             when 'Node'
               fingerprint_def += format("\nif node.%s != nil {", go_name)
-              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
               fingerprint_def += "}\n\n"
             when 'CreateStmt'
-              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
             when 'byte'
               fingerprint_def += format("ctx.WriteString(string(node.%s))\n", go_name)
             when 'string'
@@ -411,7 +415,7 @@ class Generator
             else
               if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
                 fingerprint_def += format("\nif node.%s != nil {", go_name)
-                fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
+                fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
                 fingerprint_def += "}\n\n"
               elsif @all_known_enums.include?(go_type)
                 fingerprint_def += format("ctx.WriteString(strconv.Itoa(int(node.%s)))\n", go_name)
@@ -463,7 +467,7 @@ func (node #{type}) Deparse() string {
         write_nodes_file(type + '_fingerprint', %(
 import "strconv"
 
-func (node #{type}) Fingerprint(ctx FingerprintContext) {
+func (node #{type}) Fingerprint(ctx FingerprintContext, parentFieldName string) {
   #{fingerprint_def.strip}
 }
         ), true)

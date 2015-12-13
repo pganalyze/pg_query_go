@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node DropStmt) Fingerprint(ctx FingerprintContext) {
+func (node DropStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropStmt")
 
 	for _, subNode := range node.Arguments {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Arguments")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
@@ -16,7 +16,7 @@ func (node DropStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	for _, subNode := range node.Objects {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Objects")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.RemoveType)))

@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node ParamRef) Fingerprint(ctx FingerprintContext) {
+func (node ParamRef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	// Intentionally ignoring all fields for fingerprinting
 }

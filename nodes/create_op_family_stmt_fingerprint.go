@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreateOpFamilyStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateOpFamilyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateOpFamilyStmt")
 
 	if node.Amname != nil {
@@ -10,6 +10,6 @@ func (node CreateOpFamilyStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.Opfamilyname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Opfamilyname")
 	}
 }

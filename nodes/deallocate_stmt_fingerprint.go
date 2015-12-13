@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node DeallocateStmt) Fingerprint(ctx FingerprintContext) {
+func (node DeallocateStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DeallocateStmt")
 
 	if node.Name != nil {

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterDomainStmt")
 	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 
 	if node.Def != nil {
-		node.Def.Fingerprint(ctx)
+		node.Def.Fingerprint(ctx, "Def")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
@@ -21,6 +21,6 @@ func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(string(node.Subtype))
 
 	for _, subNode := range node.TypeName {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "TypeName")
 	}
 }

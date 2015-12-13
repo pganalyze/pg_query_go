@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateExtensionStmt")
 
 	if node.Extname != nil {
@@ -14,6 +14,6 @@ func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 }

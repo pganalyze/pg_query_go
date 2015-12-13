@@ -2,14 +2,14 @@
 
 package pg_query
 
-func (node FromExpr) Fingerprint(ctx FingerprintContext) {
+func (node FromExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FromExpr")
 
 	for _, subNode := range node.Fromlist {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Fromlist")
 	}
 
 	if node.Quals != nil {
-		node.Quals.Fingerprint(ctx)
+		node.Quals.Fingerprint(ctx, "Quals")
 	}
 }

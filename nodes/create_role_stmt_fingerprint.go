@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node CreateRoleStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateRoleStmt")
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Role != nil {

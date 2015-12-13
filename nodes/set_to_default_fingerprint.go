@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node SetToDefault) Fingerprint(ctx FingerprintContext) {
+func (node SetToDefault) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SetToDefault")
 	ctx.WriteString(strconv.Itoa(int(node.Collation)))
 	// Intentionally ignoring node.Location for fingerprinting
@@ -13,6 +13,6 @@ func (node SetToDefault) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.TypeMod)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

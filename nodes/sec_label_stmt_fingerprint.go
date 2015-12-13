@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node SecLabelStmt) Fingerprint(ctx FingerprintContext) {
+func (node SecLabelStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SecLabelStmt")
 
 	if node.Label != nil {
@@ -12,11 +12,11 @@ func (node SecLabelStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.Objargs {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Objargs")
 	}
 
 	for _, subNode := range node.Objname {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Objname")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Objtype)))

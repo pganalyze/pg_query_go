@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node ScalarArrayOpExpr) Fingerprint(ctx FingerprintContext) {
+func (node ScalarArrayOpExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ScalarArrayOpExpr")
 
 	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Args")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Inputcollid)))
@@ -19,6 +19,6 @@ func (node ScalarArrayOpExpr) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.UseOr))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

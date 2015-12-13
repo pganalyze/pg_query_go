@@ -4,15 +4,15 @@ package pg_query
 
 import "strconv"
 
-func (node RowExpr) Fingerprint(ctx FingerprintContext) {
+func (node RowExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RowExpr")
 
 	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Args")
 	}
 
 	for _, subNode := range node.Colnames {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Colnames")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting
@@ -21,6 +21,6 @@ func (node RowExpr) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.RowTypeid)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

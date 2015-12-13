@@ -2,11 +2,11 @@
 
 package pg_query
 
-func (node PrepareStmt) Fingerprint(ctx FingerprintContext) {
+func (node PrepareStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("PrepareStmt")
 
 	for _, subNode := range node.Argtypes {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Argtypes")
 	}
 
 	if node.Name != nil {
@@ -14,6 +14,6 @@ func (node PrepareStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	if node.Query != nil {
-		node.Query.Fingerprint(ctx)
+		node.Query.Fingerprint(ctx, "Query")
 	}
 }

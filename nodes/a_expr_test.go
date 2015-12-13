@@ -13,13 +13,12 @@ var aExprTests = []struct {
 	expectedNode nodes.A_Expr
 }{
 	{
-		`{"name": ["="], "lexpr": null, "rexpr": null}`,
+		`{"name": [{"String": {"str": "="}}], "lexpr": null, "rexpr": null}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_OP,
 			Name: []nodes.Node{
-				nodes.Value{
-					Type: nodes.T_String,
-					Str:  "=",
+				nodes.String{
+					Str: "=",
 				},
 			},
 			Lexpr: nil,
@@ -27,31 +26,63 @@ var aExprTests = []struct {
 		},
 	},
 	{
-		`{"name": ["="], "lexpr": {"ColumnRef": {"fields": ["z"], "location": 22}}, "rexpr": {"A_Const": {"type": "integer", "val": 1, "location": 26}}, "location": 24}`,
+		`{"name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": {"fields": ` +
+			`[{"String": {"str": "z"}}], "location": 22}}, "rexpr": {"A_Const": {"val": ` +
+			`{"Integer": {"ival": 1}}, "location": 26}}, "location": 24}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_OP,
 			Name: []nodes.Node{
-				nodes.Value{
-					Type: nodes.T_String,
-					Str:  "=",
+				nodes.String{
+					Str: "=",
 				},
 			},
-			Lexpr: nodes.ColumnRef{
-				Fields: []nodes.Node{
-					nodes.Value{
-						Type: nodes.T_String,
-						Str:  "z",
+			Lexpr: []nodes.Node{
+				nodes.ColumnRef{
+					Fields: []nodes.Node{
+						nodes.String{
+							Str: "z",
+						},
 					},
+					Location: 22,
 				},
-				Location: 22,
 			},
-			Rexpr: nodes.A_Const{
-				Type: "integer",
-				Val: nodes.Value{
-					Type: nodes.T_Integer,
-					Ival: 1,
+			Rexpr: []nodes.Node{
+				nodes.A_Const{
+					Val: nodes.Integer{
+						Ival: 1,
+					},
+					Location: 26,
 				},
-				Location: 26,
+			},
+			Location: 24,
+		},
+	},
+	{
+		`{"kind": 9, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
+			`{"fields": [{"String": {"str": "y"}}], "location": 22}}, "rexpr": [{"ParamRef": ` +
+			`{"number": 0, "location": 28}}], "location": 24}`,
+		nodes.A_Expr{
+			Kind: nodes.AEXPR_IN,
+			Name: []nodes.Node{
+				nodes.String{
+					Str: "=",
+				},
+			},
+			Lexpr: []nodes.Node{
+				nodes.ColumnRef{
+					Fields: []nodes.Node{
+						nodes.String{
+							Str: "y",
+						},
+					},
+					Location: 22,
+				},
+			},
+			Rexpr: []nodes.Node{
+				nodes.ParamRef{
+					Number:   0,
+					Location: 28,
+				},
 			},
 			Location: 24,
 		},

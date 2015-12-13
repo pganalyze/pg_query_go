@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext) {
+func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropTableSpaceStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 

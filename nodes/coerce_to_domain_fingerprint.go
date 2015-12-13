@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node CoerceToDomain) Fingerprint(ctx FingerprintContext) {
+func (node CoerceToDomain) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CoerceToDomain")
 
 	if node.Arg != nil {
-		node.Arg.Fingerprint(ctx)
+		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Coercionformat)))
@@ -19,6 +19,6 @@ func (node CoerceToDomain) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.Resulttypmod)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

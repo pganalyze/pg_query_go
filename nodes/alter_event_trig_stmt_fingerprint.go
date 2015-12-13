@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node AlterEventTrigStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterEventTrigStmt")
 	ctx.WriteString(string(node.Tgenabled))
 

@@ -4,17 +4,17 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTableStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTableStmt")
 
 	for _, subNode := range node.Cmds {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Cmds")
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Relation != nil {
-		node.Relation.Fingerprint(ctx)
+		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Relkind)))

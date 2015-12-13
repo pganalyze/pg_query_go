@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext) {
+func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterForeignServerStmt")
 	ctx.WriteString(strconv.FormatBool(node.HasVersion))
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Servername != nil {

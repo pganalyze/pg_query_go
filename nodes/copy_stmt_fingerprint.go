@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node CopyStmt) Fingerprint(ctx FingerprintContext) {
+func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CopyStmt")
 
 	for _, subNode := range node.Attlist {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Attlist")
 	}
 
 	if node.Filename != nil {
@@ -19,14 +19,14 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.IsProgram))
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 
 	if node.Query != nil {
-		node.Query.Fingerprint(ctx)
+		node.Query.Fingerprint(ctx, "Query")
 	}
 
 	if node.Relation != nil {
-		node.Relation.Fingerprint(ctx)
+		node.Relation.Fingerprint(ctx, "Relation")
 	}
 }

@@ -4,15 +4,15 @@ package pg_query
 
 import "strconv"
 
-func (node XmlExpr) Fingerprint(ctx FingerprintContext) {
+func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("XmlExpr")
 
 	for _, subNode := range node.ArgNames {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "ArgNames")
 	}
 
 	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Args")
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting
@@ -22,7 +22,7 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.NamedArgs {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "NamedArgs")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Op)))
@@ -31,6 +31,6 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.Xmloption)))
 
 	if node.Xpr != nil {
-		node.Xpr.Fingerprint(ctx)
+		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

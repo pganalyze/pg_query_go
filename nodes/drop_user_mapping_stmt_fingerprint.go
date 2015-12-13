@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node DropUserMappingStmt) Fingerprint(ctx FingerprintContext) {
+func (node DropUserMappingStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropUserMappingStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 

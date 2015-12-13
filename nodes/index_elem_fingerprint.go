@@ -4,15 +4,15 @@ package pg_query
 
 import "strconv"
 
-func (node IndexElem) Fingerprint(ctx FingerprintContext) {
+func (node IndexElem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IndexElem")
 
 	for _, subNode := range node.Collation {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Collation")
 	}
 
 	if node.Expr != nil {
-		node.Expr.Fingerprint(ctx)
+		node.Expr.Fingerprint(ctx, "Expr")
 	}
 
 	if node.Indexcolname != nil {
@@ -26,7 +26,7 @@ func (node IndexElem) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.Itoa(int(node.NullsOrdering)))
 
 	for _, subNode := range node.Opclass {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Opclass")
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Ordering)))

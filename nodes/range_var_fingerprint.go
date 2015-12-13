@@ -4,11 +4,11 @@ package pg_query
 
 import "strconv"
 
-func (node RangeVar) Fingerprint(ctx FingerprintContext) {
+func (node RangeVar) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RangeVar")
 
 	if node.Alias != nil {
-		node.Alias.Fingerprint(ctx)
+		node.Alias.Fingerprint(ctx, "Alias")
 	}
 
 	if node.Catalogname != nil {

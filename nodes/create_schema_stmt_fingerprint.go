@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateSchemaStmt")
 
 	if node.Authid != nil {
@@ -14,7 +14,7 @@ func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext) {
 	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 
 	for _, subNode := range node.SchemaElts {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "SchemaElts")
 	}
 
 	if node.Schemaname != nil {

@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreateFdwStmt) Fingerprint(ctx FingerprintContext) {
+func (node CreateFdwStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateFdwStmt")
 
 	if node.Fdwname != nil {
@@ -10,10 +10,10 @@ func (node CreateFdwStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	for _, subNode := range node.FuncOptions {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "FuncOptions")
 	}
 
 	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx)
+		subNode.Fingerprint(ctx, "Options")
 	}
 }
