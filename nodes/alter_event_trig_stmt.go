@@ -17,7 +17,7 @@ type AlterEventTrigStmt struct {
 func (node AlterEventTrigStmt) MarshalJSON() ([]byte, error) {
 	type AlterEventTrigStmtMarshalAlias AlterEventTrigStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTEREVENTTRIGSTMT": (*AlterEventTrigStmtMarshalAlias)(&node),
+		"AlterEventTrigStmt": (*AlterEventTrigStmtMarshalAlias)(&node),
 	})
 }
 

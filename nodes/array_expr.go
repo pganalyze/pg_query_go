@@ -13,7 +13,7 @@ import "encoding/json"
  * type as array_typeid); at runtime we must check for compatible subscripts.
  */
 type ArrayExpr struct {
-	Xpr           Expr   `json:"xpr"`
+	Xpr           Node   `json:"xpr"`
 	ArrayTypeid   Oid    `json:"array_typeid"`   /* type of expression result */
 	ArrayCollid   Oid    `json:"array_collid"`   /* OID of collation, or InvalidOid if none */
 	ElementTypeid Oid    `json:"element_typeid"` /* common type of array elements */
@@ -25,7 +25,7 @@ type ArrayExpr struct {
 func (node ArrayExpr) MarshalJSON() ([]byte, error) {
 	type ArrayExprMarshalAlias ArrayExpr
 	return json.Marshal(map[string]interface{}{
-		"ARRAY": (*ArrayExprMarshalAlias)(&node),
+		"ArrayExpr": (*ArrayExprMarshalAlias)(&node),
 	})
 }
 
@@ -38,7 +38,7 @@ func (node *ArrayExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

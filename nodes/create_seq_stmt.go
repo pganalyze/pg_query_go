@@ -17,7 +17,7 @@ type CreateSeqStmt struct {
 func (node CreateSeqStmt) MarshalJSON() ([]byte, error) {
 	type CreateSeqStmtMarshalAlias CreateSeqStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATESEQSTMT": (*CreateSeqStmtMarshalAlias)(&node),
+		"CreateSeqStmt": (*CreateSeqStmtMarshalAlias)(&node),
 	})
 }
 

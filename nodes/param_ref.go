@@ -15,7 +15,7 @@ type ParamRef struct {
 func (node ParamRef) MarshalJSON() ([]byte, error) {
 	type ParamRefMarshalAlias ParamRef
 	return json.Marshal(map[string]interface{}{
-		"PARAMREF": (*ParamRefMarshalAlias)(&node),
+		"ParamRef": (*ParamRefMarshalAlias)(&node),
 	})
 }
 

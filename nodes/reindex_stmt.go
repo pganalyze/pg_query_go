@@ -19,7 +19,7 @@ type ReindexStmt struct {
 func (node ReindexStmt) MarshalJSON() ([]byte, error) {
 	type ReindexStmtMarshalAlias ReindexStmt
 	return json.Marshal(map[string]interface{}{
-		"REINDEXSTMT": (*ReindexStmtMarshalAlias)(&node),
+		"ReindexStmt": (*ReindexStmtMarshalAlias)(&node),
 	})
 }
 

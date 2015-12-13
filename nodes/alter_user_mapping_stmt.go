@@ -17,7 +17,7 @@ type AlterUserMappingStmt struct {
 func (node AlterUserMappingStmt) MarshalJSON() ([]byte, error) {
 	type AlterUserMappingStmtMarshalAlias AlterUserMappingStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERUSERMAPPINGSTMT": (*AlterUserMappingStmtMarshalAlias)(&node),
+		"AlterUserMappingStmt": (*AlterUserMappingStmtMarshalAlias)(&node),
 	})
 }
 

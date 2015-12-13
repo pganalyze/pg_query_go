@@ -13,9 +13,9 @@ import "encoding/json"
  * ----------------
  */
 type CoerceViaIO struct {
-	Xpr        Expr  `json:"xpr"`
-	Arg        *Expr `json:"arg"`        /* input expression */
-	Resulttype Oid   `json:"resulttype"` /* output type of coercion */
+	Xpr        Node `json:"xpr"`
+	Arg        Node `json:"arg"`        /* input expression */
+	Resulttype Oid  `json:"resulttype"` /* output type of coercion */
 
 	/* output typmod is not stored, but is presumed -1 */
 	Resultcollid Oid          `json:"resultcollid"` /* OID of collation, or InvalidOid if none */
@@ -26,7 +26,7 @@ type CoerceViaIO struct {
 func (node CoerceViaIO) MarshalJSON() ([]byte, error) {
 	type CoerceViaIOMarshalAlias CoerceViaIO
 	return json.Marshal(map[string]interface{}{
-		"COERCEVIAIO": (*CoerceViaIOMarshalAlias)(&node),
+		"CoerceViaIO": (*CoerceViaIOMarshalAlias)(&node),
 	})
 }
 
@@ -39,21 +39,16 @@ func (node *CoerceViaIO) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

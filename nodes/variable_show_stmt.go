@@ -15,7 +15,7 @@ type VariableShowStmt struct {
 func (node VariableShowStmt) MarshalJSON() ([]byte, error) {
 	type VariableShowStmtMarshalAlias VariableShowStmt
 	return json.Marshal(map[string]interface{}{
-		"SHOW": (*VariableShowStmtMarshalAlias)(&node),
+		"VariableShowStmt": (*VariableShowStmtMarshalAlias)(&node),
 	})
 }
 

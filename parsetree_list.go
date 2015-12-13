@@ -1,6 +1,7 @@
 package pg_query
 
 import (
+	"encoding/hex"
 	"encoding/json"
 
 	nodes "github.com/lfittl/pg_query.go/nodes"
@@ -32,4 +33,12 @@ func (output *ParsetreeList) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	return
+}
+
+func (input ParsetreeList) Fingerprint() string {
+	ctx := nodes.NewFingerprintHashContext()
+	for _, node := range input.Statements {
+		node.Fingerprint(ctx, "")
+	}
+	return hex.EncodeToString(ctx.Sum())
 }

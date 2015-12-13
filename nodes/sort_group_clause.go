@@ -73,7 +73,7 @@ type SortGroupClause struct {
 func (node SortGroupClause) MarshalJSON() ([]byte, error) {
 	type SortGroupClauseMarshalAlias SortGroupClause
 	return json.Marshal(map[string]interface{}{
-		"SORTGROUPCLAUSE": (*SortGroupClauseMarshalAlias)(&node),
+		"SortGroupClause": (*SortGroupClauseMarshalAlias)(&node),
 	})
 }
 

@@ -18,7 +18,7 @@ type CreateEventTrigStmt struct {
 func (node CreateEventTrigStmt) MarshalJSON() ([]byte, error) {
 	type CreateEventTrigStmtMarshalAlias CreateEventTrigStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEEVENTTRIGSTMT": (*CreateEventTrigStmtMarshalAlias)(&node),
+		"CreateEventTrigStmt": (*CreateEventTrigStmtMarshalAlias)(&node),
 	})
 }
 

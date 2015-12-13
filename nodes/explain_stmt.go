@@ -20,7 +20,7 @@ type ExplainStmt struct {
 func (node ExplainStmt) MarshalJSON() ([]byte, error) {
 	type ExplainStmtMarshalAlias ExplainStmt
 	return json.Marshal(map[string]interface{}{
-		"EXPLAIN": (*ExplainStmtMarshalAlias)(&node),
+		"ExplainStmt": (*ExplainStmtMarshalAlias)(&node),
 	})
 }
 

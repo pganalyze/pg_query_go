@@ -15,7 +15,7 @@ type A_Indices struct {
 func (node A_Indices) MarshalJSON() ([]byte, error) {
 	type A_IndicesMarshalAlias A_Indices
 	return json.Marshal(map[string]interface{}{
-		"A_INDICES": (*A_IndicesMarshalAlias)(&node),
+		"A_Indices": (*A_IndicesMarshalAlias)(&node),
 	})
 }
 

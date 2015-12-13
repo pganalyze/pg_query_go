@@ -27,7 +27,7 @@ type RangeVar struct {
 func (node RangeVar) MarshalJSON() ([]byte, error) {
 	type RangeVarMarshalAlias RangeVar
 	return json.Marshal(map[string]interface{}{
-		"RANGEVAR": (*RangeVarMarshalAlias)(&node),
+		"RangeVar": (*RangeVarMarshalAlias)(&node),
 	})
 }
 

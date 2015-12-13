@@ -8,7 +8,7 @@ import "encoding/json"
  * FuncExpr - expression node for a function call
  */
 type FuncExpr struct {
-	Xpr            Expr `json:"xpr"`
+	Xpr            Node `json:"xpr"`
 	Funcid         Oid  `json:"funcid"`         /* PG_PROC OID of the function */
 	Funcresulttype Oid  `json:"funcresulttype"` /* PG_TYPE OID of result value */
 	Funcretset     bool `json:"funcretset"`     /* true if function returns set */
@@ -25,7 +25,7 @@ type FuncExpr struct {
 func (node FuncExpr) MarshalJSON() ([]byte, error) {
 	type FuncExprMarshalAlias FuncExpr
 	return json.Marshal(map[string]interface{}{
-		"FUNCEXPR": (*FuncExprMarshalAlias)(&node),
+		"FuncExpr": (*FuncExprMarshalAlias)(&node),
 	})
 }
 
@@ -38,7 +38,7 @@ func (node *FuncExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

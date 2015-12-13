@@ -19,7 +19,7 @@ type InlineCodeBlock struct {
 func (node InlineCodeBlock) MarshalJSON() ([]byte, error) {
 	type InlineCodeBlockMarshalAlias InlineCodeBlock
 	return json.Marshal(map[string]interface{}{
-		"INLINECODEBLOCK": (*InlineCodeBlockMarshalAlias)(&node),
+		"InlineCodeBlock": (*InlineCodeBlockMarshalAlias)(&node),
 	})
 }
 

@@ -19,7 +19,7 @@ type CreateCastStmt struct {
 func (node CreateCastStmt) MarshalJSON() ([]byte, error) {
 	type CreateCastStmtMarshalAlias CreateCastStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATECASTSTMT": (*CreateCastStmtMarshalAlias)(&node),
+		"CreateCastStmt": (*CreateCastStmtMarshalAlias)(&node),
 	})
 }
 

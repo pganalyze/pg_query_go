@@ -16,7 +16,7 @@ type NotifyStmt struct {
 func (node NotifyStmt) MarshalJSON() ([]byte, error) {
 	type NotifyStmtMarshalAlias NotifyStmt
 	return json.Marshal(map[string]interface{}{
-		"NOTIFYSTMT": (*NotifyStmtMarshalAlias)(&node),
+		"NotifyStmt": (*NotifyStmtMarshalAlias)(&node),
 	})
 }
 

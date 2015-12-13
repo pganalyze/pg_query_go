@@ -34,7 +34,7 @@ type FuncCall struct {
 func (node FuncCall) MarshalJSON() ([]byte, error) {
 	type FuncCallMarshalAlias FuncCall
 	return json.Marshal(map[string]interface{}{
-		"FUNCCALL": (*FuncCallMarshalAlias)(&node),
+		"FuncCall": (*FuncCallMarshalAlias)(&node),
 	})
 }
 

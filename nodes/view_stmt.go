@@ -20,7 +20,7 @@ type ViewStmt struct {
 func (node ViewStmt) MarshalJSON() ([]byte, error) {
 	type ViewStmtMarshalAlias ViewStmt
 	return json.Marshal(map[string]interface{}{
-		"VIEWSTMT": (*ViewStmtMarshalAlias)(&node),
+		"ViewStmt": (*ViewStmtMarshalAlias)(&node),
 	})
 }
 

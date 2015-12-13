@@ -15,7 +15,7 @@ type UnlistenStmt struct {
 func (node UnlistenStmt) MarshalJSON() ([]byte, error) {
 	type UnlistenStmtMarshalAlias UnlistenStmt
 	return json.Marshal(map[string]interface{}{
-		"UNLISTENSTMT": (*UnlistenStmtMarshalAlias)(&node),
+		"UnlistenStmt": (*UnlistenStmtMarshalAlias)(&node),
 	})
 }
 

@@ -19,7 +19,7 @@ type SecLabelStmt struct {
 func (node SecLabelStmt) MarshalJSON() ([]byte, error) {
 	type SecLabelStmtMarshalAlias SecLabelStmt
 	return json.Marshal(map[string]interface{}{
-		"SECLABELSTMT": (*SecLabelStmtMarshalAlias)(&node),
+		"SecLabelStmt": (*SecLabelStmtMarshalAlias)(&node),
 	})
 }
 

@@ -19,8 +19,8 @@ import "encoding/json"
  * ----------------
  */
 type FieldStore struct {
-	Xpr        Expr   `json:"xpr"`
-	Arg        *Expr  `json:"arg"`        /* input tuple value */
+	Xpr        Node   `json:"xpr"`
+	Arg        Node   `json:"arg"`        /* input tuple value */
 	Newvals    []Node `json:"newvals"`    /* new value(s) for field(s) */
 	Fieldnums  []Node `json:"fieldnums"`  /* integer list of field attnums */
 	Resulttype Oid    `json:"resulttype"` /* type of result (same as type of arg) */
@@ -31,7 +31,7 @@ type FieldStore struct {
 func (node FieldStore) MarshalJSON() ([]byte, error) {
 	type FieldStoreMarshalAlias FieldStore
 	return json.Marshal(map[string]interface{}{
-		"FIELDSTORE": (*FieldStoreMarshalAlias)(&node),
+		"FieldStore": (*FieldStoreMarshalAlias)(&node),
 	})
 }
 
@@ -44,21 +44,16 @@ func (node *FieldStore) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

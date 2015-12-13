@@ -59,8 +59,8 @@ import "encoding/json"
  *--------------------
  */
 type TargetEntry struct {
-	Xpr             Expr       `json:"xpr"`
-	Expr            *Expr      `json:"expr"`            /* expression to evaluate */
+	Xpr             Node       `json:"xpr"`
+	Expr            Node       `json:"expr"`            /* expression to evaluate */
 	Resno           AttrNumber `json:"resno"`           /* attribute number (see notes above) */
 	Resname         *string    `json:"resname"`         /* name of the column (could be NULL) */
 	Ressortgroupref Index      `json:"ressortgroupref"` /* nonzero if referenced by a sort/group
@@ -75,7 +75,7 @@ type TargetEntry struct {
 func (node TargetEntry) MarshalJSON() ([]byte, error) {
 	type TargetEntryMarshalAlias TargetEntry
 	return json.Marshal(map[string]interface{}{
-		"TARGETENTRY": (*TargetEntryMarshalAlias)(&node),
+		"TargetEntry": (*TargetEntryMarshalAlias)(&node),
 	})
 }
 
@@ -88,21 +88,16 @@ func (node *TargetEntry) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["expr"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["expr"])
+		node.Expr, err = UnmarshalNodeJSON(fields["expr"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Expr = &val
 		}
 	}
 

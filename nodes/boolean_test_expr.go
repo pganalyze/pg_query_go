@@ -13,15 +13,15 @@ import "encoding/json"
  * The appropriate test is performed and returned as a boolean Datum.
  */
 type BooleanTest struct {
-	Xpr          Expr         `json:"xpr"`
-	Arg          *Expr        `json:"arg"`          /* input expression */
+	Xpr          Node         `json:"xpr"`
+	Arg          Node         `json:"arg"`          /* input expression */
 	Booltesttype BoolTestType `json:"booltesttype"` /* test type */
 }
 
 func (node BooleanTest) MarshalJSON() ([]byte, error) {
 	type BooleanTestMarshalAlias BooleanTest
 	return json.Marshal(map[string]interface{}{
-		"BOOLEANTEST": (*BooleanTestMarshalAlias)(&node),
+		"BooleanTest": (*BooleanTestMarshalAlias)(&node),
 	})
 }
 
@@ -34,21 +34,16 @@ func (node *BooleanTest) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

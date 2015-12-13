@@ -24,7 +24,7 @@ type AlterTSConfigurationStmt struct {
 func (node AlterTSConfigurationStmt) MarshalJSON() ([]byte, error) {
 	type AlterTSConfigurationStmtMarshalAlias AlterTSConfigurationStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERTSCONFIGURATIONSTMT": (*AlterTSConfigurationStmtMarshalAlias)(&node),
+		"AlterTSConfigurationStmt": (*AlterTSConfigurationStmtMarshalAlias)(&node),
 	})
 }
 

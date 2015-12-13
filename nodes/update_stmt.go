@@ -20,7 +20,7 @@ type UpdateStmt struct {
 func (node UpdateStmt) MarshalJSON() ([]byte, error) {
 	type UpdateStmtMarshalAlias UpdateStmt
 	return json.Marshal(map[string]interface{}{
-		"UPDATE": (*UpdateStmtMarshalAlias)(&node),
+		"UpdateStmt": (*UpdateStmtMarshalAlias)(&node),
 	})
 }
 

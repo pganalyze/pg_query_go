@@ -52,7 +52,7 @@ type Constraint struct {
 func (node Constraint) MarshalJSON() ([]byte, error) {
 	type ConstraintMarshalAlias Constraint
 	return json.Marshal(map[string]interface{}{
-		"CONSTRAINT": (*ConstraintMarshalAlias)(&node),
+		"Constraint": (*ConstraintMarshalAlias)(&node),
 	})
 }
 

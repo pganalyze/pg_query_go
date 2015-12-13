@@ -24,7 +24,7 @@ type IndexElem struct {
 func (node IndexElem) MarshalJSON() ([]byte, error) {
 	type IndexElemMarshalAlias IndexElem
 	return json.Marshal(map[string]interface{}{
-		"INDEXELEM": (*IndexElemMarshalAlias)(&node),
+		"IndexElem": (*IndexElemMarshalAlias)(&node),
 	})
 }
 

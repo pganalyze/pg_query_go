@@ -13,14 +13,14 @@ import "encoding/json"
  * plan.
  */
 type AlternativeSubPlan struct {
-	Xpr      Expr   `json:"xpr"`
+	Xpr      Node   `json:"xpr"`
 	Subplans []Node `json:"subplans"` /* SubPlan(s) with equivalent results */
 }
 
 func (node AlternativeSubPlan) MarshalJSON() ([]byte, error) {
 	type AlternativeSubPlanMarshalAlias AlternativeSubPlan
 	return json.Marshal(map[string]interface{}{
-		"ALTERNATIVESUBPLAN": (*AlternativeSubPlanMarshalAlias)(&node),
+		"AlternativeSubPlan": (*AlternativeSubPlanMarshalAlias)(&node),
 	})
 }
 
@@ -33,7 +33,7 @@ func (node *AlternativeSubPlan) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

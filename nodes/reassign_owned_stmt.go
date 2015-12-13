@@ -15,7 +15,7 @@ type ReassignOwnedStmt struct {
 func (node ReassignOwnedStmt) MarshalJSON() ([]byte, error) {
 	type ReassignOwnedStmtMarshalAlias ReassignOwnedStmt
 	return json.Marshal(map[string]interface{}{
-		"REASSIGNOWNEDSTMT": (*ReassignOwnedStmtMarshalAlias)(&node),
+		"ReassignOwnedStmt": (*ReassignOwnedStmtMarshalAlias)(&node),
 	})
 }
 

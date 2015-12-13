@@ -19,7 +19,7 @@ type DeleteStmt struct {
 func (node DeleteStmt) MarshalJSON() ([]byte, error) {
 	type DeleteStmtMarshalAlias DeleteStmt
 	return json.Marshal(map[string]interface{}{
-		"DELETE FROM": (*DeleteStmtMarshalAlias)(&node),
+		"DeleteStmt": (*DeleteStmtMarshalAlias)(&node),
 	})
 }
 

@@ -42,7 +42,7 @@ type ParamListInfoData struct {
 func (node ParamListInfoData) MarshalJSON() ([]byte, error) {
 	type ParamListInfoDataMarshalAlias ParamListInfoData
 	return json.Marshal(map[string]interface{}{
-		"PARAMLISTINFODATA": (*ParamListInfoDataMarshalAlias)(&node),
+		"ParamListInfoData": (*ParamListInfoDataMarshalAlias)(&node),
 	})
 }
 

@@ -8,7 +8,7 @@ import "encoding/json"
  * MinMaxExpr - a GREATEST or LEAST function
  */
 type MinMaxExpr struct {
-	Xpr          Expr     `json:"xpr"`
+	Xpr          Node     `json:"xpr"`
 	Minmaxtype   Oid      `json:"minmaxtype"`   /* common type of arguments and result */
 	Minmaxcollid Oid      `json:"minmaxcollid"` /* OID of collation of result */
 	Inputcollid  Oid      `json:"inputcollid"`  /* OID of collation that function should use */
@@ -20,7 +20,7 @@ type MinMaxExpr struct {
 func (node MinMaxExpr) MarshalJSON() ([]byte, error) {
 	type MinMaxExprMarshalAlias MinMaxExpr
 	return json.Marshal(map[string]interface{}{
-		"MINMAX": (*MinMaxExprMarshalAlias)(&node),
+		"MinMaxExpr": (*MinMaxExprMarshalAlias)(&node),
 	})
 }
 
@@ -33,7 +33,7 @@ func (node *MinMaxExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

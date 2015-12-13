@@ -14,8 +14,8 @@ import "encoding/json"
  * RelabelType in the scenario where no constraints are applied.
  */
 type CoerceToDomain struct {
-	Xpr            Expr         `json:"xpr"`
-	Arg            *Expr        `json:"arg"`            /* input expression */
+	Xpr            Node         `json:"xpr"`
+	Arg            Node         `json:"arg"`            /* input expression */
 	Resulttype     Oid          `json:"resulttype"`     /* domain type ID (result type) */
 	Resulttypmod   int32        `json:"resulttypmod"`   /* output typmod (currently always -1) */
 	Resultcollid   Oid          `json:"resultcollid"`   /* OID of collation, or InvalidOid if none */
@@ -26,7 +26,7 @@ type CoerceToDomain struct {
 func (node CoerceToDomain) MarshalJSON() ([]byte, error) {
 	type CoerceToDomainMarshalAlias CoerceToDomain
 	return json.Marshal(map[string]interface{}{
-		"COERCETODOMAIN": (*CoerceToDomainMarshalAlias)(&node),
+		"CoerceToDomain": (*CoerceToDomainMarshalAlias)(&node),
 	})
 }
 
@@ -39,21 +39,16 @@ func (node *CoerceToDomain) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

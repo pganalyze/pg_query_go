@@ -19,7 +19,7 @@ import "encoding/json"
  * RowCompareType enum for the convenience of parser logic.
  */
 type RowCompareExpr struct {
-	Xpr          Expr           `json:"xpr"`
+	Xpr          Node           `json:"xpr"`
 	Rctype       RowCompareType `json:"rctype"`       /* LT LE GE or GT, never EQ or NE */
 	Opnos        []Node         `json:"opnos"`        /* OID list of pairwise comparison ops */
 	Opfamilies   []Node         `json:"opfamilies"`   /* OID list of containing operator families */
@@ -31,7 +31,7 @@ type RowCompareExpr struct {
 func (node RowCompareExpr) MarshalJSON() ([]byte, error) {
 	type RowCompareExprMarshalAlias RowCompareExpr
 	return json.Marshal(map[string]interface{}{
-		"ROWCOMPARE": (*RowCompareExprMarshalAlias)(&node),
+		"RowCompareExpr": (*RowCompareExprMarshalAlias)(&node),
 	})
 }
 
@@ -44,7 +44,7 @@ func (node *RowCompareExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

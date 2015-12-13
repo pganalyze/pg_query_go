@@ -31,7 +31,7 @@ type RangeFunction struct {
 func (node RangeFunction) MarshalJSON() ([]byte, error) {
 	type RangeFunctionMarshalAlias RangeFunction
 	return json.Marshal(map[string]interface{}{
-		"RANGEFUNCTION": (*RangeFunctionMarshalAlias)(&node),
+		"RangeFunction": (*RangeFunctionMarshalAlias)(&node),
 	})
 }
 

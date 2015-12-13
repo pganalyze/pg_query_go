@@ -25,7 +25,7 @@ type CreateOpClassItem struct {
 func (node CreateOpClassItem) MarshalJSON() ([]byte, error) {
 	type CreateOpClassItemMarshalAlias CreateOpClassItem
 	return json.Marshal(map[string]interface{}{
-		"CREATEOPCLASSITEM": (*CreateOpClassItemMarshalAlias)(&node),
+		"CreateOpClassItem": (*CreateOpClassItemMarshalAlias)(&node),
 	})
 }
 

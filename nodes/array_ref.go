@@ -27,7 +27,7 @@ import "encoding/json"
  * ----------------
  */
 type ArrayRef struct {
-	Xpr             Expr   `json:"xpr"`
+	Xpr             Node   `json:"xpr"`
 	Refarraytype    Oid    `json:"refarraytype"`    /* type of the array proper */
 	Refelemtype     Oid    `json:"refelemtype"`     /* type of the array elements */
 	Reftypmod       int32  `json:"reftypmod"`       /* typmod of the array (and elements too) */
@@ -38,17 +38,17 @@ type ArrayRef struct {
 	Reflowerindexpr []Node `json:"reflowerindexpr"` /* expressions that evaluate to lower array
 	 * indexes */
 
-	Refexpr *Expr `json:"refexpr"` /* the expression that evaluates to an array
+	Refexpr Node `json:"refexpr"` /* the expression that evaluates to an array
 	 * value */
 
-	Refassgnexpr *Expr `json:"refassgnexpr"` /* expression for the source value, or NULL if
+	Refassgnexpr Node `json:"refassgnexpr"` /* expression for the source value, or NULL if
 	 * fetch */
 }
 
 func (node ArrayRef) MarshalJSON() ([]byte, error) {
 	type ArrayRefMarshalAlias ArrayRef
 	return json.Marshal(map[string]interface{}{
-		"ARRAYREF": (*ArrayRefMarshalAlias)(&node),
+		"ArrayRef": (*ArrayRefMarshalAlias)(&node),
 	})
 }
 
@@ -61,7 +61,7 @@ func (node *ArrayRef) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
@@ -110,26 +110,16 @@ func (node *ArrayRef) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["refexpr"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["refexpr"])
+		node.Refexpr, err = UnmarshalNodeJSON(fields["refexpr"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Refexpr = &val
 		}
 	}
 
 	if fields["refassgnexpr"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["refassgnexpr"])
+		node.Refassgnexpr, err = UnmarshalNodeJSON(fields["refassgnexpr"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Refassgnexpr = &val
 		}
 	}
 

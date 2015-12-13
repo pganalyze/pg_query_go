@@ -18,7 +18,7 @@ type CommentStmt struct {
 func (node CommentStmt) MarshalJSON() ([]byte, error) {
 	type CommentStmtMarshalAlias CommentStmt
 	return json.Marshal(map[string]interface{}{
-		"COMMENTSTMT": (*CommentStmtMarshalAlias)(&node),
+		"CommentStmt": (*CommentStmtMarshalAlias)(&node),
 	})
 }
 

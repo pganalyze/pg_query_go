@@ -25,7 +25,7 @@ type RenameStmt struct {
 func (node RenameStmt) MarshalJSON() ([]byte, error) {
 	type RenameStmtMarshalAlias RenameStmt
 	return json.Marshal(map[string]interface{}{
-		"RENAMESTMT": (*RenameStmtMarshalAlias)(&node),
+		"RenameStmt": (*RenameStmtMarshalAlias)(&node),
 	})
 }
 

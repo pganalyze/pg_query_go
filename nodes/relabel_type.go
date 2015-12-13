@@ -17,8 +17,8 @@ import "encoding/json"
  * ----------------
  */
 type RelabelType struct {
-	Xpr           Expr         `json:"xpr"`
-	Arg           *Expr        `json:"arg"`           /* input expression */
+	Xpr           Node         `json:"xpr"`
+	Arg           Node         `json:"arg"`           /* input expression */
 	Resulttype    Oid          `json:"resulttype"`    /* output type of coercion expression */
 	Resulttypmod  int32        `json:"resulttypmod"`  /* output typmod (usually -1) */
 	Resultcollid  Oid          `json:"resultcollid"`  /* OID of collation, or InvalidOid if none */
@@ -29,7 +29,7 @@ type RelabelType struct {
 func (node RelabelType) MarshalJSON() ([]byte, error) {
 	type RelabelTypeMarshalAlias RelabelType
 	return json.Marshal(map[string]interface{}{
-		"RELABELTYPE": (*RelabelTypeMarshalAlias)(&node),
+		"RelabelType": (*RelabelTypeMarshalAlias)(&node),
 	})
 }
 
@@ -42,21 +42,16 @@ func (node *RelabelType) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

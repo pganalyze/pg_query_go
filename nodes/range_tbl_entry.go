@@ -162,7 +162,7 @@ type RangeTblEntry struct {
 func (node RangeTblEntry) MarshalJSON() ([]byte, error) {
 	type RangeTblEntryMarshalAlias RangeTblEntry
 	return json.Marshal(map[string]interface{}{
-		"RANGETBLENTRY": (*RangeTblEntryMarshalAlias)(&node),
+		"RangeTblEntry": (*RangeTblEntryMarshalAlias)(&node),
 	})
 }
 

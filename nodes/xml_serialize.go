@@ -17,7 +17,7 @@ type XmlSerialize struct {
 func (node XmlSerialize) MarshalJSON() ([]byte, error) {
 	type XmlSerializeMarshalAlias XmlSerialize
 	return json.Marshal(map[string]interface{}{
-		"XMLSERIALIZE": (*XmlSerializeMarshalAlias)(&node),
+		"XmlSerialize": (*XmlSerializeMarshalAlias)(&node),
 	})
 }
 

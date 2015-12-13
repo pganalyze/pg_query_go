@@ -20,8 +20,8 @@ var parseTests = []struct {
 }{
 	{
 		"SELECT 1",
-		`[{"SELECT": {"distinctClause": null, "intoClause": null, "targetList": [{"RESTARGET": ` +
-			`{"name": null, "indirection": null, "val": {"A_CONST": {"type": "integer", "val": 1, "location": 7}}, "location": 7}}], ` +
+		`[{"SelectStmt": {"distinctClause": null, "intoClause": null, "targetList": [{"ResTarget": ` +
+			`{"name": null, "indirection": null, "val": {"A_Const": {"val": {"Integer": {"ival": 1}}, "location": 7}}, "location": 7}}], ` +
 			`"fromClause": null, "whereClause": null, "groupClause": null, "havingClause": null, ` +
 			`"windowClause": null, "valuesLists": null, "sortClause": null, "limitOffset": null, ` +
 			`"limitCount": null, "lockingClause": null, "withClause": null, "op": 0, "all": false, ` +
@@ -32,9 +32,7 @@ var parseTests = []struct {
 					TargetList: []nodes.Node{
 						nodes.ResTarget{
 							Val: nodes.A_Const{
-								Type: "integer",
-								Val: nodes.Value{
-									Type: nodes.T_Integer,
+								Val: nodes.Integer{
 									Ival: 1,
 								},
 								Location: 7,
@@ -48,12 +46,12 @@ var parseTests = []struct {
 	},
 	{
 		"SELECT * FROM x WHERE z = 1",
-		`[{"SELECT": {"distinctClause": null, "intoClause": null, "targetList": [{"RESTARGET": ` +
-			`{"name": null, "indirection": null, "val": {"COLUMNREF": {"fields": [{"A_STAR": {}}], ` +
-			`"location": 7}}, "location": 7}}], "fromClause": [{"RANGEVAR": {"schemaname": null, ` +
+		`[{"SelectStmt": {"distinctClause": null, "intoClause": null, "targetList": [{"ResTarget": ` +
+			`{"name": null, "indirection": null, "val": {"ColumnRef": {"fields": [{"A_Star": {}}], ` +
+			`"location": 7}}, "location": 7}}], "fromClause": [{"RangeVar": {"schemaname": null, ` +
 			`"relname": "x", "inhOpt": 2, "relpersistence": "p", "alias": null, "location": 14}}], ` +
-			`"whereClause": {"AEXPR": {"name": ["="], "lexpr": {"COLUMNREF": {"fields": ["z"], ` +
-			`"location": 22}}, "rexpr": {"A_CONST": {"type": "integer", "val": 1, "location": 26}}, "location": 24}}, ` +
+			`"whereClause": {"A_Expr": {"kind": 0, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "z"}}], ` +
+			`"location": 22}}, "rexpr": {"A_Const": {"val": {"Integer": {"ival": 1}}, "location": 26}}, "location": 24}}, ` +
 			`"groupClause": null, "havingClause": null, "windowClause": null, "valuesLists": null, ` +
 			`"sortClause": null, "limitOffset": null, "limitCount": null, "lockingClause": null, ` +
 			`"withClause": null, "op": 0, "all": false, "larg": null, "rarg": null}}]`,
@@ -82,27 +80,27 @@ var parseTests = []struct {
 					WhereClause: nodes.A_Expr{
 						Kind: nodes.AEXPR_OP,
 						Name: []nodes.Node{
-							nodes.Value{
-								Type: nodes.T_String,
-								Str:  "=",
+							nodes.String{
+								Str: "=",
 							},
 						},
-						Lexpr: nodes.ColumnRef{
-							Fields: []nodes.Node{
-								nodes.Value{
-									Type: nodes.T_String,
-									Str:  "z",
+						Lexpr: []nodes.Node{
+							nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.String{
+										Str: "z",
+									},
 								},
+								Location: 22,
 							},
-							Location: 22,
 						},
-						Rexpr: nodes.A_Const{
-							Type: "integer",
-							Val: nodes.Value{
-								Type: nodes.T_Integer,
-								Ival: 1,
+						Rexpr: []nodes.Node{
+							nodes.A_Const{
+								Val: nodes.Integer{
+									Ival: 1,
+								},
+								Location: 26,
 							},
-							Location: 26,
 						},
 						Location: 24,
 					},
@@ -112,23 +110,22 @@ var parseTests = []struct {
 	},
 	{
 		`INSERT INTO "schema_index_stats" ("snapshot_id","schema_index_id","size_bytes") VALUES (11710849,8448632,16384),(11710849,8448633,16384) RETURNING id`,
-		`[{"INSERT INTO": {"relation": {"RANGEVAR": {"schemaname": null, "relname": ` +
-			`"schema_index_stats", "inhOpt": 2, "relpersistence": "p", "alias": null, ` +
-			`"location": 12}}, "cols": [{"RESTARGET": {"name": "snapshot_id", "indirection": ` +
-			`null, "val": null, "location": 34}}, {"RESTARGET": {"name": "schema_index_id", ` +
-			`"indirection": null, "val": null, "location": 48}}, {"RESTARGET": {"name": ` +
-			`"size_bytes", "indirection": null, "val": null, "location": 66}}], "selectStmt": ` +
-			`{"SELECT": {"distinctClause": null, "intoClause": null, "targetList": null, ` +
-			`"fromClause": null, "whereClause": null, "groupClause": null, "havingClause": ` +
-			`null, "windowClause": null, "valuesLists": [[{"A_CONST": {"type": "integer", "val": ` +
-			`11710849, "location": 88}}, {"A_CONST": {"type": "integer", "val": 8448632, "location": 97}}, ` +
-			`{"A_CONST": {"type": "integer", "val": 16384, "location": 105}}], [{"A_CONST": ` +
-			`{"type": "integer", "val": 11710849, "location": 113}}, {"A_CONST": {"type": ` +
-			`"integer", "val": 8448633, "location": 122}}, {"A_CONST": {"type": "integer", ` +
-			`"val": 16384, "location": 130}}]], "sortClause": null, "limitOffset": null, ` +
-			`"limitCount": null, "lockingClause": null, "withClause": null, "op": 0, "all": ` +
-			`false, "larg": null, "rarg": null}}, "returningList": [{"RESTARGET": {"name": null, ` +
-			`"indirection": null, "val": {"COLUMNREF": {"fields": ["id"], "location": 147}}, ` +
+		`[{"InsertStmt": {"relation": {"RangeVar": {"schemaname": null, "relname": "schema_index_stats", ` +
+			`"inhOpt": 2, "relpersistence": "p", "alias": null, "location": 12}}, "cols": [{"ResTarget": ` +
+			`{"name": "snapshot_id", "indirection": null, "val": null, "location": 34}}, {"ResTarget": ` +
+			`{"name": "schema_index_id", "indirection": null, "val": null, "location": 48}}, {"ResTarget": ` +
+			`{"name": "size_bytes", "indirection": null, "val": null, "location": 66}}], "selectStmt": ` +
+			`{"SelectStmt": {"distinctClause": null, "intoClause": null, "targetList": null, "fromClause": ` +
+			`null, "whereClause": null, "groupClause": null, "havingClause": null, "windowClause": null, ` +
+			`"valuesLists": [[{"A_Const": {"val": {"Integer": {"ival": 11710849}}, "location": 88}}, ` +
+			`{"A_Const": {"val": {"Integer": {"ival": 8448632}}, "location": 97}}, {"A_Const": ` +
+			`{"val": {"Integer": {"ival": 16384}}, "location": 105}}], [{"A_Const": {"val": ` +
+			`{"Integer": {"ival": 11710849}}, "location": 113}}, {"A_Const": {"val": {"Integer": ` +
+			`{"ival": 8448633}}, "location": 122}}, {"A_Const": {"val": {"Integer": {"ival": 16384}}, ` +
+			`"location": 130}}]], "sortClause": null, "limitOffset": null, "limitCount": null, ` +
+			`"lockingClause": null, "withClause": null, "op": 0, "all": false, "larg": null, ` +
+			`"rarg": null}}, "returningList": [{"ResTarget": {"name": null, "indirection": null, ` +
+			`"val": {"ColumnRef": {"fields": [{"String": {"str": "id"}}], "location": 147}}, ` +
 			`"location": 147}}], "withClause": null}}]`,
 		pg_query.ParsetreeList{
 			Statements: []nodes.Node{
@@ -157,25 +154,19 @@ var parseTests = []struct {
 						ValuesLists: [][]nodes.Node{
 							[]nodes.Node{
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 11710849,
 									},
 									Location: 88,
 								},
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 8448632,
 									},
 									Location: 97,
 								},
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 16384,
 									},
 									Location: 105,
@@ -183,25 +174,19 @@ var parseTests = []struct {
 							},
 							[]nodes.Node{
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 11710849,
 									},
 									Location: 113,
 								},
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 8448633,
 									},
 									Location: 122,
 								},
 								nodes.A_Const{
-									Type: "integer",
-									Val: nodes.Value{
-										Type: nodes.T_Integer,
+									Val: nodes.Integer{
 										Ival: 16384,
 									},
 									Location: 130,
@@ -213,15 +198,77 @@ var parseTests = []struct {
 						nodes.ResTarget{
 							Val: nodes.ColumnRef{
 								Fields: []nodes.Node{
-									nodes.Value{
-										Type: nodes.T_String,
-										Str:  "id",
+									nodes.String{
+										Str: "id",
 									},
 								},
 								Location: 147,
 							},
 							Location: 147,
 						},
+					},
+				},
+			},
+		},
+	},
+	{
+		"SELECT * FROM x WHERE y IN (?)",
+		`[{"SelectStmt": {"distinctClause": null, "intoClause": null, "targetList": ` +
+			`[{"ResTarget": {"name": null, "indirection": null, "val": {"ColumnRef": {"fields": ` +
+			`[{"A_Star": {}}], "location": 7}}, "location": 7}}], "fromClause": [{"RangeVar": ` +
+			`{"schemaname": null, "relname": "x", "inhOpt": 2, "relpersistence": "p", "alias": ` +
+			`null, "location": 14}}], "whereClause": {"A_Expr": {"kind": 9, "name": [{"String": ` +
+			`{"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "y"}}], ` +
+			`"location": 22}}, "rexpr": [{"ParamRef": {"number": 0, "location": 28}}], "location": ` +
+			`24}}, "groupClause": null, "havingClause": null, "windowClause": null, "valuesLists": null, ` +
+			`"sortClause": null, "limitOffset": null, "limitCount": null, "lockingClause": null, ` +
+			`"withClause": null, "op": 0, "all": false, "larg": null, "rarg": null}}]`,
+		pg_query.ParsetreeList{
+			Statements: []nodes.Node{
+				nodes.SelectStmt{
+					TargetList: []nodes.Node{
+						nodes.ResTarget{
+							Val: nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.A_Star{},
+								},
+								Location: 7,
+							},
+							Location: 7,
+						},
+					},
+					FromClause: []nodes.Node{
+						nodes.RangeVar{
+							Relname:        strPtr("x"),
+							InhOpt:         nodes.INH_DEFAULT,
+							Relpersistence: 'p',
+							Location:       14,
+						},
+					},
+					WhereClause: nodes.A_Expr{
+						Kind: nodes.AEXPR_IN,
+						Name: []nodes.Node{
+							nodes.String{
+								Str: "=",
+							},
+						},
+						Lexpr: []nodes.Node{
+							nodes.ColumnRef{
+								Fields: []nodes.Node{
+									nodes.String{
+										Str: "y",
+									},
+								},
+								Location: 22,
+							},
+						},
+						Rexpr: []nodes.Node{
+							nodes.ParamRef{
+								Number:   0,
+								Location: 28,
+							},
+						},
+						Location: 24,
 					},
 				},
 			},

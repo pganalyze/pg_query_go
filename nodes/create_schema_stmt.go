@@ -22,7 +22,7 @@ type CreateSchemaStmt struct {
 func (node CreateSchemaStmt) MarshalJSON() ([]byte, error) {
 	type CreateSchemaStmtMarshalAlias CreateSchemaStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATE SCHEMA": (*CreateSchemaStmtMarshalAlias)(&node),
+		"CreateSchemaStmt": (*CreateSchemaStmtMarshalAlias)(&node),
 	})
 }
 

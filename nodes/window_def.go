@@ -26,7 +26,7 @@ type WindowDef struct {
 func (node WindowDef) MarshalJSON() ([]byte, error) {
 	type WindowDefMarshalAlias WindowDef
 	return json.Marshal(map[string]interface{}{
-		"WINDOWDEF": (*WindowDefMarshalAlias)(&node),
+		"WindowDef": (*WindowDefMarshalAlias)(&node),
 	})
 }
 

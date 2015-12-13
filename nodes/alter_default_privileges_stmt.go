@@ -16,7 +16,7 @@ type AlterDefaultPrivilegesStmt struct {
 func (node AlterDefaultPrivilegesStmt) MarshalJSON() ([]byte, error) {
 	type AlterDefaultPrivilegesStmtMarshalAlias AlterDefaultPrivilegesStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERDEFAULTPRIVILEGESSTMT": (*AlterDefaultPrivilegesStmtMarshalAlias)(&node),
+		"AlterDefaultPrivilegesStmt": (*AlterDefaultPrivilegesStmtMarshalAlias)(&node),
 	})
 }
 

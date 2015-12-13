@@ -17,7 +17,7 @@ type CreateForeignTableStmt struct {
 func (node CreateForeignTableStmt) MarshalJSON() ([]byte, error) {
 	type CreateForeignTableStmtMarshalAlias CreateForeignTableStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEFOREIGNTABLESTMT": (*CreateForeignTableStmtMarshalAlias)(&node),
+		"CreateForeignTableStmt": (*CreateForeignTableStmtMarshalAlias)(&node),
 	})
 }
 

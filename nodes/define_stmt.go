@@ -19,7 +19,7 @@ type DefineStmt struct {
 func (node DefineStmt) MarshalJSON() ([]byte, error) {
 	type DefineStmtMarshalAlias DefineStmt
 	return json.Marshal(map[string]interface{}{
-		"DEFINESTMT": (*DefineStmtMarshalAlias)(&node),
+		"DefineStmt": (*DefineStmtMarshalAlias)(&node),
 	})
 }
 

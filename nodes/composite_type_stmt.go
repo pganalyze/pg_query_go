@@ -16,7 +16,7 @@ type CompositeTypeStmt struct {
 func (node CompositeTypeStmt) MarshalJSON() ([]byte, error) {
 	type CompositeTypeStmtMarshalAlias CompositeTypeStmt
 	return json.Marshal(map[string]interface{}{
-		"COMPOSITETYPESTMT": (*CompositeTypeStmtMarshalAlias)(&node),
+		"CompositeTypeStmt": (*CompositeTypeStmtMarshalAlias)(&node),
 	})
 }
 

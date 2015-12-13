@@ -15,7 +15,7 @@ type PrivGrantee struct {
 func (node PrivGrantee) MarshalJSON() ([]byte, error) {
 	type PrivGranteeMarshalAlias PrivGrantee
 	return json.Marshal(map[string]interface{}{
-		"PRIVGRANTEE": (*PrivGranteeMarshalAlias)(&node),
+		"PrivGrantee": (*PrivGranteeMarshalAlias)(&node),
 	})
 }
 

@@ -19,7 +19,7 @@ type AlterExtensionContentsStmt struct {
 func (node AlterExtensionContentsStmt) MarshalJSON() ([]byte, error) {
 	type AlterExtensionContentsStmtMarshalAlias AlterExtensionContentsStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTEREXTENSIONCONTENTSSTMT": (*AlterExtensionContentsStmtMarshalAlias)(&node),
+		"AlterExtensionContentsStmt": (*AlterExtensionContentsStmtMarshalAlias)(&node),
 	})
 }
 

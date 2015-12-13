@@ -15,7 +15,7 @@ type TableLikeClause struct {
 func (node TableLikeClause) MarshalJSON() ([]byte, error) {
 	type TableLikeClauseMarshalAlias TableLikeClause
 	return json.Marshal(map[string]interface{}{
-		"TABLELIKECLAUSE": (*TableLikeClauseMarshalAlias)(&node),
+		"TableLikeClause": (*TableLikeClauseMarshalAlias)(&node),
 	})
 }
 

@@ -27,7 +27,7 @@ type CopyStmt struct {
 func (node CopyStmt) MarshalJSON() ([]byte, error) {
 	type CopyStmtMarshalAlias CopyStmt
 	return json.Marshal(map[string]interface{}{
-		"COPY": (*CopyStmtMarshalAlias)(&node),
+		"CopyStmt": (*CopyStmtMarshalAlias)(&node),
 	})
 }
 

@@ -16,7 +16,7 @@ type ExecuteStmt struct {
 func (node ExecuteStmt) MarshalJSON() ([]byte, error) {
 	type ExecuteStmtMarshalAlias ExecuteStmt
 	return json.Marshal(map[string]interface{}{
-		"EXECUTESTMT": (*ExecuteStmtMarshalAlias)(&node),
+		"ExecuteStmt": (*ExecuteStmtMarshalAlias)(&node),
 	})
 }
 

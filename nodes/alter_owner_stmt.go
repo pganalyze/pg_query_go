@@ -19,7 +19,7 @@ type AlterOwnerStmt struct {
 func (node AlterOwnerStmt) MarshalJSON() ([]byte, error) {
 	type AlterOwnerStmtMarshalAlias AlterOwnerStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTEROWNERSTMT": (*AlterOwnerStmtMarshalAlias)(&node),
+		"AlterOwnerStmt": (*AlterOwnerStmtMarshalAlias)(&node),
 	})
 }
 

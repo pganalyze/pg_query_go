@@ -17,7 +17,7 @@ type TransactionStmt struct {
 func (node TransactionStmt) MarshalJSON() ([]byte, error) {
 	type TransactionStmtMarshalAlias TransactionStmt
 	return json.Marshal(map[string]interface{}{
-		"TRANSACTION": (*TransactionStmtMarshalAlias)(&node),
+		"TransactionStmt": (*TransactionStmtMarshalAlias)(&node),
 	})
 }
 

@@ -22,7 +22,7 @@ type LockingClause struct {
 func (node LockingClause) MarshalJSON() ([]byte, error) {
 	type LockingClauseMarshalAlias LockingClause
 	return json.Marshal(map[string]interface{}{
-		"LOCKINGCLAUSE": (*LockingClauseMarshalAlias)(&node),
+		"LockingClause": (*LockingClauseMarshalAlias)(&node),
 	})
 }
 

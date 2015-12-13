@@ -18,7 +18,7 @@ type FunctionParameter struct {
 func (node FunctionParameter) MarshalJSON() ([]byte, error) {
 	type FunctionParameterMarshalAlias FunctionParameter
 	return json.Marshal(map[string]interface{}{
-		"FUNCTIONPARAMETER": (*FunctionParameterMarshalAlias)(&node),
+		"FunctionParameter": (*FunctionParameterMarshalAlias)(&node),
 	})
 }
 

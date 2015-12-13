@@ -26,7 +26,7 @@ type RowMarkClause struct {
 func (node RowMarkClause) MarshalJSON() ([]byte, error) {
 	type RowMarkClauseMarshalAlias RowMarkClause
 	return json.Marshal(map[string]interface{}{
-		"ROWMARKCLAUSE": (*RowMarkClauseMarshalAlias)(&node),
+		"RowMarkClause": (*RowMarkClauseMarshalAlias)(&node),
 	})
 }
 

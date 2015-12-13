@@ -16,7 +16,7 @@ type ReplicaIdentityStmt struct {
 func (node ReplicaIdentityStmt) MarshalJSON() ([]byte, error) {
 	type ReplicaIdentityStmtMarshalAlias ReplicaIdentityStmt
 	return json.Marshal(map[string]interface{}{
-		"REPLICAIDENTITYSTMT": (*ReplicaIdentityStmtMarshalAlias)(&node),
+		"ReplicaIdentityStmt": (*ReplicaIdentityStmtMarshalAlias)(&node),
 	})
 }
 

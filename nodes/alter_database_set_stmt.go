@@ -16,7 +16,7 @@ type AlterDatabaseSetStmt struct {
 func (node AlterDatabaseSetStmt) MarshalJSON() ([]byte, error) {
 	type AlterDatabaseSetStmtMarshalAlias AlterDatabaseSetStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERDATABASESETSTMT": (*AlterDatabaseSetStmtMarshalAlias)(&node),
+		"AlterDatabaseSetStmt": (*AlterDatabaseSetStmtMarshalAlias)(&node),
 	})
 }
 

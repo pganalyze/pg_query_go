@@ -16,9 +16,9 @@ import "encoding/json"
  * ----------------
  */
 type ConvertRowtypeExpr struct {
-	Xpr        Expr  `json:"xpr"`
-	Arg        *Expr `json:"arg"`        /* input expression */
-	Resulttype Oid   `json:"resulttype"` /* output type (always a composite type) */
+	Xpr        Node `json:"xpr"`
+	Arg        Node `json:"arg"`        /* input expression */
+	Resulttype Oid  `json:"resulttype"` /* output type (always a composite type) */
 
 	/* Like RowExpr, we deliberately omit a typmod and collation here */
 	Convertformat CoercionForm `json:"convertformat"` /* how to display this node */
@@ -28,7 +28,7 @@ type ConvertRowtypeExpr struct {
 func (node ConvertRowtypeExpr) MarshalJSON() ([]byte, error) {
 	type ConvertRowtypeExprMarshalAlias ConvertRowtypeExpr
 	return json.Marshal(map[string]interface{}{
-		"CONVERTROWTYPEEXPR": (*ConvertRowtypeExprMarshalAlias)(&node),
+		"ConvertRowtypeExpr": (*ConvertRowtypeExprMarshalAlias)(&node),
 	})
 }
 
@@ -41,21 +41,16 @@ func (node *ConvertRowtypeExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

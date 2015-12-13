@@ -8,13 +8,13 @@ import "encoding/json"
  * WindowFunc
  */
 type WindowFunc struct {
-	Xpr         Expr   `json:"xpr"`
+	Xpr         Node   `json:"xpr"`
 	Winfnoid    Oid    `json:"winfnoid"`    /* pg_proc Oid of the function */
 	Wintype     Oid    `json:"wintype"`     /* type Oid of result of the window function */
 	Wincollid   Oid    `json:"wincollid"`   /* OID of collation of result */
 	Inputcollid Oid    `json:"inputcollid"` /* OID of collation that function should use */
 	Args        []Node `json:"args"`        /* arguments to the window function */
-	Aggfilter   *Expr  `json:"aggfilter"`   /* FILTER expression, if any */
+	Aggfilter   Node   `json:"aggfilter"`   /* FILTER expression, if any */
 	Winref      Index  `json:"winref"`      /* index of associated WindowClause */
 	Winstar     bool   `json:"winstar"`     /* TRUE if argument list was really '*' */
 	Winagg      bool   `json:"winagg"`      /* is function a simple aggregate? */
@@ -24,7 +24,7 @@ type WindowFunc struct {
 func (node WindowFunc) MarshalJSON() ([]byte, error) {
 	type WindowFuncMarshalAlias WindowFunc
 	return json.Marshal(map[string]interface{}{
-		"WINDOWFUNC": (*WindowFuncMarshalAlias)(&node),
+		"WindowFunc": (*WindowFuncMarshalAlias)(&node),
 	})
 }
 
@@ -37,7 +37,7 @@ func (node *WindowFunc) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
@@ -79,14 +79,9 @@ func (node *WindowFunc) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["aggfilter"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["aggfilter"])
+		node.Aggfilter, err = UnmarshalNodeJSON(fields["aggfilter"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Aggfilter = &val
 		}
 	}
 

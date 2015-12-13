@@ -29,7 +29,7 @@ type ParamExecData struct {
 func (node ParamExecData) MarshalJSON() ([]byte, error) {
 	type ParamExecDataMarshalAlias ParamExecData
 	return json.Marshal(map[string]interface{}{
-		"PARAMEXECDATA": (*ParamExecDataMarshalAlias)(&node),
+		"ParamExecData": (*ParamExecDataMarshalAlias)(&node),
 	})
 }
 

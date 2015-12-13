@@ -17,7 +17,7 @@ type PrepareStmt struct {
 func (node PrepareStmt) MarshalJSON() ([]byte, error) {
 	type PrepareStmtMarshalAlias PrepareStmt
 	return json.Marshal(map[string]interface{}{
-		"PREPARESTMT": (*PrepareStmtMarshalAlias)(&node),
+		"PrepareStmt": (*PrepareStmtMarshalAlias)(&node),
 	})
 }
 

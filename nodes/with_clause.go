@@ -20,7 +20,7 @@ type WithClause struct {
 func (node WithClause) MarshalJSON() ([]byte, error) {
 	type WithClauseMarshalAlias WithClause
 	return json.Marshal(map[string]interface{}{
-		"WITHCLAUSE": (*WithClauseMarshalAlias)(&node),
+		"WithClause": (*WithClauseMarshalAlias)(&node),
 	})
 }
 

@@ -8,7 +8,7 @@ import "encoding/json"
  * Const
  */
 type Const struct {
-	Xpr         Expr  `json:"xpr"`
+	Xpr         Node  `json:"xpr"`
 	Consttype   Oid   `json:"consttype"`   /* pg_type OID of the constant's datatype */
 	Consttypmod int32 `json:"consttypmod"` /* typmod value, if any */
 	Constcollid Oid   `json:"constcollid"` /* OID of collation, or InvalidOid if none */
@@ -28,7 +28,7 @@ type Const struct {
 func (node Const) MarshalJSON() ([]byte, error) {
 	type ConstMarshalAlias Const
 	return json.Marshal(map[string]interface{}{
-		"CONST": (*ConstMarshalAlias)(&node),
+		"Const": (*ConstMarshalAlias)(&node),
 	})
 }
 
@@ -41,7 +41,7 @@ func (node *Const) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

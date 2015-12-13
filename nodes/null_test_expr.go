@@ -15,8 +15,8 @@ import "encoding/json"
  * ----------------
  */
 type NullTest struct {
-	Xpr          Expr         `json:"xpr"`
-	Arg          *Expr        `json:"arg"`          /* input expression */
+	Xpr          Node         `json:"xpr"`
+	Arg          Node         `json:"arg"`          /* input expression */
 	Nulltesttype NullTestType `json:"nulltesttype"` /* IS NULL, IS NOT NULL */
 	Argisrow     bool         `json:"argisrow"`     /* T if input is of a composite type */
 }
@@ -24,7 +24,7 @@ type NullTest struct {
 func (node NullTest) MarshalJSON() ([]byte, error) {
 	type NullTestMarshalAlias NullTest
 	return json.Marshal(map[string]interface{}{
-		"NULLTEST": (*NullTestMarshalAlias)(&node),
+		"NullTest": (*NullTestMarshalAlias)(&node),
 	})
 }
 
@@ -37,21 +37,16 @@ func (node *NullTest) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

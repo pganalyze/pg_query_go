@@ -18,7 +18,7 @@ type WithCheckOption struct {
 func (node WithCheckOption) MarshalJSON() ([]byte, error) {
 	type WithCheckOptionMarshalAlias WithCheckOption
 	return json.Marshal(map[string]interface{}{
-		"WITHCHECKOPTION": (*WithCheckOptionMarshalAlias)(&node),
+		"WithCheckOption": (*WithCheckOptionMarshalAlias)(&node),
 	})
 }
 

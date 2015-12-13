@@ -16,7 +16,7 @@ type CollateClause struct {
 func (node CollateClause) MarshalJSON() ([]byte, error) {
 	type CollateClauseMarshalAlias CollateClause
 	return json.Marshal(map[string]interface{}{
-		"COLLATECLAUSE": (*CollateClauseMarshalAlias)(&node),
+		"CollateClause": (*CollateClauseMarshalAlias)(&node),
 	})
 }
 

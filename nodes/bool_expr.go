@@ -5,7 +5,7 @@ package pg_query
 import "encoding/json"
 
 type BoolExpr struct {
-	Xpr      Expr         `json:"xpr"`
+	Xpr      Node         `json:"xpr"`
 	Boolop   BoolExprType `json:"boolop"`
 	Args     []Node       `json:"args"`     /* arguments to this expression */
 	Location int          `json:"location"` /* token location, or -1 if unknown */
@@ -14,7 +14,7 @@ type BoolExpr struct {
 func (node BoolExpr) MarshalJSON() ([]byte, error) {
 	type BoolExprMarshalAlias BoolExpr
 	return json.Marshal(map[string]interface{}{
-		"BOOLEXPR": (*BoolExprMarshalAlias)(&node),
+		"BoolExpr": (*BoolExprMarshalAlias)(&node),
 	})
 }
 
@@ -27,7 +27,7 @@ func (node *BoolExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

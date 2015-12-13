@@ -23,7 +23,7 @@ type InsertStmt struct {
 func (node InsertStmt) MarshalJSON() ([]byte, error) {
 	type InsertStmtMarshalAlias InsertStmt
 	return json.Marshal(map[string]interface{}{
-		"INSERT INTO": (*InsertStmtMarshalAlias)(&node),
+		"InsertStmt": (*InsertStmtMarshalAlias)(&node),
 	})
 }
 

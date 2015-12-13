@@ -26,7 +26,7 @@ type varatt_external struct {
 func (node varatt_external) MarshalJSON() ([]byte, error) {
 	type varatt_externalMarshalAlias varatt_external
 	return json.Marshal(map[string]interface{}{
-		"VARATT_EXTERNAL": (*varatt_externalMarshalAlias)(&node),
+		"varatt_external": (*varatt_externalMarshalAlias)(&node),
 	})
 }
 

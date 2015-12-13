@@ -32,7 +32,7 @@ type CommonTableExpr struct {
 func (node CommonTableExpr) MarshalJSON() ([]byte, error) {
 	type CommonTableExprMarshalAlias CommonTableExpr
 	return json.Marshal(map[string]interface{}{
-		"COMMONTABLEEXPR": (*CommonTableExprMarshalAlias)(&node),
+		"CommonTableExpr": (*CommonTableExprMarshalAlias)(&node),
 	})
 }
 

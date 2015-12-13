@@ -43,7 +43,7 @@ import "encoding/json"
  * evaluation of the testexpr if any, and any hashtable management overhead.
  */
 type SubPlan struct {
-	Xpr Expr `json:"xpr"`
+	Xpr Node `json:"xpr"`
 
 	/* Fields copied from original SubLink: */
 	SubLinkType SubLinkType `json:"subLinkType"` /* see above */
@@ -89,7 +89,7 @@ type SubPlan struct {
 func (node SubPlan) MarshalJSON() ([]byte, error) {
 	type SubPlanMarshalAlias SubPlan
 	return json.Marshal(map[string]interface{}{
-		"SUBPLAN": (*SubPlanMarshalAlias)(&node),
+		"SubPlan": (*SubPlanMarshalAlias)(&node),
 	})
 }
 
@@ -102,7 +102,7 @@ func (node *SubPlan) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

@@ -14,7 +14,7 @@ type VariableSetStmt struct {
 func (node VariableSetStmt) MarshalJSON() ([]byte, error) {
 	type VariableSetStmtMarshalAlias VariableSetStmt
 	return json.Marshal(map[string]interface{}{
-		"SET": (*VariableSetStmtMarshalAlias)(&node),
+		"VariableSetStmt": (*VariableSetStmtMarshalAlias)(&node),
 	})
 }
 

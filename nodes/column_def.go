@@ -42,7 +42,7 @@ type ColumnDef struct {
 func (node ColumnDef) MarshalJSON() ([]byte, error) {
 	type ColumnDefMarshalAlias ColumnDef
 	return json.Marshal(map[string]interface{}{
-		"COLUMNDEF": (*ColumnDefMarshalAlias)(&node),
+		"ColumnDef": (*ColumnDefMarshalAlias)(&node),
 	})
 }
 

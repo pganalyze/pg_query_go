@@ -19,8 +19,8 @@ import "encoding/json"
  * during expression preprocessing, so execution never sees a NamedArgExpr.
  */
 type NamedArgExpr struct {
-	Xpr       Expr    `json:"xpr"`
-	Arg       *Expr   `json:"arg"`       /* the argument expression */
+	Xpr       Node    `json:"xpr"`
+	Arg       Node    `json:"arg"`       /* the argument expression */
 	Name      *string `json:"name"`      /* the name */
 	Argnumber int     `json:"argnumber"` /* argument's number in positional notation */
 	Location  int     `json:"location"`  /* argument name location, or -1 if unknown */
@@ -29,7 +29,7 @@ type NamedArgExpr struct {
 func (node NamedArgExpr) MarshalJSON() ([]byte, error) {
 	type NamedArgExprMarshalAlias NamedArgExpr
 	return json.Marshal(map[string]interface{}{
-		"NAMEDARGEXPR": (*NamedArgExprMarshalAlias)(&node),
+		"NamedArgExpr": (*NamedArgExprMarshalAlias)(&node),
 	})
 }
 
@@ -42,21 +42,16 @@ func (node *NamedArgExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

@@ -43,7 +43,7 @@ type ParamExternData struct {
 func (node ParamExternData) MarshalJSON() ([]byte, error) {
 	type ParamExternDataMarshalAlias ParamExternData
 	return json.Marshal(map[string]interface{}{
-		"PARAMEXTERNDATA": (*ParamExternDataMarshalAlias)(&node),
+		"ParamExternData": (*ParamExternDataMarshalAlias)(&node),
 	})
 }
 

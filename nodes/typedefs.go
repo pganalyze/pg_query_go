@@ -4,15 +4,9 @@ package pg_query
 
 type AclMode uint32
 
-type SeqScan Scan
-
 type DistinctExpr OpExpr
 
 type NullIfExpr OpExpr
-
-type Relids []uint32
-
-type NestPath JoinPath
 
 type Selectivity float64
 

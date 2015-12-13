@@ -20,7 +20,7 @@ type CreateOpClassStmt struct {
 func (node CreateOpClassStmt) MarshalJSON() ([]byte, error) {
 	type CreateOpClassStmtMarshalAlias CreateOpClassStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEOPCLASSSTMT": (*CreateOpClassStmtMarshalAlias)(&node),
+		"CreateOpClassStmt": (*CreateOpClassStmtMarshalAlias)(&node),
 	})
 }
 

@@ -43,7 +43,7 @@ type SetOperationStmt struct {
 func (node SetOperationStmt) MarshalJSON() ([]byte, error) {
 	type SetOperationStmtMarshalAlias SetOperationStmt
 	return json.Marshal(map[string]interface{}{
-		"SETOPERATIONSTMT": (*SetOperationStmtMarshalAlias)(&node),
+		"SetOperationStmt": (*SetOperationStmtMarshalAlias)(&node),
 	})
 }
 
