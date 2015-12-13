@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AlterDatabaseSetStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERDATABASESETSTMT")
+	ctx.WriteString("AlterDatabaseSetStmt")
 
 	if node.Dbname != nil {
 		ctx.WriteString(*node.Dbname)

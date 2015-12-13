@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RangeSubselect) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGESUBSELECT")
+	ctx.WriteString("RangeSubselect")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)

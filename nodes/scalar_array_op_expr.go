@@ -15,7 +15,7 @@ import "encoding/json"
  * the result type (or the collation) because it must be boolean.
  */
 type ScalarArrayOpExpr struct {
-	Xpr         Expr   `json:"xpr"`
+	Xpr         Node   `json:"xpr"`
 	Opno        Oid    `json:"opno"`        /* PG_OPERATOR OID of the operator */
 	Opfuncid    Oid    `json:"opfuncid"`    /* PG_PROC OID of underlying function */
 	UseOr       bool   `json:"useOr"`       /* true for ANY, false for ALL */
@@ -27,7 +27,7 @@ type ScalarArrayOpExpr struct {
 func (node ScalarArrayOpExpr) MarshalJSON() ([]byte, error) {
 	type ScalarArrayOpExprMarshalAlias ScalarArrayOpExpr
 	return json.Marshal(map[string]interface{}{
-		"SCALARARRAYOPEXPR": (*ScalarArrayOpExprMarshalAlias)(&node),
+		"ScalarArrayOpExpr": (*ScalarArrayOpExprMarshalAlias)(&node),
 	})
 }
 
@@ -40,7 +40,7 @@ func (node *ScalarArrayOpExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

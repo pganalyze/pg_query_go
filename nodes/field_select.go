@@ -13,8 +13,8 @@ import "encoding/json"
  * ----------------
  */
 type FieldSelect struct {
-	Xpr        Expr       `json:"xpr"`
-	Arg        *Expr      `json:"arg"`        /* input expression */
+	Xpr        Node       `json:"xpr"`
+	Arg        Node       `json:"arg"`        /* input expression */
 	Fieldnum   AttrNumber `json:"fieldnum"`   /* attribute number of field to extract */
 	Resulttype Oid        `json:"resulttype"` /* type of the field (result type of this
 	 * node) */
@@ -26,7 +26,7 @@ type FieldSelect struct {
 func (node FieldSelect) MarshalJSON() ([]byte, error) {
 	type FieldSelectMarshalAlias FieldSelect
 	return json.Marshal(map[string]interface{}{
-		"FIELDSELECT": (*FieldSelectMarshalAlias)(&node),
+		"FieldSelect": (*FieldSelectMarshalAlias)(&node),
 	})
 }
 
@@ -39,21 +39,16 @@ func (node *FieldSelect) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 

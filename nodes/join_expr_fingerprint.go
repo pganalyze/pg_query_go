@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node JoinExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("JOINEXPR")
+	ctx.WriteString("JoinExpr")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
@@ -25,6 +25,8 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext) {
 	if node.Rarg != nil {
 		node.Rarg.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Rtindex)))
 
 	for _, subNode := range node.UsingClause {
 		subNode.Fingerprint(ctx)

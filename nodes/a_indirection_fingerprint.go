@@ -3,7 +3,7 @@
 package pg_query
 
 func (node A_Indirection) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("A_INDIRECTION")
+	ctx.WriteString("A_Indirection")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

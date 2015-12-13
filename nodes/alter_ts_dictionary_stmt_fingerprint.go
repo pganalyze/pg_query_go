@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AlterTSDictionaryStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERTSDICTIONARYSTMT")
+	ctx.WriteString("AlterTSDictionaryStmt")
 
 	for _, subNode := range node.Dictname {
 		subNode.Fingerprint(ctx)

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERTABLEMOVEALLSTMT")
+	ctx.WriteString("AlterTableMoveAllStmt")
 
 	if node.NewTablespacename != nil {
 		ctx.WriteString(*node.NewTablespacename)

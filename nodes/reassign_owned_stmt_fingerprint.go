@@ -3,7 +3,7 @@
 package pg_query
 
 func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("REASSIGNOWNEDSTMT")
+	ctx.WriteString("ReassignOwnedStmt")
 
 	if node.Newrole != nil {
 		ctx.WriteString(*node.Newrole)

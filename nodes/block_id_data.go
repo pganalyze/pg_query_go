@@ -28,7 +28,7 @@ type BlockIdData struct {
 func (node BlockIdData) MarshalJSON() ([]byte, error) {
 	type BlockIdDataMarshalAlias BlockIdData
 	return json.Marshal(map[string]interface{}{
-		"BLOCKIDDATA": (*BlockIdDataMarshalAlias)(&node),
+		"BlockIdData": (*BlockIdDataMarshalAlias)(&node),
 	})
 }
 

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node TypeName) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("TYPENAME")
+	ctx.WriteString("TypeName")
 
 	for _, subNode := range node.ArrayBounds {
 		subNode.Fingerprint(ctx)
@@ -19,6 +19,8 @@ func (node TypeName) Fingerprint(ctx FingerprintContext) {
 
 	ctx.WriteString(strconv.FormatBool(node.PctType))
 	ctx.WriteString(strconv.FormatBool(node.Setof))
+	ctx.WriteString(strconv.Itoa(int(node.TypeOid)))
+	ctx.WriteString(strconv.Itoa(int(node.Typemod)))
 
 	for _, subNode := range node.Typmods {
 		subNode.Fingerprint(ctx)

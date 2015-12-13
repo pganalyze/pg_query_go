@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node SortBy) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("SORTBY")
+	ctx.WriteString("SortBy")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Node != nil {

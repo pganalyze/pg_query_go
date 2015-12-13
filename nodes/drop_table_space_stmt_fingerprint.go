@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("DROPTABLESPACESTMT")
+	ctx.WriteString("DropTableSpaceStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Tablespacename != nil {

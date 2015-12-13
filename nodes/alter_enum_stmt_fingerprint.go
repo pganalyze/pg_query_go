@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERENUMSTMT")
+	ctx.WriteString("AlterEnumStmt")
 
 	if node.NewVal != nil {
 		ctx.WriteString(*node.NewVal)

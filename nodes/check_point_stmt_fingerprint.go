@@ -3,5 +3,5 @@
 package pg_query
 
 func (node CheckPointStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CHECKPOINT")
+	ctx.WriteString("CheckPointStmt")
 }

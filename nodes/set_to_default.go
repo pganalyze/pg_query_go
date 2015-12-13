@@ -12,7 +12,7 @@ import "encoding/json"
  * treat it as an expression node during parsing and rewriting.
  */
 type SetToDefault struct {
-	Xpr       Expr  `json:"xpr"`
+	Xpr       Node  `json:"xpr"`
 	TypeId    Oid   `json:"typeId"`    /* type for substituted value */
 	TypeMod   int32 `json:"typeMod"`   /* typemod for substituted value */
 	Collation Oid   `json:"collation"` /* collation for the substituted value */
@@ -22,7 +22,7 @@ type SetToDefault struct {
 func (node SetToDefault) MarshalJSON() ([]byte, error) {
 	type SetToDefaultMarshalAlias SetToDefault
 	return json.Marshal(map[string]interface{}{
-		"SETTODEFAULT": (*SetToDefaultMarshalAlias)(&node),
+		"SetToDefault": (*SetToDefaultMarshalAlias)(&node),
 	})
 }
 
@@ -35,7 +35,7 @@ func (node *SetToDefault) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

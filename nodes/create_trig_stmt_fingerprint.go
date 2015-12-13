@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATETRIGSTMT")
+	ctx.WriteString("CreateTrigStmt")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -20,6 +20,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Deferrable))
+	ctx.WriteString(strconv.Itoa(int(node.Events)))
 
 	for _, subNode := range node.Funcname {
 		subNode.Fingerprint(ctx)
@@ -33,6 +34,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext) {
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Row))
+	ctx.WriteString(strconv.Itoa(int(node.Timing)))
 
 	if node.Trigname != nil {
 		ctx.WriteString(*node.Trigname)

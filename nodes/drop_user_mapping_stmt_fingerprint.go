@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node DropUserMappingStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("DROPUSERMAPPINGSTMT")
+	ctx.WriteString("DropUserMappingStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Servername != nil {

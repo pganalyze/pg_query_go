@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node FunctionParameter) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("FUNCTIONPARAMETER")
+	ctx.WriteString("FunctionParameter")
 
 	if node.ArgType != nil {
 		node.ArgType.Fingerprint(ctx)

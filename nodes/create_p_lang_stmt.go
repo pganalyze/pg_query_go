@@ -21,7 +21,7 @@ type CreatePLangStmt struct {
 func (node CreatePLangStmt) MarshalJSON() ([]byte, error) {
 	type CreatePLangStmtMarshalAlias CreatePLangStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEPLANGSTMT": (*CreatePLangStmtMarshalAlias)(&node),
+		"CreatePLangStmt": (*CreatePLangStmtMarshalAlias)(&node),
 	})
 }
 

@@ -18,7 +18,7 @@ type AlterOpFamilyStmt struct {
 func (node AlterOpFamilyStmt) MarshalJSON() ([]byte, error) {
 	type AlterOpFamilyStmtMarshalAlias AlterOpFamilyStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTEROPFAMILYSTMT": (*AlterOpFamilyStmtMarshalAlias)(&node),
+		"AlterOpFamilyStmt": (*AlterOpFamilyStmtMarshalAlias)(&node),
 	})
 }
 

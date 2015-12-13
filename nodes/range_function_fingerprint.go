@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RangeFunction) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGEFUNCTION")
+	ctx.WriteString("RangeFunction")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)

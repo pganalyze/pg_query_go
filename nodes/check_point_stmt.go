@@ -14,7 +14,7 @@ type CheckPointStmt struct {
 func (node CheckPointStmt) MarshalJSON() ([]byte, error) {
 	type CheckPointStmtMarshalAlias CheckPointStmt
 	return json.Marshal(map[string]interface{}{
-		"CHECKPOINT": (*CheckPointStmtMarshalAlias)(&node),
+		"CheckPointStmt": (*CheckPointStmtMarshalAlias)(&node),
 	})
 }
 

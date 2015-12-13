@@ -37,7 +37,7 @@ type RangeTblFunction struct {
 func (node RangeTblFunction) MarshalJSON() ([]byte, error) {
 	type RangeTblFunctionMarshalAlias RangeTblFunction
 	return json.Marshal(map[string]interface{}{
-		"RANGETBLFUNCTION": (*RangeTblFunctionMarshalAlias)(&node),
+		"RangeTblFunction": (*RangeTblFunctionMarshalAlias)(&node),
 	})
 }
 

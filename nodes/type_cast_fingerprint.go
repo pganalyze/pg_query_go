@@ -3,7 +3,7 @@
 package pg_query
 
 func (node TypeCast) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("TYPECAST")
+	ctx.WriteString("TypeCast")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

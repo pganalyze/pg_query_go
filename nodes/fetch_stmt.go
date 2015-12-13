@@ -18,7 +18,7 @@ type FetchStmt struct {
 func (node FetchStmt) MarshalJSON() ([]byte, error) {
 	type FetchStmtMarshalAlias FetchStmt
 	return json.Marshal(map[string]interface{}{
-		"FETCHSTMT": (*FetchStmtMarshalAlias)(&node),
+		"FetchStmt": (*FetchStmtMarshalAlias)(&node),
 	})
 }
 

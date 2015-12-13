@@ -18,7 +18,7 @@ type A_Expr struct {
 func (node A_Expr) MarshalJSON() ([]byte, error) {
 	type A_ExprMarshalAlias A_Expr
 	return json.Marshal(map[string]interface{}{
-		"AEXPR": (*A_ExprMarshalAlias)(&node),
+		"A_Expr": (*A_ExprMarshalAlias)(&node),
 	})
 }
 

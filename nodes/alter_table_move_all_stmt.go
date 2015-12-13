@@ -15,7 +15,7 @@ type AlterTableMoveAllStmt struct {
 func (node AlterTableMoveAllStmt) MarshalJSON() ([]byte, error) {
 	type AlterTableMoveAllStmtMarshalAlias AlterTableMoveAllStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERTABLEMOVEALLSTMT": (*AlterTableMoveAllStmtMarshalAlias)(&node),
+		"AlterTableMoveAllStmt": (*AlterTableMoveAllStmtMarshalAlias)(&node),
 	})
 }
 

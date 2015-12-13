@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATE SCHEMA")
+	ctx.WriteString("CreateSchemaStmt")
 
 	if node.Authid != nil {
 		ctx.WriteString(*node.Authid)

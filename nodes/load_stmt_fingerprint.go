@@ -3,7 +3,7 @@
 package pg_query
 
 func (node LoadStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("LOADSTMT")
+	ctx.WriteString("LoadStmt")
 
 	if node.Filename != nil {
 		ctx.WriteString(*node.Filename)

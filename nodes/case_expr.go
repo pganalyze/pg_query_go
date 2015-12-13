@@ -27,19 +27,19 @@ import "encoding/json"
  *----------
  */
 type CaseExpr struct {
-	Xpr        Expr   `json:"xpr"`
+	Xpr        Node   `json:"xpr"`
 	Casetype   Oid    `json:"casetype"`   /* type of expression result */
 	Casecollid Oid    `json:"casecollid"` /* OID of collation, or InvalidOid if none */
-	Arg        *Expr  `json:"arg"`        /* implicit equality comparison argument */
+	Arg        Node   `json:"arg"`        /* implicit equality comparison argument */
 	Args       []Node `json:"args"`       /* the arguments (list of WHEN clauses) */
-	Defresult  *Expr  `json:"defresult"`  /* the default result (ELSE clause) */
+	Defresult  Node   `json:"defresult"`  /* the default result (ELSE clause) */
 	Location   int    `json:"location"`   /* token location, or -1 if unknown */
 }
 
 func (node CaseExpr) MarshalJSON() ([]byte, error) {
 	type CaseExprMarshalAlias CaseExpr
 	return json.Marshal(map[string]interface{}{
-		"CASE": (*CaseExprMarshalAlias)(&node),
+		"CaseExpr": (*CaseExprMarshalAlias)(&node),
 	})
 }
 
@@ -52,7 +52,7 @@ func (node *CaseExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
@@ -73,14 +73,9 @@ func (node *CaseExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["arg"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["arg"])
+		node.Arg, err = UnmarshalNodeJSON(fields["arg"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Arg = &val
 		}
 	}
 
@@ -92,14 +87,9 @@ func (node *CaseExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["defresult"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["defresult"])
+		node.Defresult, err = UnmarshalNodeJSON(fields["defresult"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Defresult = &val
 		}
 	}
 

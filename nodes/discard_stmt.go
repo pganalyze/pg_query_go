@@ -15,7 +15,7 @@ type DiscardStmt struct {
 func (node DiscardStmt) MarshalJSON() ([]byte, error) {
 	type DiscardStmtMarshalAlias DiscardStmt
 	return json.Marshal(map[string]interface{}{
-		"DISCARDSTMT": (*DiscardStmtMarshalAlias)(&node),
+		"DiscardStmt": (*DiscardStmtMarshalAlias)(&node),
 	})
 }
 

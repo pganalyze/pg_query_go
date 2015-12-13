@@ -21,7 +21,7 @@ type FromExpr struct {
 func (node FromExpr) MarshalJSON() ([]byte, error) {
 	type FromExprMarshalAlias FromExpr
 	return json.Marshal(map[string]interface{}{
-		"FROMEXPR": (*FromExprMarshalAlias)(&node),
+		"FromExpr": (*FromExprMarshalAlias)(&node),
 	})
 }
 

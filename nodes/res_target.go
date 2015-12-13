@@ -32,7 +32,7 @@ type ResTarget struct {
 func (node ResTarget) MarshalJSON() ([]byte, error) {
 	type ResTargetMarshalAlias ResTarget
 	return json.Marshal(map[string]interface{}{
-		"RESTARGET": (*ResTargetMarshalAlias)(&node),
+		"ResTarget": (*ResTargetMarshalAlias)(&node),
 	})
 }
 

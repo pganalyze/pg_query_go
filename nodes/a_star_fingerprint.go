@@ -3,5 +3,5 @@
 package pg_query
 
 func (node A_Star) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("A_STAR")
+	ctx.WriteString("A_Star")
 }

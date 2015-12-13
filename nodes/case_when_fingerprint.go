@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CaseWhen) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("WHEN")
+	ctx.WriteString("CaseWhen")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx)
@@ -13,5 +13,9 @@ func (node CaseWhen) Fingerprint(ctx FingerprintContext) {
 
 	if node.Result != nil {
 		node.Result.Fingerprint(ctx)
+	}
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
 	}
 }

@@ -17,7 +17,7 @@ type LockStmt struct {
 func (node LockStmt) MarshalJSON() ([]byte, error) {
 	type LockStmtMarshalAlias LockStmt
 	return json.Marshal(map[string]interface{}{
-		"LOCK": (*LockStmtMarshalAlias)(&node),
+		"LockStmt": (*LockStmtMarshalAlias)(&node),
 	})
 }
 

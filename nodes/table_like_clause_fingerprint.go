@@ -2,8 +2,11 @@
 
 package pg_query
 
+import "strconv"
+
 func (node TableLikeClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("TABLELIKECLAUSE")
+	ctx.WriteString("TableLikeClause")
+	ctx.WriteString(strconv.Itoa(int(node.Options)))
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)

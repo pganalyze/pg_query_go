@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node LockingClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("LOCKINGCLAUSE")
+	ctx.WriteString("LockingClause")
 
 	for _, subNode := range node.LockedRels {
 		subNode.Fingerprint(ctx)

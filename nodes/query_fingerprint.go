@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node Query) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("QUERY")
+	ctx.WriteString("Query")
 	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
 	ctx.WriteString(strconv.Itoa(int(node.CommandType)))
 
@@ -49,7 +49,9 @@ func (node Query) Fingerprint(ctx FingerprintContext) {
 		node.LimitOffset.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.QueryId)))
 	ctx.WriteString(strconv.Itoa(int(node.QuerySource)))
+	ctx.WriteString(strconv.Itoa(int(node.ResultRelation)))
 
 	for _, subNode := range node.ReturningList {
 		subNode.Fingerprint(ctx)

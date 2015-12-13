@@ -2,6 +2,15 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CaseTestExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CASETESTEXPR")
+	ctx.WriteString("CaseTestExpr")
+	ctx.WriteString(strconv.Itoa(int(node.Collation)))
+	ctx.WriteString(strconv.Itoa(int(node.TypeId)))
+	ctx.WriteString(strconv.Itoa(int(node.TypeMod)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

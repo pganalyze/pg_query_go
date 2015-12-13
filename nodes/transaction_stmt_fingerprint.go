@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node TransactionStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("TRANSACTION")
+	ctx.WriteString("TransactionStmt")
 
 	if node.Gid != nil {
 		ctx.WriteString(*node.Gid)

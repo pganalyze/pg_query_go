@@ -21,7 +21,7 @@ type DropRoleStmt struct {
 func (node DropRoleStmt) MarshalJSON() ([]byte, error) {
 	type DropRoleStmtMarshalAlias DropRoleStmt
 	return json.Marshal(map[string]interface{}{
-		"DROPROLESTMT": (*DropRoleStmtMarshalAlias)(&node),
+		"DropRoleStmt": (*DropRoleStmtMarshalAlias)(&node),
 	})
 }
 

@@ -3,7 +3,7 @@
 package pg_query
 
 func (node NotifyStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("NOTIFYSTMT")
+	ctx.WriteString("NotifyStmt")
 
 	if node.Conditionname != nil {
 		ctx.WriteString(*node.Conditionname)

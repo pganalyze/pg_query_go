@@ -3,7 +3,8 @@
 package pg_query
 
 func (node AlterEventTrigStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTEREVENTTRIGSTMT")
+	ctx.WriteString("AlterEventTrigStmt")
+	ctx.WriteString(string(node.Tgenabled))
 
 	if node.Trigname != nil {
 		ctx.WriteString(*node.Trigname)

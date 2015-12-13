@@ -3,7 +3,7 @@
 package pg_query
 
 func (node InsertStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("INSERT INTO")
+	ctx.WriteString("InsertStmt")
 
 	for _, subNode := range node.Cols {
 		subNode.Fingerprint(ctx)

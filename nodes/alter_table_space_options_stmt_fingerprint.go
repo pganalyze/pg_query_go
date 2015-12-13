@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterTableSpaceOptionsStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERTABLESPACEOPTIONSSTMT")
+	ctx.WriteString("AlterTableSpaceOptionsStmt")
 	ctx.WriteString(strconv.FormatBool(node.IsReset))
 
 	for _, subNode := range node.Options {

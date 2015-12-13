@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CommonTableExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COMMONTABLEEXPR")
+	ctx.WriteString("CommonTableExpr")
 
 	for _, subNode := range node.Aliascolnames {
 		subNode.Fingerprint(ctx)
@@ -36,5 +36,6 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext) {
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Cterecursive))
+	ctx.WriteString(strconv.Itoa(int(node.Cterefcount)))
 	// Intentionally ignoring node.Location for fingerprinting
 }

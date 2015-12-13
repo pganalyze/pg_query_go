@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CommentStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COMMENTSTMT")
+	ctx.WriteString("CommentStmt")
 
 	if node.Comment != nil {
 		ctx.WriteString(*node.Comment)

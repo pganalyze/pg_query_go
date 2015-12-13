@@ -13,7 +13,7 @@ type AlterTableSpaceOptionsStmt struct {
 func (node AlterTableSpaceOptionsStmt) MarshalJSON() ([]byte, error) {
 	type AlterTableSpaceOptionsStmtMarshalAlias AlterTableSpaceOptionsStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERTABLESPACEOPTIONSSTMT": (*AlterTableSpaceOptionsStmtMarshalAlias)(&node),
+		"AlterTableSpaceOptionsStmt": (*AlterTableSpaceOptionsStmtMarshalAlias)(&node),
 	})
 }
 

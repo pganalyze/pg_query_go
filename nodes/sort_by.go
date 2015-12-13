@@ -18,7 +18,7 @@ type SortBy struct {
 func (node SortBy) MarshalJSON() ([]byte, error) {
 	type SortByMarshalAlias SortBy
 	return json.Marshal(map[string]interface{}{
-		"SORTBY": (*SortByMarshalAlias)(&node),
+		"SortBy": (*SortByMarshalAlias)(&node),
 	})
 }
 

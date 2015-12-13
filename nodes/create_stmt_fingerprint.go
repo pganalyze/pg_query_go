@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATESTMT")
+	ctx.WriteString("CreateStmt")
 
 	for _, subNode := range node.Constraints {
 		subNode.Fingerprint(ctx)

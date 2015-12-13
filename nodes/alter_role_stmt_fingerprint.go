@@ -2,8 +2,11 @@
 
 package pg_query
 
+import "strconv"
+
 func (node AlterRoleStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERROLESTMT")
+	ctx.WriteString("AlterRoleStmt")
+	ctx.WriteString(strconv.Itoa(int(node.Action)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

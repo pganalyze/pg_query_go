@@ -2,13 +2,16 @@
 
 package pg_query
 
+import "strconv"
+
 func (node WindowDef) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("WINDOWDEF")
+	ctx.WriteString("WindowDef")
 
 	if node.EndOffset != nil {
 		node.EndOffset.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.FrameOptions)))
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {

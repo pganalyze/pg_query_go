@@ -3,7 +3,7 @@
 package pg_query
 
 func (node ClosePortalStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CLOSEPORTALSTMT")
+	ctx.WriteString("ClosePortalStmt")
 
 	if node.Portalname != nil {
 		ctx.WriteString(*node.Portalname)

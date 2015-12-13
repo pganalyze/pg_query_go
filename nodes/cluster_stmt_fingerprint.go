@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node ClusterStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CLUSTERSTMT")
+	ctx.WriteString("ClusterStmt")
 
 	if node.Indexname != nil {
 		ctx.WriteString(*node.Indexname)

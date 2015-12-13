@@ -21,7 +21,7 @@ type RuleStmt struct {
 func (node RuleStmt) MarshalJSON() ([]byte, error) {
 	type RuleStmtMarshalAlias RuleStmt
 	return json.Marshal(map[string]interface{}{
-		"RULESTMT": (*RuleStmtMarshalAlias)(&node),
+		"RuleStmt": (*RuleStmtMarshalAlias)(&node),
 	})
 }
 

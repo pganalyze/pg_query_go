@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RowCompareExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ROWCOMPARE")
+	ctx.WriteString("RowCompareExpr")
 
 	for _, subNode := range node.Inputcollids {
 		subNode.Fingerprint(ctx)
@@ -28,4 +28,8 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext) {
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Rctype)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

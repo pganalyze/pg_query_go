@@ -31,7 +31,7 @@ type AlterDomainStmt struct {
 func (node AlterDomainStmt) MarshalJSON() ([]byte, error) {
 	type AlterDomainStmtMarshalAlias AlterDomainStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERDOMAINSTMT": (*AlterDomainStmtMarshalAlias)(&node),
+		"AlterDomainStmt": (*AlterDomainStmtMarshalAlias)(&node),
 	})
 }
 

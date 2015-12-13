@@ -16,7 +16,7 @@ type CreatedbStmt struct {
 func (node CreatedbStmt) MarshalJSON() ([]byte, error) {
 	type CreatedbStmtMarshalAlias CreatedbStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEDBSTMT": (*CreatedbStmtMarshalAlias)(&node),
+		"CreatedbStmt": (*CreatedbStmtMarshalAlias)(&node),
 	})
 }
 

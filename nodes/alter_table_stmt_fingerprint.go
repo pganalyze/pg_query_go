@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterTableStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTER TABLE")
+	ctx.WriteString("AlterTableStmt")
 
 	for _, subNode := range node.Cmds {
 		subNode.Fingerprint(ctx)

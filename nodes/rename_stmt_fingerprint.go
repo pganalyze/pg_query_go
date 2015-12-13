@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RenameStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RENAMESTMT")
+	ctx.WriteString("RenameStmt")
 	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 

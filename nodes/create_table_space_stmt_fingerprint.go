@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATETABLESPACESTMT")
+	ctx.WriteString("CreateTableSpaceStmt")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	for _, subNode := range node.Options {

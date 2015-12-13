@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CollateClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COLLATECLAUSE")
+	ctx.WriteString("CollateClause")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)

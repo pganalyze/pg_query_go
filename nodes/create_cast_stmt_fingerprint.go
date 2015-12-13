@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateCastStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATECASTSTMT")
+	ctx.WriteString("CreateCastStmt")
 	ctx.WriteString(strconv.Itoa(int(node.Context)))
 
 	if node.Func != nil {

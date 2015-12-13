@@ -5,8 +5,9 @@ package pg_query
 import "strconv"
 
 func (node InlineCodeBlock) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("INLINECODEBLOCK")
+	ctx.WriteString("InlineCodeBlock")
 	ctx.WriteString(strconv.FormatBool(node.LangIsTrusted))
+	ctx.WriteString(strconv.Itoa(int(node.LangOid)))
 
 	if node.SourceText != nil {
 		ctx.WriteString(*node.SourceText)

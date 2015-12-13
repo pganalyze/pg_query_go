@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEFOREIGNSERVERSTMT")
+	ctx.WriteString("CreateForeignServerStmt")
 
 	if node.Fdwname != nil {
 		ctx.WriteString(*node.Fdwname)

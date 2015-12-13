@@ -3,7 +3,7 @@
 package pg_query
 
 func (node VariableShowStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("SHOW")
+	ctx.WriteString("VariableShowStmt")
 
 	if node.Name != nil {
 		ctx.WriteString(*node.Name)

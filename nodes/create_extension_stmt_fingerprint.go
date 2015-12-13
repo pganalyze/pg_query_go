@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEEXTENSIONSTMT")
+	ctx.WriteString("CreateExtensionStmt")
 
 	if node.Extname != nil {
 		ctx.WriteString(*node.Extname)

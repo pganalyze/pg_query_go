@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CoerceToDomain) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COERCETODOMAIN")
+	ctx.WriteString("CoerceToDomain")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -13,4 +13,12 @@ func (node CoerceToDomain) Fingerprint(ctx FingerprintContext) {
 
 	ctx.WriteString(strconv.Itoa(int(node.Coercionformat)))
 	// Intentionally ignoring node.Location for fingerprinting
+
+	ctx.WriteString(strconv.Itoa(int(node.Resultcollid)))
+	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
+	ctx.WriteString(strconv.Itoa(int(node.Resulttypmod)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

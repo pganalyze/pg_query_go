@@ -2,10 +2,13 @@
 
 package pg_query
 
-import "strconv"
+import (
+	"sort"
+	"strconv"
+)
 
 func (node SelectStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("SELECT")
+	ctx.WriteString("SelectStmt")
 	ctx.WriteString(strconv.FormatBool(node.All))
 
 	for _, subNode := range node.DistinctClause {
@@ -54,8 +57,20 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	var targetListFingerprints FingerprintSubContextSlice
+
 	for _, subNode := range node.TargetList {
-		subNode.Fingerprint(ctx)
+		subCtx := &FingerprintSubContext{}
+		subNode.Fingerprint(subCtx)
+		targetListFingerprints = append(targetListFingerprints, *subCtx)
+	}
+
+	sort.Sort(targetListFingerprints)
+
+	for _, fingerprint := range targetListFingerprints {
+		for _, part := range fingerprint.parts {
+			ctx.WriteString(part)
+		}
 	}
 
 	for _, nodeList := range node.ValuesLists {

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node ReindexStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("REINDEXSTMT")
+	ctx.WriteString("ReindexStmt")
 	ctx.WriteString(strconv.FormatBool(node.DoSystem))
 	ctx.WriteString(strconv.FormatBool(node.DoUser))
 	ctx.WriteString(strconv.Itoa(int(node.Kind)))

@@ -20,7 +20,7 @@ type AlterObjectSchemaStmt struct {
 func (node AlterObjectSchemaStmt) MarshalJSON() ([]byte, error) {
 	type AlterObjectSchemaStmtMarshalAlias AlterObjectSchemaStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTEROBJECTSCHEMASTMT": (*AlterObjectSchemaStmtMarshalAlias)(&node),
+		"AlterObjectSchemaStmt": (*AlterObjectSchemaStmtMarshalAlias)(&node),
 	})
 }
 

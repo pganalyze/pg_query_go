@@ -3,7 +3,8 @@
 package pg_query
 
 func (node CreateForeignTableStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEFOREIGNTABLESTMT")
+	ctx.WriteString("CreateForeignTableStmt")
+	node.Base.Fingerprint(ctx)
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

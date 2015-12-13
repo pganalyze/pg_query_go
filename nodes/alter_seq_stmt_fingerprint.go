@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERSEQSTMT")
+	ctx.WriteString("AlterSeqStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	for _, subNode := range node.Options {

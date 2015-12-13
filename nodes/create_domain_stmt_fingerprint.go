@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEDOMAINSTMT")
+	ctx.WriteString("CreateDomainStmt")
 
 	if node.CollClause != nil {
 		node.CollClause.Fingerprint(ctx)

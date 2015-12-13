@@ -25,7 +25,7 @@ type IntoClause struct {
 func (node IntoClause) MarshalJSON() ([]byte, error) {
 	type IntoClauseMarshalAlias IntoClause
 	return json.Marshal(map[string]interface{}{
-		"INTOCLAUSE": (*IntoClauseMarshalAlias)(&node),
+		"IntoClause": (*IntoClauseMarshalAlias)(&node),
 	})
 }
 

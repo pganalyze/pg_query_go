@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateEnumStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEENUMSTMT")
+	ctx.WriteString("CreateEnumStmt")
 
 	for _, subNode := range node.TypeName {
 		subNode.Fingerprint(ctx)

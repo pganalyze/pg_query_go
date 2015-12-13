@@ -3,7 +3,7 @@
 package pg_query
 
 func (node DeleteStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("DELETE FROM")
+	ctx.WriteString("DeleteStmt")
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx)

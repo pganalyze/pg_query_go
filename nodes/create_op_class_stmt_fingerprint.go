@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEOPCLASSSTMT")
+	ctx.WriteString("CreateOpClassStmt")
 
 	if node.Amname != nil {
 		ctx.WriteString(*node.Amname)

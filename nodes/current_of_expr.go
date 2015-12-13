@@ -17,7 +17,7 @@ import "encoding/json"
  * case is for the convenience of plpgsql.
  */
 type CurrentOfExpr struct {
-	Xpr         Expr    `json:"xpr"`
+	Xpr         Node    `json:"xpr"`
 	Cvarno      Index   `json:"cvarno"`       /* RT index of target relation */
 	CursorName  *string `json:"cursor_name"`  /* name of referenced cursor, or NULL */
 	CursorParam int     `json:"cursor_param"` /* refcursor parameter number, or 0 */
@@ -26,7 +26,7 @@ type CurrentOfExpr struct {
 func (node CurrentOfExpr) MarshalJSON() ([]byte, error) {
 	type CurrentOfExprMarshalAlias CurrentOfExpr
 	return json.Marshal(map[string]interface{}{
-		"CURRENTOFEXPR": (*CurrentOfExprMarshalAlias)(&node),
+		"CurrentOfExpr": (*CurrentOfExprMarshalAlias)(&node),
 	})
 }
 
@@ -39,7 +39,7 @@ func (node *CurrentOfExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

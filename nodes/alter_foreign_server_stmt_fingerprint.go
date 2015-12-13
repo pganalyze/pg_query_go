@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERFOREIGNSERVERSTMT")
+	ctx.WriteString("AlterForeignServerStmt")
 	ctx.WriteString(strconv.FormatBool(node.HasVersion))
 
 	for _, subNode := range node.Options {

@@ -2,16 +2,23 @@
 
 package pg_query
 
+import "strconv"
+
 func (node NamedArgExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("NAMEDARGEXPR")
+	ctx.WriteString("NamedArgExpr")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.Argnumber)))
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
 		ctx.WriteString(*node.Name)
+	}
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
 	}
 }

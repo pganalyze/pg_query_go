@@ -2,6 +2,9 @@
 
 package pg_query
 
+import "strconv"
+
 func (node RangeTblRef) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGETBLREF")
+	ctx.WriteString("RangeTblRef")
+	ctx.WriteString(strconv.Itoa(int(node.Rtindex)))
 }

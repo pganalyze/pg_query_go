@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATE TABLE AS")
+	ctx.WriteString("CreateTableAsStmt")
 
 	if node.Into != nil {
 		node.Into.Fingerprint(ctx)

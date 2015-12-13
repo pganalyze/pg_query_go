@@ -25,7 +25,7 @@ type ColumnRef struct {
 func (node ColumnRef) MarshalJSON() ([]byte, error) {
 	type ColumnRefMarshalAlias ColumnRef
 	return json.Marshal(map[string]interface{}{
-		"COLUMNREF": (*ColumnRefMarshalAlias)(&node),
+		"ColumnRef": (*ColumnRefMarshalAlias)(&node),
 	})
 }
 

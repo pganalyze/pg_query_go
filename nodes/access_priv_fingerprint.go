@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AccessPriv) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ACCESSPRIV")
+	ctx.WriteString("AccessPriv")
 
 	for _, subNode := range node.Cols {
 		subNode.Fingerprint(ctx)

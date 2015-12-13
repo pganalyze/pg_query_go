@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("INDEXSTMT")
+	ctx.WriteString("IndexStmt")
 
 	if node.AccessMethod != nil {
 		ctx.WriteString(*node.AccessMethod)
@@ -26,12 +26,15 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext) {
 		ctx.WriteString(*node.Idxname)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.IndexOid)))
+
 	for _, subNode := range node.IndexParams {
 		subNode.Fingerprint(ctx)
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
 	ctx.WriteString(strconv.FormatBool(node.Isconstraint))
+	ctx.WriteString(strconv.Itoa(int(node.OldNode)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

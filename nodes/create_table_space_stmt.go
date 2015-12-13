@@ -18,7 +18,7 @@ type CreateTableSpaceStmt struct {
 func (node CreateTableSpaceStmt) MarshalJSON() ([]byte, error) {
 	type CreateTableSpaceStmtMarshalAlias CreateTableSpaceStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATETABLESPACESTMT": (*CreateTableSpaceStmtMarshalAlias)(&node),
+		"CreateTableSpaceStmt": (*CreateTableSpaceStmtMarshalAlias)(&node),
 	})
 }
 

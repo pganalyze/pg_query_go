@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node FuncCall) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("FUNCCALL")
+	ctx.WriteString("FuncCall")
 	ctx.WriteString(strconv.FormatBool(node.AggDistinct))
 
 	if node.AggFilter != nil {

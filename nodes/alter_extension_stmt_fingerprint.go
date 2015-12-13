@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTEREXTENSIONSTMT")
+	ctx.WriteString("AlterExtensionStmt")
 
 	if node.Extname != nil {
 		ctx.WriteString(*node.Extname)

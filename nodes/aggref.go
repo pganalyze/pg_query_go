@@ -27,7 +27,7 @@ import "encoding/json"
  * expressions, not TargetEntry nodes).
  */
 type Aggref struct {
-	Xpr           Expr   `json:"xpr"`
+	Xpr           Node   `json:"xpr"`
 	Aggfnoid      Oid    `json:"aggfnoid"`      /* pg_proc Oid of the aggregate */
 	Aggtype       Oid    `json:"aggtype"`       /* type Oid of result of the aggregate */
 	Aggcollid     Oid    `json:"aggcollid"`     /* OID of collation of result */
@@ -36,7 +36,7 @@ type Aggref struct {
 	Args          []Node `json:"args"`          /* aggregated arguments and sort expressions */
 	Aggorder      []Node `json:"aggorder"`      /* ORDER BY (list of SortGroupClause) */
 	Aggdistinct   []Node `json:"aggdistinct"`   /* DISTINCT (list of SortGroupClause) */
-	Aggfilter     *Expr  `json:"aggfilter"`     /* FILTER expression, if any */
+	Aggfilter     Node   `json:"aggfilter"`     /* FILTER expression, if any */
 	Aggstar       bool   `json:"aggstar"`       /* TRUE if argument list was really '*' */
 	Aggvariadic   bool   `json:"aggvariadic"`   /* true if variadic arguments have been
 	 * combined into an array last argument */
@@ -49,7 +49,7 @@ type Aggref struct {
 func (node Aggref) MarshalJSON() ([]byte, error) {
 	type AggrefMarshalAlias Aggref
 	return json.Marshal(map[string]interface{}{
-		"AGGREF": (*AggrefMarshalAlias)(&node),
+		"Aggref": (*AggrefMarshalAlias)(&node),
 	})
 }
 
@@ -62,7 +62,7 @@ func (node *Aggref) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
@@ -125,14 +125,9 @@ func (node *Aggref) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["aggfilter"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["aggfilter"])
+		node.Aggfilter, err = UnmarshalNodeJSON(fields["aggfilter"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Aggfilter = &val
 		}
 	}
 

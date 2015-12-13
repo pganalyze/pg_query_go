@@ -14,7 +14,7 @@ import "encoding/json"
  * to be a member of the domain if we haven't yet checked its constraints.
  */
 type CoerceToDomainValue struct {
-	Xpr       Expr  `json:"xpr"`
+	Xpr       Node  `json:"xpr"`
 	TypeId    Oid   `json:"typeId"`    /* type for substituted value */
 	TypeMod   int32 `json:"typeMod"`   /* typemod for substituted value */
 	Collation Oid   `json:"collation"` /* collation for the substituted value */
@@ -24,7 +24,7 @@ type CoerceToDomainValue struct {
 func (node CoerceToDomainValue) MarshalJSON() ([]byte, error) {
 	type CoerceToDomainValueMarshalAlias CoerceToDomainValue
 	return json.Marshal(map[string]interface{}{
-		"COERCETODOMAINVALUE": (*CoerceToDomainValueMarshalAlias)(&node),
+		"CoerceToDomainValue": (*CoerceToDomainValueMarshalAlias)(&node),
 	})
 }
 
@@ -37,7 +37,7 @@ func (node *CoerceToDomainValue) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

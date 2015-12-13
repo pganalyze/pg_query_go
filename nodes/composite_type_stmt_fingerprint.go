@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CompositeTypeStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COMPOSITETYPESTMT")
+	ctx.WriteString("CompositeTypeStmt")
 
 	for _, subNode := range node.Coldeflist {
 		subNode.Fingerprint(ctx)

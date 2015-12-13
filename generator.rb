@@ -1,4 +1,5 @@
 # rubocop:disable Style/PerlBackrefs, Metrics/AbcSize, Metrics/LineLength, Metrics/MethodLength, Style/WordArray, Metrics/ClassLength, Style/Documentation, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Style/TrailingComma, Style/RegexpLiteral
+
 require 'bundler'
 
 def underscore(str)
@@ -44,7 +45,6 @@ class Generator
     'Node', 'NodeTag', 'varlena', 'IntArray', 'nameData', 'bool',
     'sig_atomic_t', 'size_t', 'varatt_indirect',
     # 'NullTest', 'BooleanTest', # These fail the compilation process - tbd why
-    'A_Const', # Need to do some special handling because of how we do Value nodes
   ]
 
   def generate_defs!
@@ -56,7 +56,7 @@ class Generator
     @struct_defs = {}
     @typedefs = []
 
-    ['nodes/parsenodes', 'nodes/plannodes', 'nodes/primnodes', 'nodes/relation',
+    ['nodes/parsenodes', 'nodes/primnodes',
      'nodes/nodes', 'nodes/params', 'access/attnum', 'c', 'postgres', 'postgres_ext',
      'storage/block', 'access/sdir'].each do |group|
       @target_group = group
@@ -144,42 +144,13 @@ class Generator
     end
   end
 
-  OUTNODE_NAME_OVERRIDES = {
-    'VacuumStmt' => 'VACUUM',
-    'InsertStmt' => 'INSERT INTO',
-    'DeleteStmt' => 'DELETE FROM',
-    'UpdateStmt' => 'UPDATE',
-    'SelectStmt' => 'SELECT',
-    'AlterTableStmt' => 'ALTER TABLE',
-    'AlterTableCmd' => 'ALTER TABLE CMD',
-    'CopyStmt' => 'COPY',
-    'DropStmt' => 'DROP',
-    'TruncateStmt' => 'TRUNCATE',
-    'TransactionStmt' => 'TRANSACTION',
-    'ExplainStmt' => 'EXPLAIN',
-    'CreateTableAsStmt' => 'CREATE TABLE AS',
-    'VariableSetStmt' => 'SET',
-    'VariableShowStmt' => 'SHOW',
-    'LockStmt' => 'LOCK',
-    'CheckPointStmt' => 'CHECKPOINT',
-    'CreateSchemaStmt' => 'CREATE SCHEMA',
-    'DeclareCursorStmt' => 'DECLARECURSOR',
-    'CollateExpr' => 'COLLATE',
-    'CaseExpr' => 'CASE',
-    'CaseWhen' => 'WHEN',
-    'ArrayExpr' => 'ARRAY',
-    'RowExpr' => 'ROW',
-    'RowCompareExpr' => 'ROWCOMPARE',
-    'CoalesceExpr' => 'COALESCE',
-    'MinMaxExpr' => 'MINMAX',
-    'A_Expr' => 'AEXPR',
-  }
-
   GO_TYPE_OVERRIDES = {
-    ['SelectStmt', 'valuesLists'] => '[][]Node'
+    ['SelectStmt', 'valuesLists'] => '[][]Node',
+    ['Float', 'str'] => 'string',
+    ['String', 'str'] => 'string',
+    ['BitString', 'str'] => 'string',
   }
 
-  GO_INT_TYPES = ['int64', 'uint32', 'uint64']
   def map_to_go_type(c_type)
     return if c_type == 'NodeTag' # Ignore
     return if ['ParamFetchHook', 'ParserSetupHook', 'FdwRoutine*'].include?(c_type) # Ignore (function pointers)
@@ -187,10 +158,10 @@ class Generator
 
     if c_type == 'List*'
       '[]Node'
+    elsif ['Node*', 'Value', 'Expr', 'Expr*'].include?(c_type)
+      'Node'
     elsif @nodetypes.include?(c_type[0..-2])
       '*' + c_type[0..-2]
-    elsif c_type == 'Node*'
-      'Node'
     elsif ['bool', 'int', 'int16', 'int32', 'uint', 'uint16', 'uint32'].include?(c_type)
       c_type
     elsif ['char*', 'NameData'].include?(c_type)
@@ -244,10 +215,6 @@ class Generator
       'VacuumStmt' => 'VacuumOption',
       'ViewStmt' => 'ViewCheckOption',
     },
-    'nodes/plannodes' => {
-      'Agg' => 'AggStrategy',
-      'SetOp' => 'SetOpCmd',
-    },
     'nodes/primnodes' => {
       'MinMaxExpr' => 'MinMaxOp',
       'Param' => 'ParamKind',
@@ -255,9 +222,6 @@ class Generator
       'SubLink' => 'SubLinkType',
       'BooleanTest' => 'BoolTestType',
       'NullTest' => 'NullTestType',
-    },
-    'nodes/relation' => {
-      'RelOptInfo' => 'RelOptKind',
     }
   }
   COMMENT_STRUCT_TO_STRUCT = {
@@ -277,9 +241,6 @@ class Generator
       'DropTableSpaceStmt' => 'CreateTableSpaceStmt',
       'FunctionParameter' => 'CreateFunctionStmt',
       'InlineCodeBlock' => 'DoStmt',
-    },
-    'nodes/plannodes' => {
-      'NestLoopParam' => 'NestLoop',
     },
     'nodes/params' => {
       'ParamListInfoData' => 'ParamExternData',
@@ -303,11 +264,16 @@ class Generator
   FINGERPRINT_OVERRIDE_NODES = {
     'A_Const' => :skip,
     'Alias' => :skip,
-    'Paramref' => :skip,
+    'ParamRef' => :skip,
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
-    'location' => :skip,
+    [nil, 'location'] => :skip,
+    ['ResTarget', 'name'] => :skip,
+    ['SelectStmt', 'targetList'] => :sorted_nodes,
   }
+  GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
+  GO_INT_ARRAY_TYPES = ['[]uint32']
+  GO_FLOAT_TYPES = ['Cost']
 
   def generate!
     generate_nodetypes!
@@ -316,11 +282,16 @@ class Generator
 
     node_unmarshal_cases = []
 
+    @struct_defs['nodes/value'] = {}
+    @struct_defs['nodes/value']['Integer'] = { fields: [{ name: 'ival', c_type: 'long' }] }
+    @struct_defs['nodes/value']['Float'] = { fields: [{ name: 'str', c_type: 'char*' }] }
+    @struct_defs['nodes/value']['String'] = { fields: [{ name: 'str', c_type: 'char*' }] }
+    @struct_defs['nodes/value']['BitString'] = { fields: [{ name: 'str', c_type: 'char*' }] }
+    @struct_defs['nodes/value']['Null'] = { fields: [] }
+
     @struct_defs.each do |source_filename, defs|
       defs.each do |type, struct_def|
         next if IGNORE_LIST.include?(type)
-
-        json_key = OUTNODE_NAME_OVERRIDES[type] || type.upcase
 
         struct_def_go = ''
         unmarshal_def = ''
@@ -372,15 +343,30 @@ class Generator
           fp_override = '// Intentionally ignoring all fields for fingerprinting' if fp_override == :skip
           fingerprint_def = fp_override
         else
-          fingerprint_def = format("ctx.WriteString(\"%s\")\n", json_key)
+          fingerprint_def = format("ctx.WriteString(\"%s\")\n", type)
           struct_def[:fields].reject { |f| f[:name].nil? }.sort_by { |f| f[:name] }.each do |field|
             go_name = classify(field[:name])
             go_type = GO_TYPE_OVERRIDES[[type, field[:name]]] || map_to_go_type(field[:c_type])
             next unless go_type
 
-            fp_override = FINGERPRINT_OVERRIDE_FIELDS[field[:name]]
+            fp_override = FINGERPRINT_OVERRIDE_FIELDS[[type, field[:name]]] || FINGERPRINT_OVERRIDE_FIELDS[[nil, field[:name]]]
             if fp_override
-              fp_override = format('// Intentionally ignoring node.%s for fingerprinting', go_name) if fp_override == :skip
+              if fp_override == :skip
+                fp_override = format('// Intentionally ignoring node.%s for fingerprinting', go_name)
+              elsif fp_override == :sorted_nodes
+                fp_override = format("var %sFingerprints FingerprintSubContextSlice\n\n", field[:name])
+                fp_override += format("for _, subNode := range node.%s {\n", go_name)
+                fp_override += "subCtx := &FingerprintSubContext{}\n"
+                fp_override += "subNode.Fingerprint(subCtx)\n"
+                fp_override += format("%sFingerprints = append(%sFingerprints, *subCtx)\n", field[:name], field[:name])
+                fp_override += "}\n\n"
+                fp_override += format("sort.Sort(%sFingerprints)\n\n", field[:name])
+                fp_override += format("for _, fingerprint := range %sFingerprints {\n", field[:name])
+                fp_override += "for _, part := range fingerprint.parts {\n"
+                fp_override += "ctx.WriteString(part)\n"
+                fp_override += "}\n"
+                fp_override += "}\n\n"
+              end
               fingerprint_def += fp_override + "\n\n"
               next
             end
@@ -400,18 +386,28 @@ class Generator
               fingerprint_def += format("\nif node.%s != nil {", go_name)
               fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
               fingerprint_def += "}\n\n"
+            when 'CreateStmt'
+              fingerprint_def += format("node.%s.Fingerprint(ctx)\n", go_name)
             when 'byte'
-              # FIXME
+              fingerprint_def += format("ctx.WriteString(string(node.%s))\n", go_name)
             when 'string'
               fingerprint_def += format("ctx.WriteString(node.%s)\n", go_name)
             when '*string'
               fingerprint_def += format("\nif node.%s != nil {", go_name)
               fingerprint_def += format("ctx.WriteString(*node.%s)\n", go_name)
               fingerprint_def += "}\n\n"
-            when GO_INT_TYPES
-              fingerprint_def += format("ctx.WriteString(strconv.Itoa(node.%s))\n", go_name)
             when 'bool'
               fingerprint_def += format("ctx.WriteString(strconv.FormatBool(node.%s))\n", go_name)
+            when 'Datum', 'interface{}'
+              # Ignore
+            when *GO_INT_TYPES
+              fingerprint_def += format("ctx.WriteString(strconv.Itoa(int(node.%s)))\n", go_name)
+            when *GO_INT_ARRAY_TYPES
+              fingerprint_def += format("\nfor _, val := range node.%s {\n", go_name)
+              fingerprint_def += "ctx.WriteString(strconv.Itoa(int(val)))\n"
+              fingerprint_def += "}\n\n"
+            when *GO_FLOAT_TYPES
+              fingerprint_def += format("ctx.WriteString(strconv.FormatFloat(float64(node.%s), 'E', -1, 64))\n", go_name)
             else
               if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
                 fingerprint_def += format("\nif node.%s != nil {", go_name)
@@ -420,8 +416,10 @@ class Generator
               elsif @all_known_enums.include?(go_type)
                 fingerprint_def += format("ctx.WriteString(strconv.Itoa(int(node.%s)))\n", go_name)
               else
-                puts go_type
-                # FIXME
+                # This shouldn't happen - if it does the above is missing something :-)
+                puts type
+                puts go_name
+                fail go_type
               end
             end
           end
@@ -438,7 +436,7 @@ type #{type} struct {
 func (node #{type}) MarshalJSON() ([]byte, error) {
   type #{type}MarshalAlias #{type}
   return json.Marshal(map[string]interface{}{
-    "#{json_key}": (*#{type}MarshalAlias)(&node),
+    "#{type}": (*#{type}MarshalAlias)(&node),
   })
 }
 
@@ -470,17 +468,15 @@ func (node #{type}) Fingerprint(ctx FingerprintContext) {
 }
         ), true)
 
-        node_unmarshal_cases << [json_key, type]
+        node_unmarshal_cases << type
       end
     end
 
-    node_unmarshal_cases << ['A_CONST', 'A_Const']
-
     node_unmarshal_go = ''
-    node_unmarshal_cases.each do |json_key, go_type|
+    node_unmarshal_cases.each do |type|
       node_unmarshal_go += %(
-      case "#{json_key}":
-      var outNode #{go_type}
+      case "#{type}":
+      var outNode #{type}
       err = json.Unmarshal(jsonText, &outNode)
       if err != nil {
         return
@@ -496,14 +492,6 @@ import (
 
 func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
   if input == nil || string(input) == "null" {
-    return
-  }
-
-  // Simple heuristic to catch value nodes
-  if (!strings.HasPrefix(string(input), "{")) {
-    var value Value
-    err = json.Unmarshal(input, &value)
-    node = value
     return
   }
 

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node Constraint) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CONSTRAINT")
+	ctx.WriteString("Constraint")
 
 	if node.AccessMethod != nil {
 		ctx.WriteString(*node.AccessMethod)
@@ -31,6 +31,10 @@ func (node Constraint) Fingerprint(ctx FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(string(node.FkDelAction))
+	ctx.WriteString(string(node.FkMatchtype))
+	ctx.WriteString(string(node.FkUpdAction))
+
 	if node.Indexname != nil {
 		ctx.WriteString(*node.Indexname)
 	}
@@ -52,6 +56,8 @@ func (node Constraint) Fingerprint(ctx FingerprintContext) {
 	for _, subNode := range node.OldConpfeqop {
 		subNode.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.OldPktableOid)))
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

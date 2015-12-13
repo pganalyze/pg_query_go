@@ -3,7 +3,7 @@
 package pg_query
 
 func (node A_Indices) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("A_INDICES")
+	ctx.WriteString("A_Indices")
 
 	if node.Lidx != nil {
 		node.Lidx.Fingerprint(ctx)

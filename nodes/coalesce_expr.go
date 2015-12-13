@@ -8,7 +8,7 @@ import "encoding/json"
  * CoalesceExpr - a COALESCE expression
  */
 type CoalesceExpr struct {
-	Xpr            Expr   `json:"xpr"`
+	Xpr            Node   `json:"xpr"`
 	Coalescetype   Oid    `json:"coalescetype"`   /* type of expression result */
 	Coalescecollid Oid    `json:"coalescecollid"` /* OID of collation, or InvalidOid if none */
 	Args           []Node `json:"args"`           /* the arguments */
@@ -18,7 +18,7 @@ type CoalesceExpr struct {
 func (node CoalesceExpr) MarshalJSON() ([]byte, error) {
 	type CoalesceExprMarshalAlias CoalesceExpr
 	return json.Marshal(map[string]interface{}{
-		"COALESCE": (*CoalesceExprMarshalAlias)(&node),
+		"CoalesceExpr": (*CoalesceExprMarshalAlias)(&node),
 	})
 }
 
@@ -31,7 +31,7 @@ func (node *CoalesceExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

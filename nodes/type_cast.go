@@ -16,7 +16,7 @@ type TypeCast struct {
 func (node TypeCast) MarshalJSON() ([]byte, error) {
 	type TypeCastMarshalAlias TypeCast
 	return json.Marshal(map[string]interface{}{
-		"TYPECAST": (*TypeCastMarshalAlias)(&node),
+		"TypeCast": (*TypeCastMarshalAlias)(&node),
 	})
 }
 

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node WithCheckOption) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("WITHCHECKOPTION")
+	ctx.WriteString("WithCheckOption")
 	ctx.WriteString(strconv.FormatBool(node.Cascaded))
 
 	if node.Qual != nil {

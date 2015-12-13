@@ -2,12 +2,16 @@
 
 package pg_query
 
+import "strconv"
+
 func (node RangeTblFunction) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGETBLFUNCTION")
+	ctx.WriteString("RangeTblFunction")
 
 	for _, subNode := range node.Funccolcollations {
 		subNode.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Funccolcount)))
 
 	for _, subNode := range node.Funccolnames {
 		subNode.Fingerprint(ctx)
@@ -23,5 +27,9 @@ func (node RangeTblFunction) Fingerprint(ctx FingerprintContext) {
 
 	if node.Funcexpr != nil {
 		node.Funcexpr.Fingerprint(ctx)
+	}
+
+	for _, val := range node.Funcparams {
+		ctx.WriteString(strconv.Itoa(int(val)))
 	}
 }

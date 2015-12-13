@@ -31,7 +31,7 @@ type TypeName struct {
 func (node TypeName) MarshalJSON() ([]byte, error) {
 	type TypeNameMarshalAlias TypeName
 	return json.Marshal(map[string]interface{}{
-		"TYPENAME": (*TypeNameMarshalAlias)(&node),
+		"TypeName": (*TypeNameMarshalAlias)(&node),
 	})
 }
 

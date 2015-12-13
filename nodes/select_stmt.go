@@ -66,7 +66,7 @@ type SelectStmt struct {
 func (node SelectStmt) MarshalJSON() ([]byte, error) {
 	type SelectStmtMarshalAlias SelectStmt
 	return json.Marshal(map[string]interface{}{
-		"SELECT": (*SelectStmtMarshalAlias)(&node),
+		"SelectStmt": (*SelectStmtMarshalAlias)(&node),
 	})
 }
 

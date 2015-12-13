@@ -31,7 +31,7 @@ type VacuumStmt struct {
 func (node VacuumStmt) MarshalJSON() ([]byte, error) {
 	type VacuumStmtMarshalAlias VacuumStmt
 	return json.Marshal(map[string]interface{}{
-		"VACUUM": (*VacuumStmtMarshalAlias)(&node),
+		"VacuumStmt": (*VacuumStmtMarshalAlias)(&node),
 	})
 }
 

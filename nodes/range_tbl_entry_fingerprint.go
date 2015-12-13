@@ -5,11 +5,13 @@ package pg_query
 import "strconv"
 
 func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGETBLENTRY")
+	ctx.WriteString("RangeTblEntry")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.CheckAsUser)))
 
 	for _, subNode := range node.Ctecolcollations {
 		subNode.Fingerprint(ctx)
@@ -22,6 +24,8 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 	for _, subNode := range node.Ctecoltypmods {
 		subNode.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Ctelevelsup)))
 
 	if node.Ctename != nil {
 		ctx.WriteString(*node.Ctename)
@@ -46,6 +50,14 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 
 	ctx.WriteString(strconv.Itoa(int(node.Jointype)))
 	ctx.WriteString(strconv.FormatBool(node.Lateral))
+
+	for _, val := range node.ModifiedCols {
+		ctx.WriteString(strconv.Itoa(int(val)))
+	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Relid)))
+	ctx.WriteString(string(node.Relkind))
+	ctx.WriteString(strconv.Itoa(int(node.RequiredPerms)))
 	ctx.WriteString(strconv.Itoa(int(node.Rtekind)))
 
 	for _, subNode := range node.SecurityQuals {
@@ -53,6 +65,11 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext) {
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.SecurityBarrier))
+
+	for _, val := range node.SelectedCols {
+		ctx.WriteString(strconv.Itoa(int(val)))
+	}
+
 	ctx.WriteString(strconv.FormatBool(node.SelfReference))
 
 	if node.Subquery != nil {

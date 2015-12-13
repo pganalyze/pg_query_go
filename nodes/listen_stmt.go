@@ -15,7 +15,7 @@ type ListenStmt struct {
 func (node ListenStmt) MarshalJSON() ([]byte, error) {
 	type ListenStmtMarshalAlias ListenStmt
 	return json.Marshal(map[string]interface{}{
-		"LISTENSTMT": (*ListenStmtMarshalAlias)(&node),
+		"ListenStmt": (*ListenStmtMarshalAlias)(&node),
 	})
 }
 

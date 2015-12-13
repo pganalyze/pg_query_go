@@ -2,8 +2,10 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CaseExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CASE")
+	ctx.WriteString("CaseExpr")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -13,9 +15,16 @@ func (node CaseExpr) Fingerprint(ctx FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.Casecollid)))
+	ctx.WriteString(strconv.Itoa(int(node.Casetype)))
+
 	if node.Defresult != nil {
 		node.Defresult.Fingerprint(ctx)
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

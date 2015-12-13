@@ -3,7 +3,7 @@
 package pg_query
 
 func (node PrivGrantee) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("PRIVGRANTEE")
+	ctx.WriteString("PrivGrantee")
 
 	if node.Rolname != nil {
 		ctx.WriteString(*node.Rolname)

@@ -14,7 +14,7 @@ import "encoding/json"
  * tree to the executor, but during parsing/planning opfuncid can be 0.
  */
 type OpExpr struct {
-	Xpr          Expr   `json:"xpr"`
+	Xpr          Node   `json:"xpr"`
 	Opno         Oid    `json:"opno"`         /* PG_OPERATOR OID of the operator */
 	Opfuncid     Oid    `json:"opfuncid"`     /* PG_PROC OID of underlying function */
 	Opresulttype Oid    `json:"opresulttype"` /* PG_TYPE OID of result value */
@@ -28,7 +28,7 @@ type OpExpr struct {
 func (node OpExpr) MarshalJSON() ([]byte, error) {
 	type OpExprMarshalAlias OpExpr
 	return json.Marshal(map[string]interface{}{
-		"OPEXPR": (*OpExprMarshalAlias)(&node),
+		"OpExpr": (*OpExprMarshalAlias)(&node),
 	})
 }
 
@@ -41,7 +41,7 @@ func (node *OpExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

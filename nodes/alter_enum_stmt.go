@@ -19,7 +19,7 @@ type AlterEnumStmt struct {
 func (node AlterEnumStmt) MarshalJSON() ([]byte, error) {
 	type AlterEnumStmtMarshalAlias AlterEnumStmt
 	return json.Marshal(map[string]interface{}{
-		"ALTERENUMSTMT": (*AlterEnumStmtMarshalAlias)(&node),
+		"AlterEnumStmt": (*AlterEnumStmtMarshalAlias)(&node),
 	})
 }
 

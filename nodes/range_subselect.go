@@ -16,7 +16,7 @@ type RangeSubselect struct {
 func (node RangeSubselect) MarshalJSON() ([]byte, error) {
 	type RangeSubselectMarshalAlias RangeSubselect
 	return json.Marshal(map[string]interface{}{
-		"RANGESUBSELECT": (*RangeSubselectMarshalAlias)(&node),
+		"RangeSubselect": (*RangeSubselectMarshalAlias)(&node),
 	})
 }
 

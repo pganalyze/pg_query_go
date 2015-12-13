@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEEVENTTRIGSTMT")
+	ctx.WriteString("CreateEventTrigStmt")
 
 	if node.Eventname != nil {
 		ctx.WriteString(*node.Eventname)

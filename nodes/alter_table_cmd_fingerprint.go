@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterTableCmd) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTER TABLE CMD")
+	ctx.WriteString("AlterTableCmd")
 	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
 
 	if node.Def != nil {

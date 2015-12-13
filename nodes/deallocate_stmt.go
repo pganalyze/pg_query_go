@@ -17,7 +17,7 @@ type DeallocateStmt struct {
 func (node DeallocateStmt) MarshalJSON() ([]byte, error) {
 	type DeallocateStmtMarshalAlias DeallocateStmt
 	return json.Marshal(map[string]interface{}{
-		"DEALLOCATESTMT": (*DeallocateStmtMarshalAlias)(&node),
+		"DeallocateStmt": (*DeallocateStmtMarshalAlias)(&node),
 	})
 }
 

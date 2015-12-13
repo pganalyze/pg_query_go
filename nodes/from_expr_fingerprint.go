@@ -3,7 +3,7 @@
 package pg_query
 
 func (node FromExpr) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("FROMEXPR")
+	ctx.WriteString("FromExpr")
 
 	for _, subNode := range node.Fromlist {
 		subNode.Fingerprint(ctx)

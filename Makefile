@@ -8,7 +8,7 @@ default: test
 
 $(LIBDIR): $(LIBDIRGZ)
 	cd $(TMPDIR); tar -xzf $(LIBDIRGZ)
-	cd $(LIBDIR); make
+	cd $(LIBDIR); make JSON_OUTPUT_V2=1
 
 $(LIBDIRGZ):
 	mkdir -p $(TMPDIR)

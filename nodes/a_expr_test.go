@@ -27,7 +27,7 @@ var aExprTests = []struct {
 		},
 	},
 	{
-		`{"name": ["="], "lexpr": {"COLUMNREF": {"fields": ["z"], "location": 22}}, "rexpr": {"A_CONST": {"type": "integer", "val": 1, "location": 26}}, "location": 24}`,
+		`{"name": ["="], "lexpr": {"ColumnRef": {"fields": ["z"], "location": 22}}, "rexpr": {"A_Const": {"type": "integer", "val": 1, "location": 26}}, "location": 24}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_OP,
 			Name: []nodes.Node{

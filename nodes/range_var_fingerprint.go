@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RangeVar) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RANGEVAR")
+	ctx.WriteString("RangeVar")
 
 	if node.Alias != nil {
 		node.Alias.Fingerprint(ctx)
@@ -21,6 +21,8 @@ func (node RangeVar) Fingerprint(ctx FingerprintContext) {
 	if node.Relname != nil {
 		ctx.WriteString(*node.Relname)
 	}
+
+	ctx.WriteString(string(node.Relpersistence))
 
 	if node.Schemaname != nil {
 		ctx.WriteString(*node.Schemaname)

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node IntoClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("INTOCLAUSE")
+	ctx.WriteString("IntoClause")
 
 	for _, subNode := range node.ColNames {
 		subNode.Fingerprint(ctx)

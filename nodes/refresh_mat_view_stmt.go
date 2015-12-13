@@ -17,7 +17,7 @@ type RefreshMatViewStmt struct {
 func (node RefreshMatViewStmt) MarshalJSON() ([]byte, error) {
 	type RefreshMatViewStmtMarshalAlias RefreshMatViewStmt
 	return json.Marshal(map[string]interface{}{
-		"REFRESHMATVIEWSTMT": (*RefreshMatViewStmtMarshalAlias)(&node),
+		"RefreshMatViewStmt": (*RefreshMatViewStmtMarshalAlias)(&node),
 	})
 }
 

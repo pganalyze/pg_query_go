@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node SecLabelStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("SECLABELSTMT")
+	ctx.WriteString("SecLabelStmt")
 
 	if node.Label != nil {
 		ctx.WriteString(*node.Label)

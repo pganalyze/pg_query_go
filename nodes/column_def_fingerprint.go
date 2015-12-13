@@ -5,11 +5,13 @@ package pg_query
 import "strconv"
 
 func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("COLUMNDEF")
+	ctx.WriteString("ColumnDef")
 
 	if node.CollClause != nil {
 		node.CollClause.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.CollOid)))
 
 	if node.Colname != nil {
 		ctx.WriteString(*node.Colname)
@@ -27,6 +29,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.Inhcount)))
 	ctx.WriteString(strconv.FormatBool(node.IsFromType))
 	ctx.WriteString(strconv.FormatBool(node.IsLocal))
 	ctx.WriteString(strconv.FormatBool(node.IsNotNull))
@@ -35,6 +38,8 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext) {
 	if node.RawDefault != nil {
 		node.RawDefault.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(string(node.Storage))
 
 	if node.TypeName != nil {
 		node.TypeName.Fingerprint(ctx)

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATECONVERSIONSTMT")
+	ctx.WriteString("CreateConversionStmt")
 
 	for _, subNode := range node.ConversionName {
 		subNode.Fingerprint(ctx)

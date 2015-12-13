@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node XmlSerialize) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("XMLSERIALIZE")
+	ctx.WriteString("XmlSerialize")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx)

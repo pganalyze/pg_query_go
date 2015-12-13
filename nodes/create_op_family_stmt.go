@@ -16,7 +16,7 @@ type CreateOpFamilyStmt struct {
 func (node CreateOpFamilyStmt) MarshalJSON() ([]byte, error) {
 	type CreateOpFamilyStmtMarshalAlias CreateOpFamilyStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEOPFAMILYSTMT": (*CreateOpFamilyStmtMarshalAlias)(&node),
+		"CreateOpFamilyStmt": (*CreateOpFamilyStmtMarshalAlias)(&node),
 	})
 }
 

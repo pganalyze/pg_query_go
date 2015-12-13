@@ -17,7 +17,7 @@ type DoStmt struct {
 func (node DoStmt) MarshalJSON() ([]byte, error) {
 	type DoStmtMarshalAlias DoStmt
 	return json.Marshal(map[string]interface{}{
-		"DOSTMT": (*DoStmtMarshalAlias)(&node),
+		"DoStmt": (*DoStmtMarshalAlias)(&node),
 	})
 }
 

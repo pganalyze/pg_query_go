@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEUSERMAPPINGSTMT")
+	ctx.WriteString("CreateUserMappingStmt")
 
 	for _, subNode := range node.Options {
 		subNode.Fingerprint(ctx)

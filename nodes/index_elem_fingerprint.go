@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node IndexElem) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("INDEXELEM")
+	ctx.WriteString("IndexElem")
 
 	for _, subNode := range node.Collation {
 		subNode.Fingerprint(ctx)

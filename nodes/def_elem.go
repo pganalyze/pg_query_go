@@ -24,7 +24,7 @@ type DefElem struct {
 func (node DefElem) MarshalJSON() ([]byte, error) {
 	type DefElemMarshalAlias DefElem
 	return json.Marshal(map[string]interface{}{
-		"DEFELEM": (*DefElemMarshalAlias)(&node),
+		"DefElem": (*DefElemMarshalAlias)(&node),
 	})
 }
 

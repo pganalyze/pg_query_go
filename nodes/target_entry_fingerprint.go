@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node TargetEntry) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("TARGETENTRY")
+	ctx.WriteString("TargetEntry")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx)
@@ -15,5 +15,14 @@ func (node TargetEntry) Fingerprint(ctx FingerprintContext) {
 
 	if node.Resname != nil {
 		ctx.WriteString(*node.Resname)
+	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Resno)))
+	ctx.WriteString(strconv.Itoa(int(node.Resorigcol)))
+	ctx.WriteString(strconv.Itoa(int(node.Resorigtbl)))
+	ctx.WriteString(strconv.Itoa(int(node.Ressortgroupref)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
 	}
 }

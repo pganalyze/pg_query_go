@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node RelabelType) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("RELABELTYPE")
+	ctx.WriteString("RelabelType")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -14,4 +14,11 @@ func (node RelabelType) Fingerprint(ctx FingerprintContext) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	ctx.WriteString(strconv.Itoa(int(node.Relabelformat)))
+	ctx.WriteString(strconv.Itoa(int(node.Resultcollid)))
+	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
+	ctx.WriteString(strconv.Itoa(int(node.Resulttypmod)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

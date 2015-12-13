@@ -17,7 +17,7 @@ type FuncWithArgs struct {
 func (node FuncWithArgs) MarshalJSON() ([]byte, error) {
 	type FuncWithArgsMarshalAlias FuncWithArgs
 	return json.Marshal(map[string]interface{}{
-		"FUNCWITHARGS": (*FuncWithArgsMarshalAlias)(&node),
+		"FuncWithArgs": (*FuncWithArgsMarshalAlias)(&node),
 	})
 }
 

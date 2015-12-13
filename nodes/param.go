@@ -30,7 +30,7 @@ import "encoding/json"
  * ----------------
  */
 type Param struct {
-	Xpr         Expr      `json:"xpr"`
+	Xpr         Node      `json:"xpr"`
 	Paramkind   ParamKind `json:"paramkind"`   /* kind of parameter. See above */
 	Paramid     int       `json:"paramid"`     /* numeric ID for parameter */
 	Paramtype   Oid       `json:"paramtype"`   /* pg_type OID of parameter's datatype */
@@ -42,7 +42,7 @@ type Param struct {
 func (node Param) MarshalJSON() ([]byte, error) {
 	type ParamMarshalAlias Param
 	return json.Marshal(map[string]interface{}{
-		"PARAM": (*ParamMarshalAlias)(&node),
+		"Param": (*ParamMarshalAlias)(&node),
 	})
 }
 
@@ -55,7 +55,7 @@ func (node *Param) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

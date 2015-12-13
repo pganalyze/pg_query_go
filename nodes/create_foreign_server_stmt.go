@@ -19,7 +19,7 @@ type CreateForeignServerStmt struct {
 func (node CreateForeignServerStmt) MarshalJSON() ([]byte, error) {
 	type CreateForeignServerStmtMarshalAlias CreateForeignServerStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEFOREIGNSERVERSTMT": (*CreateForeignServerStmtMarshalAlias)(&node),
+		"CreateForeignServerStmt": (*CreateForeignServerStmtMarshalAlias)(&node),
 	})
 }
 

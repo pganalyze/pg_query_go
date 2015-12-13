@@ -22,7 +22,7 @@ type CreateRoleStmt struct {
 func (node CreateRoleStmt) MarshalJSON() ([]byte, error) {
 	type CreateRoleStmtMarshalAlias CreateRoleStmt
 	return json.Marshal(map[string]interface{}{
-		"CREATEROLESTMT": (*CreateRoleStmtMarshalAlias)(&node),
+		"CreateRoleStmt": (*CreateRoleStmtMarshalAlias)(&node),
 	})
 }
 

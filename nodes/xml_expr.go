@@ -5,7 +5,7 @@ package pg_query
 import "encoding/json"
 
 type XmlExpr struct {
-	Xpr       Expr          `json:"xpr"`
+	Xpr       Node          `json:"xpr"`
 	Op        XmlExprOp     `json:"op"`         /* xml function ID */
 	Name      *string       `json:"name"`       /* name in xml(NAME foo ...) syntaxes */
 	NamedArgs []Node        `json:"named_args"` /* non-XML expressions for xml_attributes */
@@ -20,7 +20,7 @@ type XmlExpr struct {
 func (node XmlExpr) MarshalJSON() ([]byte, error) {
 	type XmlExprMarshalAlias XmlExpr
 	return json.Marshal(map[string]interface{}{
-		"XMLEXPR": (*XmlExprMarshalAlias)(&node),
+		"XmlExpr": (*XmlExprMarshalAlias)(&node),
 	})
 }
 
@@ -33,7 +33,7 @@ func (node *XmlExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

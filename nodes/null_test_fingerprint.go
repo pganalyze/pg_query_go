@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node NullTest) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("NULLTEST")
+	ctx.WriteString("NullTest")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -13,4 +13,8 @@ func (node NullTest) Fingerprint(ctx FingerprintContext) {
 
 	ctx.WriteString(strconv.FormatBool(node.Argisrow))
 	ctx.WriteString(strconv.Itoa(int(node.Nulltesttype)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
+	}
 }

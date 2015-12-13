@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERDEFAULTPRIVILEGESSTMT")
+	ctx.WriteString("AlterDefaultPrivilegesStmt")
 
 	if node.Action != nil {
 		node.Action.Fingerprint(ctx)

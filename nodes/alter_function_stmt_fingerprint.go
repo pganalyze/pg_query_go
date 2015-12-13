@@ -3,7 +3,7 @@
 package pg_query
 
 func (node AlterFunctionStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTERFUNCTIONSTMT")
+	ctx.WriteString("AlterFunctionStmt")
 
 	for _, subNode := range node.Actions {
 		subNode.Fingerprint(ctx)

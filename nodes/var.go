@@ -6,7 +6,7 @@ import "encoding/json"
 
 /* Symbols for the indexes of the special RTE entries in rules */
 type Var struct {
-	Xpr   Expr  `json:"xpr"`
+	Xpr   Node  `json:"xpr"`
 	Varno Index `json:"varno"` /* index of this var's relation in the range
 	 * table, or INNER_VAR/OUTER_VAR/INDEX_VAR */
 
@@ -28,7 +28,7 @@ type Var struct {
 func (node Var) MarshalJSON() ([]byte, error) {
 	type VarMarshalAlias Var
 	return json.Marshal(map[string]interface{}{
-		"VAR": (*VarMarshalAlias)(&node),
+		"Var": (*VarMarshalAlias)(&node),
 	})
 }
 
@@ -41,7 +41,7 @@ func (node *Var) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

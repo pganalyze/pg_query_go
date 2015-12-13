@@ -17,7 +17,7 @@ type ClosePortalStmt struct {
 func (node ClosePortalStmt) MarshalJSON() ([]byte, error) {
 	type ClosePortalStmtMarshalAlias ClosePortalStmt
 	return json.Marshal(map[string]interface{}{
-		"CLOSEPORTALSTMT": (*ClosePortalStmtMarshalAlias)(&node),
+		"ClosePortalStmt": (*ClosePortalStmtMarshalAlias)(&node),
 	})
 }
 

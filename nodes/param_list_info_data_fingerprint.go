@@ -2,6 +2,9 @@
 
 package pg_query
 
+import "strconv"
+
 func (node ParamListInfoData) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("PARAMLISTINFODATA")
+	ctx.WriteString("ParamListInfoData")
+	ctx.WriteString(strconv.Itoa(int(node.NumParams)))
 }

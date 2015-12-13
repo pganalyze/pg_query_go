@@ -2,8 +2,11 @@
 
 package pg_query
 
+import "strconv"
+
 func (node DeclareCursorStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("DECLARECURSOR")
+	ctx.WriteString("DeclareCursorStmt")
+	ctx.WriteString(strconv.Itoa(int(node.Options)))
 
 	if node.Portalname != nil {
 		ctx.WriteString(*node.Portalname)

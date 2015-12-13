@@ -76,7 +76,7 @@ type Query struct {
 func (node Query) MarshalJSON() ([]byte, error) {
 	type QueryMarshalAlias Query
 	return json.Marshal(map[string]interface{}{
-		"QUERY": (*QueryMarshalAlias)(&node),
+		"Query": (*QueryMarshalAlias)(&node),
 	})
 }
 

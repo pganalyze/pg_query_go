@@ -3,6 +3,5 @@
 package pg_query
 
 func (node ParamRef) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("PARAMREF")
-	// Intentionally ignoring node.Location for fingerprinting
+	// Intentionally ignoring all fields for fingerprinting
 }

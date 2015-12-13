@@ -19,7 +19,7 @@ type AccessPriv struct {
 func (node AccessPriv) MarshalJSON() ([]byte, error) {
 	type AccessPrivMarshalAlias AccessPriv
 	return json.Marshal(map[string]interface{}{
-		"ACCESSPRIV": (*AccessPrivMarshalAlias)(&node),
+		"AccessPriv": (*AccessPrivMarshalAlias)(&node),
 	})
 }
 

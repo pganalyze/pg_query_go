@@ -41,7 +41,7 @@ type JoinExpr struct {
 func (node JoinExpr) MarshalJSON() ([]byte, error) {
 	type JoinExprMarshalAlias JoinExpr
 	return json.Marshal(map[string]interface{}{
-		"JOINEXPR": (*JoinExprMarshalAlias)(&node),
+		"JoinExpr": (*JoinExprMarshalAlias)(&node),
 	})
 }
 

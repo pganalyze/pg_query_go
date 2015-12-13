@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/lfittl/pg_query.go"
+	nodes "github.com/lfittl/pg_query.go/nodes"
 )
 
 var fingerprintTests = []struct {
@@ -14,27 +15,34 @@ var fingerprintTests = []struct {
 }{
 	{
 		"SELECT 1",
-		[]string{"SELECT", "false", "0", "RESTARGET"},
-		"4a76edca1a5766d542e5bde019dc8a7ee4f51726",
+		[]string{"SelectStmt", "false", "0", "ResTarget"},
+		"31dc5500dc27777a26160cb1b0faa11495f150d8",
 	},
 	{
 		"SELECT 2",
-		[]string{"SELECT", "false", "0", "RESTARGET"},
-		"4a76edca1a5766d542e5bde019dc8a7ee4f51726",
+		[]string{"SelectStmt", "false", "0", "ResTarget"},
+		"31dc5500dc27777a26160cb1b0faa11495f150d8",
 	},
 	{
 		"SELECT COUNT(DISTINCT id), * FROM targets WHERE something IS NOT NULL AND elsewhere::interval < now()",
-		[]string{"SELECT", "false", "RANGEVAR", "2", "targets", "0", "RESTARGET", "FUNCCALL", "true", "false", "false", "COLUMNREF", "653", "id", "0", "false", "653", "count", "0", "RESTARGET", "COLUMNREF", "A_STAR"},
-		"feb7587c16f46a5fd771c841cf8cb66aa21c692a",
+		[]string{"SelectStmt", "false", "RangeVar", "2", "targets", "p", "0", "ResTarget", "ColumnRef",
+			"A_Star", "ResTarget", "FuncCall", "true", "false", "false", "ColumnRef", "String",
+			"id", "false", "String", "count", "A_Expr", "1", "NullTest", "ColumnRef", "String",
+			"something", "false", "1", "A_Expr", "0", "TypeCast", "ColumnRef", "String", "elsewhere",
+			"TypeName", "String", "pg_catalog", "String", "interval", "false", "false", "0", "-1",
+			"String", "<", "FuncCall", "false", "false", "false", "false", "String", "now"},
+		"1e014ccea580bb5dea8b4a66893b3c508d6261f0",
 	},
-}
-
-type FingerprintTestContext struct {
-	parts []string
-}
-
-func (ctx *FingerprintTestContext) WriteString(str string) {
-	ctx.parts = append(ctx.parts, str)
+	{
+		"INSERT INTO test (a, b) VALUES (?, ?)",
+		[]string{"InsertStmt", "ResTarget", "a", "ResTarget", "b", "RangeVar", "2", "test", "p", "SelectStmt", "false", "0"},
+		"f3f2847a56d9b67f11e1905d2365bc627f852220",
+	},
+	{
+		"INSERT INTO test (b, a) VALUES (?, ?)",
+		[]string{"InsertStmt", "ResTarget", "a", "ResTarget", "b", "RangeVar", "2", "test", "p", "SelectStmt", "false", "0"},
+		"f3f2847a56d9b67f11e1905d2365bc627f852220",
+	},
 }
 
 func TestFingerprint(t *testing.T) {
@@ -44,12 +52,12 @@ func TestFingerprint(t *testing.T) {
 			t.Errorf("Fingerprint(%s)\nparse error %s\n\n", test.input, err)
 		}
 
-		ctx := &FingerprintTestContext{}
+		ctx := &nodes.FingerprintSubContext{}
 		for _, node := range actualTree.Statements {
 			node.Fingerprint(ctx)
 		}
-		if !reflect.DeepEqual(ctx.parts, test.expectedParts) {
-			t.Errorf("Fingerprint(%s)\nexpected parts %v\nactual parts %v\n\n", test.input, test.expectedParts, ctx.parts)
+		if !reflect.DeepEqual(ctx.Sum(), test.expectedParts) {
+			t.Errorf("Fingerprint(%s)\nexpected parts %v\nactual parts %v\n\n", test.input, test.expectedParts, ctx.Sum())
 		}
 
 		actual := actualTree.Fingerprint()

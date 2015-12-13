@@ -14,7 +14,7 @@ type DeclareCursorStmt struct {
 func (node DeclareCursorStmt) MarshalJSON() ([]byte, error) {
 	type DeclareCursorStmtMarshalAlias DeclareCursorStmt
 	return json.Marshal(map[string]interface{}{
-		"DECLARECURSOR": (*DeclareCursorStmtMarshalAlias)(&node),
+		"DeclareCursorStmt": (*DeclareCursorStmtMarshalAlias)(&node),
 	})
 }
 

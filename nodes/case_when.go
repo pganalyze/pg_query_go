@@ -8,16 +8,16 @@ import "encoding/json"
  * CaseWhen - one arm of a CASE expression
  */
 type CaseWhen struct {
-	Xpr      Expr  `json:"xpr"`
-	Expr     *Expr `json:"expr"`     /* condition expression */
-	Result   *Expr `json:"result"`   /* substitution result */
-	Location int   `json:"location"` /* token location, or -1 if unknown */
+	Xpr      Node `json:"xpr"`
+	Expr     Node `json:"expr"`     /* condition expression */
+	Result   Node `json:"result"`   /* substitution result */
+	Location int  `json:"location"` /* token location, or -1 if unknown */
 }
 
 func (node CaseWhen) MarshalJSON() ([]byte, error) {
 	type CaseWhenMarshalAlias CaseWhen
 	return json.Marshal(map[string]interface{}{
-		"WHEN": (*CaseWhenMarshalAlias)(&node),
+		"CaseWhen": (*CaseWhenMarshalAlias)(&node),
 	})
 }
 
@@ -30,33 +30,23 @@ func (node *CaseWhen) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["expr"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["expr"])
+		node.Expr, err = UnmarshalNodeJSON(fields["expr"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Expr = &val
 		}
 	}
 
 	if fields["result"] != nil {
-		var nodePtr *Node
-		nodePtr, err = UnmarshalNodePtrJSON(fields["result"])
+		node.Result, err = UnmarshalNodeJSON(fields["result"])
 		if err != nil {
 			return
-		}
-		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(Expr)
-			node.Result = &val
 		}
 	}
 

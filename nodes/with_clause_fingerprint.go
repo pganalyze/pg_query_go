@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node WithClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("WITHCLAUSE")
+	ctx.WriteString("WithClause")
 
 	for _, subNode := range node.Ctes {
 		subNode.Fingerprint(ctx)

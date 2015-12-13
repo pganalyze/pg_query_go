@@ -3,7 +3,7 @@
 package pg_query
 
 func (node CreateFdwStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEFDWSTMT")
+	ctx.WriteString("CreateFdwStmt")
 
 	if node.Fdwname != nil {
 		ctx.WriteString(*node.Fdwname)

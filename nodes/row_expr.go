@@ -28,7 +28,7 @@ import "encoding/json"
  * args list, colnames is one-for-one with physical fields of the rowtype.
  */
 type RowExpr struct {
-	Xpr       Expr   `json:"xpr"`
+	Xpr       Node   `json:"xpr"`
 	Args      []Node `json:"args"`       /* the fields */
 	RowTypeid Oid    `json:"row_typeid"` /* RECORDOID or a composite type's ID */
 
@@ -49,7 +49,7 @@ type RowExpr struct {
 func (node RowExpr) MarshalJSON() ([]byte, error) {
 	type RowExprMarshalAlias RowExpr
 	return json.Marshal(map[string]interface{}{
-		"ROW": (*RowExprMarshalAlias)(&node),
+		"RowExpr": (*RowExprMarshalAlias)(&node),
 	})
 }
 
@@ -62,7 +62,7 @@ func (node *RowExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

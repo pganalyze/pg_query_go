@@ -2,8 +2,10 @@
 
 package pg_query
 
+import "strconv"
+
 func (node FieldStore) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("FIELDSTORE")
+	ctx.WriteString("FieldStore")
 
 	if node.Arg != nil {
 		node.Arg.Fingerprint(ctx)
@@ -15,5 +17,11 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext) {
 
 	for _, subNode := range node.Newvals {
 		subNode.Fingerprint(ctx)
+	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
+
+	if node.Xpr != nil {
+		node.Xpr.Fingerprint(ctx)
 	}
 }

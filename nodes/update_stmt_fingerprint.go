@@ -3,7 +3,7 @@
 package pg_query
 
 func (node UpdateStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("UPDATE")
+	ctx.WriteString("UpdateStmt")
 
 	for _, subNode := range node.FromClause {
 		subNode.Fingerprint(ctx)

@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node SetOperationStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("SETOPERATIONSTMT")
+	ctx.WriteString("SetOperationStmt")
 	ctx.WriteString(strconv.FormatBool(node.All))
 
 	for _, subNode := range node.ColCollations {

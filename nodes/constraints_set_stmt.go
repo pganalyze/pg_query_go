@@ -16,7 +16,7 @@ type ConstraintsSetStmt struct {
 func (node ConstraintsSetStmt) MarshalJSON() ([]byte, error) {
 	type ConstraintsSetStmtMarshalAlias ConstraintsSetStmt
 	return json.Marshal(map[string]interface{}{
-		"CONSTRAINTSSETSTMT": (*ConstraintsSetStmtMarshalAlias)(&node),
+		"ConstraintsSetStmt": (*ConstraintsSetStmtMarshalAlias)(&node),
 	})
 }
 

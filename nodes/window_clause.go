@@ -33,7 +33,7 @@ type WindowClause struct {
 func (node WindowClause) MarshalJSON() ([]byte, error) {
 	type WindowClauseMarshalAlias WindowClause
 	return json.Marshal(map[string]interface{}{
-		"WINDOWCLAUSE": (*WindowClauseMarshalAlias)(&node),
+		"WindowClause": (*WindowClauseMarshalAlias)(&node),
 	})
 }
 

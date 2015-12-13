@@ -5,7 +5,7 @@ package pg_query
 import "strconv"
 
 func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("ALTEROBJECTSCHEMASTMT")
+	ctx.WriteString("AlterObjectSchemaStmt")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Newschema != nil {

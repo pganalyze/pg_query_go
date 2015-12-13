@@ -2,8 +2,10 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("CREATEOPCLASSITEM")
+	ctx.WriteString("CreateOpClassItem")
 
 	for _, subNode := range node.Args {
 		subNode.Fingerprint(ctx)
@@ -13,9 +15,13 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext) {
 		subNode.Fingerprint(ctx)
 	}
 
+	ctx.WriteString(strconv.Itoa(int(node.Itemtype)))
+
 	for _, subNode := range node.Name {
 		subNode.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Number)))
 
 	for _, subNode := range node.OrderFamily {
 		subNode.Fingerprint(ctx)

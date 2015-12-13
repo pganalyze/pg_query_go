@@ -48,7 +48,7 @@ import "encoding/json"
  * in SubPlans generated for WITH subqueries.
  */
 type SubLink struct {
-	Xpr         Expr        `json:"xpr"`
+	Xpr         Node        `json:"xpr"`
 	SubLinkType SubLinkType `json:"subLinkType"` /* see above */
 	Testexpr    Node        `json:"testexpr"`    /* outer-query test for ALL/ANY/ROWCOMPARE */
 	OperName    []Node      `json:"operName"`    /* originally specified operator name */
@@ -59,7 +59,7 @@ type SubLink struct {
 func (node SubLink) MarshalJSON() ([]byte, error) {
 	type SubLinkMarshalAlias SubLink
 	return json.Marshal(map[string]interface{}{
-		"SUBLINK": (*SubLinkMarshalAlias)(&node),
+		"SubLink": (*SubLinkMarshalAlias)(&node),
 	})
 }
 
@@ -72,7 +72,7 @@ func (node *SubLink) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["xpr"] != nil {
-		err = json.Unmarshal(fields["xpr"], &node.Xpr)
+		node.Xpr, err = UnmarshalNodeJSON(fields["xpr"])
 		if err != nil {
 			return
 		}

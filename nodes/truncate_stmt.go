@@ -17,7 +17,7 @@ type TruncateStmt struct {
 func (node TruncateStmt) MarshalJSON() ([]byte, error) {
 	type TruncateStmtMarshalAlias TruncateStmt
 	return json.Marshal(map[string]interface{}{
-		"TRUNCATE": (*TruncateStmtMarshalAlias)(&node),
+		"TruncateStmt": (*TruncateStmtMarshalAlias)(&node),
 	})
 }
 

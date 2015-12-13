@@ -5,12 +5,14 @@ package pg_query
 import "strconv"
 
 func (node WindowClause) Fingerprint(ctx FingerprintContext) {
-	ctx.WriteString("WINDOWCLAUSE")
+	ctx.WriteString("WindowClause")
 	ctx.WriteString(strconv.FormatBool(node.CopiedOrder))
 
 	if node.EndOffset != nil {
 		node.EndOffset.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.FrameOptions)))
 
 	if node.Name != nil {
 		ctx.WriteString(*node.Name)
@@ -31,4 +33,6 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext) {
 	if node.StartOffset != nil {
 		node.StartOffset.Fingerprint(ctx)
 	}
+
+	ctx.WriteString(strconv.Itoa(int(node.Winref)))
 }
