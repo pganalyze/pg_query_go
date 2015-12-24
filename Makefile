@@ -20,6 +20,7 @@ clean:
 	-@ $(RM) -r $(TMPDIR)
 
 test: build
+	go get github.com/kr/pretty
 	go test -v ./ ./nodes
 
 .PHONY: default build clean test
