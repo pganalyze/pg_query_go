@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type AlterFunctionStmt struct {
 	Func    *FuncWithArgs `json:"func"`    /* name and args of function */
-	Actions []Node        `json:"actions"` /* list of DefElem */
+	Actions List          `json:"actions"` /* list of DefElem */
 }
 
 func (node AlterFunctionStmt) MarshalJSON() ([]byte, error) {
@@ -41,7 +41,7 @@ func (node *AlterFunctionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["actions"] != nil {
-		node.Actions, err = UnmarshalNodeArrayJSON(fields["actions"])
+		node.Actions.Items, err = UnmarshalNodeArrayJSON(fields["actions"])
 		if err != nil {
 			return
 		}

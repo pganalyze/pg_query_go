@@ -13,13 +13,13 @@ import "encoding/json"
  * type as array_typeid); at runtime we must check for compatible subscripts.
  */
 type ArrayExpr struct {
-	Xpr           Node   `json:"xpr"`
-	ArrayTypeid   Oid    `json:"array_typeid"`   /* type of expression result */
-	ArrayCollid   Oid    `json:"array_collid"`   /* OID of collation, or InvalidOid if none */
-	ElementTypeid Oid    `json:"element_typeid"` /* common type of array elements */
-	Elements      []Node `json:"elements"`       /* the array elements or sub-arrays */
-	Multidims     bool   `json:"multidims"`      /* true if elements are sub-arrays */
-	Location      int    `json:"location"`       /* token location, or -1 if unknown */
+	Xpr           Node `json:"xpr"`
+	ArrayTypeid   Oid  `json:"array_typeid"`   /* type of expression result */
+	ArrayCollid   Oid  `json:"array_collid"`   /* OID of collation, or InvalidOid if none */
+	ElementTypeid Oid  `json:"element_typeid"` /* common type of array elements */
+	Elements      List `json:"elements"`       /* the array elements or sub-arrays */
+	Multidims     bool `json:"multidims"`      /* true if elements are sub-arrays */
+	Location      int  `json:"location"`       /* token location, or -1 if unknown */
 }
 
 func (node ArrayExpr) MarshalJSON() ([]byte, error) {
@@ -66,7 +66,7 @@ func (node *ArrayExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["elements"] != nil {
-		node.Elements, err = UnmarshalNodeArrayJSON(fields["elements"])
+		node.Elements.Items, err = UnmarshalNodeArrayJSON(fields["elements"])
 		if err != nil {
 			return
 		}

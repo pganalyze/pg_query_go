@@ -22,9 +22,9 @@ type RangeFunction struct {
 	Lateral    bool   `json:"lateral"`     /* does it have LATERAL prefix? */
 	Ordinality bool   `json:"ordinality"`  /* does it have WITH ORDINALITY suffix? */
 	IsRowsfrom bool   `json:"is_rowsfrom"` /* is result of ROWS FROM() syntax? */
-	Functions  []Node `json:"functions"`   /* per-function information, see above */
+	Functions  List   `json:"functions"`   /* per-function information, see above */
 	Alias      *Alias `json:"alias"`       /* table alias & optional column aliases */
-	Coldeflist []Node `json:"coldeflist"`  /* list of ColumnDef nodes to describe result
+	Coldeflist List   `json:"coldeflist"`  /* list of ColumnDef nodes to describe result
 	 * of function returning RECORD */
 }
 
@@ -65,7 +65,7 @@ func (node *RangeFunction) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["functions"] != nil {
-		node.Functions, err = UnmarshalNodeArrayJSON(fields["functions"])
+		node.Functions.Items, err = UnmarshalNodeArrayJSON(fields["functions"])
 		if err != nil {
 			return
 		}
@@ -84,7 +84,7 @@ func (node *RangeFunction) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["coldeflist"] != nil {
-		node.Coldeflist, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
+		node.Coldeflist.Items, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
 		if err != nil {
 			return
 		}

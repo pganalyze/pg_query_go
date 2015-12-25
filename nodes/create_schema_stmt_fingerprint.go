@@ -12,10 +12,7 @@ func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
-
-	for _, subNode := range node.SchemaElts {
-		subNode.Fingerprint(ctx, "SchemaElts")
-	}
+	node.SchemaElts.Fingerprint(ctx, "SchemaElts")
 
 	if node.Schemaname != nil {
 		ctx.WriteString(*node.Schemaname)

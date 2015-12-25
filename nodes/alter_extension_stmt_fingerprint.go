@@ -9,7 +9,5 @@ func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 		ctx.WriteString(*node.Extname)
 	}
 
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 }

@@ -49,8 +49,8 @@ type SubPlan struct {
 	SubLinkType SubLinkType `json:"subLinkType"` /* see above */
 
 	/* The combining operators, transformed to an executable expression: */
-	Testexpr Node   `json:"testexpr"` /* OpExpr or RowCompareExpr expression tree */
-	ParamIds []Node `json:"paramIds"` /* IDs of Params embedded in the above */
+	Testexpr Node `json:"testexpr"` /* OpExpr or RowCompareExpr expression tree */
+	ParamIds List `json:"paramIds"` /* IDs of Params embedded in the above */
 
 	/* Identification of the Plan tree to use: */
 	PlanId int `json:"plan_id"` /* Index (from 1) in PlannedStmt.subplans */
@@ -75,11 +75,11 @@ type SubPlan struct {
 	/* Information for passing params into and out of the subselect: */
 
 	/* setParam and parParam are lists of integers (param IDs) */
-	SetParam []Node `json:"setParam"` /* initplan subqueries have to set these
+	SetParam List `json:"setParam"` /* initplan subqueries have to set these
 	 * Params for parent plan */
 
-	ParParam []Node `json:"parParam"` /* indices of input Params from parent plan */
-	Args     []Node `json:"args"`     /* exprs to pass as parParam values */
+	ParParam List `json:"parParam"` /* indices of input Params from parent plan */
+	Args     List `json:"args"`     /* exprs to pass as parParam values */
 
 	/* Estimated execution costs: */
 	StartupCost Cost `json:"startup_cost"`  /* one-time setup cost */
@@ -123,7 +123,7 @@ func (node *SubPlan) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["paramIds"] != nil {
-		node.ParamIds, err = UnmarshalNodeArrayJSON(fields["paramIds"])
+		node.ParamIds.Items, err = UnmarshalNodeArrayJSON(fields["paramIds"])
 		if err != nil {
 			return
 		}
@@ -179,21 +179,21 @@ func (node *SubPlan) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["setParam"] != nil {
-		node.SetParam, err = UnmarshalNodeArrayJSON(fields["setParam"])
+		node.SetParam.Items, err = UnmarshalNodeArrayJSON(fields["setParam"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["parParam"] != nil {
-		node.ParParam, err = UnmarshalNodeArrayJSON(fields["parParam"])
+		node.ParParam.Items, err = UnmarshalNodeArrayJSON(fields["parParam"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

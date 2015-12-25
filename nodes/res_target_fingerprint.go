@@ -4,11 +4,7 @@ package pg_query
 
 func (node ResTarget) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ResTarget")
-
-	for _, subNode := range node.Indirection {
-		subNode.Fingerprint(ctx, "Indirection")
-	}
-
+	node.Indirection.Fingerprint(ctx, "Indirection")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil && parentFieldName != "TargetList" {

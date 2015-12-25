@@ -2,26 +2,14 @@
 
 package pg_query
 
-import (
-	"sort"
-	"strconv"
-)
+import "strconv"
 
 func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SelectStmt")
 	ctx.WriteString(strconv.FormatBool(node.All))
-
-	for _, subNode := range node.DistinctClause {
-		subNode.Fingerprint(ctx, "DistinctClause")
-	}
-
-	for _, subNode := range node.FromClause {
-		subNode.Fingerprint(ctx, "FromClause")
-	}
-
-	for _, subNode := range node.GroupClause {
-		subNode.Fingerprint(ctx, "GroupClause")
-	}
+	node.DistinctClause.Fingerprint(ctx, "DistinctClause")
+	node.FromClause.Fingerprint(ctx, "FromClause")
+	node.GroupClause.Fingerprint(ctx, "GroupClause")
 
 	if node.HavingClause != nil {
 		node.HavingClause.Fingerprint(ctx, "HavingClause")
@@ -43,35 +31,15 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.LimitOffset.Fingerprint(ctx, "LimitOffset")
 	}
 
-	for _, subNode := range node.LockingClause {
-		subNode.Fingerprint(ctx, "LockingClause")
-	}
-
+	node.LockingClause.Fingerprint(ctx, "LockingClause")
 	ctx.WriteString(strconv.Itoa(int(node.Op)))
 
 	if node.Rarg != nil {
 		node.Rarg.Fingerprint(ctx, "Rarg")
 	}
 
-	for _, subNode := range node.SortClause {
-		subNode.Fingerprint(ctx, "SortClause")
-	}
-
-	var targetListFingerprints FingerprintSubContextSlice
-
-	for _, subNode := range node.TargetList {
-		subCtx := FingerprintSubContext{}
-		subNode.Fingerprint(&subCtx, "TargetList")
-		targetListFingerprints.AddIfUnique(subCtx)
-	}
-
-	sort.Sort(targetListFingerprints)
-
-	for _, fingerprint := range targetListFingerprints {
-		for _, part := range fingerprint.parts {
-			ctx.WriteString(part)
-		}
-	}
+	node.SortClause.Fingerprint(ctx, "SortClause")
+	node.TargetList.Fingerprint(ctx, "TargetList")
 
 	for _, nodeList := range node.ValuesLists {
 		for _, subNode := range nodeList {
@@ -83,9 +51,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.WhereClause.Fingerprint(ctx, "WhereClause")
 	}
 
-	for _, subNode := range node.WindowClause {
-		subNode.Fingerprint(ctx, "WindowClause")
-	}
+	node.WindowClause.Fingerprint(ctx, "WindowClause")
 
 	if node.WithClause != nil {
 		node.WithClause.Fingerprint(ctx, "WithClause")

@@ -17,18 +17,13 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 		ctx.WriteString(*node.Colname)
 	}
 
-	for _, subNode := range node.Constraints {
-		subNode.Fingerprint(ctx, "Constraints")
-	}
+	node.Constraints.Fingerprint(ctx, "Constraints")
 
 	if node.CookedDefault != nil {
 		node.CookedDefault.Fingerprint(ctx, "CookedDefault")
 	}
 
-	for _, subNode := range node.Fdwoptions {
-		subNode.Fingerprint(ctx, "Fdwoptions")
-	}
-
+	node.Fdwoptions.Fingerprint(ctx, "Fdwoptions")
 	ctx.WriteString(strconv.Itoa(int(node.Inhcount)))
 	ctx.WriteString(strconv.FormatBool(node.IsFromType))
 	ctx.WriteString(strconv.FormatBool(node.IsLocal))

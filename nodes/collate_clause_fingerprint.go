@@ -9,9 +9,6 @@ func (node CollateClause) Fingerprint(ctx FingerprintContext, parentFieldName st
 		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
-	for _, subNode := range node.Collname {
-		subNode.Fingerprint(ctx, "Collname")
-	}
-
+	node.Collname.Fingerprint(ctx, "Collname")
 	// Intentionally ignoring node.Location for fingerprinting
 }

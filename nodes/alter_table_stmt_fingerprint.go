@@ -6,11 +6,7 @@ import "strconv"
 
 func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTableStmt")
-
-	for _, subNode := range node.Cmds {
-		subNode.Fingerprint(ctx, "Cmds")
-	}
-
+	node.Cmds.Fingerprint(ctx, "Cmds")
 	ctx.WriteString(strconv.FormatBool(node.MissingOk))
 
 	if node.Relation != nil {

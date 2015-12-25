@@ -8,9 +8,9 @@ type XmlExpr struct {
 	Xpr       Node          `json:"xpr"`
 	Op        XmlExprOp     `json:"op"`         /* xml function ID */
 	Name      *string       `json:"name"`       /* name in xml(NAME foo ...) syntaxes */
-	NamedArgs []Node        `json:"named_args"` /* non-XML expressions for xml_attributes */
-	ArgNames  []Node        `json:"arg_names"`  /* parallel list of Value strings */
-	Args      []Node        `json:"args"`       /* list of expressions */
+	NamedArgs List          `json:"named_args"` /* non-XML expressions for xml_attributes */
+	ArgNames  List          `json:"arg_names"`  /* parallel list of Value strings */
+	Args      List          `json:"args"`       /* list of expressions */
 	Xmloption XmlOptionType `json:"xmloption"`  /* DOCUMENT or CONTENT */
 	Type      Oid           `json:"type"`       /* target type/typmod for XMLSERIALIZE */
 	Typmod    int32         `json:"typmod"`
@@ -54,21 +54,21 @@ func (node *XmlExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["named_args"] != nil {
-		node.NamedArgs, err = UnmarshalNodeArrayJSON(fields["named_args"])
+		node.NamedArgs.Items, err = UnmarshalNodeArrayJSON(fields["named_args"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["arg_names"] != nil {
-		node.ArgNames, err = UnmarshalNodeArrayJSON(fields["arg_names"])
+		node.ArgNames.Items, err = UnmarshalNodeArrayJSON(fields["arg_names"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

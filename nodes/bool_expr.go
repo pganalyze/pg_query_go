@@ -7,7 +7,7 @@ import "encoding/json"
 type BoolExpr struct {
 	Xpr      Node         `json:"xpr"`
 	Boolop   BoolExprType `json:"boolop"`
-	Args     []Node       `json:"args"`     /* arguments to this expression */
+	Args     List         `json:"args"`     /* arguments to this expression */
 	Location int          `json:"location"` /* token location, or -1 if unknown */
 }
 
@@ -41,7 +41,7 @@ func (node *BoolExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

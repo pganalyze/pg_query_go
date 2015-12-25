@@ -44,7 +44,6 @@ class Generator
   IGNORE_LIST = [
     'Node', 'NodeTag', 'varlena', 'IntArray', 'nameData', 'bool',
     'sig_atomic_t', 'size_t', 'varatt_indirect',
-    # 'NullTest', 'BooleanTest', # These fail the compilation process - tbd why
   ]
 
   def generate_defs!
@@ -149,8 +148,6 @@ class Generator
     ['Float', 'str'] => 'string',
     ['String', 'str'] => 'string',
     ['BitString', 'str'] => 'string',
-    ['A_Expr', 'lexpr'] => '[]Node',
-    ['A_Expr', 'rexpr'] => '[]Node',
   }
 
   def map_to_go_type(c_type)
@@ -159,7 +156,7 @@ class Generator
     return if ['HTAB*', 'MemoryContext'].include?(c_type) # Ignore (can't map this properly)
 
     if c_type == 'List*'
-      '[]Node'
+      'List'
     elsif ['Node*', 'Value', 'Expr', 'Expr*'].include?(c_type)
       'Node'
     elsif @nodetypes.include?(c_type[0..-2])
@@ -192,6 +189,8 @@ class Generator
       'interface{}'
     elsif c_type[-1] == '*'
       '*' + c_type[0..-2]
+    elsif c_type == '[]Node'
+      c_type # Passthrough from an override
     else # Enum
       c_type
     end
@@ -262,18 +261,40 @@ class Generator
     end
   end
 
+  LIST_FINGERPRINT = '''
+  if parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
+		var itemsFingerprints FingerprintSubContextSlice
+
+		for _, subNode := range node.Items {
+			subCtx := FingerprintSubContext{}
+			subNode.Fingerprint(&subCtx, parentFieldName)
+			itemsFingerprints.AddIfUnique(subCtx)
+		}
+
+		sort.Sort(itemsFingerprints)
+
+		for _, fingerprint := range itemsFingerprints {
+			for _, part := range fingerprint.parts {
+				ctx.WriteString(part)
+			}
+		}
+	} else {
+    for _, subNode := range node.Items {
+      subNode.Fingerprint(ctx, parentFieldName)
+    }
+  }
+  '''
+
   # Fingerprinting additional code to be inserted
   FINGERPRINT_OVERRIDE_NODES = {
     'A_Const' => :skip,
     'Alias' => :skip,
     'ParamRef' => :skip,
+    'List' => LIST_FINGERPRINT,
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
     [nil, 'location'] => :skip,
     ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(*node.Name)\n}\n",
-    ['SelectStmt', 'targetList'] => :sorted_unique_nodes,
-    ['InsertStmt', 'cols'] => :sorted_unique_nodes,
-    ['A_Expr', 'rexpr'] => :sorted_unique_nodes,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
@@ -291,6 +312,7 @@ class Generator
     @struct_defs['nodes/value']['Float'] = { fields: [{ name: 'str', c_type: 'char*' }] }
     @struct_defs['nodes/value']['String'] = { fields: [{ name: 'str', c_type: 'char*' }] }
     @struct_defs['nodes/value']['BitString'] = { fields: [{ name: 'str', c_type: 'char*' }] }
+    @struct_defs['nodes/pg_list'] = { 'List' => { fields: [{ name: 'items', c_type: '[]Node' }] } }
     @struct_defs['nodes/value']['Null'] = { fields: [] }
 
     @struct_defs.each do |source_filename, defs|
@@ -321,6 +343,9 @@ class Generator
             unmarshal_def += "if err != nil {\nreturn\n}\n"
           elsif go_type == 'Node'
             unmarshal_def += format("node.%s, err = UnmarshalNodeJSON(fields[\"%s\"])\n", go_name, field[:name])
+            unmarshal_def += "if err != nil {\nreturn\n}\n"
+          elsif go_type == 'List'
+            unmarshal_def += format("node.%s.Items, err = UnmarshalNodeArrayJSON(fields[\"%s\"])\n", go_name, field[:name])
             unmarshal_def += "if err != nil {\nreturn\n}\n"
           elsif go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
             unmarshal_def += "var nodePtr *Node\n"
@@ -357,19 +382,6 @@ class Generator
             if fp_override
               if fp_override == :skip
                 fp_override = format('// Intentionally ignoring node.%s for fingerprinting', go_name)
-              elsif fp_override == :sorted_unique_nodes
-                fp_override = format("var %sFingerprints FingerprintSubContextSlice\n\n", field[:name])
-                fp_override += format("for _, subNode := range node.%s {\n", go_name)
-                fp_override += "subCtx := FingerprintSubContext{}\n"
-                fp_override += format("subNode.Fingerprint(&subCtx, \"%s\")\n", go_name)
-                fp_override += format("%sFingerprints.AddIfUnique(subCtx)\n", field[:name])
-                fp_override += "}\n\n"
-                fp_override += format("sort.Sort(%sFingerprints)\n\n", field[:name])
-                fp_override += format("for _, fingerprint := range %sFingerprints {\n", field[:name])
-                fp_override += "for _, part := range fingerprint.parts {\n"
-                fp_override += "ctx.WriteString(part)\n"
-                fp_override += "}\n"
-                fp_override += "}\n\n"
               end
               fingerprint_def += fp_override + "\n\n"
               next
@@ -390,7 +402,7 @@ class Generator
               fingerprint_def += format("\nif node.%s != nil {", go_name)
               fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
               fingerprint_def += "}\n\n"
-            when 'CreateStmt'
+            when 'CreateStmt', 'List'
               fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
             when 'byte'
               fingerprint_def += format("ctx.WriteString(string(node.%s))\n", go_name)
@@ -498,6 +510,16 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
   if input == nil || string(input) == "null" {
     return
   }
+
+  if strings.HasPrefix(string(input), "[") {
+		var list List
+		list.Items, err = UnmarshalNodeArrayJSON(input)
+		if err != nil {
+			return
+		}
+		node = list
+		return
+	}
 
   var nodeMap map[string]json.RawMessage
 

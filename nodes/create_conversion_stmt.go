@@ -9,10 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateConversionStmt struct {
-	ConversionName  []Node  `json:"conversion_name"`   /* Name of the conversion */
+	ConversionName  List    `json:"conversion_name"`   /* Name of the conversion */
 	ForEncodingName *string `json:"for_encoding_name"` /* source encoding name */
 	ToEncodingName  *string `json:"to_encoding_name"`  /* destination encoding name */
-	FuncName        []Node  `json:"func_name"`         /* qualified conversion function name */
+	FuncName        List    `json:"func_name"`         /* qualified conversion function name */
 	Def             bool    `json:"def"`               /* is this a default conversion? */
 }
 
@@ -32,7 +32,7 @@ func (node *CreateConversionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["conversion_name"] != nil {
-		node.ConversionName, err = UnmarshalNodeArrayJSON(fields["conversion_name"])
+		node.ConversionName.Items, err = UnmarshalNodeArrayJSON(fields["conversion_name"])
 		if err != nil {
 			return
 		}
@@ -53,7 +53,7 @@ func (node *CreateConversionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["func_name"] != nil {
-		node.FuncName, err = UnmarshalNodeArrayJSON(fields["func_name"])
+		node.FuncName.Items, err = UnmarshalNodeArrayJSON(fields["func_name"])
 		if err != nil {
 			return
 		}

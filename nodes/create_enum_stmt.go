@@ -9,8 +9,8 @@ import "encoding/json"
  * ----------------------
  */
 type CreateEnumStmt struct {
-	TypeName []Node `json:"typeName"` /* qualified name (list of Value strings) */
-	Vals     []Node `json:"vals"`     /* enum values (list of Value strings) */
+	TypeName List `json:"typeName"` /* qualified name (list of Value strings) */
+	Vals     List `json:"vals"`     /* enum values (list of Value strings) */
 }
 
 func (node CreateEnumStmt) MarshalJSON() ([]byte, error) {
@@ -29,14 +29,14 @@ func (node *CreateEnumStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["typeName"] != nil {
-		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		node.TypeName.Items, err = UnmarshalNodeArrayJSON(fields["typeName"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["vals"] != nil {
-		node.Vals, err = UnmarshalNodeArrayJSON(fields["vals"])
+		node.Vals.Items, err = UnmarshalNodeArrayJSON(fields["vals"])
 		if err != nil {
 			return
 		}

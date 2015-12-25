@@ -6,23 +6,12 @@ import "strconv"
 
 func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SubPlan")
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.Itoa(int(node.FirstColCollation)))
 	ctx.WriteString(strconv.Itoa(int(node.FirstColType)))
 	ctx.WriteString(strconv.Itoa(int(node.FirstColTypmod)))
-
-	for _, subNode := range node.ParParam {
-		subNode.Fingerprint(ctx, "ParParam")
-	}
-
-	for _, subNode := range node.ParamIds {
-		subNode.Fingerprint(ctx, "ParamIds")
-	}
-
+	node.ParParam.Fingerprint(ctx, "ParParam")
+	node.ParamIds.Fingerprint(ctx, "ParamIds")
 	ctx.WriteString(strconv.FormatFloat(float64(node.PerCallCost), 'E', -1, 64))
 	ctx.WriteString(strconv.Itoa(int(node.PlanId)))
 
@@ -30,10 +19,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 		ctx.WriteString(*node.PlanName)
 	}
 
-	for _, subNode := range node.SetParam {
-		subNode.Fingerprint(ctx, "SetParam")
-	}
-
+	node.SetParam.Fingerprint(ctx, "SetParam")
 	ctx.WriteString(strconv.FormatFloat(float64(node.StartupCost), 'E', -1, 64))
 	ctx.WriteString(strconv.Itoa(int(node.SubLinkType)))
 

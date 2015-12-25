@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type PrepareStmt struct {
 	Name     *string `json:"name"`     /* Name of plan, arbitrary */
-	Argtypes []Node  `json:"argtypes"` /* Types of parameters (List of TypeName) */
+	Argtypes List    `json:"argtypes"` /* Types of parameters (List of TypeName) */
 	Query    Node    `json:"query"`    /* The query itself (as a raw parsetree) */
 }
 
@@ -37,7 +37,7 @@ func (node *PrepareStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["argtypes"] != nil {
-		node.Argtypes, err = UnmarshalNodeArrayJSON(fields["argtypes"])
+		node.Argtypes.Items, err = UnmarshalNodeArrayJSON(fields["argtypes"])
 		if err != nil {
 			return
 		}

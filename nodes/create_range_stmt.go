@@ -9,8 +9,8 @@ import "encoding/json"
  * ----------------------
  */
 type CreateRangeStmt struct {
-	TypeName []Node `json:"typeName"` /* qualified name (list of Value strings) */
-	Params   []Node `json:"params"`   /* range parameters (list of DefElem) */
+	TypeName List `json:"typeName"` /* qualified name (list of Value strings) */
+	Params   List `json:"params"`   /* range parameters (list of DefElem) */
 }
 
 func (node CreateRangeStmt) MarshalJSON() ([]byte, error) {
@@ -29,14 +29,14 @@ func (node *CreateRangeStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["typeName"] != nil {
-		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		node.TypeName.Items, err = UnmarshalNodeArrayJSON(fields["typeName"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["params"] != nil {
-		node.Params, err = UnmarshalNodeArrayJSON(fields["params"])
+		node.Params.Items, err = UnmarshalNodeArrayJSON(fields["params"])
 		if err != nil {
 			return
 		}

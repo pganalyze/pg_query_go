@@ -28,9 +28,9 @@ import "encoding/json"
  * args list, colnames is one-for-one with physical fields of the rowtype.
  */
 type RowExpr struct {
-	Xpr       Node   `json:"xpr"`
-	Args      []Node `json:"args"`       /* the fields */
-	RowTypeid Oid    `json:"row_typeid"` /* RECORDOID or a composite type's ID */
+	Xpr       Node `json:"xpr"`
+	Args      List `json:"args"`       /* the fields */
+	RowTypeid Oid  `json:"row_typeid"` /* RECORDOID or a composite type's ID */
 
 	/*
 	 * Note: we deliberately do NOT store a typmod.  Although a typmod will be
@@ -42,7 +42,7 @@ type RowExpr struct {
 	 * necessarily composite, and composite types never have a collation.
 	 */
 	RowFormat CoercionForm `json:"row_format"` /* how to display this node */
-	Colnames  []Node       `json:"colnames"`   /* list of String, or NIL */
+	Colnames  List         `json:"colnames"`   /* list of String, or NIL */
 	Location  int          `json:"location"`   /* token location, or -1 if unknown */
 }
 
@@ -69,7 +69,7 @@ func (node *RowExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
@@ -90,7 +90,7 @@ func (node *RowExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["colnames"] != nil {
-		node.Colnames, err = UnmarshalNodeArrayJSON(fields["colnames"])
+		node.Colnames.Items, err = UnmarshalNodeArrayJSON(fields["colnames"])
 		if err != nil {
 			return
 		}

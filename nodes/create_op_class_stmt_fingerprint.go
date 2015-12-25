@@ -16,16 +16,7 @@ func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.IsDefault))
-
-	for _, subNode := range node.Items {
-		subNode.Fingerprint(ctx, "Items")
-	}
-
-	for _, subNode := range node.Opclassname {
-		subNode.Fingerprint(ctx, "Opclassname")
-	}
-
-	for _, subNode := range node.Opfamilyname {
-		subNode.Fingerprint(ctx, "Opfamilyname")
-	}
+	node.Items.Fingerprint(ctx, "Items")
+	node.Opclassname.Fingerprint(ctx, "Opclassname")
+	node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
 }

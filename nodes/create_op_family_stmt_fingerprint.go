@@ -9,7 +9,5 @@ func (node CreateOpFamilyStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 		ctx.WriteString(*node.Amname)
 	}
 
-	for _, subNode := range node.Opfamilyname {
-		subNode.Fingerprint(ctx, "Opfamilyname")
-	}
+	node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
 }

@@ -9,9 +9,9 @@ import "encoding/json"
  */
 type A_Expr struct {
 	Kind     A_Expr_Kind `json:"kind"`     /* see above */
-	Name     []Node      `json:"name"`     /* possibly-qualified name of operator */
-	Lexpr    []Node      `json:"lexpr"`    /* left argument, or NULL if none */
-	Rexpr    []Node      `json:"rexpr"`    /* right argument, or NULL if none */
+	Name     List        `json:"name"`     /* possibly-qualified name of operator */
+	Lexpr    Node        `json:"lexpr"`    /* left argument, or NULL if none */
+	Rexpr    Node        `json:"rexpr"`    /* right argument, or NULL if none */
 	Location int         `json:"location"` /* token location, or -1 if unknown */
 }
 
@@ -38,21 +38,21 @@ func (node *A_Expr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["name"] != nil {
-		node.Name, err = UnmarshalNodeArrayJSON(fields["name"])
+		node.Name.Items, err = UnmarshalNodeArrayJSON(fields["name"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["lexpr"] != nil {
-		node.Lexpr, err = UnmarshalNodeArrayJSON(fields["lexpr"])
+		node.Lexpr, err = UnmarshalNodeJSON(fields["lexpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["rexpr"] != nil {
-		node.Rexpr, err = UnmarshalNodeArrayJSON(fields["rexpr"])
+		node.Rexpr, err = UnmarshalNodeJSON(fields["rexpr"])
 		if err != nil {
 			return
 		}

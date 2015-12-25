@@ -18,8 +18,5 @@ func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.SkipIfExists))
-
-	for _, subNode := range node.TypeName {
-		subNode.Fingerprint(ctx, "TypeName")
-	}
+	node.TypeName.Fingerprint(ctx, "TypeName")
 }

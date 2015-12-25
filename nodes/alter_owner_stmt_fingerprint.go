@@ -11,14 +11,8 @@ func (node AlterOwnerStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 		ctx.WriteString(*node.Newowner)
 	}
 
-	for _, subNode := range node.Objarg {
-		subNode.Fingerprint(ctx, "Objarg")
-	}
-
-	for _, subNode := range node.Object {
-		subNode.Fingerprint(ctx, "Object")
-	}
-
+	node.Objarg.Fingerprint(ctx, "Objarg")
+	node.Object.Fingerprint(ctx, "Object")
 	ctx.WriteString(strconv.Itoa(int(node.ObjectType)))
 
 	if node.Relation != nil {

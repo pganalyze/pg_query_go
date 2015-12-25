@@ -9,7 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type AlterEnumStmt struct {
-	TypeName       []Node  `json:"typeName"`       /* qualified name (list of Value strings) */
+	TypeName       List    `json:"typeName"`       /* qualified name (list of Value strings) */
 	NewVal         *string `json:"newVal"`         /* new enum value's name */
 	NewValNeighbor *string `json:"newValNeighbor"` /* neighboring enum value, if specified */
 	NewValIsAfter  bool    `json:"newValIsAfter"`  /* place new enum value after neighbor? */
@@ -32,7 +32,7 @@ func (node *AlterEnumStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["typeName"] != nil {
-		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		node.TypeName.Items, err = UnmarshalNodeArrayJSON(fields["typeName"])
 		if err != nil {
 			return
 		}

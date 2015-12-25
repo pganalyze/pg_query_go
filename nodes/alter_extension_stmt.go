@@ -7,7 +7,7 @@ import "encoding/json"
 /* Only used for ALTER EXTENSION UPDATE; later might need an action field */
 type AlterExtensionStmt struct {
 	Extname *string `json:"extname"`
-	Options []Node  `json:"options"` /* List of DefElem nodes */
+	Options List    `json:"options"` /* List of DefElem nodes */
 }
 
 func (node AlterExtensionStmt) MarshalJSON() ([]byte, error) {
@@ -33,7 +33,7 @@ func (node *AlterExtensionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

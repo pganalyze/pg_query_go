@@ -14,8 +14,8 @@ import "encoding/json"
  * ----------------------
  */
 type DropRoleStmt struct {
-	Roles     []Node `json:"roles"`      /* List of roles to remove */
-	MissingOk bool   `json:"missing_ok"` /* skip error if a role is missing? */
+	Roles     List `json:"roles"`      /* List of roles to remove */
+	MissingOk bool `json:"missing_ok"` /* skip error if a role is missing? */
 }
 
 func (node DropRoleStmt) MarshalJSON() ([]byte, error) {
@@ -34,7 +34,7 @@ func (node *DropRoleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["roles"] != nil {
-		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		node.Roles.Items, err = UnmarshalNodeArrayJSON(fields["roles"])
 		if err != nil {
 			return
 		}

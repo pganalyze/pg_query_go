@@ -9,7 +9,5 @@ func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, paren
 		node.Action.Fingerprint(ctx, "Action")
 	}
 
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 }

@@ -10,8 +10,8 @@ import "encoding/json"
  * is not enough info to define a function nor to call it.
  */
 type FuncWithArgs struct {
-	Funcname []Node `json:"funcname"` /* qualified name of function */
-	Funcargs []Node `json:"funcargs"` /* list of Typename nodes */
+	Funcname List `json:"funcname"` /* qualified name of function */
+	Funcargs List `json:"funcargs"` /* list of Typename nodes */
 }
 
 func (node FuncWithArgs) MarshalJSON() ([]byte, error) {
@@ -30,14 +30,14 @@ func (node *FuncWithArgs) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["funcname"] != nil {
-		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		node.Funcname.Items, err = UnmarshalNodeArrayJSON(fields["funcname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["funcargs"] != nil {
-		node.Funcargs, err = UnmarshalNodeArrayJSON(fields["funcargs"])
+		node.Funcargs.Items, err = UnmarshalNodeArrayJSON(fields["funcargs"])
 		if err != nil {
 			return
 		}

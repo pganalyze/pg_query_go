@@ -9,11 +9,11 @@ import "encoding/json"
  * ----------------------
  */
 type CreateOpClassStmt struct {
-	Opclassname  []Node    `json:"opclassname"`  /* qualified name (list of Value strings) */
-	Opfamilyname []Node    `json:"opfamilyname"` /* qualified name (ditto); NIL if omitted */
+	Opclassname  List      `json:"opclassname"`  /* qualified name (list of Value strings) */
+	Opfamilyname List      `json:"opfamilyname"` /* qualified name (ditto); NIL if omitted */
 	Amname       *string   `json:"amname"`       /* name of index AM opclass is for */
 	Datatype     *TypeName `json:"datatype"`     /* datatype of indexed column */
-	Items        []Node    `json:"items"`        /* List of CreateOpClassItem nodes */
+	Items        List      `json:"items"`        /* List of CreateOpClassItem nodes */
 	IsDefault    bool      `json:"isDefault"`    /* Should be marked as default for type? */
 }
 
@@ -33,14 +33,14 @@ func (node *CreateOpClassStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["opclassname"] != nil {
-		node.Opclassname, err = UnmarshalNodeArrayJSON(fields["opclassname"])
+		node.Opclassname.Items, err = UnmarshalNodeArrayJSON(fields["opclassname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["opfamilyname"] != nil {
-		node.Opfamilyname, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
+		node.Opfamilyname.Items, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
 		if err != nil {
 			return
 		}
@@ -66,7 +66,7 @@ func (node *CreateOpClassStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["items"] != nil {
-		node.Items, err = UnmarshalNodeArrayJSON(fields["items"])
+		node.Items.Items, err = UnmarshalNodeArrayJSON(fields["items"])
 		if err != nil {
 			return
 		}

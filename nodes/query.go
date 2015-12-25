@@ -40,36 +40,36 @@ type Query struct {
 	HasModifyingCte bool `json:"hasModifyingCTE"` /* has INSERT/UPDATE/DELETE in WITH */
 	HasForUpdate    bool `json:"hasForUpdate"`    /* FOR [KEY] UPDATE/SHARE was specified */
 
-	CteList []Node `json:"cteList"` /* WITH list (of CommonTableExpr's) */
+	CteList List `json:"cteList"` /* WITH list (of CommonTableExpr's) */
 
-	Rtable   []Node    `json:"rtable"`   /* list of range table entries */
+	Rtable   List      `json:"rtable"`   /* list of range table entries */
 	Jointree *FromExpr `json:"jointree"` /* table join tree (FROM and WHERE clauses) */
 
-	TargetList []Node `json:"targetList"` /* target list (of TargetEntry) */
+	TargetList List `json:"targetList"` /* target list (of TargetEntry) */
 
-	WithCheckOptions []Node `json:"withCheckOptions"` /* a list of WithCheckOption's */
+	WithCheckOptions List `json:"withCheckOptions"` /* a list of WithCheckOption's */
 
-	ReturningList []Node `json:"returningList"` /* return-values list (of TargetEntry) */
+	ReturningList List `json:"returningList"` /* return-values list (of TargetEntry) */
 
-	GroupClause []Node `json:"groupClause"` /* a list of SortGroupClause's */
+	GroupClause List `json:"groupClause"` /* a list of SortGroupClause's */
 
 	HavingQual Node `json:"havingQual"` /* qualifications applied to groups */
 
-	WindowClause []Node `json:"windowClause"` /* a list of WindowClause's */
+	WindowClause List `json:"windowClause"` /* a list of WindowClause's */
 
-	DistinctClause []Node `json:"distinctClause"` /* a list of SortGroupClause's */
+	DistinctClause List `json:"distinctClause"` /* a list of SortGroupClause's */
 
-	SortClause []Node `json:"sortClause"` /* a list of SortGroupClause's */
+	SortClause List `json:"sortClause"` /* a list of SortGroupClause's */
 
 	LimitOffset Node `json:"limitOffset"` /* # of result tuples to skip (int8 expr) */
 	LimitCount  Node `json:"limitCount"`  /* # of result tuples to return (int8 expr) */
 
-	RowMarks []Node `json:"rowMarks"` /* a list of RowMarkClause's */
+	RowMarks List `json:"rowMarks"` /* a list of RowMarkClause's */
 
 	SetOperations Node `json:"setOperations"` /* set-operation tree if this is top level of
 	 * a UNION/INTERSECT/EXCEPT query */
 
-	ConstraintDeps []Node `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
+	ConstraintDeps List `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
 	 * depends on to be semantically valid */
 }
 
@@ -180,14 +180,14 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["cteList"] != nil {
-		node.CteList, err = UnmarshalNodeArrayJSON(fields["cteList"])
+		node.CteList.Items, err = UnmarshalNodeArrayJSON(fields["cteList"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["rtable"] != nil {
-		node.Rtable, err = UnmarshalNodeArrayJSON(fields["rtable"])
+		node.Rtable.Items, err = UnmarshalNodeArrayJSON(fields["rtable"])
 		if err != nil {
 			return
 		}
@@ -206,28 +206,28 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["targetList"] != nil {
-		node.TargetList, err = UnmarshalNodeArrayJSON(fields["targetList"])
+		node.TargetList.Items, err = UnmarshalNodeArrayJSON(fields["targetList"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["withCheckOptions"] != nil {
-		node.WithCheckOptions, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
+		node.WithCheckOptions.Items, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["returningList"] != nil {
-		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		node.ReturningList.Items, err = UnmarshalNodeArrayJSON(fields["returningList"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["groupClause"] != nil {
-		node.GroupClause, err = UnmarshalNodeArrayJSON(fields["groupClause"])
+		node.GroupClause.Items, err = UnmarshalNodeArrayJSON(fields["groupClause"])
 		if err != nil {
 			return
 		}
@@ -241,21 +241,21 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["windowClause"] != nil {
-		node.WindowClause, err = UnmarshalNodeArrayJSON(fields["windowClause"])
+		node.WindowClause.Items, err = UnmarshalNodeArrayJSON(fields["windowClause"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["distinctClause"] != nil {
-		node.DistinctClause, err = UnmarshalNodeArrayJSON(fields["distinctClause"])
+		node.DistinctClause.Items, err = UnmarshalNodeArrayJSON(fields["distinctClause"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["sortClause"] != nil {
-		node.SortClause, err = UnmarshalNodeArrayJSON(fields["sortClause"])
+		node.SortClause.Items, err = UnmarshalNodeArrayJSON(fields["sortClause"])
 		if err != nil {
 			return
 		}
@@ -276,7 +276,7 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["rowMarks"] != nil {
-		node.RowMarks, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
+		node.RowMarks.Items, err = UnmarshalNodeArrayJSON(fields["rowMarks"])
 		if err != nil {
 			return
 		}
@@ -290,7 +290,7 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["constraintDeps"] != nil {
-		node.ConstraintDeps, err = UnmarshalNodeArrayJSON(fields["constraintDeps"])
+		node.ConstraintDeps.Items, err = UnmarshalNodeArrayJSON(fields["constraintDeps"])
 		if err != nil {
 			return
 		}

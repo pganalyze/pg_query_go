@@ -12,8 +12,5 @@ func (node TransactionStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Kind)))
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 }

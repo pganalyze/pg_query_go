@@ -9,7 +9,5 @@ func (node CreatedbStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 		ctx.WriteString(*node.Dbname)
 	}
 
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 }

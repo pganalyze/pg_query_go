@@ -18,7 +18,5 @@ func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext, parentFiel
 		ctx.WriteString(*node.OrigTablespacename)
 	}
 
-	for _, subNode := range node.Roles {
-		subNode.Fingerprint(ctx, "Roles")
-	}
+	node.Roles.Fingerprint(ctx, "Roles")
 }

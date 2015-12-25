@@ -14,7 +14,7 @@ type RuleStmt struct {
 	WhereClause Node      `json:"whereClause"` /* qualifications */
 	Event       CmdType   `json:"event"`       /* SELECT, INSERT, etc */
 	Instead     bool      `json:"instead"`     /* is a 'do instead'? */
-	Actions     []Node    `json:"actions"`     /* the action statements */
+	Actions     List      `json:"actions"`     /* the action statements */
 	Replace     bool      `json:"replace"`     /* OR REPLACE */
 }
 
@@ -74,7 +74,7 @@ func (node *RuleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["actions"] != nil {
-		node.Actions, err = UnmarshalNodeArrayJSON(fields["actions"])
+		node.Actions.Items, err = UnmarshalNodeArrayJSON(fields["actions"])
 		if err != nil {
 			return
 		}

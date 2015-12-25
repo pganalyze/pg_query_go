@@ -21,11 +21,11 @@ import "encoding/json"
 type RowCompareExpr struct {
 	Xpr          Node           `json:"xpr"`
 	Rctype       RowCompareType `json:"rctype"`       /* LT LE GE or GT, never EQ or NE */
-	Opnos        []Node         `json:"opnos"`        /* OID list of pairwise comparison ops */
-	Opfamilies   []Node         `json:"opfamilies"`   /* OID list of containing operator families */
-	Inputcollids []Node         `json:"inputcollids"` /* OID list of collations for comparisons */
-	Largs        []Node         `json:"largs"`        /* the left-hand input arguments */
-	Rargs        []Node         `json:"rargs"`        /* the right-hand input arguments */
+	Opnos        List           `json:"opnos"`        /* OID list of pairwise comparison ops */
+	Opfamilies   List           `json:"opfamilies"`   /* OID list of containing operator families */
+	Inputcollids List           `json:"inputcollids"` /* OID list of collations for comparisons */
+	Largs        List           `json:"largs"`        /* the left-hand input arguments */
+	Rargs        List           `json:"rargs"`        /* the right-hand input arguments */
 }
 
 func (node RowCompareExpr) MarshalJSON() ([]byte, error) {
@@ -58,35 +58,35 @@ func (node *RowCompareExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["opnos"] != nil {
-		node.Opnos, err = UnmarshalNodeArrayJSON(fields["opnos"])
+		node.Opnos.Items, err = UnmarshalNodeArrayJSON(fields["opnos"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["opfamilies"] != nil {
-		node.Opfamilies, err = UnmarshalNodeArrayJSON(fields["opfamilies"])
+		node.Opfamilies.Items, err = UnmarshalNodeArrayJSON(fields["opfamilies"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["inputcollids"] != nil {
-		node.Inputcollids, err = UnmarshalNodeArrayJSON(fields["inputcollids"])
+		node.Inputcollids.Items, err = UnmarshalNodeArrayJSON(fields["inputcollids"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["largs"] != nil {
-		node.Largs, err = UnmarshalNodeArrayJSON(fields["largs"])
+		node.Largs.Items, err = UnmarshalNodeArrayJSON(fields["largs"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["rargs"] != nil {
-		node.Rargs, err = UnmarshalNodeArrayJSON(fields["rargs"])
+		node.Rargs.Items, err = UnmarshalNodeArrayJSON(fields["rargs"])
 		if err != nil {
 			return
 		}

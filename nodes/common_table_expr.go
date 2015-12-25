@@ -12,7 +12,7 @@ import "encoding/json"
  */
 type CommonTableExpr struct {
 	Ctename       *string `json:"ctename"`       /* query name (never qualified) */
-	Aliascolnames []Node  `json:"aliascolnames"` /* optional list of column names */
+	Aliascolnames List    `json:"aliascolnames"` /* optional list of column names */
 
 	/* SelectStmt/InsertStmt/etc before parse analysis, Query afterwards: */
 	Ctequery Node `json:"ctequery"` /* the CTE's subquery */
@@ -23,10 +23,10 @@ type CommonTableExpr struct {
 	Cterefcount  int  `json:"cterefcount"`  /* number of RTEs referencing this CTE
 	 * (excluding internal self-references) */
 
-	Ctecolnames      []Node `json:"ctecolnames"`      /* list of output column names */
-	Ctecoltypes      []Node `json:"ctecoltypes"`      /* OID list of output column type OIDs */
-	Ctecoltypmods    []Node `json:"ctecoltypmods"`    /* integer list of output column typmods */
-	Ctecolcollations []Node `json:"ctecolcollations"` /* OID list of column collation OIDs */
+	Ctecolnames      List `json:"ctecolnames"`      /* list of output column names */
+	Ctecoltypes      List `json:"ctecoltypes"`      /* OID list of output column type OIDs */
+	Ctecoltypmods    List `json:"ctecoltypmods"`    /* integer list of output column typmods */
+	Ctecolcollations List `json:"ctecolcollations"` /* OID list of column collation OIDs */
 }
 
 func (node CommonTableExpr) MarshalJSON() ([]byte, error) {
@@ -52,7 +52,7 @@ func (node *CommonTableExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["aliascolnames"] != nil {
-		node.Aliascolnames, err = UnmarshalNodeArrayJSON(fields["aliascolnames"])
+		node.Aliascolnames.Items, err = UnmarshalNodeArrayJSON(fields["aliascolnames"])
 		if err != nil {
 			return
 		}
@@ -87,28 +87,28 @@ func (node *CommonTableExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["ctecolnames"] != nil {
-		node.Ctecolnames, err = UnmarshalNodeArrayJSON(fields["ctecolnames"])
+		node.Ctecolnames.Items, err = UnmarshalNodeArrayJSON(fields["ctecolnames"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["ctecoltypes"] != nil {
-		node.Ctecoltypes, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
+		node.Ctecoltypes.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["ctecoltypmods"] != nil {
-		node.Ctecoltypmods, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
+		node.Ctecoltypmods.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["ctecolcollations"] != nil {
-		node.Ctecolcollations, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
+		node.Ctecolcollations.Items, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
 		if err != nil {
 			return
 		}

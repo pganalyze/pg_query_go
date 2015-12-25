@@ -8,8 +8,5 @@ func (node LockStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("LockStmt")
 	ctx.WriteString(strconv.Itoa(int(node.Mode)))
 	ctx.WriteString(strconv.FormatBool(node.Nowait))
-
-	for _, subNode := range node.Relations {
-		subNode.Fingerprint(ctx, "Relations")
-	}
+	node.Relations.Fingerprint(ctx, "Relations")
 }

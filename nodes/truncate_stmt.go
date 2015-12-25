@@ -9,7 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type TruncateStmt struct {
-	Relations   []Node       `json:"relations"`    /* relations (RangeVars) to be truncated */
+	Relations   List         `json:"relations"`    /* relations (RangeVars) to be truncated */
 	RestartSeqs bool         `json:"restart_seqs"` /* restart owned sequences? */
 	Behavior    DropBehavior `json:"behavior"`     /* RESTRICT or CASCADE behavior */
 }
@@ -30,7 +30,7 @@ func (node *TruncateStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["relations"] != nil {
-		node.Relations, err = UnmarshalNodeArrayJSON(fields["relations"])
+		node.Relations.Items, err = UnmarshalNodeArrayJSON(fields["relations"])
 		if err != nil {
 			return
 		}

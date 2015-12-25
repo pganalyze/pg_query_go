@@ -9,7 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type CreateOpFamilyStmt struct {
-	Opfamilyname []Node  `json:"opfamilyname"` /* qualified name (list of Value strings) */
+	Opfamilyname List    `json:"opfamilyname"` /* qualified name (list of Value strings) */
 	Amname       *string `json:"amname"`       /* name of index AM opfamily is for */
 }
 
@@ -29,7 +29,7 @@ func (node *CreateOpFamilyStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["opfamilyname"] != nil {
-		node.Opfamilyname, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
+		node.Opfamilyname.Items, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
 		if err != nil {
 			return
 		}

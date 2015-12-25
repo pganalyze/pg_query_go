@@ -6,14 +6,8 @@ import "strconv"
 
 func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateTrigStmt")
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
-	for _, subNode := range node.Columns {
-		subNode.Fingerprint(ctx, "Columns")
-	}
+	node.Args.Fingerprint(ctx, "Args")
+	node.Columns.Fingerprint(ctx, "Columns")
 
 	if node.Constrrel != nil {
 		node.Constrrel.Fingerprint(ctx, "Constrrel")
@@ -21,11 +15,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	ctx.WriteString(strconv.FormatBool(node.Deferrable))
 	ctx.WriteString(strconv.Itoa(int(node.Events)))
-
-	for _, subNode := range node.Funcname {
-		subNode.Fingerprint(ctx, "Funcname")
-	}
-
+	node.Funcname.Fingerprint(ctx, "Funcname")
 	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
 	ctx.WriteString(strconv.FormatBool(node.Isconstraint))
 

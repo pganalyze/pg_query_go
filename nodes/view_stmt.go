@@ -10,10 +10,10 @@ import "encoding/json"
  */
 type ViewStmt struct {
 	View            *RangeVar       `json:"view"`            /* the view to be created */
-	Aliases         []Node          `json:"aliases"`         /* target column names */
+	Aliases         List            `json:"aliases"`         /* target column names */
 	Query           Node            `json:"query"`           /* the SELECT query */
 	Replace         bool            `json:"replace"`         /* replace an existing view? */
-	Options         []Node          `json:"options"`         /* options from WITH clause */
+	Options         List            `json:"options"`         /* options from WITH clause */
 	WithCheckOption ViewCheckOption `json:"withCheckOption"` /* WITH CHECK OPTION */
 }
 
@@ -45,7 +45,7 @@ func (node *ViewStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["aliases"] != nil {
-		node.Aliases, err = UnmarshalNodeArrayJSON(fields["aliases"])
+		node.Aliases.Items, err = UnmarshalNodeArrayJSON(fields["aliases"])
 		if err != nil {
 			return
 		}
@@ -66,7 +66,7 @@ func (node *ViewStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

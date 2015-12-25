@@ -11,13 +11,7 @@ func (node CommentStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 		ctx.WriteString(*node.Comment)
 	}
 
-	for _, subNode := range node.Objargs {
-		subNode.Fingerprint(ctx, "Objargs")
-	}
-
-	for _, subNode := range node.Objname {
-		subNode.Fingerprint(ctx, "Objname")
-	}
-
+	node.Objargs.Fingerprint(ctx, "Objargs")
+	node.Objname.Fingerprint(ctx, "Objname")
 	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
 }

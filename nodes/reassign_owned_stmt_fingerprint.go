@@ -9,7 +9,5 @@ func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 		ctx.WriteString(*node.Newrole)
 	}
 
-	for _, subNode := range node.Roles {
-		subNode.Fingerprint(ctx, "Roles")
-	}
+	node.Roles.Fingerprint(ctx, "Roles")
 }

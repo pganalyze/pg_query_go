@@ -2,10 +2,23 @@
 
 package pg_query
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 	if input == nil || string(input) == "null" {
+		return
+	}
+
+	if strings.HasPrefix(string(input), "[") {
+		var list List
+		list.Items, err = UnmarshalNodeArrayJSON(input)
+		if err != nil {
+			return
+		}
+		node = list
 		return
 	}
 
@@ -1337,6 +1350,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "Null":
 			var outNode Null
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "List":
+			var outNode List
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return

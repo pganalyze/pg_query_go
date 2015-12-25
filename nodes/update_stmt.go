@@ -10,10 +10,10 @@ import "encoding/json"
  */
 type UpdateStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to update */
-	TargetList    []Node      `json:"targetList"`    /* the target list (of ResTarget) */
+	TargetList    List        `json:"targetList"`    /* the target list (of ResTarget) */
 	WhereClause   Node        `json:"whereClause"`   /* qualifications */
-	FromClause    []Node      `json:"fromClause"`    /* optional from clause for more tables */
-	ReturningList []Node      `json:"returningList"` /* list of expressions to return */
+	FromClause    List        `json:"fromClause"`    /* optional from clause for more tables */
+	ReturningList List        `json:"returningList"` /* list of expressions to return */
 	WithClause    *WithClause `json:"withClause"`    /* WITH clause */
 }
 
@@ -45,7 +45,7 @@ func (node *UpdateStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["targetList"] != nil {
-		node.TargetList, err = UnmarshalNodeArrayJSON(fields["targetList"])
+		node.TargetList.Items, err = UnmarshalNodeArrayJSON(fields["targetList"])
 		if err != nil {
 			return
 		}
@@ -59,14 +59,14 @@ func (node *UpdateStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["fromClause"] != nil {
-		node.FromClause, err = UnmarshalNodeArrayJSON(fields["fromClause"])
+		node.FromClause.Items, err = UnmarshalNodeArrayJSON(fields["fromClause"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["returningList"] != nil {
-		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		node.ReturningList.Items, err = UnmarshalNodeArrayJSON(fields["returningList"])
 		if err != nil {
 			return
 		}

@@ -16,7 +16,5 @@ func (node VacuumStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
-	for _, subNode := range node.VaCols {
-		subNode.Fingerprint(ctx, "VaCols")
-	}
+	node.VaCols.Fingerprint(ctx, "VaCols")
 }

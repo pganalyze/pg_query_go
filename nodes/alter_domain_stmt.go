@@ -21,7 +21,7 @@ type AlterDomainStmt struct {
 	 *------------
 	 */
 
-	TypeName  []Node       `json:"typeName"`   /* domain to work on */
+	TypeName  List         `json:"typeName"`   /* domain to work on */
 	Name      *string      `json:"name"`       /* column or constraint name to act on */
 	Def       Node         `json:"def"`        /* definition of default or constraint */
 	Behavior  DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE for DROP cases */
@@ -53,7 +53,7 @@ func (node *AlterDomainStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["typeName"] != nil {
-		node.TypeName, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		node.TypeName.Items, err = UnmarshalNodeArrayJSON(fields["typeName"])
 		if err != nil {
 			return
 		}

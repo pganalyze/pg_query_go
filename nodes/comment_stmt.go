@@ -10,8 +10,8 @@ import "encoding/json"
  */
 type CommentStmt struct {
 	Objtype ObjectType `json:"objtype"` /* Object's type */
-	Objname []Node     `json:"objname"` /* Qualified name of the object */
-	Objargs []Node     `json:"objargs"` /* Arguments if needed (eg, for functions) */
+	Objname List       `json:"objname"` /* Qualified name of the object */
+	Objargs List       `json:"objargs"` /* Arguments if needed (eg, for functions) */
 	Comment *string    `json:"comment"` /* Comment to insert, or NULL to remove */
 }
 
@@ -38,14 +38,14 @@ func (node *CommentStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["objname"] != nil {
-		node.Objname, err = UnmarshalNodeArrayJSON(fields["objname"])
+		node.Objname.Items, err = UnmarshalNodeArrayJSON(fields["objname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["objargs"] != nil {
-		node.Objargs, err = UnmarshalNodeArrayJSON(fields["objargs"])
+		node.Objargs.Items, err = UnmarshalNodeArrayJSON(fields["objargs"])
 		if err != nil {
 			return
 		}

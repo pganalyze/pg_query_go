@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type CompositeTypeStmt struct {
 	Typevar    *RangeVar `json:"typevar"`    /* the composite type to be created */
-	Coldeflist []Node    `json:"coldeflist"` /* list of ColumnDef nodes */
+	Coldeflist List      `json:"coldeflist"` /* list of ColumnDef nodes */
 }
 
 func (node CompositeTypeStmt) MarshalJSON() ([]byte, error) {
@@ -41,7 +41,7 @@ func (node *CompositeTypeStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["coldeflist"] != nil {
-		node.Coldeflist, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
+		node.Coldeflist.Items, err = UnmarshalNodeArrayJSON(fields["coldeflist"])
 		if err != nil {
 			return
 		}

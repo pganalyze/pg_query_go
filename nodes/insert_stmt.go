@@ -14,9 +14,9 @@ import "encoding/json"
  */
 type InsertStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to insert into */
-	Cols          []Node      `json:"cols"`          /* optional: names of the target columns */
+	Cols          List        `json:"cols"`          /* optional: names of the target columns */
 	SelectStmt    Node        `json:"selectStmt"`    /* the source SELECT/VALUES, or NULL */
-	ReturningList []Node      `json:"returningList"` /* list of expressions to return */
+	ReturningList List        `json:"returningList"` /* list of expressions to return */
 	WithClause    *WithClause `json:"withClause"`    /* WITH clause */
 }
 
@@ -48,7 +48,7 @@ func (node *InsertStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["cols"] != nil {
-		node.Cols, err = UnmarshalNodeArrayJSON(fields["cols"])
+		node.Cols.Items, err = UnmarshalNodeArrayJSON(fields["cols"])
 		if err != nil {
 			return
 		}
@@ -62,7 +62,7 @@ func (node *InsertStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["returningList"] != nil {
-		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		node.ReturningList.Items, err = UnmarshalNodeArrayJSON(fields["returningList"])
 		if err != nil {
 			return
 		}

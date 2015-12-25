@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type AlterTableStmt struct {
 	Relation  *RangeVar  `json:"relation"`   /* table to work on */
-	Cmds      []Node     `json:"cmds"`       /* list of subcommands */
+	Cmds      List       `json:"cmds"`       /* list of subcommands */
 	Relkind   ObjectType `json:"relkind"`    /* type of object */
 	MissingOk bool       `json:"missing_ok"` /* skip error if table missing */
 }
@@ -43,7 +43,7 @@ func (node *AlterTableStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["cmds"] != nil {
-		node.Cmds, err = UnmarshalNodeArrayJSON(fields["cmds"])
+		node.Cmds.Items, err = UnmarshalNodeArrayJSON(fields["cmds"])
 		if err != nil {
 			return
 		}

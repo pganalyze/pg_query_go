@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type AlterSeqStmt struct {
 	Sequence  *RangeVar `json:"sequence"` /* the sequence to alter */
-	Options   []Node    `json:"options"`
+	Options   List      `json:"options"`
 	MissingOk bool      `json:"missing_ok"` /* skip error if a role is missing? */
 }
 
@@ -42,7 +42,7 @@ func (node *AlterSeqStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

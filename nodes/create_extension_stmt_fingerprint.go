@@ -12,8 +12,5 @@ func (node CreateExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.IfNotExists))
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 }

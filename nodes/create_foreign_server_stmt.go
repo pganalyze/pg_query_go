@@ -13,7 +13,7 @@ type CreateForeignServerStmt struct {
 	Servertype *string `json:"servertype"` /* optional server type */
 	Version    *string `json:"version"`    /* optional server version */
 	Fdwname    *string `json:"fdwname"`    /* FDW name */
-	Options    []Node  `json:"options"`    /* generic options to server */
+	Options    List    `json:"options"`    /* generic options to server */
 }
 
 func (node CreateForeignServerStmt) MarshalJSON() ([]byte, error) {
@@ -60,7 +60,7 @@ func (node *CreateForeignServerStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

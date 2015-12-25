@@ -18,13 +18,8 @@ func (node WindowDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 		ctx.WriteString(*node.Name)
 	}
 
-	for _, subNode := range node.OrderClause {
-		subNode.Fingerprint(ctx, "OrderClause")
-	}
-
-	for _, subNode := range node.PartitionClause {
-		subNode.Fingerprint(ctx, "PartitionClause")
-	}
+	node.OrderClause.Fingerprint(ctx, "OrderClause")
+	node.PartitionClause.Fingerprint(ctx, "PartitionClause")
 
 	if node.Refname != nil {
 		ctx.WriteString(*node.Refname)

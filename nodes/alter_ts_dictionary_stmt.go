@@ -8,8 +8,8 @@ import "encoding/json"
  * TS Dictionary stmts: DefineStmt, RenameStmt and DropStmt are default
  */
 type AlterTSDictionaryStmt struct {
-	Dictname []Node `json:"dictname"` /* qualified name (list of Value strings) */
-	Options  []Node `json:"options"`  /* List of DefElem nodes */
+	Dictname List `json:"dictname"` /* qualified name (list of Value strings) */
+	Options  List `json:"options"`  /* List of DefElem nodes */
 }
 
 func (node AlterTSDictionaryStmt) MarshalJSON() ([]byte, error) {
@@ -28,14 +28,14 @@ func (node *AlterTSDictionaryStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["dictname"] != nil {
-		node.Dictname, err = UnmarshalNodeArrayJSON(fields["dictname"])
+		node.Dictname.Items, err = UnmarshalNodeArrayJSON(fields["dictname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

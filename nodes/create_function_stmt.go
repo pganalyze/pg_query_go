@@ -10,11 +10,11 @@ import "encoding/json"
  */
 type CreateFunctionStmt struct {
 	Replace    bool      `json:"replace"`    /* T => replace if already exists */
-	Funcname   []Node    `json:"funcname"`   /* qualified name of function to create */
-	Parameters []Node    `json:"parameters"` /* a list of FunctionParameter */
+	Funcname   List      `json:"funcname"`   /* qualified name of function to create */
+	Parameters List      `json:"parameters"` /* a list of FunctionParameter */
 	ReturnType *TypeName `json:"returnType"` /* the return type */
-	Options    []Node    `json:"options"`    /* a list of DefElem */
-	WithClause []Node    `json:"withClause"` /* a list of DefElem */
+	Options    List      `json:"options"`    /* a list of DefElem */
+	WithClause List      `json:"withClause"` /* a list of DefElem */
 }
 
 func (node CreateFunctionStmt) MarshalJSON() ([]byte, error) {
@@ -40,14 +40,14 @@ func (node *CreateFunctionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["funcname"] != nil {
-		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		node.Funcname.Items, err = UnmarshalNodeArrayJSON(fields["funcname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["parameters"] != nil {
-		node.Parameters, err = UnmarshalNodeArrayJSON(fields["parameters"])
+		node.Parameters.Items, err = UnmarshalNodeArrayJSON(fields["parameters"])
 		if err != nil {
 			return
 		}
@@ -66,14 +66,14 @@ func (node *CreateFunctionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["withClause"] != nil {
-		node.WithClause, err = UnmarshalNodeArrayJSON(fields["withClause"])
+		node.WithClause.Items, err = UnmarshalNodeArrayJSON(fields["withClause"])
 		if err != nil {
 			return
 		}

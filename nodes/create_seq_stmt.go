@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type CreateSeqStmt struct {
 	Sequence *RangeVar `json:"sequence"` /* the sequence to create */
-	Options  []Node    `json:"options"`
+	Options  List      `json:"options"`
 	OwnerId  Oid       `json:"ownerId"` /* ID of owner, or InvalidOid for default */
 }
 
@@ -42,7 +42,7 @@ func (node *CreateSeqStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

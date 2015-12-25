@@ -11,8 +11,8 @@ import "encoding/json"
 type CreateEventTrigStmt struct {
 	Trigname   *string `json:"trigname"`   /* TRIGGER's name */
 	Eventname  *string `json:"eventname"`  /* event's identifier */
-	Whenclause []Node  `json:"whenclause"` /* list of DefElems indicating filtering */
-	Funcname   []Node  `json:"funcname"`   /* qual. name of function to call */
+	Whenclause List    `json:"whenclause"` /* list of DefElems indicating filtering */
+	Funcname   List    `json:"funcname"`   /* qual. name of function to call */
 }
 
 func (node CreateEventTrigStmt) MarshalJSON() ([]byte, error) {
@@ -45,14 +45,14 @@ func (node *CreateEventTrigStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["whenclause"] != nil {
-		node.Whenclause, err = UnmarshalNodeArrayJSON(fields["whenclause"])
+		node.Whenclause.Items, err = UnmarshalNodeArrayJSON(fields["whenclause"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["funcname"] != nil {
-		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		node.Funcname.Items, err = UnmarshalNodeArrayJSON(fields["funcname"])
 		if err != nil {
 			return
 		}

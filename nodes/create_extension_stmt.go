@@ -11,7 +11,7 @@ import "encoding/json"
 type CreateExtensionStmt struct {
 	Extname     *string `json:"extname"`
 	IfNotExists bool    `json:"if_not_exists"` /* just do nothing if it already exists? */
-	Options     []Node  `json:"options"`       /* List of DefElem nodes */
+	Options     List    `json:"options"`       /* List of DefElem nodes */
 }
 
 func (node CreateExtensionStmt) MarshalJSON() ([]byte, error) {
@@ -44,7 +44,7 @@ func (node *CreateExtensionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

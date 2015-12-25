@@ -8,23 +8,10 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("Query")
 	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
 	ctx.WriteString(strconv.Itoa(int(node.CommandType)))
-
-	for _, subNode := range node.ConstraintDeps {
-		subNode.Fingerprint(ctx, "ConstraintDeps")
-	}
-
-	for _, subNode := range node.CteList {
-		subNode.Fingerprint(ctx, "CteList")
-	}
-
-	for _, subNode := range node.DistinctClause {
-		subNode.Fingerprint(ctx, "DistinctClause")
-	}
-
-	for _, subNode := range node.GroupClause {
-		subNode.Fingerprint(ctx, "GroupClause")
-	}
-
+	node.ConstraintDeps.Fingerprint(ctx, "ConstraintDeps")
+	node.CteList.Fingerprint(ctx, "CteList")
+	node.DistinctClause.Fingerprint(ctx, "DistinctClause")
+	node.GroupClause.Fingerprint(ctx, "GroupClause")
 	ctx.WriteString(strconv.FormatBool(node.HasAggs))
 	ctx.WriteString(strconv.FormatBool(node.HasDistinctOn))
 	ctx.WriteString(strconv.FormatBool(node.HasForUpdate))
@@ -52,40 +39,21 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString(strconv.Itoa(int(node.QueryId)))
 	ctx.WriteString(strconv.Itoa(int(node.QuerySource)))
 	ctx.WriteString(strconv.Itoa(int(node.ResultRelation)))
-
-	for _, subNode := range node.ReturningList {
-		subNode.Fingerprint(ctx, "ReturningList")
-	}
-
-	for _, subNode := range node.RowMarks {
-		subNode.Fingerprint(ctx, "RowMarks")
-	}
-
-	for _, subNode := range node.Rtable {
-		subNode.Fingerprint(ctx, "Rtable")
-	}
+	node.ReturningList.Fingerprint(ctx, "ReturningList")
+	node.RowMarks.Fingerprint(ctx, "RowMarks")
+	node.Rtable.Fingerprint(ctx, "Rtable")
 
 	if node.SetOperations != nil {
 		node.SetOperations.Fingerprint(ctx, "SetOperations")
 	}
 
-	for _, subNode := range node.SortClause {
-		subNode.Fingerprint(ctx, "SortClause")
-	}
-
-	for _, subNode := range node.TargetList {
-		subNode.Fingerprint(ctx, "TargetList")
-	}
+	node.SortClause.Fingerprint(ctx, "SortClause")
+	node.TargetList.Fingerprint(ctx, "TargetList")
 
 	if node.UtilityStmt != nil {
 		node.UtilityStmt.Fingerprint(ctx, "UtilityStmt")
 	}
 
-	for _, subNode := range node.WindowClause {
-		subNode.Fingerprint(ctx, "WindowClause")
-	}
-
-	for _, subNode := range node.WithCheckOptions {
-		subNode.Fingerprint(ctx, "WithCheckOptions")
-	}
+	node.WindowClause.Fingerprint(ctx, "WindowClause")
+	node.WithCheckOptions.Fingerprint(ctx, "WithCheckOptions")
 }

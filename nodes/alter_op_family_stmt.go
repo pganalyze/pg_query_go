@@ -9,10 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type AlterOpFamilyStmt struct {
-	Opfamilyname []Node  `json:"opfamilyname"` /* qualified name (list of Value strings) */
+	Opfamilyname List    `json:"opfamilyname"` /* qualified name (list of Value strings) */
 	Amname       *string `json:"amname"`       /* name of index AM opfamily is for */
 	IsDrop       bool    `json:"isDrop"`       /* ADD or DROP the items? */
-	Items        []Node  `json:"items"`        /* List of CreateOpClassItem nodes */
+	Items        List    `json:"items"`        /* List of CreateOpClassItem nodes */
 }
 
 func (node AlterOpFamilyStmt) MarshalJSON() ([]byte, error) {
@@ -31,7 +31,7 @@ func (node *AlterOpFamilyStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["opfamilyname"] != nil {
-		node.Opfamilyname, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
+		node.Opfamilyname.Items, err = UnmarshalNodeArrayJSON(fields["opfamilyname"])
 		if err != nil {
 			return
 		}
@@ -52,7 +52,7 @@ func (node *AlterOpFamilyStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["items"] != nil {
-		node.Items, err = UnmarshalNodeArrayJSON(fields["items"])
+		node.Items.Items, err = UnmarshalNodeArrayJSON(fields["items"])
 		if err != nil {
 			return
 		}

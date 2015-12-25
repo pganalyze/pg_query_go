@@ -20,13 +20,13 @@ type Constraint struct {
 	CookedExpr  *string `json:"cooked_expr"`   /* expr, as nodeToString representation */
 
 	/* Fields used for unique constraints (UNIQUE and PRIMARY KEY): */
-	Keys []Node `json:"keys"` /* String nodes naming referenced column(s) */
+	Keys List `json:"keys"` /* String nodes naming referenced column(s) */
 
 	/* Fields used for EXCLUSION constraints: */
-	Exclusions []Node `json:"exclusions"` /* list of (IndexElem, operator name) pairs */
+	Exclusions List `json:"exclusions"` /* list of (IndexElem, operator name) pairs */
 
 	/* Fields used for index constraints (UNIQUE, PRIMARY KEY, EXCLUSION): */
-	Options    []Node  `json:"options"`    /* options from WITH clause */
+	Options    List    `json:"options"`    /* options from WITH clause */
 	Indexname  *string `json:"indexname"`  /* existing index to use; otherwise NULL */
 	Indexspace *string `json:"indexspace"` /* index tablespace; NULL for default */
 
@@ -36,12 +36,12 @@ type Constraint struct {
 
 	/* Fields used for FOREIGN KEY constraints: */
 	Pktable       *RangeVar `json:"pktable"`         /* Primary key table */
-	FkAttrs       []Node    `json:"fk_attrs"`        /* Attributes of foreign key */
-	PkAttrs       []Node    `json:"pk_attrs"`        /* Corresponding attrs in PK table */
+	FkAttrs       List      `json:"fk_attrs"`        /* Attributes of foreign key */
+	PkAttrs       List      `json:"pk_attrs"`        /* Corresponding attrs in PK table */
 	FkMatchtype   byte      `json:"fk_matchtype"`    /* FULL, PARTIAL, SIMPLE */
 	FkUpdAction   byte      `json:"fk_upd_action"`   /* ON UPDATE action */
 	FkDelAction   byte      `json:"fk_del_action"`   /* ON DELETE action */
-	OldConpfeqop  []Node    `json:"old_conpfeqop"`   /* pg_constraint.conpfeqop of my former self */
+	OldConpfeqop  List      `json:"old_conpfeqop"`   /* pg_constraint.conpfeqop of my former self */
 	OldPktableOid Oid       `json:"old_pktable_oid"` /* pg_constraint.confrelid of my former self */
 
 	/* Fields used for constraints that allow a NOT VALID specification */
@@ -121,21 +121,21 @@ func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["keys"] != nil {
-		node.Keys, err = UnmarshalNodeArrayJSON(fields["keys"])
+		node.Keys.Items, err = UnmarshalNodeArrayJSON(fields["keys"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["exclusions"] != nil {
-		node.Exclusions, err = UnmarshalNodeArrayJSON(fields["exclusions"])
+		node.Exclusions.Items, err = UnmarshalNodeArrayJSON(fields["exclusions"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}
@@ -182,14 +182,14 @@ func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["fk_attrs"] != nil {
-		node.FkAttrs, err = UnmarshalNodeArrayJSON(fields["fk_attrs"])
+		node.FkAttrs.Items, err = UnmarshalNodeArrayJSON(fields["fk_attrs"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["pk_attrs"] != nil {
-		node.PkAttrs, err = UnmarshalNodeArrayJSON(fields["pk_attrs"])
+		node.PkAttrs.Items, err = UnmarshalNodeArrayJSON(fields["pk_attrs"])
 		if err != nil {
 			return
 		}
@@ -223,7 +223,7 @@ func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["old_conpfeqop"] != nil {
-		node.OldConpfeqop, err = UnmarshalNodeArrayJSON(fields["old_conpfeqop"])
+		node.OldConpfeqop.Items, err = UnmarshalNodeArrayJSON(fields["old_conpfeqop"])
 		if err != nil {
 			return
 		}

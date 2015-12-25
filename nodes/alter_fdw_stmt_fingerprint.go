@@ -9,11 +9,6 @@ func (node AlterFdwStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 		ctx.WriteString(*node.Fdwname)
 	}
 
-	for _, subNode := range node.FuncOptions {
-		subNode.Fingerprint(ctx, "FuncOptions")
-	}
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.FuncOptions.Fingerprint(ctx, "FuncOptions")
+	node.Options.Fingerprint(ctx, "Options")
 }

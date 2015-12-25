@@ -19,15 +19,9 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 		node.Refexpr.Fingerprint(ctx, "Refexpr")
 	}
 
-	for _, subNode := range node.Reflowerindexpr {
-		subNode.Fingerprint(ctx, "Reflowerindexpr")
-	}
-
+	node.Reflowerindexpr.Fingerprint(ctx, "Reflowerindexpr")
 	ctx.WriteString(strconv.Itoa(int(node.Reftypmod)))
-
-	for _, subNode := range node.Refupperindexpr {
-		subNode.Fingerprint(ctx, "Refupperindexpr")
-	}
+	node.Refupperindexpr.Fingerprint(ctx, "Refupperindexpr")
 
 	if node.Xpr != nil {
 		node.Xpr.Fingerprint(ctx, "Xpr")

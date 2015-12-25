@@ -20,8 +20,8 @@ import "encoding/json"
  * is responsible for enforcing this!
  */
 type A_Indirection struct {
-	Arg         Node   `json:"arg"`         /* the thing being selected from */
-	Indirection []Node `json:"indirection"` /* subscripts and/or field names and/or * */
+	Arg         Node `json:"arg"`         /* the thing being selected from */
+	Indirection List `json:"indirection"` /* subscripts and/or field names and/or * */
 }
 
 func (node A_Indirection) MarshalJSON() ([]byte, error) {
@@ -47,7 +47,7 @@ func (node *A_Indirection) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["indirection"] != nil {
-		node.Indirection, err = UnmarshalNodeArrayJSON(fields["indirection"])
+		node.Indirection.Items, err = UnmarshalNodeArrayJSON(fields["indirection"])
 		if err != nil {
 			return
 		}

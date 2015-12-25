@@ -13,7 +13,7 @@ type MinMaxExpr struct {
 	Minmaxcollid Oid      `json:"minmaxcollid"` /* OID of collation of result */
 	Inputcollid  Oid      `json:"inputcollid"`  /* OID of collation that function should use */
 	Op           MinMaxOp `json:"op"`           /* function to execute */
-	Args         []Node   `json:"args"`         /* the arguments */
+	Args         List     `json:"args"`         /* the arguments */
 	Location     int      `json:"location"`     /* token location, or -1 if unknown */
 }
 
@@ -68,7 +68,7 @@ func (node *MinMaxExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

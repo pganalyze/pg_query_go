@@ -18,8 +18,8 @@ import "encoding/json"
  * name is represented within ColumnRef and not by adding A_Indirection.
  */
 type ColumnRef struct {
-	Fields   []Node `json:"fields"`   /* field names (Value strings) or A_Star */
-	Location int    `json:"location"` /* token location, or -1 if unknown */
+	Fields   List `json:"fields"`   /* field names (Value strings) or A_Star */
+	Location int  `json:"location"` /* token location, or -1 if unknown */
 }
 
 func (node ColumnRef) MarshalJSON() ([]byte, error) {
@@ -38,7 +38,7 @@ func (node *ColumnRef) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["fields"] != nil {
-		node.Fields, err = UnmarshalNodeArrayJSON(fields["fields"])
+		node.Fields.Items, err = UnmarshalNodeArrayJSON(fields["fields"])
 		if err != nil {
 			return
 		}

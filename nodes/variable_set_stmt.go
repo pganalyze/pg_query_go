@@ -7,7 +7,7 @@ import "encoding/json"
 type VariableSetStmt struct {
 	Kind    VariableSetKind `json:"kind"`
 	Name    *string         `json:"name"`     /* variable to be set */
-	Args    []Node          `json:"args"`     /* List of A_Const nodes */
+	Args    List            `json:"args"`     /* List of A_Const nodes */
 	IsLocal bool            `json:"is_local"` /* SET LOCAL? */
 }
 
@@ -41,7 +41,7 @@ func (node *VariableSetStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

@@ -16,13 +16,13 @@ import "encoding/json"
  */
 type CreateStmt struct {
 	Relation     *RangeVar `json:"relation"`     /* relation to create */
-	TableElts    []Node    `json:"tableElts"`    /* column definitions (list of ColumnDef) */
-	InhRelations []Node    `json:"inhRelations"` /* relations to inherit from (list of
+	TableElts    List      `json:"tableElts"`    /* column definitions (list of ColumnDef) */
+	InhRelations List      `json:"inhRelations"` /* relations to inherit from (list of
 	 * inhRelation) */
 
 	OfTypename     *TypeName      `json:"ofTypename"`     /* OF typename */
-	Constraints    []Node         `json:"constraints"`    /* constraints (list of Constraint nodes) */
-	Options        []Node         `json:"options"`        /* options from WITH clause */
+	Constraints    List           `json:"constraints"`    /* constraints (list of Constraint nodes) */
+	Options        List           `json:"options"`        /* options from WITH clause */
 	Oncommit       OnCommitAction `json:"oncommit"`       /* what do we do at COMMIT? */
 	Tablespacename *string        `json:"tablespacename"` /* table space to use, or NULL */
 	IfNotExists    bool           `json:"if_not_exists"`  /* just do nothing if it already exists? */
@@ -56,14 +56,14 @@ func (node *CreateStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["tableElts"] != nil {
-		node.TableElts, err = UnmarshalNodeArrayJSON(fields["tableElts"])
+		node.TableElts.Items, err = UnmarshalNodeArrayJSON(fields["tableElts"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["inhRelations"] != nil {
-		node.InhRelations, err = UnmarshalNodeArrayJSON(fields["inhRelations"])
+		node.InhRelations.Items, err = UnmarshalNodeArrayJSON(fields["inhRelations"])
 		if err != nil {
 			return
 		}
@@ -82,14 +82,14 @@ func (node *CreateStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["constraints"] != nil {
-		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		node.Constraints.Items, err = UnmarshalNodeArrayJSON(fields["constraints"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

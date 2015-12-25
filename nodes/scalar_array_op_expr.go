@@ -15,13 +15,13 @@ import "encoding/json"
  * the result type (or the collation) because it must be boolean.
  */
 type ScalarArrayOpExpr struct {
-	Xpr         Node   `json:"xpr"`
-	Opno        Oid    `json:"opno"`        /* PG_OPERATOR OID of the operator */
-	Opfuncid    Oid    `json:"opfuncid"`    /* PG_PROC OID of underlying function */
-	UseOr       bool   `json:"useOr"`       /* true for ANY, false for ALL */
-	Inputcollid Oid    `json:"inputcollid"` /* OID of collation that operator should use */
-	Args        []Node `json:"args"`        /* the scalar and array operands */
-	Location    int    `json:"location"`    /* token location, or -1 if unknown */
+	Xpr         Node `json:"xpr"`
+	Opno        Oid  `json:"opno"`        /* PG_OPERATOR OID of the operator */
+	Opfuncid    Oid  `json:"opfuncid"`    /* PG_PROC OID of underlying function */
+	UseOr       bool `json:"useOr"`       /* true for ANY, false for ALL */
+	Inputcollid Oid  `json:"inputcollid"` /* OID of collation that operator should use */
+	Args        List `json:"args"`        /* the scalar and array operands */
+	Location    int  `json:"location"`    /* token location, or -1 if unknown */
 }
 
 func (node ScalarArrayOpExpr) MarshalJSON() ([]byte, error) {
@@ -75,7 +75,7 @@ func (node *ScalarArrayOpExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

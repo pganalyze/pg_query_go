@@ -14,8 +14,8 @@ import "encoding/json"
  * ----------------------
  */
 type GrantRoleStmt struct {
-	GrantedRoles []Node       `json:"granted_roles"` /* list of roles to be granted/revoked */
-	GranteeRoles []Node       `json:"grantee_roles"` /* list of member roles to add/delete */
+	GrantedRoles List         `json:"granted_roles"` /* list of roles to be granted/revoked */
+	GranteeRoles List         `json:"grantee_roles"` /* list of member roles to add/delete */
 	IsGrant      bool         `json:"is_grant"`      /* true = GRANT, false = REVOKE */
 	AdminOpt     bool         `json:"admin_opt"`     /* with admin option */
 	Grantor      *string      `json:"grantor"`       /* set grantor to other than current role */
@@ -38,14 +38,14 @@ func (node *GrantRoleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["granted_roles"] != nil {
-		node.GrantedRoles, err = UnmarshalNodeArrayJSON(fields["granted_roles"])
+		node.GrantedRoles.Items, err = UnmarshalNodeArrayJSON(fields["granted_roles"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["grantee_roles"] != nil {
-		node.GranteeRoles, err = UnmarshalNodeArrayJSON(fields["grantee_roles"])
+		node.GranteeRoles.Items, err = UnmarshalNodeArrayJSON(fields["grantee_roles"])
 		if err != nil {
 			return
 		}

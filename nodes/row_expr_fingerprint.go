@@ -6,15 +6,8 @@ import "strconv"
 
 func (node RowExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RowExpr")
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
-	for _, subNode := range node.Colnames {
-		subNode.Fingerprint(ctx, "Colnames")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
+	node.Colnames.Fingerprint(ctx, "Colnames")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	ctx.WriteString(strconv.Itoa(int(node.RowFormat)))

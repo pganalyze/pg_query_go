@@ -9,10 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateDomainStmt struct {
-	Domainname  []Node         `json:"domainname"`  /* qualified name (list of Value strings) */
+	Domainname  List           `json:"domainname"`  /* qualified name (list of Value strings) */
 	TypeName    *TypeName      `json:"typeName"`    /* the base type */
 	CollClause  *CollateClause `json:"collClause"`  /* untransformed COLLATE spec, if any */
-	Constraints []Node         `json:"constraints"` /* constraints (list of Constraint nodes) */
+	Constraints List           `json:"constraints"` /* constraints (list of Constraint nodes) */
 }
 
 func (node CreateDomainStmt) MarshalJSON() ([]byte, error) {
@@ -31,7 +31,7 @@ func (node *CreateDomainStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["domainname"] != nil {
-		node.Domainname, err = UnmarshalNodeArrayJSON(fields["domainname"])
+		node.Domainname.Items, err = UnmarshalNodeArrayJSON(fields["domainname"])
 		if err != nil {
 			return
 		}
@@ -62,7 +62,7 @@ func (node *CreateDomainStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["constraints"] != nil {
-		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		node.Constraints.Items, err = UnmarshalNodeArrayJSON(fields["constraints"])
 		if err != nil {
 			return
 		}

@@ -11,10 +11,7 @@ func (node WindowFunc) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.Aggfilter.Fingerprint(ctx, "Aggfilter")
 	}
 
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.Itoa(int(node.Inputcollid)))
 	// Intentionally ignoring node.Location for fingerprinting
 

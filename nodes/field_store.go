@@ -19,11 +19,11 @@ import "encoding/json"
  * ----------------
  */
 type FieldStore struct {
-	Xpr        Node   `json:"xpr"`
-	Arg        Node   `json:"arg"`        /* input tuple value */
-	Newvals    []Node `json:"newvals"`    /* new value(s) for field(s) */
-	Fieldnums  []Node `json:"fieldnums"`  /* integer list of field attnums */
-	Resulttype Oid    `json:"resulttype"` /* type of result (same as type of arg) */
+	Xpr        Node `json:"xpr"`
+	Arg        Node `json:"arg"`        /* input tuple value */
+	Newvals    List `json:"newvals"`    /* new value(s) for field(s) */
+	Fieldnums  List `json:"fieldnums"`  /* integer list of field attnums */
+	Resulttype Oid  `json:"resulttype"` /* type of result (same as type of arg) */
 
 	/* Like RowExpr, we deliberately omit a typmod and collation here */
 }
@@ -58,14 +58,14 @@ func (node *FieldStore) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["newvals"] != nil {
-		node.Newvals, err = UnmarshalNodeArrayJSON(fields["newvals"])
+		node.Newvals.Items, err = UnmarshalNodeArrayJSON(fields["newvals"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["fieldnums"] != nil {
-		node.Fieldnums, err = UnmarshalNodeArrayJSON(fields["fieldnums"])
+		node.Fieldnums.Items, err = UnmarshalNodeArrayJSON(fields["fieldnums"])
 		if err != nil {
 			return
 		}

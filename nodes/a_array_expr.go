@@ -8,8 +8,8 @@ import "encoding/json"
  * A_ArrayExpr - an ARRAY[] construct
  */
 type A_ArrayExpr struct {
-	Elements []Node `json:"elements"` /* array element expressions */
-	Location int    `json:"location"` /* token location, or -1 if unknown */
+	Elements List `json:"elements"` /* array element expressions */
+	Location int  `json:"location"` /* token location, or -1 if unknown */
 }
 
 func (node A_ArrayExpr) MarshalJSON() ([]byte, error) {
@@ -28,7 +28,7 @@ func (node *A_ArrayExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["elements"] != nil {
-		node.Elements, err = UnmarshalNodeArrayJSON(fields["elements"])
+		node.Elements.Items, err = UnmarshalNodeArrayJSON(fields["elements"])
 		if err != nil {
 			return
 		}

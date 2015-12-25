@@ -27,15 +27,15 @@ import "encoding/json"
  * ----------------
  */
 type ArrayRef struct {
-	Xpr             Node   `json:"xpr"`
-	Refarraytype    Oid    `json:"refarraytype"`    /* type of the array proper */
-	Refelemtype     Oid    `json:"refelemtype"`     /* type of the array elements */
-	Reftypmod       int32  `json:"reftypmod"`       /* typmod of the array (and elements too) */
-	Refcollid       Oid    `json:"refcollid"`       /* OID of collation, or InvalidOid if none */
-	Refupperindexpr []Node `json:"refupperindexpr"` /* expressions that evaluate to upper array
+	Xpr             Node  `json:"xpr"`
+	Refarraytype    Oid   `json:"refarraytype"`    /* type of the array proper */
+	Refelemtype     Oid   `json:"refelemtype"`     /* type of the array elements */
+	Reftypmod       int32 `json:"reftypmod"`       /* typmod of the array (and elements too) */
+	Refcollid       Oid   `json:"refcollid"`       /* OID of collation, or InvalidOid if none */
+	Refupperindexpr List  `json:"refupperindexpr"` /* expressions that evaluate to upper array
 	 * indexes */
 
-	Reflowerindexpr []Node `json:"reflowerindexpr"` /* expressions that evaluate to lower array
+	Reflowerindexpr List `json:"reflowerindexpr"` /* expressions that evaluate to lower array
 	 * indexes */
 
 	Refexpr Node `json:"refexpr"` /* the expression that evaluates to an array
@@ -96,14 +96,14 @@ func (node *ArrayRef) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["refupperindexpr"] != nil {
-		node.Refupperindexpr, err = UnmarshalNodeArrayJSON(fields["refupperindexpr"])
+		node.Refupperindexpr.Items, err = UnmarshalNodeArrayJSON(fields["refupperindexpr"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["reflowerindexpr"] != nil {
-		node.Reflowerindexpr, err = UnmarshalNodeArrayJSON(fields["reflowerindexpr"])
+		node.Reflowerindexpr.Items, err = UnmarshalNodeArrayJSON(fields["reflowerindexpr"])
 		if err != nil {
 			return
 		}

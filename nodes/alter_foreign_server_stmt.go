@@ -11,7 +11,7 @@ import "encoding/json"
 type AlterForeignServerStmt struct {
 	Servername *string `json:"servername"`  /* server name */
 	Version    *string `json:"version"`     /* optional server version */
-	Options    []Node  `json:"options"`     /* generic options to server */
+	Options    List    `json:"options"`     /* generic options to server */
 	HasVersion bool    `json:"has_version"` /* version specified */
 }
 
@@ -45,7 +45,7 @@ func (node *AlterForeignServerStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

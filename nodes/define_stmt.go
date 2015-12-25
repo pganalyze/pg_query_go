@@ -11,9 +11,9 @@ import "encoding/json"
 type DefineStmt struct {
 	Kind       ObjectType `json:"kind"`       /* aggregate, operator, type */
 	Oldstyle   bool       `json:"oldstyle"`   /* hack to signal old CREATE AGG syntax */
-	Defnames   []Node     `json:"defnames"`   /* qualified name (list of Value strings) */
-	Args       []Node     `json:"args"`       /* a list of TypeName (if needed) */
-	Definition []Node     `json:"definition"` /* a list of DefElem */
+	Defnames   List       `json:"defnames"`   /* qualified name (list of Value strings) */
+	Args       List       `json:"args"`       /* a list of TypeName (if needed) */
+	Definition List       `json:"definition"` /* a list of DefElem */
 }
 
 func (node DefineStmt) MarshalJSON() ([]byte, error) {
@@ -46,21 +46,21 @@ func (node *DefineStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["defnames"] != nil {
-		node.Defnames, err = UnmarshalNodeArrayJSON(fields["defnames"])
+		node.Defnames.Items, err = UnmarshalNodeArrayJSON(fields["defnames"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["definition"] != nil {
-		node.Definition, err = UnmarshalNodeArrayJSON(fields["definition"])
+		node.Definition.Items, err = UnmarshalNodeArrayJSON(fields["definition"])
 		if err != nil {
 			return
 		}

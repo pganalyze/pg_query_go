@@ -19,8 +19,5 @@ func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	ctx.WriteString(string(node.Subtype))
-
-	for _, subNode := range node.TypeName {
-		subNode.Fingerprint(ctx, "TypeName")
-	}
+	node.TypeName.Fingerprint(ctx, "TypeName")
 }

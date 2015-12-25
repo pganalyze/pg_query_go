@@ -6,24 +6,11 @@ import "strconv"
 
 func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RangeTblFunction")
-
-	for _, subNode := range node.Funccolcollations {
-		subNode.Fingerprint(ctx, "Funccolcollations")
-	}
-
+	node.Funccolcollations.Fingerprint(ctx, "Funccolcollations")
 	ctx.WriteString(strconv.Itoa(int(node.Funccolcount)))
-
-	for _, subNode := range node.Funccolnames {
-		subNode.Fingerprint(ctx, "Funccolnames")
-	}
-
-	for _, subNode := range node.Funccoltypes {
-		subNode.Fingerprint(ctx, "Funccoltypes")
-	}
-
-	for _, subNode := range node.Funccoltypmods {
-		subNode.Fingerprint(ctx, "Funccoltypmods")
-	}
+	node.Funccolnames.Fingerprint(ctx, "Funccolnames")
+	node.Funccoltypes.Fingerprint(ctx, "Funccoltypes")
+	node.Funccoltypmods.Fingerprint(ctx, "Funccoltypmods")
 
 	if node.Funcexpr != nil {
 		node.Funcexpr.Fingerprint(ctx, "Funcexpr")

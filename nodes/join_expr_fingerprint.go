@@ -27,8 +27,5 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.Rtindex)))
-
-	for _, subNode := range node.UsingClause {
-		subNode.Fingerprint(ctx, "UsingClause")
-	}
+	node.UsingClause.Fingerprint(ctx, "UsingClause")
 }

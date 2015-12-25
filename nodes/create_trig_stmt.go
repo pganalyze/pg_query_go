@@ -11,18 +11,18 @@ import "encoding/json"
 type CreateTrigStmt struct {
 	Trigname *string   `json:"trigname"` /* TRIGGER's name */
 	Relation *RangeVar `json:"relation"` /* relation trigger is on */
-	Funcname []Node    `json:"funcname"` /* qual. name of function to call */
-	Args     []Node    `json:"args"`     /* list of (T_String) Values or NIL */
+	Funcname List      `json:"funcname"` /* qual. name of function to call */
+	Args     List      `json:"args"`     /* list of (T_String) Values or NIL */
 	Row      bool      `json:"row"`      /* ROW/STATEMENT */
 
 	/* timing uses the TRIGGER_TYPE bits defined in catalog/pg_trigger.h */
 	Timing int16 `json:"timing"` /* BEFORE, AFTER, or INSTEAD */
 
 	/* events uses the TRIGGER_TYPE bits defined in catalog/pg_trigger.h */
-	Events       int16  `json:"events"`       /* "OR" of INSERT/UPDATE/DELETE/TRUNCATE */
-	Columns      []Node `json:"columns"`      /* column names, or NIL for all columns */
-	WhenClause   Node   `json:"whenClause"`   /* qual expression, or NULL if none */
-	Isconstraint bool   `json:"isconstraint"` /* This is a constraint trigger */
+	Events       int16 `json:"events"`       /* "OR" of INSERT/UPDATE/DELETE/TRUNCATE */
+	Columns      List  `json:"columns"`      /* column names, or NIL for all columns */
+	WhenClause   Node  `json:"whenClause"`   /* qual expression, or NULL if none */
+	Isconstraint bool  `json:"isconstraint"` /* This is a constraint trigger */
 
 	/* The remaining fields are only used for constraint triggers */
 	Deferrable   bool      `json:"deferrable"`   /* [NOT] DEFERRABLE */
@@ -65,14 +65,14 @@ func (node *CreateTrigStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["funcname"] != nil {
-		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		node.Funcname.Items, err = UnmarshalNodeArrayJSON(fields["funcname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
@@ -100,7 +100,7 @@ func (node *CreateTrigStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["columns"] != nil {
-		node.Columns, err = UnmarshalNodeArrayJSON(fields["columns"])
+		node.Columns.Items, err = UnmarshalNodeArrayJSON(fields["columns"])
 		if err != nil {
 			return
 		}

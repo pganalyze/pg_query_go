@@ -6,11 +6,7 @@ import "strconv"
 
 func (node LockingClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("LockingClause")
-
-	for _, subNode := range node.LockedRels {
-		subNode.Fingerprint(ctx, "LockedRels")
-	}
-
+	node.LockedRels.Fingerprint(ctx, "LockedRels")
 	ctx.WriteString(strconv.FormatBool(node.NoWait))
 	ctx.WriteString(strconv.Itoa(int(node.Strength)))
 }

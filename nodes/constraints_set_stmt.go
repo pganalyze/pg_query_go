@@ -9,8 +9,8 @@ import "encoding/json"
  * ----------------------
  */
 type ConstraintsSetStmt struct {
-	Constraints []Node `json:"constraints"` /* List of names as RangeVars */
-	Deferred    bool   `json:"deferred"`
+	Constraints List `json:"constraints"` /* List of names as RangeVars */
+	Deferred    bool `json:"deferred"`
 }
 
 func (node ConstraintsSetStmt) MarshalJSON() ([]byte, error) {
@@ -29,7 +29,7 @@ func (node *ConstraintsSetStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["constraints"] != nil {
-		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		node.Constraints.Items, err = UnmarshalNodeArrayJSON(fields["constraints"])
 		if err != nil {
 			return
 		}

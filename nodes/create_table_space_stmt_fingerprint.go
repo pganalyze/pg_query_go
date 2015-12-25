@@ -6,9 +6,7 @@ func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentField
 	ctx.WriteString("CreateTableSpaceStmt")
 	// Intentionally ignoring node.Location for fingerprinting
 
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Owner != nil {
 		ctx.WriteString(*node.Owner)

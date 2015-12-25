@@ -12,9 +12,9 @@ import "encoding/json"
  * but CommonTableExpr does.
  */
 type WithClause struct {
-	Ctes      []Node `json:"ctes"`      /* list of CommonTableExprs */
-	Recursive bool   `json:"recursive"` /* true = WITH RECURSIVE */
-	Location  int    `json:"location"`  /* token location, or -1 if unknown */
+	Ctes      List `json:"ctes"`      /* list of CommonTableExprs */
+	Recursive bool `json:"recursive"` /* true = WITH RECURSIVE */
+	Location  int  `json:"location"`  /* token location, or -1 if unknown */
 }
 
 func (node WithClause) MarshalJSON() ([]byte, error) {
@@ -33,7 +33,7 @@ func (node *WithClause) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["ctes"] != nil {
-		node.Ctes, err = UnmarshalNodeArrayJSON(fields["ctes"])
+		node.Ctes.Items, err = UnmarshalNodeArrayJSON(fields["ctes"])
 		if err != nil {
 			return
 		}

@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type CreatedbStmt struct {
 	Dbname  *string `json:"dbname"`  /* name of database to create */
-	Options []Node  `json:"options"` /* List of DefElem nodes */
+	Options List    `json:"options"` /* List of DefElem nodes */
 }
 
 func (node CreatedbStmt) MarshalJSON() ([]byte, error) {
@@ -36,7 +36,7 @@ func (node *CreatedbStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

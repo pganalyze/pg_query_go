@@ -24,7 +24,7 @@ import "encoding/json"
  */
 type ResTarget struct {
 	Name        *string `json:"name"`        /* column name or NULL */
-	Indirection []Node  `json:"indirection"` /* subscripts, field names, and '*', or NIL */
+	Indirection List    `json:"indirection"` /* subscripts, field names, and '*', or NIL */
 	Val         Node    `json:"val"`         /* the value expression to compute or assign */
 	Location    int     `json:"location"`    /* token location, or -1 if unknown */
 }
@@ -52,7 +52,7 @@ func (node *ResTarget) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["indirection"] != nil {
-		node.Indirection, err = UnmarshalNodeArrayJSON(fields["indirection"])
+		node.Indirection.Items, err = UnmarshalNodeArrayJSON(fields["indirection"])
 		if err != nil {
 			return
 		}

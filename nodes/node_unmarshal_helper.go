@@ -1,9 +1,6 @@
 package pg_query
 
-import (
-	"encoding/json"
-	"strings"
-)
+import "encoding/json"
 
 func UnmarshalNodePtrJSON(input json.RawMessage) (nodePtr *Node, err error) {
 	if input == nil {
@@ -20,17 +17,6 @@ func UnmarshalNodePtrJSON(input json.RawMessage) (nodePtr *Node, err error) {
 }
 
 func UnmarshalNodeArrayJSON(input json.RawMessage) (nodes []Node, err error) {
-	// Handle edge-cases like A_Expr which aren't always lists in JSON, but we accept them as lists always
-	if !strings.HasPrefix(string(input), "[") {
-		var node Node
-		node, err = UnmarshalNodeJSON(input)
-		if err != nil || node == nil {
-			return
-		}
-		nodes = []Node{node}
-		return
-	}
-
 	var items []json.RawMessage
 
 	err = json.Unmarshal(input, &items)

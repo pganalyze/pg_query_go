@@ -18,7 +18,7 @@ type FuncExpr struct {
 	Funcformat  CoercionForm `json:"funcformat"`  /* how to display this function call */
 	Funccollid  Oid          `json:"funccollid"`  /* OID of collation of result */
 	Inputcollid Oid          `json:"inputcollid"` /* OID of collation that function should use */
-	Args        []Node       `json:"args"`        /* arguments to the function */
+	Args        List         `json:"args"`        /* arguments to the function */
 	Location    int          `json:"location"`    /* token location, or -1 if unknown */
 }
 
@@ -94,7 +94,7 @@ func (node *FuncExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

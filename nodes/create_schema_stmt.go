@@ -15,7 +15,7 @@ import "encoding/json"
 type CreateSchemaStmt struct {
 	Schemaname  *string `json:"schemaname"`    /* the name of the schema to create */
 	Authid      *string `json:"authid"`        /* the owner of the created schema */
-	SchemaElts  []Node  `json:"schemaElts"`    /* schema components (list of parsenodes) */
+	SchemaElts  List    `json:"schemaElts"`    /* schema components (list of parsenodes) */
 	IfNotExists bool    `json:"if_not_exists"` /* just do nothing if schema already exists? */
 }
 
@@ -49,7 +49,7 @@ func (node *CreateSchemaStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["schemaElts"] != nil {
-		node.SchemaElts, err = UnmarshalNodeArrayJSON(fields["schemaElts"])
+		node.SchemaElts.Items, err = UnmarshalNodeArrayJSON(fields["schemaElts"])
 		if err != nil {
 			return
 		}

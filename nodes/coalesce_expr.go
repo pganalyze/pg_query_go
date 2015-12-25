@@ -8,11 +8,11 @@ import "encoding/json"
  * CoalesceExpr - a COALESCE expression
  */
 type CoalesceExpr struct {
-	Xpr            Node   `json:"xpr"`
-	Coalescetype   Oid    `json:"coalescetype"`   /* type of expression result */
-	Coalescecollid Oid    `json:"coalescecollid"` /* OID of collation, or InvalidOid if none */
-	Args           []Node `json:"args"`           /* the arguments */
-	Location       int    `json:"location"`       /* token location, or -1 if unknown */
+	Xpr            Node `json:"xpr"`
+	Coalescetype   Oid  `json:"coalescetype"`   /* type of expression result */
+	Coalescecollid Oid  `json:"coalescecollid"` /* OID of collation, or InvalidOid if none */
+	Args           List `json:"args"`           /* the arguments */
+	Location       int  `json:"location"`       /* token location, or -1 if unknown */
 }
 
 func (node CoalesceExpr) MarshalJSON() ([]byte, error) {
@@ -52,7 +52,7 @@ func (node *CoalesceExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

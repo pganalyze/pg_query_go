@@ -8,7 +8,7 @@ import "encoding/json"
  *		REASSIGN OWNED statement
  */
 type ReassignOwnedStmt struct {
-	Roles   []Node  `json:"roles"`
+	Roles   List    `json:"roles"`
 	Newrole *string `json:"newrole"`
 }
 
@@ -28,7 +28,7 @@ func (node *ReassignOwnedStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["roles"] != nil {
-		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		node.Roles.Items, err = UnmarshalNodeArrayJSON(fields["roles"])
 		if err != nil {
 			return
 		}

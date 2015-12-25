@@ -9,13 +9,8 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
-	for _, subNode := range node.ReturningList {
-		subNode.Fingerprint(ctx, "ReturningList")
-	}
-
-	for _, subNode := range node.UsingClause {
-		subNode.Fingerprint(ctx, "UsingClause")
-	}
+	node.ReturningList.Fingerprint(ctx, "ReturningList")
+	node.UsingClause.Fingerprint(ctx, "UsingClause")
 
 	if node.WhereClause != nil {
 		node.WhereClause.Fingerprint(ctx, "WhereClause")

@@ -8,10 +8,7 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	ctx.WriteString("SubLink")
 	// Intentionally ignoring node.Location for fingerprinting
 
-	for _, subNode := range node.OperName {
-		subNode.Fingerprint(ctx, "OperName")
-	}
-
+	node.OperName.Fingerprint(ctx, "OperName")
 	ctx.WriteString(strconv.Itoa(int(node.SubLinkType)))
 
 	if node.Subselect != nil {

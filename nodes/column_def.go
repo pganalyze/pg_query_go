@@ -34,8 +34,8 @@ type ColumnDef struct {
 	CookedDefault Node           `json:"cooked_default"` /* default value (transformed expr tree) */
 	CollClause    *CollateClause `json:"collClause"`     /* untransformed COLLATE spec, if any */
 	CollOid       Oid            `json:"collOid"`        /* collation OID (InvalidOid if not set) */
-	Constraints   []Node         `json:"constraints"`    /* other constraints on column */
-	Fdwoptions    []Node         `json:"fdwoptions"`     /* per-column FDW options */
+	Constraints   List           `json:"constraints"`    /* other constraints on column */
+	Fdwoptions    List           `json:"fdwoptions"`     /* per-column FDW options */
 	Location      int            `json:"location"`       /* parse location, or -1 if none/unknown */
 }
 
@@ -144,14 +144,14 @@ func (node *ColumnDef) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["constraints"] != nil {
-		node.Constraints, err = UnmarshalNodeArrayJSON(fields["constraints"])
+		node.Constraints.Items, err = UnmarshalNodeArrayJSON(fields["constraints"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["fdwoptions"] != nil {
-		node.Fdwoptions, err = UnmarshalNodeArrayJSON(fields["fdwoptions"])
+		node.Fdwoptions.Items, err = UnmarshalNodeArrayJSON(fields["fdwoptions"])
 		if err != nil {
 			return
 		}

@@ -9,7 +9,5 @@ func (node ExecuteStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 		ctx.WriteString(*node.Name)
 	}
 
-	for _, subNode := range node.Params {
-		subNode.Fingerprint(ctx, "Params")
-	}
+	node.Params.Fingerprint(ctx, "Params")
 }

@@ -9,9 +9,9 @@ import "encoding/json"
  * ----------------------
  */
 type LockStmt struct {
-	Relations []Node `json:"relations"` /* relations to lock */
-	Mode      int    `json:"mode"`      /* lock mode */
-	Nowait    bool   `json:"nowait"`    /* no wait mode */
+	Relations List `json:"relations"` /* relations to lock */
+	Mode      int  `json:"mode"`      /* lock mode */
+	Nowait    bool `json:"nowait"`    /* no wait mode */
 }
 
 func (node LockStmt) MarshalJSON() ([]byte, error) {
@@ -30,7 +30,7 @@ func (node *LockStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["relations"] != nil {
-		node.Relations, err = UnmarshalNodeArrayJSON(fields["relations"])
+		node.Relations.Items, err = UnmarshalNodeArrayJSON(fields["relations"])
 		if err != nil {
 			return
 		}

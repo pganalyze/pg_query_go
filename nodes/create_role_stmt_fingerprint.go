@@ -6,10 +6,7 @@ import "strconv"
 
 func (node CreateRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateRoleStmt")
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Role != nil {
 		ctx.WriteString(*node.Role)

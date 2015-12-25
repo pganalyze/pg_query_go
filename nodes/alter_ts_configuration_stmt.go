@@ -8,17 +8,17 @@ import "encoding/json"
  * TS Configuration stmts: DefineStmt, RenameStmt and DropStmt are default
  */
 type AlterTSConfigurationStmt struct {
-	Cfgname []Node `json:"cfgname"` /* qualified name (list of Value strings) */
+	Cfgname List `json:"cfgname"` /* qualified name (list of Value strings) */
 
 	/*
 	 * dicts will be non-NIL if ADD/ALTER MAPPING was specified. If dicts is
 	 * NIL, but tokentype isn't, DROP MAPPING was specified.
 	 */
-	Tokentype []Node `json:"tokentype"`  /* list of Value strings */
-	Dicts     []Node `json:"dicts"`      /* list of list of Value strings */
-	Override  bool   `json:"override"`   /* if true - remove old variant */
-	Replace   bool   `json:"replace"`    /* if true - replace dictionary by another */
-	MissingOk bool   `json:"missing_ok"` /* for DROP - skip error if missing? */
+	Tokentype List `json:"tokentype"`  /* list of Value strings */
+	Dicts     List `json:"dicts"`      /* list of list of Value strings */
+	Override  bool `json:"override"`   /* if true - remove old variant */
+	Replace   bool `json:"replace"`    /* if true - replace dictionary by another */
+	MissingOk bool `json:"missing_ok"` /* for DROP - skip error if missing? */
 }
 
 func (node AlterTSConfigurationStmt) MarshalJSON() ([]byte, error) {
@@ -37,21 +37,21 @@ func (node *AlterTSConfigurationStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["cfgname"] != nil {
-		node.Cfgname, err = UnmarshalNodeArrayJSON(fields["cfgname"])
+		node.Cfgname.Items, err = UnmarshalNodeArrayJSON(fields["cfgname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["tokentype"] != nil {
-		node.Tokentype, err = UnmarshalNodeArrayJSON(fields["tokentype"])
+		node.Tokentype.Items, err = UnmarshalNodeArrayJSON(fields["tokentype"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["dicts"] != nil {
-		node.Dicts, err = UnmarshalNodeArrayJSON(fields["dicts"])
+		node.Dicts.Items, err = UnmarshalNodeArrayJSON(fields["dicts"])
 		if err != nil {
 			return
 		}

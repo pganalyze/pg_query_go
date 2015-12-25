@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type ExecuteStmt struct {
 	Name   *string `json:"name"`   /* The name of the plan to execute */
-	Params []Node  `json:"params"` /* Values to assign to parameters */
+	Params List    `json:"params"` /* Values to assign to parameters */
 }
 
 func (node ExecuteStmt) MarshalJSON() ([]byte, error) {
@@ -36,7 +36,7 @@ func (node *ExecuteStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["params"] != nil {
-		node.Params, err = UnmarshalNodeArrayJSON(fields["params"])
+		node.Params.Items, err = UnmarshalNodeArrayJSON(fields["params"])
 		if err != nil {
 			return
 		}

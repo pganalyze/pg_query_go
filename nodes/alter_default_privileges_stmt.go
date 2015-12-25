@@ -9,7 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type AlterDefaultPrivilegesStmt struct {
-	Options []Node     `json:"options"` /* list of DefElem */
+	Options List       `json:"options"` /* list of DefElem */
 	Action  *GrantStmt `json:"action"`  /* GRANT/REVOKE action (with objects=NIL) */
 }
 
@@ -29,7 +29,7 @@ func (node *AlterDefaultPrivilegesStmt) UnmarshalJSON(input []byte) (err error) 
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

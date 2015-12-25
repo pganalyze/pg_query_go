@@ -13,8 +13,8 @@ import "encoding/json"
  * ----------------------
  */
 type ExplainStmt struct {
-	Query   Node   `json:"query"`   /* the query (see comments above) */
-	Options []Node `json:"options"` /* list of DefElem nodes */
+	Query   Node `json:"query"`   /* the query (see comments above) */
+	Options List `json:"options"` /* list of DefElem nodes */
 }
 
 func (node ExplainStmt) MarshalJSON() ([]byte, error) {
@@ -40,7 +40,7 @@ func (node *ExplainStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

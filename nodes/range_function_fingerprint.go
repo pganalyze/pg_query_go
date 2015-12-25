@@ -11,14 +11,8 @@ func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentFieldName st
 		node.Alias.Fingerprint(ctx, "Alias")
 	}
 
-	for _, subNode := range node.Coldeflist {
-		subNode.Fingerprint(ctx, "Coldeflist")
-	}
-
-	for _, subNode := range node.Functions {
-		subNode.Fingerprint(ctx, "Functions")
-	}
-
+	node.Coldeflist.Fingerprint(ctx, "Coldeflist")
+	node.Functions.Fingerprint(ctx, "Functions")
 	ctx.WriteString(strconv.FormatBool(node.IsRowsfrom))
 	ctx.WriteString(strconv.FormatBool(node.Lateral))
 	ctx.WriteString(strconv.FormatBool(node.Ordinality))

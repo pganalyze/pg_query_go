@@ -21,16 +21,16 @@ type SelectStmt struct {
 	/*
 	 * These fields are used only in "leaf" SelectStmts.
 	 */
-	DistinctClause []Node `json:"distinctClause"` /* NULL, list of DISTINCT ON exprs, or
+	DistinctClause List `json:"distinctClause"` /* NULL, list of DISTINCT ON exprs, or
 	 * lcons(NIL,NIL) for all (SELECT DISTINCT) */
 
 	IntoClause   *IntoClause `json:"intoClause"`   /* target for SELECT INTO */
-	TargetList   []Node      `json:"targetList"`   /* the target list (of ResTarget) */
-	FromClause   []Node      `json:"fromClause"`   /* the FROM clause */
+	TargetList   List        `json:"targetList"`   /* the target list (of ResTarget) */
+	FromClause   List        `json:"fromClause"`   /* the FROM clause */
 	WhereClause  Node        `json:"whereClause"`  /* WHERE qualification */
-	GroupClause  []Node      `json:"groupClause"`  /* GROUP BY clauses */
+	GroupClause  List        `json:"groupClause"`  /* GROUP BY clauses */
 	HavingClause Node        `json:"havingClause"` /* HAVING conditional-expression */
-	WindowClause []Node      `json:"windowClause"` /* WINDOW window_name AS (...), ... */
+	WindowClause List        `json:"windowClause"` /* WINDOW window_name AS (...), ... */
 
 	/*
 	 * In a "leaf" node representing a VALUES list, the above fields are all
@@ -46,10 +46,10 @@ type SelectStmt struct {
 	 * These fields are used in both "leaf" SelectStmts and upper-level
 	 * SelectStmts.
 	 */
-	SortClause    []Node      `json:"sortClause"`    /* sort clause (a list of SortBy's) */
+	SortClause    List        `json:"sortClause"`    /* sort clause (a list of SortBy's) */
 	LimitOffset   Node        `json:"limitOffset"`   /* # of result tuples to skip */
 	LimitCount    Node        `json:"limitCount"`    /* # of result tuples to return */
-	LockingClause []Node      `json:"lockingClause"` /* FOR UPDATE (list of LockingClause's) */
+	LockingClause List        `json:"lockingClause"` /* FOR UPDATE (list of LockingClause's) */
 	WithClause    *WithClause `json:"withClause"`    /* WITH clause */
 
 	/*
@@ -79,7 +79,7 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["distinctClause"] != nil {
-		node.DistinctClause, err = UnmarshalNodeArrayJSON(fields["distinctClause"])
+		node.DistinctClause.Items, err = UnmarshalNodeArrayJSON(fields["distinctClause"])
 		if err != nil {
 			return
 		}
@@ -98,14 +98,14 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["targetList"] != nil {
-		node.TargetList, err = UnmarshalNodeArrayJSON(fields["targetList"])
+		node.TargetList.Items, err = UnmarshalNodeArrayJSON(fields["targetList"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["fromClause"] != nil {
-		node.FromClause, err = UnmarshalNodeArrayJSON(fields["fromClause"])
+		node.FromClause.Items, err = UnmarshalNodeArrayJSON(fields["fromClause"])
 		if err != nil {
 			return
 		}
@@ -119,7 +119,7 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["groupClause"] != nil {
-		node.GroupClause, err = UnmarshalNodeArrayJSON(fields["groupClause"])
+		node.GroupClause.Items, err = UnmarshalNodeArrayJSON(fields["groupClause"])
 		if err != nil {
 			return
 		}
@@ -133,7 +133,7 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["windowClause"] != nil {
-		node.WindowClause, err = UnmarshalNodeArrayJSON(fields["windowClause"])
+		node.WindowClause.Items, err = UnmarshalNodeArrayJSON(fields["windowClause"])
 		if err != nil {
 			return
 		}
@@ -147,7 +147,7 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["sortClause"] != nil {
-		node.SortClause, err = UnmarshalNodeArrayJSON(fields["sortClause"])
+		node.SortClause.Items, err = UnmarshalNodeArrayJSON(fields["sortClause"])
 		if err != nil {
 			return
 		}
@@ -168,7 +168,7 @@ func (node *SelectStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["lockingClause"] != nil {
-		node.LockingClause, err = UnmarshalNodeArrayJSON(fields["lockingClause"])
+		node.LockingClause.Items, err = UnmarshalNodeArrayJSON(fields["lockingClause"])
 		if err != nil {
 			return
 		}

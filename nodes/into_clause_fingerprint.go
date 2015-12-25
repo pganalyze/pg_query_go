@@ -6,16 +6,9 @@ import "strconv"
 
 func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IntoClause")
-
-	for _, subNode := range node.ColNames {
-		subNode.Fingerprint(ctx, "ColNames")
-	}
-
+	node.ColNames.Fingerprint(ctx, "ColNames")
 	ctx.WriteString(strconv.Itoa(int(node.OnCommit)))
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Rel != nil {
 		node.Rel.Fingerprint(ctx, "Rel")

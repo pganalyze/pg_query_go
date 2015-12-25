@@ -9,13 +9,8 @@ func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 		node.CollClause.Fingerprint(ctx, "CollClause")
 	}
 
-	for _, subNode := range node.Constraints {
-		subNode.Fingerprint(ctx, "Constraints")
-	}
-
-	for _, subNode := range node.Domainname {
-		subNode.Fingerprint(ctx, "Domainname")
-	}
+	node.Constraints.Fingerprint(ctx, "Constraints")
+	node.Domainname.Fingerprint(ctx, "Domainname")
 
 	if node.TypeName != nil {
 		node.TypeName.Fingerprint(ctx, "TypeName")

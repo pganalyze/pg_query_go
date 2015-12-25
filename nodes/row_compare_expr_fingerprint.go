@@ -6,27 +6,11 @@ import "strconv"
 
 func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RowCompareExpr")
-
-	for _, subNode := range node.Inputcollids {
-		subNode.Fingerprint(ctx, "Inputcollids")
-	}
-
-	for _, subNode := range node.Largs {
-		subNode.Fingerprint(ctx, "Largs")
-	}
-
-	for _, subNode := range node.Opfamilies {
-		subNode.Fingerprint(ctx, "Opfamilies")
-	}
-
-	for _, subNode := range node.Opnos {
-		subNode.Fingerprint(ctx, "Opnos")
-	}
-
-	for _, subNode := range node.Rargs {
-		subNode.Fingerprint(ctx, "Rargs")
-	}
-
+	node.Inputcollids.Fingerprint(ctx, "Inputcollids")
+	node.Largs.Fingerprint(ctx, "Largs")
+	node.Opfamilies.Fingerprint(ctx, "Opfamilies")
+	node.Opnos.Fingerprint(ctx, "Opnos")
+	node.Rargs.Fingerprint(ctx, "Rargs")
 	ctx.WriteString(strconv.Itoa(int(node.Rctype)))
 
 	if node.Xpr != nil {

@@ -14,8 +14,8 @@ import "encoding/json"
  *----------
  */
 type FromExpr struct {
-	Fromlist []Node `json:"fromlist"` /* List of join subtrees */
-	Quals    Node   `json:"quals"`    /* qualifiers on join, if any */
+	Fromlist List `json:"fromlist"` /* List of join subtrees */
+	Quals    Node `json:"quals"`    /* qualifiers on join, if any */
 }
 
 func (node FromExpr) MarshalJSON() ([]byte, error) {
@@ -34,7 +34,7 @@ func (node *FromExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["fromlist"] != nil {
-		node.Fromlist, err = UnmarshalNodeArrayJSON(fields["fromlist"])
+		node.Fromlist.Items, err = UnmarshalNodeArrayJSON(fields["fromlist"])
 		if err != nil {
 			return
 		}

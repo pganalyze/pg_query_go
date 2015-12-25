@@ -16,7 +16,7 @@ import "encoding/json"
 type CreateRoleStmt struct {
 	StmtType RoleStmtType `json:"stmt_type"` /* ROLE/USER/GROUP */
 	Role     *string      `json:"role"`      /* role name */
-	Options  []Node       `json:"options"`   /* List of DefElem nodes */
+	Options  List         `json:"options"`   /* List of DefElem nodes */
 }
 
 func (node CreateRoleStmt) MarshalJSON() ([]byte, error) {
@@ -49,7 +49,7 @@ func (node *CreateRoleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

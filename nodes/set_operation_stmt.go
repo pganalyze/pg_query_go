@@ -32,10 +32,10 @@ type SetOperationStmt struct {
 	/* Eventually add fields for CORRESPONDING spec here */
 
 	/* Fields derived during parse analysis: */
-	ColTypes      []Node `json:"colTypes"`      /* OID list of output column type OIDs */
-	ColTypmods    []Node `json:"colTypmods"`    /* integer list of output column typmods */
-	ColCollations []Node `json:"colCollations"` /* OID list of output column collation OIDs */
-	GroupClauses  []Node `json:"groupClauses"`  /* a list of SortGroupClause's */
+	ColTypes      List `json:"colTypes"`      /* OID list of output column type OIDs */
+	ColTypmods    List `json:"colTypmods"`    /* integer list of output column typmods */
+	ColCollations List `json:"colCollations"` /* OID list of output column collation OIDs */
+	GroupClauses  List `json:"groupClauses"`  /* a list of SortGroupClause's */
 
 	/* groupClauses is NIL if UNION ALL, but must be set otherwise */
 }
@@ -84,28 +84,28 @@ func (node *SetOperationStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["colTypes"] != nil {
-		node.ColTypes, err = UnmarshalNodeArrayJSON(fields["colTypes"])
+		node.ColTypes.Items, err = UnmarshalNodeArrayJSON(fields["colTypes"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["colTypmods"] != nil {
-		node.ColTypmods, err = UnmarshalNodeArrayJSON(fields["colTypmods"])
+		node.ColTypmods.Items, err = UnmarshalNodeArrayJSON(fields["colTypmods"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["colCollations"] != nil {
-		node.ColCollations, err = UnmarshalNodeArrayJSON(fields["colCollations"])
+		node.ColCollations.Items, err = UnmarshalNodeArrayJSON(fields["colCollations"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["groupClauses"] != nil {
-		node.GroupClauses, err = UnmarshalNodeArrayJSON(fields["groupClauses"])
+		node.GroupClauses.Items, err = UnmarshalNodeArrayJSON(fields["groupClauses"])
 		if err != nil {
 			return
 		}

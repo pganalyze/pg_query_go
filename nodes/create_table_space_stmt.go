@@ -12,7 +12,7 @@ type CreateTableSpaceStmt struct {
 	Tablespacename *string `json:"tablespacename"`
 	Owner          *string `json:"owner"`
 	Location       *string `json:"location"`
-	Options        []Node  `json:"options"`
+	Options        List    `json:"options"`
 }
 
 func (node CreateTableSpaceStmt) MarshalJSON() ([]byte, error) {
@@ -52,7 +52,7 @@ func (node *CreateTableSpaceStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

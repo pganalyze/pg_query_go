@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type TransactionStmt struct {
 	Kind    TransactionStmtKind `json:"kind"`    /* see above */
-	Options []Node              `json:"options"` /* for BEGIN/START and savepoint commands */
+	Options List                `json:"options"` /* for BEGIN/START and savepoint commands */
 	Gid     *string             `json:"gid"`     /* for two-phase-commit related commands */
 }
 
@@ -37,7 +37,7 @@ func (node *TransactionStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

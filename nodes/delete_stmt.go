@@ -10,9 +10,9 @@ import "encoding/json"
  */
 type DeleteStmt struct {
 	Relation      *RangeVar   `json:"relation"`      /* relation to delete from */
-	UsingClause   []Node      `json:"usingClause"`   /* optional using clause for more tables */
+	UsingClause   List        `json:"usingClause"`   /* optional using clause for more tables */
 	WhereClause   Node        `json:"whereClause"`   /* qualifications */
-	ReturningList []Node      `json:"returningList"` /* list of expressions to return */
+	ReturningList List        `json:"returningList"` /* list of expressions to return */
 	WithClause    *WithClause `json:"withClause"`    /* WITH clause */
 }
 
@@ -44,7 +44,7 @@ func (node *DeleteStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["usingClause"] != nil {
-		node.UsingClause, err = UnmarshalNodeArrayJSON(fields["usingClause"])
+		node.UsingClause.Items, err = UnmarshalNodeArrayJSON(fields["usingClause"])
 		if err != nil {
 			return
 		}
@@ -58,7 +58,7 @@ func (node *DeleteStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["returningList"] != nil {
-		node.ReturningList, err = UnmarshalNodeArrayJSON(fields["returningList"])
+		node.ReturningList.Items, err = UnmarshalNodeArrayJSON(fields["returningList"])
 		if err != nil {
 			return
 		}

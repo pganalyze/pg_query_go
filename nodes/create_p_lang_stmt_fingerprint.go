@@ -6,24 +6,14 @@ import "strconv"
 
 func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreatePLangStmt")
-
-	for _, subNode := range node.Plhandler {
-		subNode.Fingerprint(ctx, "Plhandler")
-	}
-
-	for _, subNode := range node.Plinline {
-		subNode.Fingerprint(ctx, "Plinline")
-	}
+	node.Plhandler.Fingerprint(ctx, "Plhandler")
+	node.Plinline.Fingerprint(ctx, "Plinline")
 
 	if node.Plname != nil {
 		ctx.WriteString(*node.Plname)
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Pltrusted))
-
-	for _, subNode := range node.Plvalidator {
-		subNode.Fingerprint(ctx, "Plvalidator")
-	}
-
+	node.Plvalidator.Fingerprint(ctx, "Plvalidator")
 	ctx.WriteString(strconv.FormatBool(node.Replace))
 }

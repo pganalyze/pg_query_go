@@ -11,7 +11,7 @@ import "encoding/json"
 type CreateForeignTableStmt struct {
 	Base       CreateStmt `json:"base"`
 	Servername *string    `json:"servername"`
-	Options    []Node     `json:"options"`
+	Options    List       `json:"options"`
 }
 
 func (node CreateForeignTableStmt) MarshalJSON() ([]byte, error) {
@@ -44,7 +44,7 @@ func (node *CreateForeignTableStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

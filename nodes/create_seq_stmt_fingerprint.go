@@ -6,11 +6,7 @@ import "strconv"
 
 func (node CreateSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateSeqStmt")
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
-
+	node.Options.Fingerprint(ctx, "Options")
 	ctx.WriteString(strconv.Itoa(int(node.OwnerId)))
 
 	if node.Sequence != nil {

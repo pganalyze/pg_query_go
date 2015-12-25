@@ -11,7 +11,7 @@ import "encoding/json"
 type CreateUserMappingStmt struct {
 	Username   *string `json:"username"`   /* username or PUBLIC/CURRENT_USER */
 	Servername *string `json:"servername"` /* server name */
-	Options    []Node  `json:"options"`    /* generic options to server */
+	Options    List    `json:"options"`    /* generic options to server */
 }
 
 func (node CreateUserMappingStmt) MarshalJSON() ([]byte, error) {
@@ -44,7 +44,7 @@ func (node *CreateUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

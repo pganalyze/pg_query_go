@@ -8,7 +8,7 @@ import "encoding/json"
  *		DROP OWNED statement
  */
 type DropOwnedStmt struct {
-	Roles    []Node       `json:"roles"`
+	Roles    List         `json:"roles"`
 	Behavior DropBehavior `json:"behavior"`
 }
 
@@ -28,7 +28,7 @@ func (node *DropOwnedStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["roles"] != nil {
-		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		node.Roles.Items, err = UnmarshalNodeArrayJSON(fields["roles"])
 		if err != nil {
 			return
 		}

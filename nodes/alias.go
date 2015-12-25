@@ -15,7 +15,7 @@ import "encoding/json"
  */
 type Alias struct {
 	Aliasname *string `json:"aliasname"` /* aliased rel name (never qualified) */
-	Colnames  []Node  `json:"colnames"`  /* optional list of column aliases */
+	Colnames  List    `json:"colnames"`  /* optional list of column aliases */
 }
 
 func (node Alias) MarshalJSON() ([]byte, error) {
@@ -41,7 +41,7 @@ func (node *Alias) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["colnames"] != nil {
-		node.Colnames, err = UnmarshalNodeArrayJSON(fields["colnames"])
+		node.Colnames.Items, err = UnmarshalNodeArrayJSON(fields["colnames"])
 		if err != nil {
 			return
 		}

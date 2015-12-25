@@ -14,8 +14,8 @@ import "encoding/json"
  */
 type IntoClause struct {
 	Rel            *RangeVar      `json:"rel"`            /* target relation name */
-	ColNames       []Node         `json:"colNames"`       /* column names to assign, or NIL */
-	Options        []Node         `json:"options"`        /* options from WITH clause */
+	ColNames       List           `json:"colNames"`       /* column names to assign, or NIL */
+	Options        List           `json:"options"`        /* options from WITH clause */
 	OnCommit       OnCommitAction `json:"onCommit"`       /* what do we do at COMMIT? */
 	TableSpaceName *string        `json:"tableSpaceName"` /* table space to use, or NULL */
 	ViewQuery      Node           `json:"viewQuery"`      /* materialized view's SELECT query */
@@ -50,14 +50,14 @@ func (node *IntoClause) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["colNames"] != nil {
-		node.ColNames, err = UnmarshalNodeArrayJSON(fields["colNames"])
+		node.ColNames.Items, err = UnmarshalNodeArrayJSON(fields["colNames"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

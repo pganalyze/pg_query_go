@@ -12,9 +12,9 @@ import "encoding/json"
 type CreatePLangStmt struct {
 	Replace     bool    `json:"replace"`     /* T => replace if already exists */
 	Plname      *string `json:"plname"`      /* PL name */
-	Plhandler   []Node  `json:"plhandler"`   /* PL call handler function (qual. name) */
-	Plinline    []Node  `json:"plinline"`    /* optional inline function (qual. name) */
-	Plvalidator []Node  `json:"plvalidator"` /* optional validator function (qual. name) */
+	Plhandler   List    `json:"plhandler"`   /* PL call handler function (qual. name) */
+	Plinline    List    `json:"plinline"`    /* optional inline function (qual. name) */
+	Plvalidator List    `json:"plvalidator"` /* optional validator function (qual. name) */
 	Pltrusted   bool    `json:"pltrusted"`   /* PL is trusted */
 }
 
@@ -48,21 +48,21 @@ func (node *CreatePLangStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["plhandler"] != nil {
-		node.Plhandler, err = UnmarshalNodeArrayJSON(fields["plhandler"])
+		node.Plhandler.Items, err = UnmarshalNodeArrayJSON(fields["plhandler"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["plinline"] != nil {
-		node.Plinline, err = UnmarshalNodeArrayJSON(fields["plinline"])
+		node.Plinline.Items, err = UnmarshalNodeArrayJSON(fields["plinline"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["plvalidator"] != nil {
-		node.Plvalidator, err = UnmarshalNodeArrayJSON(fields["plvalidator"])
+		node.Plvalidator.Items, err = UnmarshalNodeArrayJSON(fields["plvalidator"])
 		if err != nil {
 			return
 		}

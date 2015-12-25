@@ -6,7 +6,7 @@ import "encoding/json"
 
 type AlterTableSpaceOptionsStmt struct {
 	Tablespacename *string `json:"tablespacename"`
-	Options        []Node  `json:"options"`
+	Options        List    `json:"options"`
 	IsReset        bool    `json:"isReset"`
 }
 
@@ -33,7 +33,7 @@ func (node *AlterTableSpaceOptionsStmt) UnmarshalJSON(input []byte) (err error) 
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

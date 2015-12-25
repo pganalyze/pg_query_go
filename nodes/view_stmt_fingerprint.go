@@ -6,14 +6,8 @@ import "strconv"
 
 func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ViewStmt")
-
-	for _, subNode := range node.Aliases {
-		subNode.Fingerprint(ctx, "Aliases")
-	}
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Aliases.Fingerprint(ctx, "Aliases")
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Query != nil {
 		node.Query.Fingerprint(ctx, "Query")

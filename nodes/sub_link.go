@@ -51,7 +51,7 @@ type SubLink struct {
 	Xpr         Node        `json:"xpr"`
 	SubLinkType SubLinkType `json:"subLinkType"` /* see above */
 	Testexpr    Node        `json:"testexpr"`    /* outer-query test for ALL/ANY/ROWCOMPARE */
-	OperName    []Node      `json:"operName"`    /* originally specified operator name */
+	OperName    List        `json:"operName"`    /* originally specified operator name */
 	Subselect   Node        `json:"subselect"`   /* subselect as Query* or parsetree */
 	Location    int         `json:"location"`    /* token location, or -1 if unknown */
 }
@@ -93,7 +93,7 @@ func (node *SubLink) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["operName"] != nil {
-		node.OperName, err = UnmarshalNodeArrayJSON(fields["operName"])
+		node.OperName.Items, err = UnmarshalNodeArrayJSON(fields["operName"])
 		if err != nil {
 			return
 		}

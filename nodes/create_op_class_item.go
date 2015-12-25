@@ -12,11 +12,11 @@ type CreateOpClassItem struct {
 	Itemtype int `json:"itemtype"` /* see codes above */
 
 	/* fields used for an operator or function item: */
-	Name        []Node `json:"name"`         /* operator or function name */
-	Args        []Node `json:"args"`         /* argument types */
-	Number      int    `json:"number"`       /* strategy num or support proc num */
-	OrderFamily []Node `json:"order_family"` /* only used for ordering operators */
-	ClassArgs   []Node `json:"class_args"`   /* only used for functions */
+	Name        List `json:"name"`         /* operator or function name */
+	Args        List `json:"args"`         /* argument types */
+	Number      int  `json:"number"`       /* strategy num or support proc num */
+	OrderFamily List `json:"order_family"` /* only used for ordering operators */
+	ClassArgs   List `json:"class_args"`   /* only used for functions */
 
 	/* fields used for a storagetype item: */
 	Storedtype *TypeName `json:"storedtype"` /* datatype stored in index */
@@ -45,14 +45,14 @@ func (node *CreateOpClassItem) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["name"] != nil {
-		node.Name, err = UnmarshalNodeArrayJSON(fields["name"])
+		node.Name.Items, err = UnmarshalNodeArrayJSON(fields["name"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
@@ -66,14 +66,14 @@ func (node *CreateOpClassItem) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["order_family"] != nil {
-		node.OrderFamily, err = UnmarshalNodeArrayJSON(fields["order_family"])
+		node.OrderFamily.Items, err = UnmarshalNodeArrayJSON(fields["order_family"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["class_args"] != nil {
-		node.ClassArgs, err = UnmarshalNodeArrayJSON(fields["class_args"])
+		node.ClassArgs.Items, err = UnmarshalNodeArrayJSON(fields["class_args"])
 		if err != nil {
 			return
 		}

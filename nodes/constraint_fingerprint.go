@@ -22,15 +22,8 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.Deferrable))
-
-	for _, subNode := range node.Exclusions {
-		subNode.Fingerprint(ctx, "Exclusions")
-	}
-
-	for _, subNode := range node.FkAttrs {
-		subNode.Fingerprint(ctx, "FkAttrs")
-	}
-
+	node.Exclusions.Fingerprint(ctx, "Exclusions")
+	node.FkAttrs.Fingerprint(ctx, "FkAttrs")
 	ctx.WriteString(string(node.FkDelAction))
 	ctx.WriteString(string(node.FkMatchtype))
 	ctx.WriteString(string(node.FkUpdAction))
@@ -46,26 +39,13 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	ctx.WriteString(strconv.FormatBool(node.Initdeferred))
 	ctx.WriteString(strconv.FormatBool(node.InitiallyValid))
 	ctx.WriteString(strconv.FormatBool(node.IsNoInherit))
-
-	for _, subNode := range node.Keys {
-		subNode.Fingerprint(ctx, "Keys")
-	}
-
+	node.Keys.Fingerprint(ctx, "Keys")
 	// Intentionally ignoring node.Location for fingerprinting
 
-	for _, subNode := range node.OldConpfeqop {
-		subNode.Fingerprint(ctx, "OldConpfeqop")
-	}
-
+	node.OldConpfeqop.Fingerprint(ctx, "OldConpfeqop")
 	ctx.WriteString(strconv.Itoa(int(node.OldPktableOid)))
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
-
-	for _, subNode := range node.PkAttrs {
-		subNode.Fingerprint(ctx, "PkAttrs")
-	}
+	node.Options.Fingerprint(ctx, "Options")
+	node.PkAttrs.Fingerprint(ctx, "PkAttrs")
 
 	if node.Pktable != nil {
 		node.Pktable.Fingerprint(ctx, "Pktable")

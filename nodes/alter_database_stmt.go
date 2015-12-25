@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type AlterDatabaseStmt struct {
 	Dbname  *string `json:"dbname"`  /* name of database to alter */
-	Options []Node  `json:"options"` /* List of DefElem nodes */
+	Options List    `json:"options"` /* List of DefElem nodes */
 }
 
 func (node AlterDatabaseStmt) MarshalJSON() ([]byte, error) {
@@ -36,7 +36,7 @@ func (node *AlterDatabaseStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}

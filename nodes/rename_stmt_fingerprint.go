@@ -13,13 +13,8 @@ func (node RenameStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		ctx.WriteString(*node.Newname)
 	}
 
-	for _, subNode := range node.Objarg {
-		subNode.Fingerprint(ctx, "Objarg")
-	}
-
-	for _, subNode := range node.Object {
-		subNode.Fingerprint(ctx, "Object")
-	}
+	node.Objarg.Fingerprint(ctx, "Objarg")
+	node.Object.Fingerprint(ctx, "Object")
 
 	if node.Relation != nil {
 		node.Relation.Fingerprint(ctx, "Relation")

@@ -6,11 +6,7 @@ import "strconv"
 
 func (node BoolExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("BoolExpr")
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.Itoa(int(node.Boolop)))
 	// Intentionally ignoring node.Location for fingerprinting
 

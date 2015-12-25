@@ -12,12 +12,6 @@ func (node AlterOpFamilyStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	ctx.WriteString(strconv.FormatBool(node.IsDrop))
-
-	for _, subNode := range node.Items {
-		subNode.Fingerprint(ctx, "Items")
-	}
-
-	for _, subNode := range node.Opfamilyname {
-		subNode.Fingerprint(ctx, "Opfamilyname")
-	}
+	node.Items.Fingerprint(ctx, "Items")
+	node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
 }

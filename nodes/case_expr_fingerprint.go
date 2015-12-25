@@ -11,10 +11,7 @@ func (node CaseExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.Itoa(int(node.Casecollid)))
 	ctx.WriteString(strconv.Itoa(int(node.Casetype)))
 

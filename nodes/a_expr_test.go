@@ -5,7 +5,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/kr/pretty"
 	nodes "github.com/lfittl/pg_query.go/nodes"
+	"github.com/lfittl/pg_query.go/util"
 )
 
 var aExprTests = []struct {
@@ -16,11 +18,9 @@ var aExprTests = []struct {
 		`{"name": [{"String": {"str": "="}}], "lexpr": null, "rexpr": null}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_OP,
-			Name: []nodes.Node{
-				nodes.String{
-					Str: "=",
-				},
-			},
+			Name: util.MakeListNode([]nodes.Node{
+				util.MakeStrNode("="),
+			}),
 			Lexpr: nil,
 			Rexpr: nil,
 		},
@@ -31,57 +31,45 @@ var aExprTests = []struct {
 			`{"Integer": {"ival": 1}}, "location": 26}}, "location": 24}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_OP,
-			Name: []nodes.Node{
-				nodes.String{
-					Str: "=",
-				},
+			Name: util.MakeListNode([]nodes.Node{
+				util.MakeStrNode("="),
+			}),
+			Lexpr: nodes.ColumnRef{
+				Fields: util.MakeListNode([]nodes.Node{
+					util.MakeStrNode("z"),
+				}),
+				Location: 22,
 			},
-			Lexpr: []nodes.Node{
-				nodes.ColumnRef{
-					Fields: []nodes.Node{
-						nodes.String{
-							Str: "z",
-						},
-					},
-					Location: 22,
+			Rexpr: nodes.A_Const{
+				Val: nodes.Integer{
+					Ival: 1,
 				},
-			},
-			Rexpr: []nodes.Node{
-				nodes.A_Const{
-					Val: nodes.Integer{
-						Ival: 1,
-					},
-					Location: 26,
-				},
+				Location: 26,
 			},
 			Location: 24,
 		},
 	},
 	{
 		`{"kind": 9, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
-			`{"fields": [{"String": {"str": "y"}}], "location": 22}}, "rexpr": [{"ParamRef": ` +
-			`{"number": 0, "location": 28}}], "location": 24}`,
+			`{"fields": [{"String": {"str": "y"}}], "location": 22}}, "rexpr": {"List": ` +
+			`{"items": [{"ParamRef": {"number": 0, "location": 28}}]}}, "location": 24}`,
 		nodes.A_Expr{
 			Kind: nodes.AEXPR_IN,
-			Name: []nodes.Node{
-				nodes.String{
-					Str: "=",
-				},
+			Name: util.MakeListNode([]nodes.Node{
+				util.MakeStrNode("="),
+			}),
+			Lexpr: nodes.ColumnRef{
+				Fields: util.MakeListNode([]nodes.Node{
+					util.MakeStrNode("y"),
+				}),
+				Location: 22,
 			},
-			Lexpr: []nodes.Node{
-				nodes.ColumnRef{
-					Fields: []nodes.Node{
-						nodes.String{
-							Str: "y",
-						},
+			Rexpr: nodes.List{
+				Items: []nodes.Node{
+					nodes.ParamRef{
+						Number:   0,
+						Location: 28,
 					},
-					Location: 22,
-				},
-			},
-			Rexpr: []nodes.Node{
-				nodes.ParamRef{
-					Number:   0,
-					Location: 28,
 				},
 			},
 			Location: 24,
@@ -97,7 +85,7 @@ func TestAExpr(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unmarshal(%s)\nerror %s\n\n", test.jsonText, err)
 		} else if !reflect.DeepEqual(actualTree, test.expectedNode) {
-			t.Errorf("Unmarshal(%s)\nexpected %s\nactual %s\n\n", test.jsonText, test.expectedNode, actualTree)
+			t.Errorf("Unmarshal(%s)\ndiff %s\n\n", test.jsonText, pretty.Diff(test.expectedNode, actualTree))
 		}
 	}
 }

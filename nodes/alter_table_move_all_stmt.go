@@ -7,7 +7,7 @@ import "encoding/json"
 type AlterTableMoveAllStmt struct {
 	OrigTablespacename *string    `json:"orig_tablespacename"`
 	Objtype            ObjectType `json:"objtype"` /* Object type to move */
-	Roles              []Node     `json:"roles"`   /* List of roles to move objects of */
+	Roles              List       `json:"roles"`   /* List of roles to move objects of */
 	NewTablespacename  *string    `json:"new_tablespacename"`
 	Nowait             bool       `json:"nowait"`
 }
@@ -42,7 +42,7 @@ func (node *AlterTableMoveAllStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["roles"] != nil {
-		node.Roles, err = UnmarshalNodeArrayJSON(fields["roles"])
+		node.Roles.Items, err = UnmarshalNodeArrayJSON(fields["roles"])
 		if err != nil {
 			return
 		}

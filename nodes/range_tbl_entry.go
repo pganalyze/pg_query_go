@@ -115,7 +115,7 @@ type RangeTblEntry struct {
 	 * as a result of subquery-flattening substitutions.
 	 */
 	Jointype      JoinType `json:"jointype"`      /* type of join */
-	Joinaliasvars []Node   `json:"joinaliasvars"` /* list of alias-var expansions */
+	Joinaliasvars List     `json:"joinaliasvars"` /* list of alias-var expansions */
 
 	/*
 	 * Fields valid for a function RTE (else NIL/zero):
@@ -125,14 +125,14 @@ type RangeTblEntry struct {
 	 * implicit, and must be accounted for "by hand" in places such as
 	 * expandRTE().
 	 */
-	Functions      []Node `json:"functions"`      /* list of RangeTblFunction nodes */
-	Funcordinality bool   `json:"funcordinality"` /* is this called WITH ORDINALITY? */
+	Functions      List `json:"functions"`      /* list of RangeTblFunction nodes */
+	Funcordinality bool `json:"funcordinality"` /* is this called WITH ORDINALITY? */
 
 	/*
 	 * Fields valid for a values RTE (else NIL):
 	 */
-	ValuesLists      []Node `json:"values_lists"`      /* list of expression lists */
-	ValuesCollations []Node `json:"values_collations"` /* OID list of column collation OIDs */
+	ValuesLists      List `json:"values_lists"`      /* list of expression lists */
+	ValuesCollations List `json:"values_collations"` /* OID list of column collation OIDs */
 
 	/*
 	 * Fields valid for a CTE RTE (else NULL/zero):
@@ -140,9 +140,9 @@ type RangeTblEntry struct {
 	Ctename          *string `json:"ctename"`          /* name of the WITH list item */
 	Ctelevelsup      Index   `json:"ctelevelsup"`      /* number of query levels up */
 	SelfReference    bool    `json:"self_reference"`   /* is this a recursive self-reference? */
-	Ctecoltypes      []Node  `json:"ctecoltypes"`      /* OID list of column type OIDs */
-	Ctecoltypmods    []Node  `json:"ctecoltypmods"`    /* integer list of column typmods */
-	Ctecolcollations []Node  `json:"ctecolcollations"` /* OID list of column collation OIDs */
+	Ctecoltypes      List    `json:"ctecoltypes"`      /* OID list of column type OIDs */
+	Ctecoltypmods    List    `json:"ctecoltypmods"`    /* integer list of column typmods */
+	Ctecolcollations List    `json:"ctecolcollations"` /* OID list of column collation OIDs */
 
 	/*
 	 * Fields valid in all RTEs:
@@ -156,7 +156,7 @@ type RangeTblEntry struct {
 	CheckAsUser   Oid      `json:"checkAsUser"`   /* if valid, check access as this role */
 	SelectedCols  []uint32 `json:"selectedCols"`  /* columns needing SELECT permission */
 	ModifiedCols  []uint32 `json:"modifiedCols"`  /* columns needing INSERT/UPDATE permission */
-	SecurityQuals []Node   `json:"securityQuals"` /* any security barrier quals to apply */
+	SecurityQuals List     `json:"securityQuals"` /* any security barrier quals to apply */
 }
 
 func (node RangeTblEntry) MarshalJSON() ([]byte, error) {
@@ -224,14 +224,14 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["joinaliasvars"] != nil {
-		node.Joinaliasvars, err = UnmarshalNodeArrayJSON(fields["joinaliasvars"])
+		node.Joinaliasvars.Items, err = UnmarshalNodeArrayJSON(fields["joinaliasvars"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["functions"] != nil {
-		node.Functions, err = UnmarshalNodeArrayJSON(fields["functions"])
+		node.Functions.Items, err = UnmarshalNodeArrayJSON(fields["functions"])
 		if err != nil {
 			return
 		}
@@ -245,14 +245,14 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["values_lists"] != nil {
-		node.ValuesLists, err = UnmarshalNodeArrayJSON(fields["values_lists"])
+		node.ValuesLists.Items, err = UnmarshalNodeArrayJSON(fields["values_lists"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["values_collations"] != nil {
-		node.ValuesCollations, err = UnmarshalNodeArrayJSON(fields["values_collations"])
+		node.ValuesCollations.Items, err = UnmarshalNodeArrayJSON(fields["values_collations"])
 		if err != nil {
 			return
 		}
@@ -280,21 +280,21 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["ctecoltypes"] != nil {
-		node.Ctecoltypes, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
+		node.Ctecoltypes.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["ctecoltypmods"] != nil {
-		node.Ctecoltypmods, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
+		node.Ctecoltypmods.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["ctecolcollations"] != nil {
-		node.Ctecolcollations, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
+		node.Ctecolcollations.Items, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
 		if err != nil {
 			return
 		}
@@ -374,7 +374,7 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["securityQuals"] != nil {
-		node.SecurityQuals, err = UnmarshalNodeArrayJSON(fields["securityQuals"])
+		node.SecurityQuals.Items, err = UnmarshalNodeArrayJSON(fields["securityQuals"])
 		if err != nil {
 			return
 		}

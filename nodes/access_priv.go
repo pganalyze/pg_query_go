@@ -13,7 +13,7 @@ import "encoding/json"
  */
 type AccessPriv struct {
 	PrivName *string `json:"priv_name"` /* string name of privilege */
-	Cols     []Node  `json:"cols"`      /* list of Value strings */
+	Cols     List    `json:"cols"`      /* list of Value strings */
 }
 
 func (node AccessPriv) MarshalJSON() ([]byte, error) {
@@ -39,7 +39,7 @@ func (node *AccessPriv) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["cols"] != nil {
-		node.Cols, err = UnmarshalNodeArrayJSON(fields["cols"])
+		node.Cols.Items, err = UnmarshalNodeArrayJSON(fields["cols"])
 		if err != nil {
 			return
 		}

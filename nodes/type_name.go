@@ -18,14 +18,14 @@ import "encoding/json"
  * name possibly qualified with schema and database name.
  */
 type TypeName struct {
-	Names       []Node `json:"names"`       /* qualified name (list of Value strings) */
-	TypeOid     Oid    `json:"typeOid"`     /* type identified by OID */
-	Setof       bool   `json:"setof"`       /* is a set? */
-	PctType     bool   `json:"pct_type"`    /* %TYPE specified? */
-	Typmods     []Node `json:"typmods"`     /* type modifier expression(s) */
-	Typemod     int32  `json:"typemod"`     /* prespecified type modifier */
-	ArrayBounds []Node `json:"arrayBounds"` /* array bounds */
-	Location    int    `json:"location"`    /* token location, or -1 if unknown */
+	Names       List  `json:"names"`       /* qualified name (list of Value strings) */
+	TypeOid     Oid   `json:"typeOid"`     /* type identified by OID */
+	Setof       bool  `json:"setof"`       /* is a set? */
+	PctType     bool  `json:"pct_type"`    /* %TYPE specified? */
+	Typmods     List  `json:"typmods"`     /* type modifier expression(s) */
+	Typemod     int32 `json:"typemod"`     /* prespecified type modifier */
+	ArrayBounds List  `json:"arrayBounds"` /* array bounds */
+	Location    int   `json:"location"`    /* token location, or -1 if unknown */
 }
 
 func (node TypeName) MarshalJSON() ([]byte, error) {
@@ -44,7 +44,7 @@ func (node *TypeName) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["names"] != nil {
-		node.Names, err = UnmarshalNodeArrayJSON(fields["names"])
+		node.Names.Items, err = UnmarshalNodeArrayJSON(fields["names"])
 		if err != nil {
 			return
 		}
@@ -72,7 +72,7 @@ func (node *TypeName) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["typmods"] != nil {
-		node.Typmods, err = UnmarshalNodeArrayJSON(fields["typmods"])
+		node.Typmods.Items, err = UnmarshalNodeArrayJSON(fields["typmods"])
 		if err != nil {
 			return
 		}
@@ -86,7 +86,7 @@ func (node *TypeName) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["arrayBounds"] != nil {
-		node.ArrayBounds, err = UnmarshalNodeArrayJSON(fields["arrayBounds"])
+		node.ArrayBounds.Items, err = UnmarshalNodeArrayJSON(fields["arrayBounds"])
 		if err != nil {
 			return
 		}

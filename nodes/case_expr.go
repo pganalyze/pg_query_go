@@ -27,13 +27,13 @@ import "encoding/json"
  *----------
  */
 type CaseExpr struct {
-	Xpr        Node   `json:"xpr"`
-	Casetype   Oid    `json:"casetype"`   /* type of expression result */
-	Casecollid Oid    `json:"casecollid"` /* OID of collation, or InvalidOid if none */
-	Arg        Node   `json:"arg"`        /* implicit equality comparison argument */
-	Args       []Node `json:"args"`       /* the arguments (list of WHEN clauses) */
-	Defresult  Node   `json:"defresult"`  /* the default result (ELSE clause) */
-	Location   int    `json:"location"`   /* token location, or -1 if unknown */
+	Xpr        Node `json:"xpr"`
+	Casetype   Oid  `json:"casetype"`   /* type of expression result */
+	Casecollid Oid  `json:"casecollid"` /* OID of collation, or InvalidOid if none */
+	Arg        Node `json:"arg"`        /* implicit equality comparison argument */
+	Args       List `json:"args"`       /* the arguments (list of WHEN clauses) */
+	Defresult  Node `json:"defresult"`  /* the default result (ELSE clause) */
+	Location   int  `json:"location"`   /* token location, or -1 if unknown */
 }
 
 func (node CaseExpr) MarshalJSON() ([]byte, error) {
@@ -80,7 +80,7 @@ func (node *CaseExpr) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

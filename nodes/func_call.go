@@ -19,9 +19,9 @@ import "encoding/json"
  * parts of the struct its defaults don't match afterwards, as needed.
  */
 type FuncCall struct {
-	Funcname       []Node     `json:"funcname"`         /* qualified name of function */
-	Args           []Node     `json:"args"`             /* the arguments (list of exprs) */
-	AggOrder       []Node     `json:"agg_order"`        /* ORDER BY (list of SortBy) */
+	Funcname       List       `json:"funcname"`         /* qualified name of function */
+	Args           List       `json:"args"`             /* the arguments (list of exprs) */
+	AggOrder       List       `json:"agg_order"`        /* ORDER BY (list of SortBy) */
 	AggFilter      Node       `json:"agg_filter"`       /* FILTER clause, if any */
 	AggWithinGroup bool       `json:"agg_within_group"` /* ORDER BY appeared in WITHIN GROUP */
 	AggStar        bool       `json:"agg_star"`         /* argument was really '*' */
@@ -47,21 +47,21 @@ func (node *FuncCall) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["funcname"] != nil {
-		node.Funcname, err = UnmarshalNodeArrayJSON(fields["funcname"])
+		node.Funcname.Items, err = UnmarshalNodeArrayJSON(fields["funcname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["agg_order"] != nil {
-		node.AggOrder, err = UnmarshalNodeArrayJSON(fields["agg_order"])
+		node.AggOrder.Items, err = UnmarshalNodeArrayJSON(fields["agg_order"])
 		if err != nil {
 			return
 		}

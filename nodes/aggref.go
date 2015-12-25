@@ -27,18 +27,18 @@ import "encoding/json"
  * expressions, not TargetEntry nodes).
  */
 type Aggref struct {
-	Xpr           Node   `json:"xpr"`
-	Aggfnoid      Oid    `json:"aggfnoid"`      /* pg_proc Oid of the aggregate */
-	Aggtype       Oid    `json:"aggtype"`       /* type Oid of result of the aggregate */
-	Aggcollid     Oid    `json:"aggcollid"`     /* OID of collation of result */
-	Inputcollid   Oid    `json:"inputcollid"`   /* OID of collation that function should use */
-	Aggdirectargs []Node `json:"aggdirectargs"` /* direct arguments, if an ordered-set agg */
-	Args          []Node `json:"args"`          /* aggregated arguments and sort expressions */
-	Aggorder      []Node `json:"aggorder"`      /* ORDER BY (list of SortGroupClause) */
-	Aggdistinct   []Node `json:"aggdistinct"`   /* DISTINCT (list of SortGroupClause) */
-	Aggfilter     Node   `json:"aggfilter"`     /* FILTER expression, if any */
-	Aggstar       bool   `json:"aggstar"`       /* TRUE if argument list was really '*' */
-	Aggvariadic   bool   `json:"aggvariadic"`   /* true if variadic arguments have been
+	Xpr           Node `json:"xpr"`
+	Aggfnoid      Oid  `json:"aggfnoid"`      /* pg_proc Oid of the aggregate */
+	Aggtype       Oid  `json:"aggtype"`       /* type Oid of result of the aggregate */
+	Aggcollid     Oid  `json:"aggcollid"`     /* OID of collation of result */
+	Inputcollid   Oid  `json:"inputcollid"`   /* OID of collation that function should use */
+	Aggdirectargs List `json:"aggdirectargs"` /* direct arguments, if an ordered-set agg */
+	Args          List `json:"args"`          /* aggregated arguments and sort expressions */
+	Aggorder      List `json:"aggorder"`      /* ORDER BY (list of SortGroupClause) */
+	Aggdistinct   List `json:"aggdistinct"`   /* DISTINCT (list of SortGroupClause) */
+	Aggfilter     Node `json:"aggfilter"`     /* FILTER expression, if any */
+	Aggstar       bool `json:"aggstar"`       /* TRUE if argument list was really '*' */
+	Aggvariadic   bool `json:"aggvariadic"`   /* true if variadic arguments have been
 	 * combined into an array last argument */
 
 	Aggkind     byte  `json:"aggkind"`     /* aggregate kind (see pg_aggregate.h) */
@@ -97,28 +97,28 @@ func (node *Aggref) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["aggdirectargs"] != nil {
-		node.Aggdirectargs, err = UnmarshalNodeArrayJSON(fields["aggdirectargs"])
+		node.Aggdirectargs.Items, err = UnmarshalNodeArrayJSON(fields["aggdirectargs"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["aggorder"] != nil {
-		node.Aggorder, err = UnmarshalNodeArrayJSON(fields["aggorder"])
+		node.Aggorder.Items, err = UnmarshalNodeArrayJSON(fields["aggorder"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["aggdistinct"] != nil {
-		node.Aggdistinct, err = UnmarshalNodeArrayJSON(fields["aggdistinct"])
+		node.Aggdistinct.Items, err = UnmarshalNodeArrayJSON(fields["aggdistinct"])
 		if err != nil {
 			return
 		}

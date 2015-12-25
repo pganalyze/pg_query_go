@@ -6,10 +6,7 @@ import "strconv"
 
 func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CopyStmt")
-
-	for _, subNode := range node.Attlist {
-		subNode.Fingerprint(ctx, "Attlist")
-	}
+	node.Attlist.Fingerprint(ctx, "Attlist")
 
 	if node.Filename != nil {
 		ctx.WriteString(*node.Filename)
@@ -17,10 +14,7 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	ctx.WriteString(strconv.FormatBool(node.IsFrom))
 	ctx.WriteString(strconv.FormatBool(node.IsProgram))
-
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Query != nil {
 		node.Query.Fingerprint(ctx, "Query")

@@ -6,11 +6,7 @@ import "strconv"
 
 func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RuleStmt")
-
-	for _, subNode := range node.Actions {
-		subNode.Fingerprint(ctx, "Actions")
-	}
-
+	node.Actions.Fingerprint(ctx, "Actions")
 	ctx.WriteString(strconv.Itoa(int(node.Event)))
 	ctx.WriteString(strconv.FormatBool(node.Instead))
 

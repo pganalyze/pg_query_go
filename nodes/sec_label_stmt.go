@@ -10,8 +10,8 @@ import "encoding/json"
  */
 type SecLabelStmt struct {
 	Objtype  ObjectType `json:"objtype"`  /* Object's type */
-	Objname  []Node     `json:"objname"`  /* Qualified name of the object */
-	Objargs  []Node     `json:"objargs"`  /* Arguments if needed (eg, for functions) */
+	Objname  List       `json:"objname"`  /* Qualified name of the object */
+	Objargs  List       `json:"objargs"`  /* Arguments if needed (eg, for functions) */
 	Provider *string    `json:"provider"` /* Label provider (or NULL) */
 	Label    *string    `json:"label"`    /* New security label to be assigned */
 }
@@ -39,14 +39,14 @@ func (node *SecLabelStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["objname"] != nil {
-		node.Objname, err = UnmarshalNodeArrayJSON(fields["objname"])
+		node.Objname.Items, err = UnmarshalNodeArrayJSON(fields["objname"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["objargs"] != nil {
-		node.Objargs, err = UnmarshalNodeArrayJSON(fields["objargs"])
+		node.Objargs.Items, err = UnmarshalNodeArrayJSON(fields["objargs"])
 		if err != nil {
 			return
 		}

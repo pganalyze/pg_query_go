@@ -11,14 +11,8 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
-	for _, subNode := range node.Fieldnums {
-		subNode.Fingerprint(ctx, "Fieldnums")
-	}
-
-	for _, subNode := range node.Newvals {
-		subNode.Fingerprint(ctx, "Newvals")
-	}
-
+	node.Fieldnums.Fingerprint(ctx, "Fieldnums")
+	node.Newvals.Fingerprint(ctx, "Newvals")
 	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
 
 	if node.Xpr != nil {

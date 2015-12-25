@@ -6,10 +6,7 @@ import "strconv"
 
 func (node IndexElem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IndexElem")
-
-	for _, subNode := range node.Collation {
-		subNode.Fingerprint(ctx, "Collation")
-	}
+	node.Collation.Fingerprint(ctx, "Collation")
 
 	if node.Expr != nil {
 		node.Expr.Fingerprint(ctx, "Expr")
@@ -24,10 +21,6 @@ func (node IndexElem) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	ctx.WriteString(strconv.Itoa(int(node.NullsOrdering)))
-
-	for _, subNode := range node.Opclass {
-		subNode.Fingerprint(ctx, "Opclass")
-	}
-
+	node.Opclass.Fingerprint(ctx, "Opclass")
 	ctx.WriteString(strconv.Itoa(int(node.Ordering)))
 }

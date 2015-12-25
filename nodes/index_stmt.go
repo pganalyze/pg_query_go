@@ -20,10 +20,10 @@ type IndexStmt struct {
 	Relation       *RangeVar `json:"relation"`       /* relation to build index on */
 	AccessMethod   *string   `json:"accessMethod"`   /* name of access method (eg. btree) */
 	TableSpace     *string   `json:"tableSpace"`     /* tablespace, or NULL for default */
-	IndexParams    []Node    `json:"indexParams"`    /* columns to index: a list of IndexElem */
-	Options        []Node    `json:"options"`        /* WITH clause options: a list of DefElem */
+	IndexParams    List      `json:"indexParams"`    /* columns to index: a list of IndexElem */
+	Options        List      `json:"options"`        /* WITH clause options: a list of DefElem */
 	WhereClause    Node      `json:"whereClause"`    /* qualification (partial-index predicate) */
-	ExcludeOpNames []Node    `json:"excludeOpNames"` /* exclusion operator names, or NIL if none */
+	ExcludeOpNames List      `json:"excludeOpNames"` /* exclusion operator names, or NIL if none */
 	Idxcomment     *string   `json:"idxcomment"`     /* comment to apply to index, or NULL */
 	IndexOid       Oid       `json:"indexOid"`       /* OID of an existing index, if any */
 	OldNode        Oid       `json:"oldNode"`        /* relfilenode of existing storage, if any */
@@ -84,14 +84,14 @@ func (node *IndexStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["indexParams"] != nil {
-		node.IndexParams, err = UnmarshalNodeArrayJSON(fields["indexParams"])
+		node.IndexParams.Items, err = UnmarshalNodeArrayJSON(fields["indexParams"])
 		if err != nil {
 			return
 		}
 	}
 
 	if fields["options"] != nil {
-		node.Options, err = UnmarshalNodeArrayJSON(fields["options"])
+		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
 		if err != nil {
 			return
 		}
@@ -105,7 +105,7 @@ func (node *IndexStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["excludeOpNames"] != nil {
-		node.ExcludeOpNames, err = UnmarshalNodeArrayJSON(fields["excludeOpNames"])
+		node.ExcludeOpNames.Items, err = UnmarshalNodeArrayJSON(fields["excludeOpNames"])
 		if err != nil {
 			return
 		}

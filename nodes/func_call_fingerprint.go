@@ -12,23 +12,12 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 		node.AggFilter.Fingerprint(ctx, "AggFilter")
 	}
 
-	for _, subNode := range node.AggOrder {
-		subNode.Fingerprint(ctx, "AggOrder")
-	}
-
+	node.AggOrder.Fingerprint(ctx, "AggOrder")
 	ctx.WriteString(strconv.FormatBool(node.AggStar))
 	ctx.WriteString(strconv.FormatBool(node.AggWithinGroup))
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.FormatBool(node.FuncVariadic))
-
-	for _, subNode := range node.Funcname {
-		subNode.Fingerprint(ctx, "Funcname")
-	}
-
+	node.Funcname.Fingerprint(ctx, "Funcname")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Over != nil {

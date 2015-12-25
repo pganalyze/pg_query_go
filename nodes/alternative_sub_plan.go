@@ -13,8 +13,8 @@ import "encoding/json"
  * plan.
  */
 type AlternativeSubPlan struct {
-	Xpr      Node   `json:"xpr"`
-	Subplans []Node `json:"subplans"` /* SubPlan(s) with equivalent results */
+	Xpr      Node `json:"xpr"`
+	Subplans List `json:"subplans"` /* SubPlan(s) with equivalent results */
 }
 
 func (node AlternativeSubPlan) MarshalJSON() ([]byte, error) {
@@ -40,7 +40,7 @@ func (node *AlternativeSubPlan) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["subplans"] != nil {
-		node.Subplans, err = UnmarshalNodeArrayJSON(fields["subplans"])
+		node.Subplans.Items, err = UnmarshalNodeArrayJSON(fields["subplans"])
 		if err != nil {
 			return
 		}

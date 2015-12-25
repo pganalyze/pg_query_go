@@ -11,7 +11,7 @@ import "encoding/json"
  * ----------------------
  */
 type DoStmt struct {
-	Args []Node `json:"args"` /* List of DefElem nodes */
+	Args List `json:"args"` /* List of DefElem nodes */
 }
 
 func (node DoStmt) MarshalJSON() ([]byte, error) {
@@ -30,7 +30,7 @@ func (node *DoStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["args"] != nil {
-		node.Args, err = UnmarshalNodeArrayJSON(fields["args"])
+		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
 		if err != nil {
 			return
 		}

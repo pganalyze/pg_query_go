@@ -6,11 +6,7 @@ import "strconv"
 
 func (node FuncExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FuncExpr")
-
-	for _, subNode := range node.Args {
-		subNode.Fingerprint(ctx, "Args")
-	}
-
+	node.Args.Fingerprint(ctx, "Args")
 	ctx.WriteString(strconv.Itoa(int(node.Funccollid)))
 	ctx.WriteString(strconv.Itoa(int(node.Funcformat)))
 	ctx.WriteString(strconv.Itoa(int(node.Funcid)))

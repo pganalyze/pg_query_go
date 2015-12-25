@@ -8,14 +8,8 @@ func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("GrantRoleStmt")
 	ctx.WriteString(strconv.FormatBool(node.AdminOpt))
 	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
-
-	for _, subNode := range node.GrantedRoles {
-		subNode.Fingerprint(ctx, "GrantedRoles")
-	}
-
-	for _, subNode := range node.GranteeRoles {
-		subNode.Fingerprint(ctx, "GranteeRoles")
-	}
+	node.GrantedRoles.Fingerprint(ctx, "GrantedRoles")
+	node.GranteeRoles.Fingerprint(ctx, "GranteeRoles")
 
 	if node.Grantor != nil {
 		ctx.WriteString(*node.Grantor)

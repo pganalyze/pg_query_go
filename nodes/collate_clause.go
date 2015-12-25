@@ -8,9 +8,9 @@ import "encoding/json"
  * CollateClause - a COLLATE expression
  */
 type CollateClause struct {
-	Arg      Node   `json:"arg"`      /* input expression */
-	Collname []Node `json:"collname"` /* possibly-qualified collation name */
-	Location int    `json:"location"` /* token location, or -1 if unknown */
+	Arg      Node `json:"arg"`      /* input expression */
+	Collname List `json:"collname"` /* possibly-qualified collation name */
+	Location int  `json:"location"` /* token location, or -1 if unknown */
 }
 
 func (node CollateClause) MarshalJSON() ([]byte, error) {
@@ -36,7 +36,7 @@ func (node *CollateClause) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["collname"] != nil {
-		node.Collname, err = UnmarshalNodeArrayJSON(fields["collname"])
+		node.Collname.Items, err = UnmarshalNodeArrayJSON(fields["collname"])
 		if err != nil {
 			return
 		}

@@ -9,9 +9,7 @@ func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFi
 		ctx.WriteString(*node.Fdwname)
 	}
 
-	for _, subNode := range node.Options {
-		subNode.Fingerprint(ctx, "Options")
-	}
+	node.Options.Fingerprint(ctx, "Options")
 
 	if node.Servername != nil {
 		ctx.WriteString(*node.Servername)

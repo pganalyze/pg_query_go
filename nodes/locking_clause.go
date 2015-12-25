@@ -14,7 +14,7 @@ import "encoding/json"
  * names in LockingClause.)
  */
 type LockingClause struct {
-	LockedRels []Node             `json:"lockedRels"` /* FOR [KEY] UPDATE/SHARE relations */
+	LockedRels List               `json:"lockedRels"` /* FOR [KEY] UPDATE/SHARE relations */
 	Strength   LockClauseStrength `json:"strength"`
 	NoWait     bool               `json:"noWait"` /* NOWAIT option */
 }
@@ -35,7 +35,7 @@ func (node *LockingClause) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["lockedRels"] != nil {
-		node.LockedRels, err = UnmarshalNodeArrayJSON(fields["lockedRels"])
+		node.LockedRels.Items, err = UnmarshalNodeArrayJSON(fields["lockedRels"])
 		if err != nil {
 			return
 		}
