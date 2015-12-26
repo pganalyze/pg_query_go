@@ -14,6 +14,7 @@ import "C"
 import (
 	"encoding/json"
 	"errors"
+	"runtime/debug"
 	"unsafe"
 )
 
@@ -46,6 +47,17 @@ func Parse(input string) (tree ParsetreeList, err error) {
 	if err != nil {
 		return
 	}
+
+	// JSON unmarshalling can panic in edge cases we don't support yet. This is
+	// still a *bug that needs to be fixed*, but this way the caller can expect an
+	// error to be returned always, instead of a panic
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+			err = r.(error)
+		}
+	}()
+
 	err = json.Unmarshal([]byte(jsonTree), &tree)
 	return
 }
