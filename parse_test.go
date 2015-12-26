@@ -26,9 +26,7 @@ var parseTests = []struct {
 					TargetList: util.MakeListNode([]nodes.Node{
 						nodes.ResTarget{
 							Val: nodes.A_Const{
-								Val: nodes.Integer{
-									Ival: 1,
-								},
+								Val:      util.MakeIntNode(1),
 								Location: 7,
 							},
 							Location: 7,
@@ -80,9 +78,7 @@ var parseTests = []struct {
 							Location: 22,
 						},
 						Rexpr: nodes.A_Const{
-							Val: nodes.Integer{
-								Ival: 1,
-							},
+							Val:      util.MakeIntNode(1),
 							Location: 26,
 						},
 						Location: 24,
@@ -110,7 +106,7 @@ var parseTests = []struct {
 					Relation: &nodes.RangeVar{
 						Relname:        util.MakeStrPtr("schema_index_stats"),
 						InhOpt:         nodes.INH_DEFAULT,
-						Relpersistence: []byte("p")[0],
+						Relpersistence: 'p',
 						Location:       12,
 					},
 					Cols: util.MakeListNode([]nodes.Node{
@@ -131,41 +127,29 @@ var parseTests = []struct {
 						ValuesLists: [][]nodes.Node{
 							[]nodes.Node{
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 11710849,
-									},
+									Val:      util.MakeIntNode(11710849),
 									Location: 88,
 								},
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 8448632,
-									},
+									Val:      util.MakeIntNode(8448632),
 									Location: 97,
 								},
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 16384,
-									},
+									Val:      util.MakeIntNode(16384),
 									Location: 105,
 								},
 							},
 							[]nodes.Node{
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 11710849,
-									},
+									Val:      util.MakeIntNode(11710849),
 									Location: 113,
 								},
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 8448633,
-									},
+									Val:      util.MakeIntNode(8448633),
 									Location: 122,
 								},
 								nodes.A_Const{
-									Val: nodes.Integer{
-										Ival: 16384,
-									},
+									Val:      util.MakeIntNode(16384),
 									Location: 130,
 								},
 							},
@@ -408,7 +392,7 @@ ORDER BY 1,2;`,
 							Larg: nodes.RangeVar{
 								Schemaname:     util.MakeStrPtr("pg_catalog"),
 								Relname:        util.MakeStrPtr("pg_class"),
-								InhOpt:         2,
+								InhOpt:         nodes.INH_DEFAULT,
 								Relpersistence: 'p',
 								Alias: &nodes.Alias{
 									Aliasname: util.MakeStrPtr("c"),
@@ -418,7 +402,7 @@ ORDER BY 1,2;`,
 							Rarg: nodes.RangeVar{
 								Schemaname:     util.MakeStrPtr("pg_catalog"),
 								Relname:        util.MakeStrPtr("pg_namespace"),
-								InhOpt:         2,
+								InhOpt:         nodes.INH_DEFAULT,
 								Relpersistence: 'p',
 								Alias: &nodes.Alias{
 									Aliasname: util.MakeStrPtr("n"),
@@ -426,7 +410,7 @@ ORDER BY 1,2;`,
 								Location: 357,
 							},
 							Quals: nodes.A_Expr{
-								Kind: 0,
+								Kind: nodes.AEXPR_OP,
 								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("=")}),
 								Lexpr: nodes.ColumnRef{
 									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("oid")}),
@@ -441,15 +425,15 @@ ORDER BY 1,2;`,
 						},
 					}),
 					WhereClause: nodes.A_Expr{
-						Kind: 1,
+						Kind: nodes.AEXPR_AND,
 						Lexpr: nodes.A_Expr{
-							Kind: 1,
+							Kind: nodes.AEXPR_AND,
 							Lexpr: nodes.A_Expr{
-								Kind: 1,
+								Kind: nodes.AEXPR_AND,
 								Lexpr: nodes.A_Expr{
-									Kind: 1,
+									Kind: nodes.AEXPR_AND,
 									Lexpr: nodes.A_Expr{
-										Kind: 9,
+										Kind: nodes.AEXPR_IN,
 										Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("=")}),
 										Lexpr: nodes.ColumnRef{
 											Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("relkind")}),
@@ -473,7 +457,7 @@ ORDER BY 1,2;`,
 									Location: 443,
 								},
 								Rexpr: nodes.A_Expr{
-									Kind: 0,
+									Kind: nodes.AEXPR_OP,
 									Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("<>")}),
 									Lexpr: nodes.ColumnRef{
 										Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
@@ -485,7 +469,7 @@ ORDER BY 1,2;`,
 								Location: 479,
 							},
 							Rexpr: nodes.A_Expr{
-								Kind: 0,
+								Kind: nodes.AEXPR_OP,
 								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("!~")}),
 								Lexpr: nodes.ColumnRef{
 									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
@@ -572,6 +556,104 @@ ORDER BY 1,2;`,
 							Arg:     util.MakeListNode([]nodes.Node{util.MakeStrNode("\n    DECLARE\n    BEGIN\n      PERFORM 'dummy';\n    END;\n    ")}),
 						},
 					}),
+				},
+			},
+		},
+	},
+	{
+		`CREATE TABLE test (
+    id SERIAL PRIMARY KEY,
+    user_id integer DEFAULT 0 NOT NULL,
+    created_at timestamp without time zone NOT NULL);`,
+		`[{"CreateStmt": {"relation": {"RangeVar": {"relname": "test", "inhOpt": 2, ` +
+			`"relpersistence": "p", "location": 13}}, "tableElts": [{"ColumnDef": {"colname": ` +
+			`"id", "typeName": {"TypeName": {"names": [{"String": {"str": "serial"}}], ` +
+			`"typemod": -1, "location": 27}}, "is_local": true, "constraints": [{"Constraint": ` +
+			`{"contype": 4, "location": 34}}], "location": 24}}, {"ColumnDef": {"colname": ` +
+			`"user_id", "typeName": {"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, ` +
+			`{"String": {"str": "int4"}}], "typemod": -1, "location": 59}}, "is_local": true, ` +
+			`"constraints": [{"Constraint": {"contype": 2, "location": 67, "raw_expr": {"A_Const": ` +
+			`{"val": {"Integer": {"ival": 0}}, "location": 75}}}}, {"Constraint": {"contype": 1, ` +
+			`"location": 77}}], "location": 51}}, {"ColumnDef": {"colname": "created_at", "typeName": ` +
+			`{"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, {"String": {"str": ` +
+			`"timestamp"}}], "typemod": -1, "location": 102}}, "is_local": true, "constraints": ` +
+			`[{"Constraint": {"contype": 1, "location": 130}}], "location": 91}}], "oncommit": 0}}]`,
+		pg_query.ParsetreeList{
+			Statements: []nodes.Node{
+				nodes.CreateStmt{
+					Relation: &nodes.RangeVar{
+						Relname:        util.MakeStrPtr("test"),
+						InhOpt:         nodes.INH_DEFAULT,
+						Relpersistence: 'p',
+						Location:       13,
+					},
+					TableElts: util.MakeListNode([]nodes.Node{
+						nodes.ColumnDef{
+							Colname: util.MakeStrPtr("id"),
+							TypeName: &nodes.TypeName{
+								Names: util.MakeListNode([]nodes.Node{
+									util.MakeStrNode("serial"),
+								}),
+								Typemod:  -1,
+								Location: 27,
+							},
+							IsLocal: true,
+							Constraints: util.MakeListNode([]nodes.Node{
+								nodes.Constraint{
+									Contype:  nodes.CONSTR_PRIMARY,
+									Location: 34,
+								},
+							}),
+							Location: 24,
+						},
+						nodes.ColumnDef{
+							Colname: util.MakeStrPtr("user_id"),
+							TypeName: &nodes.TypeName{
+								Names: util.MakeListNode([]nodes.Node{
+									util.MakeStrNode("pg_catalog"),
+									util.MakeStrNode("int4"),
+								}),
+								Typemod:  -1,
+								Location: 59,
+							},
+							IsLocal: true,
+							Constraints: util.MakeListNode([]nodes.Node{
+								nodes.Constraint{
+									Contype:  nodes.CONSTR_DEFAULT,
+									Location: 67,
+									RawExpr: nodes.A_Const{
+										Val:      util.MakeIntNode(0),
+										Location: 75,
+									},
+								},
+								nodes.Constraint{
+									Contype:  nodes.CONSTR_NOTNULL,
+									Location: 77,
+								},
+							}),
+							Location: 51,
+						},
+						nodes.ColumnDef{
+							Colname: util.MakeStrPtr("created_at"),
+							TypeName: &nodes.TypeName{
+								Names: util.MakeListNode([]nodes.Node{
+									util.MakeStrNode("pg_catalog"),
+									util.MakeStrNode("timestamp"),
+								}),
+								Typemod:  -1,
+								Location: 102,
+							},
+							IsLocal: true,
+							Constraints: util.MakeListNode([]nodes.Node{
+								nodes.Constraint{
+									Contype:  nodes.CONSTR_NOTNULL,
+									Location: 130,
+								},
+							}),
+							Location: 91,
+						},
+					}),
+					Oncommit: nodes.ONCOMMIT_NOOP,
 				},
 			},
 		},
