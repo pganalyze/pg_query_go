@@ -4,5 +4,8 @@ package pg_query
 
 func (node DoStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DoStmt")
-	node.Args.Fingerprint(ctx, "Args")
+	if len(node.Args.Items) > 0 {
+		ctx.WriteString("args")
+		node.Args.Fingerprint(ctx, "Args")
+	}
 }

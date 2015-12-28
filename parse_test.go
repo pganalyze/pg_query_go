@@ -658,6 +658,51 @@ ORDER BY 1,2;`,
 			},
 		},
 	},
+	{
+		`SELECT * FROM a(1)`,
+		`[{"SelectStmt": {"targetList": [{"ResTarget": {"val": {"ColumnRef": {"fields": ` +
+			`[{"A_Star": {}}], "location": 7}}, "location": 7}}], "fromClause": [{"RangeFunction": ` +
+			`{"functions": [[{"FuncCall": {"funcname": [{"String": {"str": "a"}}], "args": [{"A_Const": ` +
+			`{"val": {"Integer": {"ival": 1}}, "location": 16}}], "location": 14}}, null]]}}], "op": 0}}]`,
+		pg_query.ParsetreeList{
+			Statements: []nodes.Node{
+				nodes.SelectStmt{
+					TargetList: util.MakeListNode([]nodes.Node{
+						nodes.ResTarget{
+							Val: nodes.ColumnRef{
+								Fields: util.MakeListNode([]nodes.Node{
+									nodes.A_Star{},
+								}),
+								Location: 7,
+							},
+							Location: 7,
+						},
+					}),
+					FromClause: util.MakeListNode([]nodes.Node{
+						nodes.RangeFunction{
+							Functions: util.MakeListNode([]nodes.Node{
+								util.MakeListNode([]nodes.Node{
+									nodes.FuncCall{
+										Funcname: util.MakeListNode([]nodes.Node{
+											util.MakeStrNode("a"),
+										}),
+										Args: util.MakeListNode([]nodes.Node{
+											nodes.A_Const{
+												Val:      util.MakeIntNode(1),
+												Location: 16,
+											},
+										}),
+										Location: 14,
+									},
+									nil,
+								}),
+							}),
+						},
+					}),
+				},
+			},
+		},
+	},
 }
 
 func TestParse(t *testing.T) {

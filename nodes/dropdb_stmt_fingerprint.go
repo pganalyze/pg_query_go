@@ -8,8 +8,12 @@ func (node DropdbStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	ctx.WriteString("DropdbStmt")
 
 	if node.Dbname != nil {
+		ctx.WriteString("dbname")
 		ctx.WriteString(*node.Dbname)
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	if node.MissingOk {
+		ctx.WriteString("missing_ok")
+		ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	}
 }

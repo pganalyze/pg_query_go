@@ -5,13 +5,15 @@ package pg_query
 import "sort"
 
 func (node List) Fingerprint(ctx FingerprintContext, parentFieldName string) {
-	if parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
+	if parentFieldName == "FromClause" || parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
 		var itemsFingerprints FingerprintSubContextSlice
 
 		for _, subNode := range node.Items {
-			subCtx := FingerprintSubContext{}
-			subNode.Fingerprint(&subCtx, parentFieldName)
-			itemsFingerprints.AddIfUnique(subCtx)
+			if subNode != nil {
+				subCtx := FingerprintSubContext{}
+				subNode.Fingerprint(&subCtx, parentFieldName)
+				itemsFingerprints.AddIfUnique(subCtx)
+			}
 		}
 
 		sort.Sort(itemsFingerprints)
@@ -23,7 +25,9 @@ func (node List) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 		}
 	} else {
 		for _, subNode := range node.Items {
-			subNode.Fingerprint(ctx, parentFieldName)
+			if subNode != nil {
+				subNode.Fingerprint(ctx, parentFieldName)
+			}
 		}
 	}
 }

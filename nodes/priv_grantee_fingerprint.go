@@ -6,6 +6,7 @@ func (node PrivGrantee) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	ctx.WriteString("PrivGrantee")
 
 	if node.Rolname != nil {
+		ctx.WriteString("rolname")
 		ctx.WriteString(*node.Rolname)
 	}
 }

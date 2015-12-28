@@ -262,13 +262,15 @@ class Generator
   end
 
   LIST_FINGERPRINT = '''
-  if parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
+  if parentFieldName == "FromClause" || parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
 		var itemsFingerprints FingerprintSubContextSlice
 
 		for _, subNode := range node.Items {
-			subCtx := FingerprintSubContext{}
-			subNode.Fingerprint(&subCtx, parentFieldName)
-			itemsFingerprints.AddIfUnique(subCtx)
+      if subNode != nil {
+			  subCtx := FingerprintSubContext{}
+			  subNode.Fingerprint(&subCtx, parentFieldName)
+			  itemsFingerprints.AddIfUnique(subCtx)
+      }
 		}
 
 		sort.Sort(itemsFingerprints)
@@ -280,7 +282,9 @@ class Generator
 		}
 	} else {
     for _, subNode := range node.Items {
-      subNode.Fingerprint(ctx, parentFieldName)
+      if subNode != nil {
+        subNode.Fingerprint(ctx, parentFieldName)
+      }
     }
   }
   '''
@@ -290,11 +294,15 @@ class Generator
     'A_Const' => :skip,
     'Alias' => :skip,
     'ParamRef' => :skip,
+    'SetToDefault' => :skip,
     'List' => LIST_FINGERPRINT,
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
     [nil, 'location'] => :skip,
     ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(*node.Name)\n}\n",
+    ['PrepareStmt', 'name'] => :skip,
+    ['ExecuteStmt', 'name'] => :skip,
+    ['DeallocateStmt', 'name'] => :skip,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
@@ -389,48 +397,78 @@ class Generator
 
             case go_type
             when '[][]Node'
-              fingerprint_def += format("\nfor _, nodeList := range node.%s {\n", go_name)
+              fingerprint_def += format("if len(node.%s) > 0 {\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("for _, nodeList := range node.%s {\n", go_name)
               fingerprint_def += "for _, subNode := range nodeList {\n"
               fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
               fingerprint_def += "}\n"
+              fingerprint_def += "}\n"
               fingerprint_def += "}\n\n"
             when '[]Node'
-              fingerprint_def += format("\nfor _, subNode := range node.%s {\n", go_name)
+              fingerprint_def += format("if len(node.%s) > 0 {\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("for _, subNode := range node.%s {\n", go_name)
               fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
+              fingerprint_def += "}\n"
               fingerprint_def += "}\n\n"
             when 'Node'
               fingerprint_def += format("\nif node.%s != nil {", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
               fingerprint_def += "}\n\n"
-            when 'CreateStmt', 'List'
+            when 'List'
+              fingerprint_def += format("if len(node.%s.Items) > 0 {\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
+              fingerprint_def += "}\n\n"
+            when 'CreateStmt'
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n\n", go_name, go_name)
             when 'byte'
-              fingerprint_def += format("ctx.WriteString(string(node.%s))\n", go_name)
+              fingerprint_def += format("\nif node.%s != 0 {", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("ctx.WriteString(string(node.%s))\n\n", go_name)
+              fingerprint_def += "}\n\n"
             when 'string'
-              fingerprint_def += format("ctx.WriteString(node.%s)\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("ctx.WriteString(node.%s)\n\n", go_name)
             when '*string'
               fingerprint_def += format("\nif node.%s != nil {", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("ctx.WriteString(*node.%s)\n", go_name)
               fingerprint_def += "}\n\n"
             when 'bool'
+              fingerprint_def += format("\nif node.%s {", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("ctx.WriteString(strconv.FormatBool(node.%s))\n", go_name)
+              fingerprint_def += "}\n\n"
             when 'Datum', 'interface{}'
               # Ignore
             when *GO_INT_TYPES
+              fingerprint_def += format("\nif node.%s != 0 {", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("ctx.WriteString(strconv.Itoa(int(node.%s)))\n", go_name)
+              fingerprint_def += "}\n\n"
             when *GO_INT_ARRAY_TYPES
-              fingerprint_def += format("\nfor _, val := range node.%s {\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("for _, val := range node.%s {\n", go_name)
               fingerprint_def += "ctx.WriteString(strconv.Itoa(int(val)))\n"
               fingerprint_def += "}\n\n"
             when *GO_FLOAT_TYPES
-              fingerprint_def += format("ctx.WriteString(strconv.FormatFloat(float64(node.%s), 'E', -1, 64))\n", go_name)
+              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
+              fingerprint_def += format("ctx.WriteString(strconv.FormatFloat(float64(node.%s), 'E', -1, 64))\n\n", go_name)
             else
               if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
                 fingerprint_def += format("\nif node.%s != nil {", go_name)
+                fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
                 fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
                 fingerprint_def += "}\n\n"
               elsif @all_known_enums.include?(go_type)
+                fingerprint_def += format("\nif int(node.%s) != 0 {", go_name)
+                fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
                 fingerprint_def += format("ctx.WriteString(strconv.Itoa(int(node.%s)))\n", go_name)
+                fingerprint_def += "}\n\n"
               else
                 # This shouldn't happen - if it does the above is missing something :-)
                 puts type

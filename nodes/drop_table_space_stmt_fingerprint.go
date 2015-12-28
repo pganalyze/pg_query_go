@@ -6,9 +6,14 @@ import "strconv"
 
 func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropTableSpaceStmt")
-	ctx.WriteString(strconv.FormatBool(node.MissingOk))
+
+	if node.MissingOk {
+		ctx.WriteString("missing_ok")
+		ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	}
 
 	if node.Tablespacename != nil {
+		ctx.WriteString("tablespacename")
 		ctx.WriteString(*node.Tablespacename)
 	}
 }

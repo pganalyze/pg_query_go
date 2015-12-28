@@ -6,5 +6,9 @@ import "strconv"
 
 func (node Integer) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("Integer")
-	ctx.WriteString(strconv.Itoa(int(node.Ival)))
+
+	if node.Ival != 0 {
+		ctx.WriteString("ival")
+		ctx.WriteString(strconv.Itoa(int(node.Ival)))
+	}
 }

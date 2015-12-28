@@ -6,11 +6,24 @@ import "strconv"
 
 func (node FetchStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FetchStmt")
-	ctx.WriteString(strconv.Itoa(int(node.Direction)))
-	ctx.WriteString(strconv.Itoa(int(node.HowMany)))
-	ctx.WriteString(strconv.FormatBool(node.Ismove))
+
+	if int(node.Direction) != 0 {
+		ctx.WriteString("direction")
+		ctx.WriteString(strconv.Itoa(int(node.Direction)))
+	}
+
+	if node.HowMany != 0 {
+		ctx.WriteString("howMany")
+		ctx.WriteString(strconv.Itoa(int(node.HowMany)))
+	}
+
+	if node.Ismove {
+		ctx.WriteString("ismove")
+		ctx.WriteString(strconv.FormatBool(node.Ismove))
+	}
 
 	if node.Portalname != nil {
+		ctx.WriteString("portalname")
 		ctx.WriteString(*node.Portalname)
 	}
 }

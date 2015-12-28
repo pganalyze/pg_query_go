@@ -6,54 +6,149 @@ import "strconv"
 
 func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("Query")
-	ctx.WriteString(strconv.FormatBool(node.CanSetTag))
-	ctx.WriteString(strconv.Itoa(int(node.CommandType)))
-	node.ConstraintDeps.Fingerprint(ctx, "ConstraintDeps")
-	node.CteList.Fingerprint(ctx, "CteList")
-	node.DistinctClause.Fingerprint(ctx, "DistinctClause")
-	node.GroupClause.Fingerprint(ctx, "GroupClause")
-	ctx.WriteString(strconv.FormatBool(node.HasAggs))
-	ctx.WriteString(strconv.FormatBool(node.HasDistinctOn))
-	ctx.WriteString(strconv.FormatBool(node.HasForUpdate))
-	ctx.WriteString(strconv.FormatBool(node.HasModifyingCte))
-	ctx.WriteString(strconv.FormatBool(node.HasRecursive))
-	ctx.WriteString(strconv.FormatBool(node.HasSubLinks))
-	ctx.WriteString(strconv.FormatBool(node.HasWindowFuncs))
+
+	if node.CanSetTag {
+		ctx.WriteString("canSetTag")
+		ctx.WriteString(strconv.FormatBool(node.CanSetTag))
+	}
+
+	if int(node.CommandType) != 0 {
+		ctx.WriteString("commandType")
+		ctx.WriteString(strconv.Itoa(int(node.CommandType)))
+	}
+
+	if len(node.ConstraintDeps.Items) > 0 {
+		ctx.WriteString("constraintDeps")
+		node.ConstraintDeps.Fingerprint(ctx, "ConstraintDeps")
+	}
+
+	if len(node.CteList.Items) > 0 {
+		ctx.WriteString("cteList")
+		node.CteList.Fingerprint(ctx, "CteList")
+	}
+
+	if len(node.DistinctClause.Items) > 0 {
+		ctx.WriteString("distinctClause")
+		node.DistinctClause.Fingerprint(ctx, "DistinctClause")
+	}
+
+	if len(node.GroupClause.Items) > 0 {
+		ctx.WriteString("groupClause")
+		node.GroupClause.Fingerprint(ctx, "GroupClause")
+	}
+
+	if node.HasAggs {
+		ctx.WriteString("hasAggs")
+		ctx.WriteString(strconv.FormatBool(node.HasAggs))
+	}
+
+	if node.HasDistinctOn {
+		ctx.WriteString("hasDistinctOn")
+		ctx.WriteString(strconv.FormatBool(node.HasDistinctOn))
+	}
+
+	if node.HasForUpdate {
+		ctx.WriteString("hasForUpdate")
+		ctx.WriteString(strconv.FormatBool(node.HasForUpdate))
+	}
+
+	if node.HasModifyingCte {
+		ctx.WriteString("hasModifyingCTE")
+		ctx.WriteString(strconv.FormatBool(node.HasModifyingCte))
+	}
+
+	if node.HasRecursive {
+		ctx.WriteString("hasRecursive")
+		ctx.WriteString(strconv.FormatBool(node.HasRecursive))
+	}
+
+	if node.HasSubLinks {
+		ctx.WriteString("hasSubLinks")
+		ctx.WriteString(strconv.FormatBool(node.HasSubLinks))
+	}
+
+	if node.HasWindowFuncs {
+		ctx.WriteString("hasWindowFuncs")
+		ctx.WriteString(strconv.FormatBool(node.HasWindowFuncs))
+	}
 
 	if node.HavingQual != nil {
+		ctx.WriteString("havingQual")
 		node.HavingQual.Fingerprint(ctx, "HavingQual")
 	}
 
 	if node.Jointree != nil {
+		ctx.WriteString("jointree")
 		node.Jointree.Fingerprint(ctx, "Jointree")
 	}
 
 	if node.LimitCount != nil {
+		ctx.WriteString("limitCount")
 		node.LimitCount.Fingerprint(ctx, "LimitCount")
 	}
 
 	if node.LimitOffset != nil {
+		ctx.WriteString("limitOffset")
 		node.LimitOffset.Fingerprint(ctx, "LimitOffset")
 	}
 
-	ctx.WriteString(strconv.Itoa(int(node.QueryId)))
-	ctx.WriteString(strconv.Itoa(int(node.QuerySource)))
-	ctx.WriteString(strconv.Itoa(int(node.ResultRelation)))
-	node.ReturningList.Fingerprint(ctx, "ReturningList")
-	node.RowMarks.Fingerprint(ctx, "RowMarks")
-	node.Rtable.Fingerprint(ctx, "Rtable")
+	if node.QueryId != 0 {
+		ctx.WriteString("queryId")
+		ctx.WriteString(strconv.Itoa(int(node.QueryId)))
+	}
+
+	if int(node.QuerySource) != 0 {
+		ctx.WriteString("querySource")
+		ctx.WriteString(strconv.Itoa(int(node.QuerySource)))
+	}
+
+	if node.ResultRelation != 0 {
+		ctx.WriteString("resultRelation")
+		ctx.WriteString(strconv.Itoa(int(node.ResultRelation)))
+	}
+
+	if len(node.ReturningList.Items) > 0 {
+		ctx.WriteString("returningList")
+		node.ReturningList.Fingerprint(ctx, "ReturningList")
+	}
+
+	if len(node.RowMarks.Items) > 0 {
+		ctx.WriteString("rowMarks")
+		node.RowMarks.Fingerprint(ctx, "RowMarks")
+	}
+
+	if len(node.Rtable.Items) > 0 {
+		ctx.WriteString("rtable")
+		node.Rtable.Fingerprint(ctx, "Rtable")
+	}
 
 	if node.SetOperations != nil {
+		ctx.WriteString("setOperations")
 		node.SetOperations.Fingerprint(ctx, "SetOperations")
 	}
 
-	node.SortClause.Fingerprint(ctx, "SortClause")
-	node.TargetList.Fingerprint(ctx, "TargetList")
+	if len(node.SortClause.Items) > 0 {
+		ctx.WriteString("sortClause")
+		node.SortClause.Fingerprint(ctx, "SortClause")
+	}
+
+	if len(node.TargetList.Items) > 0 {
+		ctx.WriteString("targetList")
+		node.TargetList.Fingerprint(ctx, "TargetList")
+	}
 
 	if node.UtilityStmt != nil {
+		ctx.WriteString("utilityStmt")
 		node.UtilityStmt.Fingerprint(ctx, "UtilityStmt")
 	}
 
-	node.WindowClause.Fingerprint(ctx, "WindowClause")
-	node.WithCheckOptions.Fingerprint(ctx, "WithCheckOptions")
+	if len(node.WindowClause.Items) > 0 {
+		ctx.WriteString("windowClause")
+		node.WindowClause.Fingerprint(ctx, "WindowClause")
+	}
+
+	if len(node.WithCheckOptions.Items) > 0 {
+		ctx.WriteString("withCheckOptions")
+		node.WithCheckOptions.Fingerprint(ctx, "WithCheckOptions")
+	}
 }

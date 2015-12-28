@@ -6,9 +6,17 @@ func (node CreateFdwStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("CreateFdwStmt")
 
 	if node.Fdwname != nil {
+		ctx.WriteString("fdwname")
 		ctx.WriteString(*node.Fdwname)
 	}
 
-	node.FuncOptions.Fingerprint(ctx, "FuncOptions")
-	node.Options.Fingerprint(ctx, "Options")
+	if len(node.FuncOptions.Items) > 0 {
+		ctx.WriteString("func_options")
+		node.FuncOptions.Fingerprint(ctx, "FuncOptions")
+	}
+
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 }

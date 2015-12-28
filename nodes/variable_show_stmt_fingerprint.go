@@ -6,6 +6,7 @@ func (node VariableShowStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 	ctx.WriteString("VariableShowStmt")
 
 	if node.Name != nil {
+		ctx.WriteString("name")
 		ctx.WriteString(*node.Name)
 	}
 }

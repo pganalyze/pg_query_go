@@ -6,18 +6,35 @@ import "strconv"
 
 func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterDomainStmt")
-	ctx.WriteString(strconv.Itoa(int(node.Behavior)))
+
+	if int(node.Behavior) != 0 {
+		ctx.WriteString("behavior")
+		ctx.WriteString(strconv.Itoa(int(node.Behavior)))
+	}
 
 	if node.Def != nil {
+		ctx.WriteString("def")
 		node.Def.Fingerprint(ctx, "Def")
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	if node.MissingOk {
+		ctx.WriteString("missing_ok")
+		ctx.WriteString(strconv.FormatBool(node.MissingOk))
+	}
 
 	if node.Name != nil {
+		ctx.WriteString("name")
 		ctx.WriteString(*node.Name)
 	}
 
-	ctx.WriteString(string(node.Subtype))
-	node.TypeName.Fingerprint(ctx, "TypeName")
+	if node.Subtype != 0 {
+		ctx.WriteString("subtype")
+		ctx.WriteString(string(node.Subtype))
+
+	}
+
+	if len(node.TypeName.Items) > 0 {
+		ctx.WriteString("typeName")
+		node.TypeName.Fingerprint(ctx, "TypeName")
+	}
 }

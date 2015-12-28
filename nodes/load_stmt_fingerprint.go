@@ -6,6 +6,7 @@ func (node LoadStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("LoadStmt")
 
 	if node.Filename != nil {
+		ctx.WriteString("filename")
 		ctx.WriteString(*node.Filename)
 	}
 }

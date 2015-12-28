@@ -9,10 +9,22 @@ func (node SortBy) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Node != nil {
+		ctx.WriteString("node")
 		node.Node.Fingerprint(ctx, "Node")
 	}
 
-	ctx.WriteString(strconv.Itoa(int(node.SortbyDir)))
-	ctx.WriteString(strconv.Itoa(int(node.SortbyNulls)))
-	node.UseOp.Fingerprint(ctx, "UseOp")
+	if int(node.SortbyDir) != 0 {
+		ctx.WriteString("sortby_dir")
+		ctx.WriteString(strconv.Itoa(int(node.SortbyDir)))
+	}
+
+	if int(node.SortbyNulls) != 0 {
+		ctx.WriteString("sortby_nulls")
+		ctx.WriteString(strconv.Itoa(int(node.SortbyNulls)))
+	}
+
+	if len(node.UseOp.Items) > 0 {
+		ctx.WriteString("useOp")
+		node.UseOp.Fingerprint(ctx, "UseOp")
+	}
 }

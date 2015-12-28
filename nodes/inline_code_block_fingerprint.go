@@ -6,10 +6,19 @@ import "strconv"
 
 func (node InlineCodeBlock) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("InlineCodeBlock")
-	ctx.WriteString(strconv.FormatBool(node.LangIsTrusted))
-	ctx.WriteString(strconv.Itoa(int(node.LangOid)))
+
+	if node.LangIsTrusted {
+		ctx.WriteString("langIsTrusted")
+		ctx.WriteString(strconv.FormatBool(node.LangIsTrusted))
+	}
+
+	if node.LangOid != 0 {
+		ctx.WriteString("langOid")
+		ctx.WriteString(strconv.Itoa(int(node.LangOid)))
+	}
 
 	if node.SourceText != nil {
+		ctx.WriteString("source_text")
 		ctx.WriteString(*node.SourceText)
 	}
 }

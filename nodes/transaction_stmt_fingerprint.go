@@ -8,9 +8,17 @@ func (node TransactionStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	ctx.WriteString("TransactionStmt")
 
 	if node.Gid != nil {
+		ctx.WriteString("gid")
 		ctx.WriteString(*node.Gid)
 	}
 
-	ctx.WriteString(strconv.Itoa(int(node.Kind)))
-	node.Options.Fingerprint(ctx, "Options")
+	if int(node.Kind) != 0 {
+		ctx.WriteString("kind")
+		ctx.WriteString(strconv.Itoa(int(node.Kind)))
+	}
+
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 }

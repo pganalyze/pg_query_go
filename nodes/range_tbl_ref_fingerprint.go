@@ -6,5 +6,9 @@ import "strconv"
 
 func (node RangeTblRef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RangeTblRef")
-	ctx.WriteString(strconv.Itoa(int(node.Rtindex)))
+
+	if node.Rtindex != 0 {
+		ctx.WriteString("rtindex")
+		ctx.WriteString(strconv.Itoa(int(node.Rtindex)))
+	}
 }

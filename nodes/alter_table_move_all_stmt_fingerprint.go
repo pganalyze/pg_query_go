@@ -8,15 +8,27 @@ func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext, parentFiel
 	ctx.WriteString("AlterTableMoveAllStmt")
 
 	if node.NewTablespacename != nil {
+		ctx.WriteString("new_tablespacename")
 		ctx.WriteString(*node.NewTablespacename)
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.Nowait))
-	ctx.WriteString(strconv.Itoa(int(node.Objtype)))
+	if node.Nowait {
+		ctx.WriteString("nowait")
+		ctx.WriteString(strconv.FormatBool(node.Nowait))
+	}
+
+	if int(node.Objtype) != 0 {
+		ctx.WriteString("objtype")
+		ctx.WriteString(strconv.Itoa(int(node.Objtype)))
+	}
 
 	if node.OrigTablespacename != nil {
+		ctx.WriteString("orig_tablespacename")
 		ctx.WriteString(*node.OrigTablespacename)
 	}
 
-	node.Roles.Fingerprint(ctx, "Roles")
+	if len(node.Roles.Items) > 0 {
+		ctx.WriteString("roles")
+		node.Roles.Fingerprint(ctx, "Roles")
+	}
 }

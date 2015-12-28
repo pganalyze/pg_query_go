@@ -6,8 +6,12 @@ func (node CreatedbStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 	ctx.WriteString("CreatedbStmt")
 
 	if node.Dbname != nil {
+		ctx.WriteString("dbname")
 		ctx.WriteString(*node.Dbname)
 	}
 
-	node.Options.Fingerprint(ctx, "Options")
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 }

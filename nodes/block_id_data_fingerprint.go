@@ -6,6 +6,14 @@ import "strconv"
 
 func (node BlockIdData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("BlockIdData")
-	ctx.WriteString(strconv.Itoa(int(node.BiHi)))
-	ctx.WriteString(strconv.Itoa(int(node.BiLo)))
+
+	if node.BiHi != 0 {
+		ctx.WriteString("bi_hi")
+		ctx.WriteString(strconv.Itoa(int(node.BiHi)))
+	}
+
+	if node.BiLo != 0 {
+		ctx.WriteString("bi_lo")
+		ctx.WriteString(strconv.Itoa(int(node.BiLo)))
+	}
 }

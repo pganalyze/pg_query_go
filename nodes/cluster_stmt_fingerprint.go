@@ -8,12 +8,17 @@ func (node ClusterStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	ctx.WriteString("ClusterStmt")
 
 	if node.Indexname != nil {
+		ctx.WriteString("indexname")
 		ctx.WriteString(*node.Indexname)
 	}
 
 	if node.Relation != nil {
+		ctx.WriteString("relation")
 		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.Verbose))
+	if node.Verbose {
+		ctx.WriteString("verbose")
+		ctx.WriteString(strconv.FormatBool(node.Verbose))
+	}
 }

@@ -6,7 +6,19 @@ import "strconv"
 
 func (node LockStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("LockStmt")
-	ctx.WriteString(strconv.Itoa(int(node.Mode)))
-	ctx.WriteString(strconv.FormatBool(node.Nowait))
-	node.Relations.Fingerprint(ctx, "Relations")
+
+	if node.Mode != 0 {
+		ctx.WriteString("mode")
+		ctx.WriteString(strconv.Itoa(int(node.Mode)))
+	}
+
+	if node.Nowait {
+		ctx.WriteString("nowait")
+		ctx.WriteString(strconv.FormatBool(node.Nowait))
+	}
+
+	if len(node.Relations.Items) > 0 {
+		ctx.WriteString("relations")
+		node.Relations.Fingerprint(ctx, "Relations")
+	}
 }

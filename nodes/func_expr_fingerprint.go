@@ -6,17 +6,50 @@ import "strconv"
 
 func (node FuncExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FuncExpr")
-	node.Args.Fingerprint(ctx, "Args")
-	ctx.WriteString(strconv.Itoa(int(node.Funccollid)))
-	ctx.WriteString(strconv.Itoa(int(node.Funcformat)))
-	ctx.WriteString(strconv.Itoa(int(node.Funcid)))
-	ctx.WriteString(strconv.Itoa(int(node.Funcresulttype)))
-	ctx.WriteString(strconv.FormatBool(node.Funcretset))
-	ctx.WriteString(strconv.FormatBool(node.Funcvariadic))
-	ctx.WriteString(strconv.Itoa(int(node.Inputcollid)))
+	if len(node.Args.Items) > 0 {
+		ctx.WriteString("args")
+		node.Args.Fingerprint(ctx, "Args")
+	}
+
+	if node.Funccollid != 0 {
+		ctx.WriteString("funccollid")
+		ctx.WriteString(strconv.Itoa(int(node.Funccollid)))
+	}
+
+	if int(node.Funcformat) != 0 {
+		ctx.WriteString("funcformat")
+		ctx.WriteString(strconv.Itoa(int(node.Funcformat)))
+	}
+
+	if node.Funcid != 0 {
+		ctx.WriteString("funcid")
+		ctx.WriteString(strconv.Itoa(int(node.Funcid)))
+	}
+
+	if node.Funcresulttype != 0 {
+		ctx.WriteString("funcresulttype")
+		ctx.WriteString(strconv.Itoa(int(node.Funcresulttype)))
+	}
+
+	if node.Funcretset {
+		ctx.WriteString("funcretset")
+		ctx.WriteString(strconv.FormatBool(node.Funcretset))
+	}
+
+	if node.Funcvariadic {
+		ctx.WriteString("funcvariadic")
+		ctx.WriteString(strconv.FormatBool(node.Funcvariadic))
+	}
+
+	if node.Inputcollid != 0 {
+		ctx.WriteString("inputcollid")
+		ctx.WriteString(strconv.Itoa(int(node.Inputcollid)))
+	}
+
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Xpr != nil {
+		ctx.WriteString("xpr")
 		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

@@ -8,14 +8,22 @@ func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	ctx.WriteString("CreateTableAsStmt")
 
 	if node.Into != nil {
+		ctx.WriteString("into")
 		node.Into.Fingerprint(ctx, "Into")
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.IsSelectInto))
+	if node.IsSelectInto {
+		ctx.WriteString("is_select_into")
+		ctx.WriteString(strconv.FormatBool(node.IsSelectInto))
+	}
 
 	if node.Query != nil {
+		ctx.WriteString("query")
 		node.Query.Fingerprint(ctx, "Query")
 	}
 
-	ctx.WriteString(strconv.Itoa(int(node.Relkind)))
+	if int(node.Relkind) != 0 {
+		ctx.WriteString("relkind")
+		ctx.WriteString(strconv.Itoa(int(node.Relkind)))
+	}
 }

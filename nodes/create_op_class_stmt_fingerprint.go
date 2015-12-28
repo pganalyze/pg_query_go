@@ -8,15 +8,32 @@ func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	ctx.WriteString("CreateOpClassStmt")
 
 	if node.Amname != nil {
+		ctx.WriteString("amname")
 		ctx.WriteString(*node.Amname)
 	}
 
 	if node.Datatype != nil {
+		ctx.WriteString("datatype")
 		node.Datatype.Fingerprint(ctx, "Datatype")
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.IsDefault))
-	node.Items.Fingerprint(ctx, "Items")
-	node.Opclassname.Fingerprint(ctx, "Opclassname")
-	node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
+	if node.IsDefault {
+		ctx.WriteString("isDefault")
+		ctx.WriteString(strconv.FormatBool(node.IsDefault))
+	}
+
+	if len(node.Items.Items) > 0 {
+		ctx.WriteString("items")
+		node.Items.Fingerprint(ctx, "Items")
+	}
+
+	if len(node.Opclassname.Items) > 0 {
+		ctx.WriteString("opclassname")
+		node.Opclassname.Fingerprint(ctx, "Opclassname")
+	}
+
+	if len(node.Opfamilyname.Items) > 0 {
+		ctx.WriteString("opfamilyname")
+		node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
+	}
 }

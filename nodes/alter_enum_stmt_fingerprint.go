@@ -8,15 +8,27 @@ func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("AlterEnumStmt")
 
 	if node.NewVal != nil {
+		ctx.WriteString("newVal")
 		ctx.WriteString(*node.NewVal)
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.NewValIsAfter))
+	if node.NewValIsAfter {
+		ctx.WriteString("newValIsAfter")
+		ctx.WriteString(strconv.FormatBool(node.NewValIsAfter))
+	}
 
 	if node.NewValNeighbor != nil {
+		ctx.WriteString("newValNeighbor")
 		ctx.WriteString(*node.NewValNeighbor)
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.SkipIfExists))
-	node.TypeName.Fingerprint(ctx, "TypeName")
+	if node.SkipIfExists {
+		ctx.WriteString("skipIfExists")
+		ctx.WriteString(strconv.FormatBool(node.SkipIfExists))
+	}
+
+	if len(node.TypeName.Items) > 0 {
+		ctx.WriteString("typeName")
+		node.TypeName.Fingerprint(ctx, "TypeName")
+	}
 }

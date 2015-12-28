@@ -6,8 +6,12 @@ func (node ReassignOwnedStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	ctx.WriteString("ReassignOwnedStmt")
 
 	if node.Newrole != nil {
+		ctx.WriteString("newrole")
 		ctx.WriteString(*node.Newrole)
 	}
 
-	node.Roles.Fingerprint(ctx, "Roles")
+	if len(node.Roles.Items) > 0 {
+		ctx.WriteString("roles")
+		node.Roles.Fingerprint(ctx, "Roles")
+	}
 }

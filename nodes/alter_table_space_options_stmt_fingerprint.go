@@ -6,10 +6,19 @@ import "strconv"
 
 func (node AlterTableSpaceOptionsStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTableSpaceOptionsStmt")
-	ctx.WriteString(strconv.FormatBool(node.IsReset))
-	node.Options.Fingerprint(ctx, "Options")
+
+	if node.IsReset {
+		ctx.WriteString("isReset")
+		ctx.WriteString(strconv.FormatBool(node.IsReset))
+	}
+
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 
 	if node.Tablespacename != nil {
+		ctx.WriteString("tablespacename")
 		ctx.WriteString(*node.Tablespacename)
 	}
 }

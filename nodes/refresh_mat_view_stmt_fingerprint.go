@@ -6,11 +6,19 @@ import "strconv"
 
 func (node RefreshMatViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RefreshMatViewStmt")
-	ctx.WriteString(strconv.FormatBool(node.Concurrent))
+
+	if node.Concurrent {
+		ctx.WriteString("concurrent")
+		ctx.WriteString(strconv.FormatBool(node.Concurrent))
+	}
 
 	if node.Relation != nil {
+		ctx.WriteString("relation")
 		node.Relation.Fingerprint(ctx, "Relation")
 	}
 
-	ctx.WriteString(strconv.FormatBool(node.SkipData))
+	if node.SkipData {
+		ctx.WriteString("skipData")
+		ctx.WriteString(strconv.FormatBool(node.SkipData))
+	}
 }

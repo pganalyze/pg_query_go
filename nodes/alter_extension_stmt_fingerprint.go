@@ -6,8 +6,12 @@ func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 	ctx.WriteString("AlterExtensionStmt")
 
 	if node.Extname != nil {
+		ctx.WriteString("extname")
 		ctx.WriteString(*node.Extname)
 	}
 
-	node.Options.Fingerprint(ctx, "Options")
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 }

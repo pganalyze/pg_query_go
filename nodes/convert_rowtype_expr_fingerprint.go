@@ -8,15 +8,24 @@ func (node ConvertRowtypeExpr) Fingerprint(ctx FingerprintContext, parentFieldNa
 	ctx.WriteString("ConvertRowtypeExpr")
 
 	if node.Arg != nil {
+		ctx.WriteString("arg")
 		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
-	ctx.WriteString(strconv.Itoa(int(node.Convertformat)))
+	if int(node.Convertformat) != 0 {
+		ctx.WriteString("convertformat")
+		ctx.WriteString(strconv.Itoa(int(node.Convertformat)))
+	}
+
 	// Intentionally ignoring node.Location for fingerprinting
 
-	ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
+	if node.Resulttype != 0 {
+		ctx.WriteString("resulttype")
+		ctx.WriteString(strconv.Itoa(int(node.Resulttype)))
+	}
 
 	if node.Xpr != nil {
+		ctx.WriteString("xpr")
 		node.Xpr.Fingerprint(ctx, "Xpr")
 	}
 }

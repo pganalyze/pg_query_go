@@ -6,8 +6,12 @@ func (node A_Indirection) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("A_Indirection")
 
 	if node.Arg != nil {
+		ctx.WriteString("arg")
 		node.Arg.Fingerprint(ctx, "Arg")
 	}
 
-	node.Indirection.Fingerprint(ctx, "Indirection")
+	if len(node.Indirection.Items) > 0 {
+		ctx.WriteString("indirection")
+		node.Indirection.Fingerprint(ctx, "Indirection")
+	}
 }

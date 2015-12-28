@@ -6,6 +6,7 @@ func (node ClosePortalStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	ctx.WriteString("ClosePortalStmt")
 
 	if node.Portalname != nil {
+		ctx.WriteString("portalname")
 		ctx.WriteString(*node.Portalname)
 	}
 }

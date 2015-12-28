@@ -6,5 +6,9 @@ import "strconv"
 
 func (node ParamExecData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ParamExecData")
-	ctx.WriteString(strconv.FormatBool(node.Isnull))
+
+	if node.Isnull {
+		ctx.WriteString("isnull")
+		ctx.WriteString(strconv.FormatBool(node.Isnull))
+	}
 }

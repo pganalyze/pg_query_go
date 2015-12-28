@@ -6,8 +6,12 @@ func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, paren
 	ctx.WriteString("AlterDefaultPrivilegesStmt")
 
 	if node.Action != nil {
+		ctx.WriteString("action")
 		node.Action.Fingerprint(ctx, "Action")
 	}
 
-	node.Options.Fingerprint(ctx, "Options")
+	if len(node.Options.Items) > 0 {
+		ctx.WriteString("options")
+		node.Options.Fingerprint(ctx, "Options")
+	}
 }

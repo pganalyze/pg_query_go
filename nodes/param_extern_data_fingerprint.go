@@ -6,7 +6,19 @@ import "strconv"
 
 func (node ParamExternData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ParamExternData")
-	ctx.WriteString(strconv.FormatBool(node.Isnull))
-	ctx.WriteString(strconv.Itoa(int(node.Pflags)))
-	ctx.WriteString(strconv.Itoa(int(node.Ptype)))
+
+	if node.Isnull {
+		ctx.WriteString("isnull")
+		ctx.WriteString(strconv.FormatBool(node.Isnull))
+	}
+
+	if node.Pflags != 0 {
+		ctx.WriteString("pflags")
+		ctx.WriteString(strconv.Itoa(int(node.Pflags)))
+	}
+
+	if node.Ptype != 0 {
+		ctx.WriteString("ptype")
+		ctx.WriteString(strconv.Itoa(int(node.Ptype)))
+	}
 }

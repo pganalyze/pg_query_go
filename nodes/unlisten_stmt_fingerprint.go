@@ -6,6 +6,7 @@ func (node UnlistenStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 	ctx.WriteString("UnlistenStmt")
 
 	if node.Conditionname != nil {
+		ctx.WriteString("conditionname")
 		ctx.WriteString(*node.Conditionname)
 	}
 }
