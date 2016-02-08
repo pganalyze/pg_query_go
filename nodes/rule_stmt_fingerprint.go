@@ -6,9 +6,17 @@ import "strconv"
 
 func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RuleStmt")
+
 	if len(node.Actions.Items) > 0 {
-		ctx.WriteString("actions")
-		node.Actions.Fingerprint(ctx, "Actions")
+		subCtx := FingerprintSubContext{}
+		node.Actions.Fingerprint(&subCtx, "Actions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("actions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Event) != 0 {
@@ -22,8 +30,15 @@ func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Replace {
@@ -37,7 +52,14 @@ func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.WhereClause != nil {
-		ctx.WriteString("whereClause")
-		node.WhereClause.Fingerprint(ctx, "WhereClause")
+		subCtx := FingerprintSubContext{}
+		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whereClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

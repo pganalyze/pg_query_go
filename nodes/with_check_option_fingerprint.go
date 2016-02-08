@@ -13,8 +13,15 @@ func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	if node.Qual != nil {
-		ctx.WriteString("qual")
-		node.Qual.Fingerprint(ctx, "Qual")
+		subCtx := FingerprintSubContext{}
+		node.Qual.Fingerprint(&subCtx, "Qual")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("qual")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Viewname != nil {

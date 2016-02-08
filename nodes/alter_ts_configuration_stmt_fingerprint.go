@@ -6,14 +6,29 @@ import "strconv"
 
 func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTSConfigurationStmt")
+
 	if len(node.Cfgname.Items) > 0 {
-		ctx.WriteString("cfgname")
-		node.Cfgname.Fingerprint(ctx, "Cfgname")
+		subCtx := FingerprintSubContext{}
+		node.Cfgname.Fingerprint(&subCtx, "Cfgname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("cfgname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Dicts.Items) > 0 {
-		ctx.WriteString("dicts")
-		node.Dicts.Fingerprint(ctx, "Dicts")
+		subCtx := FingerprintSubContext{}
+		node.Dicts.Fingerprint(&subCtx, "Dicts")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("dicts")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.MissingOk {
@@ -32,7 +47,14 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentF
 	}
 
 	if len(node.Tokentype.Items) > 0 {
-		ctx.WriteString("tokentype")
-		node.Tokentype.Fingerprint(ctx, "Tokentype")
+		subCtx := FingerprintSubContext{}
+		node.Tokentype.Fingerprint(&subCtx, "Tokentype")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("tokentype")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

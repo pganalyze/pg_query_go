@@ -4,13 +4,28 @@ package pg_query
 
 func (node CreateEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateEnumStmt")
+
 	if len(node.TypeName.Items) > 0 {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Vals.Items) > 0 {
-		ctx.WriteString("vals")
-		node.Vals.Fingerprint(ctx, "Vals")
+		subCtx := FingerprintSubContext{}
+		node.Vals.Fingerprint(&subCtx, "Vals")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("vals")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

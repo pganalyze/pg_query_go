@@ -4,6 +4,8 @@ package pg_query
 
 func (node BitString) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("BitString")
-	ctx.WriteString("str")
-	ctx.WriteString(node.Str)
+	if len(node.Str) > 0 {
+		ctx.WriteString("str")
+		ctx.WriteString(node.Str)
+	}
 }

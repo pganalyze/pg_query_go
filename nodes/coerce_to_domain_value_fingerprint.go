@@ -25,7 +25,14 @@ func (node CoerceToDomainValue) Fingerprint(ctx FingerprintContext, parentFieldN
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -13,48 +13,111 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.DistinctClause.Items) > 0 {
-		ctx.WriteString("distinctClause")
-		node.DistinctClause.Fingerprint(ctx, "DistinctClause")
+		subCtx := FingerprintSubContext{}
+		node.DistinctClause.Fingerprint(&subCtx, "DistinctClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("distinctClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.FromClause.Items) > 0 {
-		ctx.WriteString("fromClause")
-		node.FromClause.Fingerprint(ctx, "FromClause")
+		subCtx := FingerprintSubContext{}
+		node.FromClause.Fingerprint(&subCtx, "FromClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("fromClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.GroupClause.Items) > 0 {
-		ctx.WriteString("groupClause")
-		node.GroupClause.Fingerprint(ctx, "GroupClause")
+		subCtx := FingerprintSubContext{}
+		node.GroupClause.Fingerprint(&subCtx, "GroupClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("groupClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.HavingClause != nil {
-		ctx.WriteString("havingClause")
-		node.HavingClause.Fingerprint(ctx, "HavingClause")
+		subCtx := FingerprintSubContext{}
+		node.HavingClause.Fingerprint(&subCtx, "HavingClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("havingClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IntoClause != nil {
-		ctx.WriteString("intoClause")
-		node.IntoClause.Fingerprint(ctx, "IntoClause")
+		subCtx := FingerprintSubContext{}
+		node.IntoClause.Fingerprint(&subCtx, "IntoClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("intoClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Larg != nil {
-		ctx.WriteString("larg")
-		node.Larg.Fingerprint(ctx, "Larg")
+		subCtx := FingerprintSubContext{}
+		node.Larg.Fingerprint(&subCtx, "Larg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("larg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.LimitCount != nil {
-		ctx.WriteString("limitCount")
-		node.LimitCount.Fingerprint(ctx, "LimitCount")
+		subCtx := FingerprintSubContext{}
+		node.LimitCount.Fingerprint(&subCtx, "LimitCount")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("limitCount")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.LimitOffset != nil {
-		ctx.WriteString("limitOffset")
-		node.LimitOffset.Fingerprint(ctx, "LimitOffset")
+		subCtx := FingerprintSubContext{}
+		node.LimitOffset.Fingerprint(&subCtx, "LimitOffset")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("limitOffset")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.LockingClause.Items) > 0 {
-		ctx.WriteString("lockingClause")
-		node.LockingClause.Fingerprint(ctx, "LockingClause")
+		subCtx := FingerprintSubContext{}
+		node.LockingClause.Fingerprint(&subCtx, "LockingClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("lockingClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Op) != 0 {
@@ -63,41 +126,90 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if node.Rarg != nil {
-		ctx.WriteString("rarg")
-		node.Rarg.Fingerprint(ctx, "Rarg")
+		subCtx := FingerprintSubContext{}
+		node.Rarg.Fingerprint(&subCtx, "Rarg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rarg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.SortClause.Items) > 0 {
-		ctx.WriteString("sortClause")
-		node.SortClause.Fingerprint(ctx, "SortClause")
+		subCtx := FingerprintSubContext{}
+		node.SortClause.Fingerprint(&subCtx, "SortClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("sortClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.TargetList.Items) > 0 {
-		ctx.WriteString("targetList")
-		node.TargetList.Fingerprint(ctx, "TargetList")
+		subCtx := FingerprintSubContext{}
+		node.TargetList.Fingerprint(&subCtx, "TargetList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("targetList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ValuesLists) > 0 {
-		ctx.WriteString("valuesLists")
+		subCtx := FingerprintSubContext{}
 		for _, nodeList := range node.ValuesLists {
 			for _, subNode := range nodeList {
-				subNode.Fingerprint(ctx, "ValuesLists")
+				subNode.Fingerprint(&subCtx, "ValuesLists")
+			}
+		}
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("valuesLists")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
 			}
 		}
 	}
 
 	if node.WhereClause != nil {
-		ctx.WriteString("whereClause")
-		node.WhereClause.Fingerprint(ctx, "WhereClause")
+		subCtx := FingerprintSubContext{}
+		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whereClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.WindowClause.Items) > 0 {
-		ctx.WriteString("windowClause")
-		node.WindowClause.Fingerprint(ctx, "WindowClause")
+		subCtx := FingerprintSubContext{}
+		node.WindowClause.Fingerprint(&subCtx, "WindowClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("windowClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.WithClause != nil {
-		ctx.WriteString("withClause")
-		node.WithClause.Fingerprint(ctx, "WithClause")
+		subCtx := FingerprintSubContext{}
+		node.WithClause.Fingerprint(&subCtx, "WithClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("withClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

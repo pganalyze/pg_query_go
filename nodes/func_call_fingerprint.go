@@ -13,13 +13,27 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.AggFilter != nil {
-		ctx.WriteString("agg_filter")
-		node.AggFilter.Fingerprint(ctx, "AggFilter")
+		subCtx := FingerprintSubContext{}
+		node.AggFilter.Fingerprint(&subCtx, "AggFilter")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("agg_filter")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.AggOrder.Items) > 0 {
-		ctx.WriteString("agg_order")
-		node.AggOrder.Fingerprint(ctx, "AggOrder")
+		subCtx := FingerprintSubContext{}
+		node.AggOrder.Fingerprint(&subCtx, "AggOrder")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("agg_order")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.AggStar {
@@ -33,8 +47,15 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.FuncVariadic {
@@ -43,14 +64,27 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Funcname.Items) > 0 {
-		ctx.WriteString("funcname")
-		node.Funcname.Fingerprint(ctx, "Funcname")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Funcname.Fingerprint(&subCtx, "Funcname")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Over != nil {
-		ctx.WriteString("over")
-		node.Over.Fingerprint(ctx, "Over")
+		subCtx := FingerprintSubContext{}
+		node.Over.Fingerprint(&subCtx, "Over")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("over")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

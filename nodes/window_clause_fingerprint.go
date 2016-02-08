@@ -13,8 +13,15 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 	}
 
 	if node.EndOffset != nil {
-		ctx.WriteString("endOffset")
-		node.EndOffset.Fingerprint(ctx, "EndOffset")
+		subCtx := FingerprintSubContext{}
+		node.EndOffset.Fingerprint(&subCtx, "EndOffset")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("endOffset")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.FrameOptions != 0 {
@@ -28,13 +35,27 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 	}
 
 	if len(node.OrderClause.Items) > 0 {
-		ctx.WriteString("orderClause")
-		node.OrderClause.Fingerprint(ctx, "OrderClause")
+		subCtx := FingerprintSubContext{}
+		node.OrderClause.Fingerprint(&subCtx, "OrderClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("orderClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.PartitionClause.Items) > 0 {
-		ctx.WriteString("partitionClause")
-		node.PartitionClause.Fingerprint(ctx, "PartitionClause")
+		subCtx := FingerprintSubContext{}
+		node.PartitionClause.Fingerprint(&subCtx, "PartitionClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("partitionClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Refname != nil {
@@ -43,8 +64,15 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 	}
 
 	if node.StartOffset != nil {
-		ctx.WriteString("startOffset")
-		node.StartOffset.Fingerprint(ctx, "StartOffset")
+		subCtx := FingerprintSubContext{}
+		node.StartOffset.Fingerprint(&subCtx, "StartOffset")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("startOffset")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Winref != 0 {

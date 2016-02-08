@@ -11,8 +11,15 @@ func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 	}
 
 	if len(node.Funcname.Items) > 0 {
-		ctx.WriteString("funcname")
-		node.Funcname.Fingerprint(ctx, "Funcname")
+		subCtx := FingerprintSubContext{}
+		node.Funcname.Fingerprint(&subCtx, "Funcname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Trigname != nil {
@@ -21,7 +28,14 @@ func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 	}
 
 	if len(node.Whenclause.Items) > 0 {
-		ctx.WriteString("whenclause")
-		node.Whenclause.Fingerprint(ctx, "Whenclause")
+		subCtx := FingerprintSubContext{}
+		node.Whenclause.Fingerprint(&subCtx, "Whenclause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whenclause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -13,18 +13,39 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.Aggdirectargs.Items) > 0 {
-		ctx.WriteString("aggdirectargs")
-		node.Aggdirectargs.Fingerprint(ctx, "Aggdirectargs")
+		subCtx := FingerprintSubContext{}
+		node.Aggdirectargs.Fingerprint(&subCtx, "Aggdirectargs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aggdirectargs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Aggdistinct.Items) > 0 {
-		ctx.WriteString("aggdistinct")
-		node.Aggdistinct.Fingerprint(ctx, "Aggdistinct")
+		subCtx := FingerprintSubContext{}
+		node.Aggdistinct.Fingerprint(&subCtx, "Aggdistinct")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aggdistinct")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Aggfilter != nil {
-		ctx.WriteString("aggfilter")
-		node.Aggfilter.Fingerprint(ctx, "Aggfilter")
+		subCtx := FingerprintSubContext{}
+		node.Aggfilter.Fingerprint(&subCtx, "Aggfilter")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aggfilter")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Aggfnoid != 0 {
@@ -44,8 +65,15 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.Aggorder.Items) > 0 {
-		ctx.WriteString("aggorder")
-		node.Aggorder.Fingerprint(ctx, "Aggorder")
+		subCtx := FingerprintSubContext{}
+		node.Aggorder.Fingerprint(&subCtx, "Aggorder")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aggorder")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Aggstar {
@@ -64,8 +92,15 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Inputcollid != 0 {
@@ -76,7 +111,14 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -28,7 +28,14 @@ func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.TypeName.Items) > 0 {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -8,13 +8,27 @@ func (node CaseExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("CaseExpr")
 
 	if node.Arg != nil {
-		ctx.WriteString("arg")
-		node.Arg.Fingerprint(ctx, "Arg")
+		subCtx := FingerprintSubContext{}
+		node.Arg.Fingerprint(&subCtx, "Arg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Casecollid != 0 {
@@ -28,14 +42,27 @@ func (node CaseExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.Defresult != nil {
-		ctx.WriteString("defresult")
-		node.Defresult.Fingerprint(ctx, "Defresult")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Defresult.Fingerprint(&subCtx, "Defresult")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("defresult")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -23,8 +23,15 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.ExcludeOpNames.Items) > 0 {
-		ctx.WriteString("excludeOpNames")
-		node.ExcludeOpNames.Fingerprint(ctx, "ExcludeOpNames")
+		subCtx := FingerprintSubContext{}
+		node.ExcludeOpNames.Fingerprint(&subCtx, "ExcludeOpNames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("excludeOpNames")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Idxcomment != nil {
@@ -43,8 +50,15 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.IndexParams.Items) > 0 {
-		ctx.WriteString("indexParams")
-		node.IndexParams.Fingerprint(ctx, "IndexParams")
+		subCtx := FingerprintSubContext{}
+		node.IndexParams.Fingerprint(&subCtx, "IndexParams")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("indexParams")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Initdeferred {
@@ -63,8 +77,15 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Primary {
@@ -73,8 +94,15 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.TableSpace != nil {
@@ -88,7 +116,14 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if node.WhereClause != nil {
-		ctx.WriteString("whereClause")
-		node.WhereClause.Fingerprint(ctx, "WhereClause")
+		subCtx := FingerprintSubContext{}
+		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whereClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

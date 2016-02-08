@@ -4,28 +4,64 @@ package pg_query
 
 func (node InsertStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("InsertStmt")
+
 	if len(node.Cols.Items) > 0 {
-		ctx.WriteString("cols")
-		node.Cols.Fingerprint(ctx, "Cols")
+		subCtx := FingerprintSubContext{}
+		node.Cols.Fingerprint(&subCtx, "Cols")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("cols")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ReturningList.Items) > 0 {
-		ctx.WriteString("returningList")
-		node.ReturningList.Fingerprint(ctx, "ReturningList")
+		subCtx := FingerprintSubContext{}
+		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("returningList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.SelectStmt != nil {
-		ctx.WriteString("selectStmt")
-		node.SelectStmt.Fingerprint(ctx, "SelectStmt")
+		subCtx := FingerprintSubContext{}
+		node.SelectStmt.Fingerprint(&subCtx, "SelectStmt")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("selectStmt")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.WithClause != nil {
-		ctx.WriteString("withClause")
-		node.WithClause.Fingerprint(ctx, "WithClause")
+		subCtx := FingerprintSubContext{}
+		node.WithClause.Fingerprint(&subCtx, "WithClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("withClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

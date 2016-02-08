@@ -6,19 +6,41 @@ import "strconv"
 
 func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateFunctionStmt")
+
 	if len(node.Funcname.Items) > 0 {
-		ctx.WriteString("funcname")
-		node.Funcname.Fingerprint(ctx, "Funcname")
+		subCtx := FingerprintSubContext{}
+		node.Funcname.Fingerprint(&subCtx, "Funcname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Parameters.Items) > 0 {
-		ctx.WriteString("parameters")
-		node.Parameters.Fingerprint(ctx, "Parameters")
+		subCtx := FingerprintSubContext{}
+		node.Parameters.Fingerprint(&subCtx, "Parameters")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("parameters")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Replace {
@@ -27,12 +49,26 @@ func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 	}
 
 	if node.ReturnType != nil {
-		ctx.WriteString("returnType")
-		node.ReturnType.Fingerprint(ctx, "ReturnType")
+		subCtx := FingerprintSubContext{}
+		node.ReturnType.Fingerprint(&subCtx, "ReturnType")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("returnType")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.WithClause.Items) > 0 {
-		ctx.WriteString("withClause")
-		node.WithClause.Fingerprint(ctx, "WithClause")
+		subCtx := FingerprintSubContext{}
+		node.WithClause.Fingerprint(&subCtx, "WithClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("withClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

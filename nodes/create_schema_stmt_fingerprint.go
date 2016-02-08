@@ -18,8 +18,15 @@ func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 	}
 
 	if len(node.SchemaElts.Items) > 0 {
-		ctx.WriteString("schemaElts")
-		node.SchemaElts.Fingerprint(ctx, "SchemaElts")
+		subCtx := FingerprintSubContext{}
+		node.SchemaElts.Fingerprint(&subCtx, "SchemaElts")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("schemaElts")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Schemaname != nil {

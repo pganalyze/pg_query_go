@@ -6,9 +6,17 @@ import "strconv"
 
 func (node LockingClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("LockingClause")
+
 	if len(node.LockedRels.Items) > 0 {
-		ctx.WriteString("lockedRels")
-		node.LockedRels.Fingerprint(ctx, "LockedRels")
+		subCtx := FingerprintSubContext{}
+		node.LockedRels.Fingerprint(&subCtx, "LockedRels")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("lockedRels")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.NoWait {

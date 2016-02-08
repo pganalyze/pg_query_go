@@ -4,13 +4,28 @@ package pg_query
 
 func (node CreateRangeStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateRangeStmt")
+
 	if len(node.Params.Items) > 0 {
-		ctx.WriteString("params")
-		node.Params.Fingerprint(ctx, "Params")
+		subCtx := FingerprintSubContext{}
+		node.Params.Fingerprint(&subCtx, "Params")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("params")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.TypeName.Items) > 0 {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

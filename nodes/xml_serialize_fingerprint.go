@@ -8,15 +8,28 @@ func (node XmlSerialize) Fingerprint(ctx FingerprintContext, parentFieldName str
 	ctx.WriteString("XmlSerialize")
 
 	if node.Expr != nil {
-		ctx.WriteString("expr")
-		node.Expr.Fingerprint(ctx, "Expr")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Expr.Fingerprint(&subCtx, "Expr")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("expr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.TypeName != nil {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Xmloption) != 0 {

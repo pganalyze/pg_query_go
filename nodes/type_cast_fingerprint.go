@@ -6,14 +6,27 @@ func (node TypeCast) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("TypeCast")
 
 	if node.Arg != nil {
-		ctx.WriteString("arg")
-		node.Arg.Fingerprint(ctx, "Arg")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Arg.Fingerprint(&subCtx, "Arg")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.TypeName != nil {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

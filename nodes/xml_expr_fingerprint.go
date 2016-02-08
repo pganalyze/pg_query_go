@@ -6,16 +6,30 @@ import "strconv"
 
 func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("XmlExpr")
+
 	if len(node.ArgNames.Items) > 0 {
-		ctx.WriteString("arg_names")
-		node.ArgNames.Fingerprint(ctx, "ArgNames")
+		subCtx := FingerprintSubContext{}
+		node.ArgNames.Fingerprint(&subCtx, "ArgNames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arg_names")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Name != nil {
@@ -24,8 +38,15 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if len(node.NamedArgs.Items) > 0 {
-		ctx.WriteString("named_args")
-		node.NamedArgs.Fingerprint(ctx, "NamedArgs")
+		subCtx := FingerprintSubContext{}
+		node.NamedArgs.Fingerprint(&subCtx, "NamedArgs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("named_args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Op) != 0 {
@@ -49,7 +70,14 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -13,7 +13,14 @@ func (node DropRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 	}
 
 	if len(node.Roles.Items) > 0 {
-		ctx.WriteString("roles")
-		node.Roles.Fingerprint(ctx, "Roles")
+		subCtx := FingerprintSubContext{}
+		node.Roles.Fingerprint(&subCtx, "Roles")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("roles")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

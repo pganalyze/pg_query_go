@@ -18,13 +18,27 @@ func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.GrantedRoles.Items) > 0 {
-		ctx.WriteString("granted_roles")
-		node.GrantedRoles.Fingerprint(ctx, "GrantedRoles")
+		subCtx := FingerprintSubContext{}
+		node.GrantedRoles.Fingerprint(&subCtx, "GrantedRoles")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("granted_roles")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.GranteeRoles.Items) > 0 {
-		ctx.WriteString("grantee_roles")
-		node.GranteeRoles.Fingerprint(ctx, "GranteeRoles")
+		subCtx := FingerprintSubContext{}
+		node.GranteeRoles.Fingerprint(&subCtx, "GranteeRoles")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("grantee_roles")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Grantor != nil {

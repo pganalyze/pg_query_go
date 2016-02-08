@@ -8,18 +8,39 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	ctx.WriteString("FieldStore")
 
 	if node.Arg != nil {
-		ctx.WriteString("arg")
-		node.Arg.Fingerprint(ctx, "Arg")
+		subCtx := FingerprintSubContext{}
+		node.Arg.Fingerprint(&subCtx, "Arg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Fieldnums.Items) > 0 {
-		ctx.WriteString("fieldnums")
-		node.Fieldnums.Fingerprint(ctx, "Fieldnums")
+		subCtx := FingerprintSubContext{}
+		node.Fieldnums.Fingerprint(&subCtx, "Fieldnums")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("fieldnums")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Newvals.Items) > 0 {
-		ctx.WriteString("newvals")
-		node.Newvals.Fingerprint(ctx, "Newvals")
+		subCtx := FingerprintSubContext{}
+		node.Newvals.Fingerprint(&subCtx, "Newvals")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("newvals")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Resulttype != 0 {
@@ -28,7 +49,14 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

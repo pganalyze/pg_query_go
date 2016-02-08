@@ -13,8 +13,15 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.Refassgnexpr != nil {
-		ctx.WriteString("refassgnexpr")
-		node.Refassgnexpr.Fingerprint(ctx, "Refassgnexpr")
+		subCtx := FingerprintSubContext{}
+		node.Refassgnexpr.Fingerprint(&subCtx, "Refassgnexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("refassgnexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Refcollid != 0 {
@@ -28,13 +35,27 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.Refexpr != nil {
-		ctx.WriteString("refexpr")
-		node.Refexpr.Fingerprint(ctx, "Refexpr")
+		subCtx := FingerprintSubContext{}
+		node.Refexpr.Fingerprint(&subCtx, "Refexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("refexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Reflowerindexpr.Items) > 0 {
-		ctx.WriteString("reflowerindexpr")
-		node.Reflowerindexpr.Fingerprint(ctx, "Reflowerindexpr")
+		subCtx := FingerprintSubContext{}
+		node.Reflowerindexpr.Fingerprint(&subCtx, "Reflowerindexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("reflowerindexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Reftypmod != 0 {
@@ -43,12 +64,26 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Refupperindexpr.Items) > 0 {
-		ctx.WriteString("refupperindexpr")
-		node.Refupperindexpr.Fingerprint(ctx, "Refupperindexpr")
+		subCtx := FingerprintSubContext{}
+		node.Refupperindexpr.Fingerprint(&subCtx, "Refupperindexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("refupperindexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

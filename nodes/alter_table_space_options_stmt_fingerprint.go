@@ -13,8 +13,15 @@ func (node AlterTableSpaceOptionsStmt) Fingerprint(ctx FingerprintContext, paren
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Tablespacename != nil {

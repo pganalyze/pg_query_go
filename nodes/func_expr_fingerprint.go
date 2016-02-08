@@ -6,9 +6,17 @@ import "strconv"
 
 func (node FuncExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FuncExpr")
+
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Funccollid != 0 {
@@ -49,7 +57,14 @@ func (node FuncExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -6,19 +6,41 @@ import "strconv"
 
 func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("ViewStmt")
+
 	if len(node.Aliases.Items) > 0 {
-		ctx.WriteString("aliases")
-		node.Aliases.Fingerprint(ctx, "Aliases")
+		subCtx := FingerprintSubContext{}
+		node.Aliases.Fingerprint(&subCtx, "Aliases")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aliases")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Query != nil {
-		ctx.WriteString("query")
-		node.Query.Fingerprint(ctx, "Query")
+		subCtx := FingerprintSubContext{}
+		node.Query.Fingerprint(&subCtx, "Query")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("query")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Replace {
@@ -27,8 +49,15 @@ func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.View != nil {
-		ctx.WriteString("view")
-		node.View.Fingerprint(ctx, "View")
+		subCtx := FingerprintSubContext{}
+		node.View.Fingerprint(&subCtx, "View")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("view")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.WithCheckOption) != 0 {

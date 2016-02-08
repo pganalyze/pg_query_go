@@ -13,8 +13,15 @@ func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if node.Def != nil {
-		ctx.WriteString("def")
-		node.Def.Fingerprint(ctx, "Def")
+		subCtx := FingerprintSubContext{}
+		node.Def.Fingerprint(&subCtx, "Def")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("def")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.MissingOk {

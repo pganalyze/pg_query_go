@@ -8,8 +8,15 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("JoinExpr")
 
 	if node.Alias != nil {
-		ctx.WriteString("alias")
-		node.Alias.Fingerprint(ctx, "Alias")
+		subCtx := FingerprintSubContext{}
+		node.Alias.Fingerprint(&subCtx, "Alias")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("alias")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IsNatural {
@@ -23,18 +30,39 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if node.Larg != nil {
-		ctx.WriteString("larg")
-		node.Larg.Fingerprint(ctx, "Larg")
+		subCtx := FingerprintSubContext{}
+		node.Larg.Fingerprint(&subCtx, "Larg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("larg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Quals != nil {
-		ctx.WriteString("quals")
-		node.Quals.Fingerprint(ctx, "Quals")
+		subCtx := FingerprintSubContext{}
+		node.Quals.Fingerprint(&subCtx, "Quals")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("quals")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Rarg != nil {
-		ctx.WriteString("rarg")
-		node.Rarg.Fingerprint(ctx, "Rarg")
+		subCtx := FingerprintSubContext{}
+		node.Rarg.Fingerprint(&subCtx, "Rarg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rarg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Rtindex != 0 {
@@ -43,7 +71,14 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.UsingClause.Items) > 0 {
-		ctx.WriteString("usingClause")
-		node.UsingClause.Fingerprint(ctx, "UsingClause")
+		subCtx := FingerprintSubContext{}
+		node.UsingClause.Fingerprint(&subCtx, "UsingClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("usingClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

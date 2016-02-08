@@ -8,8 +8,15 @@ func (node TargetEntry) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	ctx.WriteString("TargetEntry")
 
 	if node.Expr != nil {
-		ctx.WriteString("expr")
-		node.Expr.Fingerprint(ctx, "Expr")
+		subCtx := FingerprintSubContext{}
+		node.Expr.Fingerprint(&subCtx, "Expr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("expr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Resjunk {
@@ -43,7 +50,14 @@ func (node TargetEntry) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

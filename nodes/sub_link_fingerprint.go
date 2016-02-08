@@ -9,8 +9,15 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if len(node.OperName.Items) > 0 {
-		ctx.WriteString("operName")
-		node.OperName.Fingerprint(ctx, "OperName")
+		subCtx := FingerprintSubContext{}
+		node.OperName.Fingerprint(&subCtx, "OperName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("operName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.SubLinkType) != 0 {
@@ -19,17 +26,38 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if node.Subselect != nil {
-		ctx.WriteString("subselect")
-		node.Subselect.Fingerprint(ctx, "Subselect")
+		subCtx := FingerprintSubContext{}
+		node.Subselect.Fingerprint(&subCtx, "Subselect")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("subselect")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Testexpr != nil {
-		ctx.WriteString("testexpr")
-		node.Testexpr.Fingerprint(ctx, "Testexpr")
+		subCtx := FingerprintSubContext{}
+		node.Testexpr.Fingerprint(&subCtx, "Testexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("testexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

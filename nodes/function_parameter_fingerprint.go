@@ -8,13 +8,27 @@ func (node FunctionParameter) Fingerprint(ctx FingerprintContext, parentFieldNam
 	ctx.WriteString("FunctionParameter")
 
 	if node.ArgType != nil {
-		ctx.WriteString("argType")
-		node.ArgType.Fingerprint(ctx, "ArgType")
+		subCtx := FingerprintSubContext{}
+		node.ArgType.Fingerprint(&subCtx, "ArgType")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("argType")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Defexpr != nil {
-		ctx.WriteString("defexpr")
-		node.Defexpr.Fingerprint(ctx, "Defexpr")
+		subCtx := FingerprintSubContext{}
+		node.Defexpr.Fingerprint(&subCtx, "Defexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("defexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Mode) != 0 {

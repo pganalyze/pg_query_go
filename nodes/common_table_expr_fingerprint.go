@@ -6,29 +6,65 @@ import "strconv"
 
 func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CommonTableExpr")
+
 	if len(node.Aliascolnames.Items) > 0 {
-		ctx.WriteString("aliascolnames")
-		node.Aliascolnames.Fingerprint(ctx, "Aliascolnames")
+		subCtx := FingerprintSubContext{}
+		node.Aliascolnames.Fingerprint(&subCtx, "Aliascolnames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aliascolnames")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecolcollations.Items) > 0 {
-		ctx.WriteString("ctecolcollations")
-		node.Ctecolcollations.Fingerprint(ctx, "Ctecolcollations")
+		subCtx := FingerprintSubContext{}
+		node.Ctecolcollations.Fingerprint(&subCtx, "Ctecolcollations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecolcollations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecolnames.Items) > 0 {
-		ctx.WriteString("ctecolnames")
-		node.Ctecolnames.Fingerprint(ctx, "Ctecolnames")
+		subCtx := FingerprintSubContext{}
+		node.Ctecolnames.Fingerprint(&subCtx, "Ctecolnames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecolnames")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecoltypes.Items) > 0 {
-		ctx.WriteString("ctecoltypes")
-		node.Ctecoltypes.Fingerprint(ctx, "Ctecoltypes")
+		subCtx := FingerprintSubContext{}
+		node.Ctecoltypes.Fingerprint(&subCtx, "Ctecoltypes")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecoltypes")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecoltypmods.Items) > 0 {
-		ctx.WriteString("ctecoltypmods")
-		node.Ctecoltypmods.Fingerprint(ctx, "Ctecoltypmods")
+		subCtx := FingerprintSubContext{}
+		node.Ctecoltypmods.Fingerprint(&subCtx, "Ctecoltypmods")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecoltypmods")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Ctename != nil {
@@ -37,8 +73,15 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	if node.Ctequery != nil {
-		ctx.WriteString("ctequery")
-		node.Ctequery.Fingerprint(ctx, "Ctequery")
+		subCtx := FingerprintSubContext{}
+		node.Ctequery.Fingerprint(&subCtx, "Ctequery")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctequery")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Cterecursive {

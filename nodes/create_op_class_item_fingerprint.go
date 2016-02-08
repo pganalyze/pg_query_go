@@ -6,14 +6,29 @@ import "strconv"
 
 func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateOpClassItem")
+
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ClassArgs.Items) > 0 {
-		ctx.WriteString("class_args")
-		node.ClassArgs.Fingerprint(ctx, "ClassArgs")
+		subCtx := FingerprintSubContext{}
+		node.ClassArgs.Fingerprint(&subCtx, "ClassArgs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("class_args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Itemtype != 0 {
@@ -22,8 +37,15 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if len(node.Name.Items) > 0 {
-		ctx.WriteString("name")
-		node.Name.Fingerprint(ctx, "Name")
+		subCtx := FingerprintSubContext{}
+		node.Name.Fingerprint(&subCtx, "Name")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("name")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Number != 0 {
@@ -32,12 +54,26 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if len(node.OrderFamily.Items) > 0 {
-		ctx.WriteString("order_family")
-		node.OrderFamily.Fingerprint(ctx, "OrderFamily")
+		subCtx := FingerprintSubContext{}
+		node.OrderFamily.Fingerprint(&subCtx, "OrderFamily")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("order_family")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Storedtype != nil {
-		ctx.WriteString("storedtype")
-		node.Storedtype.Fingerprint(ctx, "Storedtype")
+		subCtx := FingerprintSubContext{}
+		node.Storedtype.Fingerprint(&subCtx, "Storedtype")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("storedtype")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

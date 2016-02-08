@@ -299,7 +299,7 @@ class Generator
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
     [nil, 'location'] => :skip,
-    ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(*node.Name)\n}\n",
+    ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(\"name\")\nctx.WriteString(*node.Name)\n}\n",
     ['PrepareStmt', 'name'] => :skip,
     ['ExecuteStmt', 'name'] => :skip,
     ['DeallocateStmt', 'name'] => :skip,
@@ -307,6 +307,68 @@ class Generator
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
   GO_FLOAT_TYPES = ['Cost']
+
+  FINGERPRINT_NODE = '''
+  if node.%<go_field_name>s != nil {
+    subCtx := FingerprintSubContext{}
+    node.%<go_field_name>s.Fingerprint(&subCtx, "%<go_field_name>s")
+
+    if len(subCtx.parts) > 0 {
+      ctx.WriteString("%<json_field_name>s")
+      for _, part := range subCtx.parts {
+        ctx.WriteString(part)
+      }
+    }
+  }
+  '''
+
+  FINGERPRINT_LIST = '''
+  if len(node.%<go_field_name>s.Items) > 0 {
+    subCtx := FingerprintSubContext{}
+    node.%<go_field_name>s.Fingerprint(&subCtx, "%<go_field_name>s")
+
+    if len(subCtx.parts) > 0 {
+      ctx.WriteString("%<json_field_name>s")
+      for _, part := range subCtx.parts {
+        ctx.WriteString(part)
+      }
+    }
+  }
+  '''
+
+  FINGERPRINT_NODE_ARRAY = '''
+  if len(node.%<go_field_name>s) > 0 {
+    subCtx := FingerprintSubContext{}
+    for _, subNode := range node.%<go_field_name>s {
+      subNode.Fingerprint(&subCtx, "%<go_field_name>s")
+    }
+
+    if len(subCtx.parts) > 0 {
+      ctx.WriteString("%<json_field_name>s")
+      for _, part := range subCtx.parts {
+        ctx.WriteString(part)
+      }
+    }
+  }
+  '''
+
+  FINGERPRINT_NODE_ARRAY_ARRAY = '''
+  if len(node.%<go_field_name>s) > 0 {
+    subCtx := FingerprintSubContext{}
+    for _, nodeList := range node.%<go_field_name>s {
+      for _, subNode := range nodeList {
+        subNode.Fingerprint(&subCtx, "%<go_field_name>s")
+      }
+    }
+
+    if len(subCtx.parts) > 0 {
+      ctx.WriteString("%<json_field_name>s")
+      for _, part := range subCtx.parts {
+        ctx.WriteString(part)
+      }
+    }
+  }
+  '''
 
   def generate!
     generate_nodetypes!
@@ -397,31 +459,13 @@ class Generator
 
             case go_type
             when '[][]Node'
-              fingerprint_def += format("if len(node.%s) > 0 {\n", go_name)
-              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-              fingerprint_def += format("for _, nodeList := range node.%s {\n", go_name)
-              fingerprint_def += "for _, subNode := range nodeList {\n"
-              fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
-              fingerprint_def += "}\n"
-              fingerprint_def += "}\n"
-              fingerprint_def += "}\n\n"
+              fingerprint_def += format(FINGERPRINT_NODE_ARRAY_ARRAY, go_field_name: go_name, json_field_name: field[:name])
             when '[]Node'
-              fingerprint_def += format("if len(node.%s) > 0 {\n", go_name)
-              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-              fingerprint_def += format("for _, subNode := range node.%s {\n", go_name)
-              fingerprint_def += format("subNode.Fingerprint(ctx, \"%s\")\n", go_name)
-              fingerprint_def += "}\n"
-              fingerprint_def += "}\n\n"
+              fingerprint_def += format(FINGERPRINT_NODE_ARRAY, go_field_name: go_name, json_field_name: field[:name])
             when 'Node'
-              fingerprint_def += format("\nif node.%s != nil {", go_name)
-              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
-              fingerprint_def += "}\n\n"
+              fingerprint_def += format(FINGERPRINT_NODE, go_field_name: go_name, json_field_name: field[:name])
             when 'List'
-              fingerprint_def += format("if len(node.%s.Items) > 0 {\n", go_name)
-              fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
-              fingerprint_def += "}\n\n"
+              fingerprint_def += format(FINGERPRINT_LIST, go_field_name: go_name, json_field_name: field[:name])
             when 'CreateStmt'
               fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
               fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n\n", go_name, go_name)
@@ -431,8 +475,10 @@ class Generator
               fingerprint_def += format("ctx.WriteString(string(node.%s))\n\n", go_name)
               fingerprint_def += "}\n\n"
             when 'string'
+              fingerprint_def += format("if len(node.%s) > 0 {\n", go_name)
               fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-              fingerprint_def += format("ctx.WriteString(node.%s)\n\n", go_name)
+              fingerprint_def += format("ctx.WriteString(node.%s)\n", go_name)
+              fingerprint_def += "}\n\n"
             when '*string'
               fingerprint_def += format("\nif node.%s != nil {", go_name)
               fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
@@ -460,10 +506,7 @@ class Generator
               fingerprint_def += format("ctx.WriteString(strconv.FormatFloat(float64(node.%s), 'E', -1, 64))\n\n", go_name)
             else
               if go_type[0].start_with?('*') && @nodetypes.include?(go_type[1..-1])
-                fingerprint_def += format("\nif node.%s != nil {", go_name)
-                fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])
-                fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n", go_name, go_name)
-                fingerprint_def += "}\n\n"
+                fingerprint_def += format(FINGERPRINT_NODE, go_field_name: go_name, json_field_name: field[:name])
               elsif @all_known_enums.include?(go_type)
                 fingerprint_def += format("\nif int(node.%s) != 0 {", go_name)
                 fingerprint_def += format("ctx.WriteString(\"%s\")\n", field[:name])

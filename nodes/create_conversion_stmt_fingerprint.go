@@ -6,9 +6,17 @@ import "strconv"
 
 func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateConversionStmt")
+
 	if len(node.ConversionName.Items) > 0 {
-		ctx.WriteString("conversion_name")
-		node.ConversionName.Fingerprint(ctx, "ConversionName")
+		subCtx := FingerprintSubContext{}
+		node.ConversionName.Fingerprint(&subCtx, "ConversionName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("conversion_name")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Def {
@@ -22,8 +30,15 @@ func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentField
 	}
 
 	if len(node.FuncName.Items) > 0 {
-		ctx.WriteString("func_name")
-		node.FuncName.Fingerprint(ctx, "FuncName")
+		subCtx := FingerprintSubContext{}
+		node.FuncName.Fingerprint(&subCtx, "FuncName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("func_name")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.ToEncodingName != nil {

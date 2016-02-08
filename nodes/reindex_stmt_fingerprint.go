@@ -28,7 +28,14 @@ func (node ReindexStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

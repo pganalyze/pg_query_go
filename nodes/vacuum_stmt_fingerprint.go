@@ -33,12 +33,26 @@ func (node VacuumStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.VaCols.Items) > 0 {
-		ctx.WriteString("va_cols")
-		node.VaCols.Fingerprint(ctx, "VaCols")
+		subCtx := FingerprintSubContext{}
+		node.VaCols.Fingerprint(&subCtx, "VaCols")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("va_cols")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -18,7 +18,14 @@ func (node LockStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Relations.Items) > 0 {
-		ctx.WriteString("relations")
-		node.Relations.Fingerprint(ctx, "Relations")
+		subCtx := FingerprintSubContext{}
+		node.Relations.Fingerprint(&subCtx, "Relations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

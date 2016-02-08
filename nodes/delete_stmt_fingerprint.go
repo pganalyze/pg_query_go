@@ -6,27 +6,62 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	ctx.WriteString("DeleteStmt")
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ReturningList.Items) > 0 {
-		ctx.WriteString("returningList")
-		node.ReturningList.Fingerprint(ctx, "ReturningList")
+		subCtx := FingerprintSubContext{}
+		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("returningList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.UsingClause.Items) > 0 {
-		ctx.WriteString("usingClause")
-		node.UsingClause.Fingerprint(ctx, "UsingClause")
+		subCtx := FingerprintSubContext{}
+		node.UsingClause.Fingerprint(&subCtx, "UsingClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("usingClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.WhereClause != nil {
-		ctx.WriteString("whereClause")
-		node.WhereClause.Fingerprint(ctx, "WhereClause")
+		subCtx := FingerprintSubContext{}
+		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whereClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.WithClause != nil {
-		ctx.WriteString("withClause")
-		node.WithClause.Fingerprint(ctx, "WithClause")
+		subCtx := FingerprintSubContext{}
+		node.WithClause.Fingerprint(&subCtx, "WithClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("withClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

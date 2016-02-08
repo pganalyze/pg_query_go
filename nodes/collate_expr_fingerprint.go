@@ -8,8 +8,15 @@ func (node CollateExpr) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	ctx.WriteString("CollateExpr")
 
 	if node.Arg != nil {
-		ctx.WriteString("arg")
-		node.Arg.Fingerprint(ctx, "Arg")
+		subCtx := FingerprintSubContext{}
+		node.Arg.Fingerprint(&subCtx, "Arg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.CollOid != 0 {
@@ -20,7 +27,14 @@ func (node CollateExpr) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

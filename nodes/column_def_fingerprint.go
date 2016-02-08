@@ -8,8 +8,15 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 	ctx.WriteString("ColumnDef")
 
 	if node.CollClause != nil {
-		ctx.WriteString("collClause")
-		node.CollClause.Fingerprint(ctx, "CollClause")
+		subCtx := FingerprintSubContext{}
+		node.CollClause.Fingerprint(&subCtx, "CollClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("collClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.CollOid != 0 {
@@ -23,18 +30,39 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Constraints.Items) > 0 {
-		ctx.WriteString("constraints")
-		node.Constraints.Fingerprint(ctx, "Constraints")
+		subCtx := FingerprintSubContext{}
+		node.Constraints.Fingerprint(&subCtx, "Constraints")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("constraints")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.CookedDefault != nil {
-		ctx.WriteString("cooked_default")
-		node.CookedDefault.Fingerprint(ctx, "CookedDefault")
+		subCtx := FingerprintSubContext{}
+		node.CookedDefault.Fingerprint(&subCtx, "CookedDefault")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("cooked_default")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Fdwoptions.Items) > 0 {
-		ctx.WriteString("fdwoptions")
-		node.Fdwoptions.Fingerprint(ctx, "Fdwoptions")
+		subCtx := FingerprintSubContext{}
+		node.Fdwoptions.Fingerprint(&subCtx, "Fdwoptions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("fdwoptions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Inhcount != 0 {
@@ -60,8 +88,15 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.RawDefault != nil {
-		ctx.WriteString("raw_default")
-		node.RawDefault.Fingerprint(ctx, "RawDefault")
+		subCtx := FingerprintSubContext{}
+		node.RawDefault.Fingerprint(&subCtx, "RawDefault")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("raw_default")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Storage != 0 {
@@ -71,7 +106,14 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if node.TypeName != nil {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

@@ -9,8 +9,15 @@ func (node SortBy) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Node != nil {
-		ctx.WriteString("node")
-		node.Node.Fingerprint(ctx, "Node")
+		subCtx := FingerprintSubContext{}
+		node.Node.Fingerprint(&subCtx, "Node")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("node")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.SortbyDir) != 0 {
@@ -24,7 +31,14 @@ func (node SortBy) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.UseOp.Items) > 0 {
-		ctx.WriteString("useOp")
-		node.UseOp.Fingerprint(ctx, "UseOp")
+		subCtx := FingerprintSubContext{}
+		node.UseOp.Fingerprint(&subCtx, "UseOp")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("useOp")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

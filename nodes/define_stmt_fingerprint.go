@@ -6,19 +6,41 @@ import "strconv"
 
 func (node DefineStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DefineStmt")
+
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Definition.Items) > 0 {
-		ctx.WriteString("definition")
-		node.Definition.Fingerprint(ctx, "Definition")
+		subCtx := FingerprintSubContext{}
+		node.Definition.Fingerprint(&subCtx, "Definition")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("definition")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Defnames.Items) > 0 {
-		ctx.WriteString("defnames")
-		node.Defnames.Fingerprint(ctx, "Defnames")
+		subCtx := FingerprintSubContext{}
+		node.Defnames.Fingerprint(&subCtx, "Defnames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("defnames")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Kind) != 0 {

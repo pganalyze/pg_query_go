@@ -6,29 +6,65 @@ import "strconv"
 
 func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RowCompareExpr")
+
 	if len(node.Inputcollids.Items) > 0 {
-		ctx.WriteString("inputcollids")
-		node.Inputcollids.Fingerprint(ctx, "Inputcollids")
+		subCtx := FingerprintSubContext{}
+		node.Inputcollids.Fingerprint(&subCtx, "Inputcollids")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("inputcollids")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Largs.Items) > 0 {
-		ctx.WriteString("largs")
-		node.Largs.Fingerprint(ctx, "Largs")
+		subCtx := FingerprintSubContext{}
+		node.Largs.Fingerprint(&subCtx, "Largs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("largs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Opfamilies.Items) > 0 {
-		ctx.WriteString("opfamilies")
-		node.Opfamilies.Fingerprint(ctx, "Opfamilies")
+		subCtx := FingerprintSubContext{}
+		node.Opfamilies.Fingerprint(&subCtx, "Opfamilies")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opfamilies")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Opnos.Items) > 0 {
-		ctx.WriteString("opnos")
-		node.Opnos.Fingerprint(ctx, "Opnos")
+		subCtx := FingerprintSubContext{}
+		node.Opnos.Fingerprint(&subCtx, "Opnos")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opnos")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Rargs.Items) > 0 {
-		ctx.WriteString("rargs")
-		node.Rargs.Fingerprint(ctx, "Rargs")
+		subCtx := FingerprintSubContext{}
+		node.Rargs.Fingerprint(&subCtx, "Rargs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rargs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Rctype) != 0 {
@@ -37,7 +73,14 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

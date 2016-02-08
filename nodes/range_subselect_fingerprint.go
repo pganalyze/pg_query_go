@@ -8,8 +8,15 @@ func (node RangeSubselect) Fingerprint(ctx FingerprintContext, parentFieldName s
 	ctx.WriteString("RangeSubselect")
 
 	if node.Alias != nil {
-		ctx.WriteString("alias")
-		node.Alias.Fingerprint(ctx, "Alias")
+		subCtx := FingerprintSubContext{}
+		node.Alias.Fingerprint(&subCtx, "Alias")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("alias")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Lateral {
@@ -18,7 +25,14 @@ func (node RangeSubselect) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if node.Subquery != nil {
-		ctx.WriteString("subquery")
-		node.Subquery.Fingerprint(ctx, "Subquery")
+		subCtx := FingerprintSubContext{}
+		node.Subquery.Fingerprint(&subCtx, "Subquery")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("subquery")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

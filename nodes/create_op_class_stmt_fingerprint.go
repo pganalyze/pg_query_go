@@ -13,8 +13,15 @@ func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if node.Datatype != nil {
-		ctx.WriteString("datatype")
-		node.Datatype.Fingerprint(ctx, "Datatype")
+		subCtx := FingerprintSubContext{}
+		node.Datatype.Fingerprint(&subCtx, "Datatype")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("datatype")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IsDefault {
@@ -23,17 +30,38 @@ func (node CreateOpClassStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if len(node.Items.Items) > 0 {
-		ctx.WriteString("items")
-		node.Items.Fingerprint(ctx, "Items")
+		subCtx := FingerprintSubContext{}
+		node.Items.Fingerprint(&subCtx, "Items")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("items")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Opclassname.Items) > 0 {
-		ctx.WriteString("opclassname")
-		node.Opclassname.Fingerprint(ctx, "Opclassname")
+		subCtx := FingerprintSubContext{}
+		node.Opclassname.Fingerprint(&subCtx, "Opclassname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opclassname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Opfamilyname.Items) > 0 {
-		ctx.WriteString("opfamilyname")
-		node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
+		subCtx := FingerprintSubContext{}
+		node.Opfamilyname.Fingerprint(&subCtx, "Opfamilyname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opfamilyname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

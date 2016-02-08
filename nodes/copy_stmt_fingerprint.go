@@ -6,9 +6,17 @@ import "strconv"
 
 func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CopyStmt")
+
 	if len(node.Attlist.Items) > 0 {
-		ctx.WriteString("attlist")
-		node.Attlist.Fingerprint(ctx, "Attlist")
+		subCtx := FingerprintSubContext{}
+		node.Attlist.Fingerprint(&subCtx, "Attlist")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("attlist")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Filename != nil {
@@ -27,17 +35,38 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Query != nil {
-		ctx.WriteString("query")
-		node.Query.Fingerprint(ctx, "Query")
+		subCtx := FingerprintSubContext{}
+		node.Query.Fingerprint(&subCtx, "Query")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("query")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

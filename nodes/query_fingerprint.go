@@ -18,23 +18,51 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.ConstraintDeps.Items) > 0 {
-		ctx.WriteString("constraintDeps")
-		node.ConstraintDeps.Fingerprint(ctx, "ConstraintDeps")
+		subCtx := FingerprintSubContext{}
+		node.ConstraintDeps.Fingerprint(&subCtx, "ConstraintDeps")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("constraintDeps")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.CteList.Items) > 0 {
-		ctx.WriteString("cteList")
-		node.CteList.Fingerprint(ctx, "CteList")
+		subCtx := FingerprintSubContext{}
+		node.CteList.Fingerprint(&subCtx, "CteList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("cteList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.DistinctClause.Items) > 0 {
-		ctx.WriteString("distinctClause")
-		node.DistinctClause.Fingerprint(ctx, "DistinctClause")
+		subCtx := FingerprintSubContext{}
+		node.DistinctClause.Fingerprint(&subCtx, "DistinctClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("distinctClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.GroupClause.Items) > 0 {
-		ctx.WriteString("groupClause")
-		node.GroupClause.Fingerprint(ctx, "GroupClause")
+		subCtx := FingerprintSubContext{}
+		node.GroupClause.Fingerprint(&subCtx, "GroupClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("groupClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.HasAggs {
@@ -73,23 +101,51 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if node.HavingQual != nil {
-		ctx.WriteString("havingQual")
-		node.HavingQual.Fingerprint(ctx, "HavingQual")
+		subCtx := FingerprintSubContext{}
+		node.HavingQual.Fingerprint(&subCtx, "HavingQual")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("havingQual")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Jointree != nil {
-		ctx.WriteString("jointree")
-		node.Jointree.Fingerprint(ctx, "Jointree")
+		subCtx := FingerprintSubContext{}
+		node.Jointree.Fingerprint(&subCtx, "Jointree")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("jointree")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.LimitCount != nil {
-		ctx.WriteString("limitCount")
-		node.LimitCount.Fingerprint(ctx, "LimitCount")
+		subCtx := FingerprintSubContext{}
+		node.LimitCount.Fingerprint(&subCtx, "LimitCount")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("limitCount")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.LimitOffset != nil {
-		ctx.WriteString("limitOffset")
-		node.LimitOffset.Fingerprint(ctx, "LimitOffset")
+		subCtx := FingerprintSubContext{}
+		node.LimitOffset.Fingerprint(&subCtx, "LimitOffset")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("limitOffset")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.QueryId != 0 {
@@ -108,47 +164,110 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if len(node.ReturningList.Items) > 0 {
-		ctx.WriteString("returningList")
-		node.ReturningList.Fingerprint(ctx, "ReturningList")
+		subCtx := FingerprintSubContext{}
+		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("returningList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.RowMarks.Items) > 0 {
-		ctx.WriteString("rowMarks")
-		node.RowMarks.Fingerprint(ctx, "RowMarks")
+		subCtx := FingerprintSubContext{}
+		node.RowMarks.Fingerprint(&subCtx, "RowMarks")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rowMarks")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Rtable.Items) > 0 {
-		ctx.WriteString("rtable")
-		node.Rtable.Fingerprint(ctx, "Rtable")
+		subCtx := FingerprintSubContext{}
+		node.Rtable.Fingerprint(&subCtx, "Rtable")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rtable")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.SetOperations != nil {
-		ctx.WriteString("setOperations")
-		node.SetOperations.Fingerprint(ctx, "SetOperations")
+		subCtx := FingerprintSubContext{}
+		node.SetOperations.Fingerprint(&subCtx, "SetOperations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("setOperations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.SortClause.Items) > 0 {
-		ctx.WriteString("sortClause")
-		node.SortClause.Fingerprint(ctx, "SortClause")
+		subCtx := FingerprintSubContext{}
+		node.SortClause.Fingerprint(&subCtx, "SortClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("sortClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.TargetList.Items) > 0 {
-		ctx.WriteString("targetList")
-		node.TargetList.Fingerprint(ctx, "TargetList")
+		subCtx := FingerprintSubContext{}
+		node.TargetList.Fingerprint(&subCtx, "TargetList")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("targetList")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.UtilityStmt != nil {
-		ctx.WriteString("utilityStmt")
-		node.UtilityStmt.Fingerprint(ctx, "UtilityStmt")
+		subCtx := FingerprintSubContext{}
+		node.UtilityStmt.Fingerprint(&subCtx, "UtilityStmt")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("utilityStmt")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.WindowClause.Items) > 0 {
-		ctx.WriteString("windowClause")
-		node.WindowClause.Fingerprint(ctx, "WindowClause")
+		subCtx := FingerprintSubContext{}
+		node.WindowClause.Fingerprint(&subCtx, "WindowClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("windowClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.WithCheckOptions.Items) > 0 {
-		ctx.WriteString("withCheckOptions")
-		node.WithCheckOptions.Fingerprint(ctx, "WithCheckOptions")
+		subCtx := FingerprintSubContext{}
+		node.WithCheckOptions.Fingerprint(&subCtx, "WithCheckOptions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("withCheckOptions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

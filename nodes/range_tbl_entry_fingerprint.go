@@ -8,8 +8,15 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("RangeTblEntry")
 
 	if node.Alias != nil {
-		ctx.WriteString("alias")
-		node.Alias.Fingerprint(ctx, "Alias")
+		subCtx := FingerprintSubContext{}
+		node.Alias.Fingerprint(&subCtx, "Alias")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("alias")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.CheckAsUser != 0 {
@@ -18,18 +25,39 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.Ctecolcollations.Items) > 0 {
-		ctx.WriteString("ctecolcollations")
-		node.Ctecolcollations.Fingerprint(ctx, "Ctecolcollations")
+		subCtx := FingerprintSubContext{}
+		node.Ctecolcollations.Fingerprint(&subCtx, "Ctecolcollations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecolcollations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecoltypes.Items) > 0 {
-		ctx.WriteString("ctecoltypes")
-		node.Ctecoltypes.Fingerprint(ctx, "Ctecoltypes")
+		subCtx := FingerprintSubContext{}
+		node.Ctecoltypes.Fingerprint(&subCtx, "Ctecoltypes")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecoltypes")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Ctecoltypmods.Items) > 0 {
-		ctx.WriteString("ctecoltypmods")
-		node.Ctecoltypmods.Fingerprint(ctx, "Ctecoltypmods")
+		subCtx := FingerprintSubContext{}
+		node.Ctecoltypmods.Fingerprint(&subCtx, "Ctecoltypmods")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctecoltypmods")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Ctelevelsup != 0 {
@@ -43,8 +71,15 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if node.Eref != nil {
-		ctx.WriteString("eref")
-		node.Eref.Fingerprint(ctx, "Eref")
+		subCtx := FingerprintSubContext{}
+		node.Eref.Fingerprint(&subCtx, "Eref")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("eref")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Funcordinality {
@@ -53,8 +88,15 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.Functions.Items) > 0 {
-		ctx.WriteString("functions")
-		node.Functions.Fingerprint(ctx, "Functions")
+		subCtx := FingerprintSubContext{}
+		node.Functions.Fingerprint(&subCtx, "Functions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("functions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.InFromCl {
@@ -68,8 +110,15 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.Joinaliasvars.Items) > 0 {
-		ctx.WriteString("joinaliasvars")
-		node.Joinaliasvars.Fingerprint(ctx, "Joinaliasvars")
+		subCtx := FingerprintSubContext{}
+		node.Joinaliasvars.Fingerprint(&subCtx, "Joinaliasvars")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("joinaliasvars")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Jointype) != 0 {
@@ -109,8 +158,15 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if len(node.SecurityQuals.Items) > 0 {
-		ctx.WriteString("securityQuals")
-		node.SecurityQuals.Fingerprint(ctx, "SecurityQuals")
+		subCtx := FingerprintSubContext{}
+		node.SecurityQuals.Fingerprint(&subCtx, "SecurityQuals")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("securityQuals")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.SecurityBarrier {
@@ -129,17 +185,38 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if node.Subquery != nil {
-		ctx.WriteString("subquery")
-		node.Subquery.Fingerprint(ctx, "Subquery")
+		subCtx := FingerprintSubContext{}
+		node.Subquery.Fingerprint(&subCtx, "Subquery")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("subquery")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ValuesCollations.Items) > 0 {
-		ctx.WriteString("values_collations")
-		node.ValuesCollations.Fingerprint(ctx, "ValuesCollations")
+		subCtx := FingerprintSubContext{}
+		node.ValuesCollations.Fingerprint(&subCtx, "ValuesCollations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("values_collations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ValuesLists.Items) > 0 {
-		ctx.WriteString("values_lists")
-		node.ValuesLists.Fingerprint(ctx, "ValuesLists")
+		subCtx := FingerprintSubContext{}
+		node.ValuesLists.Fingerprint(&subCtx, "ValuesLists")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("values_lists")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

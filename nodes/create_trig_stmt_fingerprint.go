@@ -6,19 +6,41 @@ import "strconv"
 
 func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateTrigStmt")
+
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Columns.Items) > 0 {
-		ctx.WriteString("columns")
-		node.Columns.Fingerprint(ctx, "Columns")
+		subCtx := FingerprintSubContext{}
+		node.Columns.Fingerprint(&subCtx, "Columns")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("columns")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Constrrel != nil {
-		ctx.WriteString("constrrel")
-		node.Constrrel.Fingerprint(ctx, "Constrrel")
+		subCtx := FingerprintSubContext{}
+		node.Constrrel.Fingerprint(&subCtx, "Constrrel")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("constrrel")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Deferrable {
@@ -32,8 +54,15 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if len(node.Funcname.Items) > 0 {
-		ctx.WriteString("funcname")
-		node.Funcname.Fingerprint(ctx, "Funcname")
+		subCtx := FingerprintSubContext{}
+		node.Funcname.Fingerprint(&subCtx, "Funcname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Initdeferred {
@@ -47,8 +76,15 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Row {
@@ -67,7 +103,14 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if node.WhenClause != nil {
-		ctx.WriteString("whenClause")
-		node.WhenClause.Fingerprint(ctx, "WhenClause")
+		subCtx := FingerprintSubContext{}
+		node.WhenClause.Fingerprint(&subCtx, "WhenClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("whenClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

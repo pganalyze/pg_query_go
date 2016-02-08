@@ -23,10 +23,16 @@ func (node ArrayExpr) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Elements.Items) > 0 {
-		ctx.WriteString("elements")
-		node.Elements.Fingerprint(ctx, "Elements")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Elements.Fingerprint(&subCtx, "Elements")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("elements")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Multidims {
@@ -35,7 +41,14 @@ func (node ArrayExpr) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

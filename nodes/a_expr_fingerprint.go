@@ -13,19 +13,39 @@ func (node A_Expr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	}
 
 	if node.Lexpr != nil {
-		ctx.WriteString("lexpr")
-		node.Lexpr.Fingerprint(ctx, "Lexpr")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Lexpr.Fingerprint(&subCtx, "Lexpr")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("lexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if len(node.Name.Items) > 0 {
-		ctx.WriteString("name")
-		node.Name.Fingerprint(ctx, "Name")
+		subCtx := FingerprintSubContext{}
+		node.Name.Fingerprint(&subCtx, "Name")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("name")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Rexpr != nil {
-		ctx.WriteString("rexpr")
-		node.Rexpr.Fingerprint(ctx, "Rexpr")
+		subCtx := FingerprintSubContext{}
+		node.Rexpr.Fingerprint(&subCtx, "Rexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

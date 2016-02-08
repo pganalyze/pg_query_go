@@ -6,9 +6,17 @@ import "strconv"
 
 func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("SubPlan")
+
 	if len(node.Args.Items) > 0 {
-		ctx.WriteString("args")
-		node.Args.Fingerprint(ctx, "Args")
+		subCtx := FingerprintSubContext{}
+		node.Args.Fingerprint(&subCtx, "Args")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("args")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.FirstColCollation != 0 {
@@ -27,15 +35,28 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if len(node.ParParam.Items) > 0 {
-		ctx.WriteString("parParam")
-		node.ParParam.Fingerprint(ctx, "ParParam")
+		subCtx := FingerprintSubContext{}
+		node.ParParam.Fingerprint(&subCtx, "ParParam")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("parParam")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ParamIds.Items) > 0 {
-		ctx.WriteString("paramIds")
-		node.ParamIds.Fingerprint(ctx, "ParamIds")
-	}
+		subCtx := FingerprintSubContext{}
+		node.ParamIds.Fingerprint(&subCtx, "ParamIds")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("paramIds")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	ctx.WriteString("per_call_cost")
 	ctx.WriteString(strconv.FormatFloat(float64(node.PerCallCost), 'E', -1, 64))
 
@@ -50,10 +71,16 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if len(node.SetParam.Items) > 0 {
-		ctx.WriteString("setParam")
-		node.SetParam.Fingerprint(ctx, "SetParam")
-	}
+		subCtx := FingerprintSubContext{}
+		node.SetParam.Fingerprint(&subCtx, "SetParam")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("setParam")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	ctx.WriteString("startup_cost")
 	ctx.WriteString(strconv.FormatFloat(float64(node.StartupCost), 'E', -1, 64))
 
@@ -63,8 +90,15 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if node.Testexpr != nil {
-		ctx.WriteString("testexpr")
-		node.Testexpr.Fingerprint(ctx, "Testexpr")
+		subCtx := FingerprintSubContext{}
+		node.Testexpr.Fingerprint(&subCtx, "Testexpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("testexpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.UnknownEqFalse {
@@ -78,7 +112,14 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 	}
 
 	if node.Xpr != nil {
-		ctx.WriteString("xpr")
-		node.Xpr.Fingerprint(ctx, "Xpr")
+		subCtx := FingerprintSubContext{}
+		node.Xpr.Fingerprint(&subCtx, "Xpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("xpr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

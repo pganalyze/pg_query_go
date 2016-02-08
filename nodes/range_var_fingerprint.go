@@ -8,8 +8,15 @@ func (node RangeVar) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	ctx.WriteString("RangeVar")
 
 	if node.Alias != nil {
-		ctx.WriteString("alias")
-		node.Alias.Fingerprint(ctx, "Alias")
+		subCtx := FingerprintSubContext{}
+		node.Alias.Fingerprint(&subCtx, "Alias")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("alias")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Catalogname != nil {

@@ -6,14 +6,29 @@ import "strconv"
 
 func (node IndexElem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IndexElem")
+
 	if len(node.Collation.Items) > 0 {
-		ctx.WriteString("collation")
-		node.Collation.Fingerprint(ctx, "Collation")
+		subCtx := FingerprintSubContext{}
+		node.Collation.Fingerprint(&subCtx, "Collation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("collation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Expr != nil {
-		ctx.WriteString("expr")
-		node.Expr.Fingerprint(ctx, "Expr")
+		subCtx := FingerprintSubContext{}
+		node.Expr.Fingerprint(&subCtx, "Expr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("expr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Indexcolname != nil {
@@ -32,8 +47,15 @@ func (node IndexElem) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Opclass.Items) > 0 {
-		ctx.WriteString("opclass")
-		node.Opclass.Fingerprint(ctx, "Opclass")
+		subCtx := FingerprintSubContext{}
+		node.Opclass.Fingerprint(&subCtx, "Opclass")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opclass")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Ordering) != 0 {

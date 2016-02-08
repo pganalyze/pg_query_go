@@ -6,9 +6,17 @@ import "strconv"
 
 func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("AlterTableStmt")
+
 	if len(node.Cmds.Items) > 0 {
-		ctx.WriteString("cmds")
-		node.Cmds.Fingerprint(ctx, "Cmds")
+		subCtx := FingerprintSubContext{}
+		node.Cmds.Fingerprint(&subCtx, "Cmds")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("cmds")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.MissingOk {
@@ -17,8 +25,15 @@ func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Relkind) != 0 {

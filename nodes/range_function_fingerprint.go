@@ -8,18 +8,39 @@ func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentFieldName st
 	ctx.WriteString("RangeFunction")
 
 	if node.Alias != nil {
-		ctx.WriteString("alias")
-		node.Alias.Fingerprint(ctx, "Alias")
+		subCtx := FingerprintSubContext{}
+		node.Alias.Fingerprint(&subCtx, "Alias")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("alias")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Coldeflist.Items) > 0 {
-		ctx.WriteString("coldeflist")
-		node.Coldeflist.Fingerprint(ctx, "Coldeflist")
+		subCtx := FingerprintSubContext{}
+		node.Coldeflist.Fingerprint(&subCtx, "Coldeflist")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("coldeflist")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Functions.Items) > 0 {
-		ctx.WriteString("functions")
-		node.Functions.Fingerprint(ctx, "Functions")
+		subCtx := FingerprintSubContext{}
+		node.Functions.Fingerprint(&subCtx, "Functions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("functions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IsRowsfrom {

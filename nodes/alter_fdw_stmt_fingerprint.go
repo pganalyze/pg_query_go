@@ -11,12 +11,26 @@ func (node AlterFdwStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 	}
 
 	if len(node.FuncOptions.Items) > 0 {
-		ctx.WriteString("func_options")
-		node.FuncOptions.Fingerprint(ctx, "FuncOptions")
+		subCtx := FingerprintSubContext{}
+		node.FuncOptions.Fingerprint(&subCtx, "FuncOptions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("func_options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

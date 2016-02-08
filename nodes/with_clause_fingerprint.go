@@ -6,11 +6,18 @@ import "strconv"
 
 func (node WithClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("WithClause")
-	if len(node.Ctes.Items) > 0 {
-		ctx.WriteString("ctes")
-		node.Ctes.Fingerprint(ctx, "Ctes")
-	}
 
+	if len(node.Ctes.Items) > 0 {
+		subCtx := FingerprintSubContext{}
+		node.Ctes.Fingerprint(&subCtx, "Ctes")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ctes")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Recursive {

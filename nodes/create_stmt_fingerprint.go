@@ -6,9 +6,17 @@ import "strconv"
 
 func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateStmt")
+
 	if len(node.Constraints.Items) > 0 {
-		ctx.WriteString("constraints")
-		node.Constraints.Fingerprint(ctx, "Constraints")
+		subCtx := FingerprintSubContext{}
+		node.Constraints.Fingerprint(&subCtx, "Constraints")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("constraints")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IfNotExists {
@@ -17,13 +25,27 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.InhRelations.Items) > 0 {
-		ctx.WriteString("inhRelations")
-		node.InhRelations.Fingerprint(ctx, "InhRelations")
+		subCtx := FingerprintSubContext{}
+		node.InhRelations.Fingerprint(&subCtx, "InhRelations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("inhRelations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.OfTypename != nil {
-		ctx.WriteString("ofTypename")
-		node.OfTypename.Fingerprint(ctx, "OfTypename")
+		subCtx := FingerprintSubContext{}
+		node.OfTypename.Fingerprint(&subCtx, "OfTypename")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("ofTypename")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Oncommit) != 0 {
@@ -32,18 +54,39 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.TableElts.Items) > 0 {
-		ctx.WriteString("tableElts")
-		node.TableElts.Fingerprint(ctx, "TableElts")
+		subCtx := FingerprintSubContext{}
+		node.TableElts.Fingerprint(&subCtx, "TableElts")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("tableElts")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Tablespacename != nil {

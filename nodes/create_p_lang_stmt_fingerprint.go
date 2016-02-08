@@ -6,14 +6,29 @@ import "strconv"
 
 func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreatePLangStmt")
+
 	if len(node.Plhandler.Items) > 0 {
-		ctx.WriteString("plhandler")
-		node.Plhandler.Fingerprint(ctx, "Plhandler")
+		subCtx := FingerprintSubContext{}
+		node.Plhandler.Fingerprint(&subCtx, "Plhandler")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("plhandler")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Plinline.Items) > 0 {
-		ctx.WriteString("plinline")
-		node.Plinline.Fingerprint(ctx, "Plinline")
+		subCtx := FingerprintSubContext{}
+		node.Plinline.Fingerprint(&subCtx, "Plinline")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("plinline")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Plname != nil {
@@ -27,8 +42,15 @@ func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	if len(node.Plvalidator.Items) > 0 {
-		ctx.WriteString("plvalidator")
-		node.Plvalidator.Fingerprint(ctx, "Plvalidator")
+		subCtx := FingerprintSubContext{}
+		node.Plvalidator.Fingerprint(&subCtx, "Plvalidator")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("plvalidator")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Replace {

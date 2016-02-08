@@ -7,7 +7,14 @@ func (node ExecuteStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 	// Intentionally ignoring node.Name for fingerprinting
 
 	if len(node.Params.Items) > 0 {
-		ctx.WriteString("params")
-		node.Params.Fingerprint(ctx, "Params")
+		subCtx := FingerprintSubContext{}
+		node.Params.Fingerprint(&subCtx, "Params")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("params")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

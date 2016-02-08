@@ -18,12 +18,26 @@ func (node AlterOpFamilyStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if len(node.Items.Items) > 0 {
-		ctx.WriteString("items")
-		node.Items.Fingerprint(ctx, "Items")
+		subCtx := FingerprintSubContext{}
+		node.Items.Fingerprint(&subCtx, "Items")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("items")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Opfamilyname.Items) > 0 {
-		ctx.WriteString("opfamilyname")
-		node.Opfamilyname.Fingerprint(ctx, "Opfamilyname")
+		subCtx := FingerprintSubContext{}
+		node.Opfamilyname.Fingerprint(&subCtx, "Opfamilyname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("opfamilyname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

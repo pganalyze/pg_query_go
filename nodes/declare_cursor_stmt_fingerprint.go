@@ -18,7 +18,14 @@ func (node DeclareCursorStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if node.Query != nil {
-		ctx.WriteString("query")
-		node.Query.Fingerprint(ctx, "Query")
+		subCtx := FingerprintSubContext{}
+		node.Query.Fingerprint(&subCtx, "Query")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("query")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

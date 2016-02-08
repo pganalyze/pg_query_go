@@ -6,9 +6,17 @@ import "strconv"
 
 func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("IntoClause")
+
 	if len(node.ColNames.Items) > 0 {
-		ctx.WriteString("colNames")
-		node.ColNames.Fingerprint(ctx, "ColNames")
+		subCtx := FingerprintSubContext{}
+		node.ColNames.Fingerprint(&subCtx, "ColNames")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("colNames")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.OnCommit) != 0 {
@@ -17,13 +25,27 @@ func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Rel != nil {
-		ctx.WriteString("rel")
-		node.Rel.Fingerprint(ctx, "Rel")
+		subCtx := FingerprintSubContext{}
+		node.Rel.Fingerprint(&subCtx, "Rel")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rel")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.SkipData {
@@ -37,7 +59,14 @@ func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if node.ViewQuery != nil {
-		ctx.WriteString("viewQuery")
-		node.ViewQuery.Fingerprint(ctx, "ViewQuery")
+		subCtx := FingerprintSubContext{}
+		node.ViewQuery.Fingerprint(&subCtx, "ViewQuery")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("viewQuery")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

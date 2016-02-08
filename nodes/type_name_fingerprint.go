@@ -6,16 +6,30 @@ import "strconv"
 
 func (node TypeName) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("TypeName")
-	if len(node.ArrayBounds.Items) > 0 {
-		ctx.WriteString("arrayBounds")
-		node.ArrayBounds.Fingerprint(ctx, "ArrayBounds")
-	}
 
+	if len(node.ArrayBounds.Items) > 0 {
+		subCtx := FingerprintSubContext{}
+		node.ArrayBounds.Fingerprint(&subCtx, "ArrayBounds")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arrayBounds")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if len(node.Names.Items) > 0 {
-		ctx.WriteString("names")
-		node.Names.Fingerprint(ctx, "Names")
+		subCtx := FingerprintSubContext{}
+		node.Names.Fingerprint(&subCtx, "Names")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("names")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.PctType {
@@ -39,7 +53,14 @@ func (node TypeName) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Typmods.Items) > 0 {
-		ctx.WriteString("typmods")
-		node.Typmods.Fingerprint(ctx, "Typmods")
+		subCtx := FingerprintSubContext{}
+		node.Typmods.Fingerprint(&subCtx, "Typmods")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typmods")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

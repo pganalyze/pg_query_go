@@ -13,28 +13,63 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 	}
 
 	if len(node.ColCollations.Items) > 0 {
-		ctx.WriteString("colCollations")
-		node.ColCollations.Fingerprint(ctx, "ColCollations")
+		subCtx := FingerprintSubContext{}
+		node.ColCollations.Fingerprint(&subCtx, "ColCollations")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("colCollations")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ColTypes.Items) > 0 {
-		ctx.WriteString("colTypes")
-		node.ColTypes.Fingerprint(ctx, "ColTypes")
+		subCtx := FingerprintSubContext{}
+		node.ColTypes.Fingerprint(&subCtx, "ColTypes")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("colTypes")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.ColTypmods.Items) > 0 {
-		ctx.WriteString("colTypmods")
-		node.ColTypmods.Fingerprint(ctx, "ColTypmods")
+		subCtx := FingerprintSubContext{}
+		node.ColTypmods.Fingerprint(&subCtx, "ColTypmods")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("colTypmods")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.GroupClauses.Items) > 0 {
-		ctx.WriteString("groupClauses")
-		node.GroupClauses.Fingerprint(ctx, "GroupClauses")
+		subCtx := FingerprintSubContext{}
+		node.GroupClauses.Fingerprint(&subCtx, "GroupClauses")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("groupClauses")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Larg != nil {
-		ctx.WriteString("larg")
-		node.Larg.Fingerprint(ctx, "Larg")
+		subCtx := FingerprintSubContext{}
+		node.Larg.Fingerprint(&subCtx, "Larg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("larg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Op) != 0 {
@@ -43,7 +78,14 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 	}
 
 	if node.Rarg != nil {
-		ctx.WriteString("rarg")
-		node.Rarg.Fingerprint(ctx, "Rarg")
+		subCtx := FingerprintSubContext{}
+		node.Rarg.Fingerprint(&subCtx, "Rarg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("rarg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

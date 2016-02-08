@@ -8,8 +8,15 @@ func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	ctx.WriteString("CreateTableAsStmt")
 
 	if node.Into != nil {
-		ctx.WriteString("into")
-		node.Into.Fingerprint(ctx, "Into")
+		subCtx := FingerprintSubContext{}
+		node.Into.Fingerprint(&subCtx, "Into")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("into")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IsSelectInto {
@@ -18,8 +25,15 @@ func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 	}
 
 	if node.Query != nil {
-		ctx.WriteString("query")
-		node.Query.Fingerprint(ctx, "Query")
+		subCtx := FingerprintSubContext{}
+		node.Query.Fingerprint(&subCtx, "Query")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("query")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Relkind) != 0 {

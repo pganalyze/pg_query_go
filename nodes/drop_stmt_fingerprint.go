@@ -6,9 +6,17 @@ import "strconv"
 
 func (node DropStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("DropStmt")
+
 	if len(node.Arguments.Items) > 0 {
-		ctx.WriteString("arguments")
-		node.Arguments.Fingerprint(ctx, "Arguments")
+		subCtx := FingerprintSubContext{}
+		node.Arguments.Fingerprint(&subCtx, "Arguments")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("arguments")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Behavior) != 0 {
@@ -27,8 +35,15 @@ func (node DropStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 	}
 
 	if len(node.Objects.Items) > 0 {
-		ctx.WriteString("objects")
-		node.Objects.Fingerprint(ctx, "Objects")
+		subCtx := FingerprintSubContext{}
+		node.Objects.Fingerprint(&subCtx, "Objects")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("objects")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.RemoveType) != 0 {

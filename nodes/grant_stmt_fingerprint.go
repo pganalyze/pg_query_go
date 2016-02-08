@@ -18,8 +18,15 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Grantees.Items) > 0 {
-		ctx.WriteString("grantees")
-		node.Grantees.Fingerprint(ctx, "Grantees")
+		subCtx := FingerprintSubContext{}
+		node.Grantees.Fingerprint(&subCtx, "Grantees")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("grantees")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IsGrant {
@@ -28,8 +35,15 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Objects.Items) > 0 {
-		ctx.WriteString("objects")
-		node.Objects.Fingerprint(ctx, "Objects")
+		subCtx := FingerprintSubContext{}
+		node.Objects.Fingerprint(&subCtx, "Objects")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("objects")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Objtype) != 0 {
@@ -38,8 +52,15 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	}
 
 	if len(node.Privileges.Items) > 0 {
-		ctx.WriteString("privileges")
-		node.Privileges.Fingerprint(ctx, "Privileges")
+		subCtx := FingerprintSubContext{}
+		node.Privileges.Fingerprint(&subCtx, "Privileges")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("privileges")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.Targtype) != 0 {

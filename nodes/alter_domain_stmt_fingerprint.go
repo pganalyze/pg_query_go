@@ -13,8 +13,15 @@ func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	if node.Def != nil {
-		ctx.WriteString("def")
-		node.Def.Fingerprint(ctx, "Def")
+		subCtx := FingerprintSubContext{}
+		node.Def.Fingerprint(&subCtx, "Def")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("def")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.MissingOk {
@@ -34,7 +41,14 @@ func (node AlterDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 	}
 
 	if len(node.TypeName.Items) > 0 {
-		ctx.WriteString("typeName")
-		node.TypeName.Fingerprint(ctx, "TypeName")
+		subCtx := FingerprintSubContext{}
+		node.TypeName.Fingerprint(&subCtx, "TypeName")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("typeName")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

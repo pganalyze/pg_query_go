@@ -33,13 +33,27 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Exclusions.Items) > 0 {
-		ctx.WriteString("exclusions")
-		node.Exclusions.Fingerprint(ctx, "Exclusions")
+		subCtx := FingerprintSubContext{}
+		node.Exclusions.Fingerprint(&subCtx, "Exclusions")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("exclusions")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.FkAttrs.Items) > 0 {
-		ctx.WriteString("fk_attrs")
-		node.FkAttrs.Fingerprint(ctx, "FkAttrs")
+		subCtx := FingerprintSubContext{}
+		node.FkAttrs.Fingerprint(&subCtx, "FkAttrs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("fk_attrs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.FkDelAction != 0 {
@@ -86,15 +100,28 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Keys.Items) > 0 {
-		ctx.WriteString("keys")
-		node.Keys.Fingerprint(ctx, "Keys")
-	}
+		subCtx := FingerprintSubContext{}
+		node.Keys.Fingerprint(&subCtx, "Keys")
 
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("keys")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if len(node.OldConpfeqop.Items) > 0 {
-		ctx.WriteString("old_conpfeqop")
-		node.OldConpfeqop.Fingerprint(ctx, "OldConpfeqop")
+		subCtx := FingerprintSubContext{}
+		node.OldConpfeqop.Fingerprint(&subCtx, "OldConpfeqop")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("old_conpfeqop")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.OldPktableOid != 0 {
@@ -103,23 +130,51 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.PkAttrs.Items) > 0 {
-		ctx.WriteString("pk_attrs")
-		node.PkAttrs.Fingerprint(ctx, "PkAttrs")
+		subCtx := FingerprintSubContext{}
+		node.PkAttrs.Fingerprint(&subCtx, "PkAttrs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("pk_attrs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Pktable != nil {
-		ctx.WriteString("pktable")
-		node.Pktable.Fingerprint(ctx, "Pktable")
+		subCtx := FingerprintSubContext{}
+		node.Pktable.Fingerprint(&subCtx, "Pktable")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("pktable")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.RawExpr != nil {
-		ctx.WriteString("raw_expr")
-		node.RawExpr.Fingerprint(ctx, "RawExpr")
+		subCtx := FingerprintSubContext{}
+		node.RawExpr.Fingerprint(&subCtx, "RawExpr")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("raw_expr")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.SkipValidation {
@@ -128,7 +183,14 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if node.WhereClause != nil {
-		ctx.WriteString("where_clause")
-		node.WhereClause.Fingerprint(ctx, "WhereClause")
+		subCtx := FingerprintSubContext{}
+		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("where_clause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

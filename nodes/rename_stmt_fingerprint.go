@@ -23,18 +23,39 @@ func (node RenameStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 	}
 
 	if len(node.Objarg.Items) > 0 {
-		ctx.WriteString("objarg")
-		node.Objarg.Fingerprint(ctx, "Objarg")
+		subCtx := FingerprintSubContext{}
+		node.Objarg.Fingerprint(&subCtx, "Objarg")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("objarg")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Object.Items) > 0 {
-		ctx.WriteString("object")
-		node.Object.Fingerprint(ctx, "Object")
+		subCtx := FingerprintSubContext{}
+		node.Object.Fingerprint(&subCtx, "Object")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("object")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Relation != nil {
-		ctx.WriteString("relation")
-		node.Relation.Fingerprint(ctx, "Relation")
+		subCtx := FingerprintSubContext{}
+		node.Relation.Fingerprint(&subCtx, "Relation")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("relation")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if int(node.RelationType) != 0 {

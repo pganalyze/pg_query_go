@@ -6,12 +6,26 @@ func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, paren
 	ctx.WriteString("AlterDefaultPrivilegesStmt")
 
 	if node.Action != nil {
-		ctx.WriteString("action")
-		node.Action.Fingerprint(ctx, "Action")
+		subCtx := FingerprintSubContext{}
+		node.Action.Fingerprint(&subCtx, "Action")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("action")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

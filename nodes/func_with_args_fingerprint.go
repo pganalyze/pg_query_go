@@ -4,13 +4,28 @@ package pg_query
 
 func (node FuncWithArgs) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("FuncWithArgs")
+
 	if len(node.Funcargs.Items) > 0 {
-		ctx.WriteString("funcargs")
-		node.Funcargs.Fingerprint(ctx, "Funcargs")
+		subCtx := FingerprintSubContext{}
+		node.Funcargs.Fingerprint(&subCtx, "Funcargs")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcargs")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Funcname.Items) > 0 {
-		ctx.WriteString("funcname")
-		node.Funcname.Fingerprint(ctx, "Funcname")
+		subCtx := FingerprintSubContext{}
+		node.Funcname.Fingerprint(&subCtx, "Funcname")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("funcname")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

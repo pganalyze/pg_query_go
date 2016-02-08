@@ -6,9 +6,17 @@ import "strconv"
 
 func (node CreateSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateSeqStmt")
+
 	if len(node.Options.Items) > 0 {
-		ctx.WriteString("options")
-		node.Options.Fingerprint(ctx, "Options")
+		subCtx := FingerprintSubContext{}
+		node.Options.Fingerprint(&subCtx, "Options")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("options")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.OwnerId != 0 {
@@ -17,7 +25,14 @@ func (node CreateSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if node.Sequence != nil {
-		ctx.WriteString("sequence")
-		node.Sequence.Fingerprint(ctx, "Sequence")
+		subCtx := FingerprintSubContext{}
+		node.Sequence.Fingerprint(&subCtx, "Sequence")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("sequence")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }
