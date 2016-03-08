@@ -31,6 +31,11 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentF
 		}
 	}
 
+	if int(node.Kind) != 0 {
+		ctx.WriteString("kind")
+		ctx.WriteString(strconv.Itoa(int(node.Kind)))
+	}
+
 	if node.MissingOk {
 		ctx.WriteString("missing_ok")
 		ctx.WriteString(strconv.FormatBool(node.MissingOk))

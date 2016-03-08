@@ -4,9 +4,10 @@ package pg_query
 
 import "encoding/json"
 
-/* ----------------
+/*
  * Param
- *		paramkind - specifies the kind of parameter. The possible values
+ *
+ *		paramkind specifies the kind of parameter. The possible values
  *		for this field are:
  *
  *		PARAM_EXTERN:  The parameter value is supplied from outside the plan.
@@ -23,11 +24,12 @@ import "encoding/json"
  *				`paramid' field.  (This type of Param is converted to
  *				PARAM_EXEC during planning.)
  *
- * Note: currently, paramtypmod is valid for PARAM_SUBLINK Params, and for
- * PARAM_EXEC Params generated from them; it is always -1 for PARAM_EXTERN
- * params, since the APIs that supply values for such parameters don't carry
- * any typmod info.
- * ----------------
+ *		PARAM_MULTIEXPR:  Like PARAM_SUBLINK, the parameter represents an
+ *				output column of a SubLink node's sub-select, but here, the
+ *				SubLink is always a MULTIEXPR SubLink.  The high-order 16 bits
+ *				of the `paramid' field contain the SubLink's subLinkId, and
+ *				the low-order 16 bits contain the column number.  (This type
+ *				of Param is also converted to PARAM_EXEC during planning.)
  */
 type Param struct {
 	Xpr         Node      `json:"xpr"`

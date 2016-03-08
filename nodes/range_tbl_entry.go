@@ -69,11 +69,12 @@ import "encoding/json"
  *	  For SELECT/INSERT/UPDATE permissions, if the user doesn't have
  *	  table-wide permissions then it is sufficient to have the permissions
  *	  on all columns identified in selectedCols (for SELECT) and/or
- *	  modifiedCols (for INSERT/UPDATE; we can tell which from the query type).
- *	  selectedCols and modifiedCols are bitmapsets, which cannot have negative
- *	  integer members, so we subtract FirstLowInvalidHeapAttributeNumber from
- *	  column numbers before storing them in these fields.  A whole-row Var
- *	  reference is represented by setting the bit for InvalidAttrNumber.
+ *	  insertedCols and/or updatedCols (INSERT with ON CONFLICT DO UPDATE may
+ *	  have all 3).  selectedCols, insertedCols and updatedCols are bitmapsets,
+ *	  which cannot have negative integer members, so we subtract
+ *	  FirstLowInvalidHeapAttributeNumber from column numbers before storing
+ *	  them in these fields.  A whole-row Var reference is represented by
+ *	  setting the bit for InvalidAttrNumber.
  *--------------------
  */
 type RangeTblEntry struct {
@@ -88,8 +89,9 @@ type RangeTblEntry struct {
 	/*
 	 * Fields valid for a plain relation RTE (else zero):
 	 */
-	Relid   Oid  `json:"relid"`   /* OID of the relation */
-	Relkind byte `json:"relkind"` /* relation kind (see pg_class.relkind) */
+	Relid       Oid                `json:"relid"`       /* OID of the relation */
+	Relkind     byte               `json:"relkind"`     /* relation kind (see pg_class.relkind) */
+	Tablesample *TableSampleClause `json:"tablesample"` /* sampling info, or NULL */
 
 	/*
 	 * Fields valid for a subquery RTE (else NULL):
@@ -155,7 +157,8 @@ type RangeTblEntry struct {
 	RequiredPerms AclMode  `json:"requiredPerms"` /* bitmask of required access permissions */
 	CheckAsUser   Oid      `json:"checkAsUser"`   /* if valid, check access as this role */
 	SelectedCols  []uint32 `json:"selectedCols"`  /* columns needing SELECT permission */
-	ModifiedCols  []uint32 `json:"modifiedCols"`  /* columns needing INSERT/UPDATE permission */
+	InsertedCols  []uint32 `json:"insertedCols"`  /* columns needing INSERT permission */
+	UpdatedCols   []uint32 `json:"updatedCols"`   /* columns needing UPDATE permission */
 	SecurityQuals List     `json:"securityQuals"` /* any security barrier quals to apply */
 }
 
@@ -194,6 +197,18 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 		node.Relkind = strVal[0]
 		if err != nil {
 			return
+		}
+	}
+
+	if fields["tablesample"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["tablesample"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TableSampleClause)
+			node.Tablesample = &val
 		}
 	}
 
@@ -366,8 +381,15 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["modifiedCols"] != nil {
-		err = json.Unmarshal(fields["modifiedCols"], &node.ModifiedCols)
+	if fields["insertedCols"] != nil {
+		err = json.Unmarshal(fields["insertedCols"], &node.InsertedCols)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["updatedCols"] != nil {
+		err = json.Unmarshal(fields["updatedCols"], &node.UpdatedCols)
 		if err != nil {
 			return
 		}

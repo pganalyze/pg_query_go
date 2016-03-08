@@ -17,6 +17,18 @@ func (node InsertStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		}
 	}
 
+	if node.OnConflictClause != nil {
+		subCtx := FingerprintSubContext{}
+		node.OnConflictClause.Fingerprint(&subCtx, "OnConflictClause")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("onConflictClause")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
 		node.Relation.Fingerprint(&subCtx, "Relation")

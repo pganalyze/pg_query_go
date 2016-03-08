@@ -13,14 +13,16 @@ package pg_query
  *	ANY_SUBLINK			(lefthand) op ANY (SELECT ...)
  *	ROWCOMPARE_SUBLINK	(lefthand) op (SELECT ...)
  *	EXPR_SUBLINK		(SELECT with single targetlist item ...)
+ *	MULTIEXPR_SUBLINK	(SELECT with multiple targetlist items ...)
  *	ARRAY_SUBLINK		ARRAY(SELECT with single targetlist item ...)
  *	CTE_SUBLINK			WITH query (never actually part of an expression)
  * For ALL, ANY, and ROWCOMPARE, the lefthand is a list of expressions of the
  * same length as the subselect's targetlist.  ROWCOMPARE will *always* have
  * a list with more than one entry; if the subselect has just one target
  * then the parser will create an EXPR_SUBLINK instead (and any operator
- * above the subselect will be represented separately).  Note that both
- * ROWCOMPARE and EXPR require the subselect to deliver only one row.
+ * above the subselect will be represented separately).
+ * ROWCOMPARE, EXPR, and MULTIEXPR require the subselect to deliver at most
+ * one row (if it returns no rows, the result is NULL).
  * ALL, ANY, and ROWCOMPARE require the combining operators to deliver boolean
  * results.  ALL and ANY combine the per-row results using AND and OR
  * semantics respectively.
@@ -39,8 +41,14 @@ package pg_query
  * output columns of the subselect.  And subselect is transformed to a Query.
  * This is the representation seen in saved rules and in the rewriter.
  *
- * In EXISTS, EXPR, and ARRAY SubLinks, testexpr and operName are unused and
- * are always null.
+ * In EXISTS, EXPR, MULTIEXPR, and ARRAY SubLinks, testexpr and operName
+ * are unused and are always null.
+ *
+ * subLinkId is currently used only for MULTIEXPR SubLinks, and is zero in
+ * other SubLinks.  This number identifies different multiple-assignment
+ * subqueries within an UPDATE statement's SET list.  It is unique only
+ * within a particular targetlist.  The output column(s) of the MULTIEXPR
+ * are referenced by PARAM_MULTIEXPR Params appearing elsewhere in the tlist.
  *
  * The CTE_SUBLINK case never occurs in actual SubLink nodes, but it is used
  * in SubPlans generated for WITH subqueries.
@@ -53,6 +61,7 @@ const (
 	ANY_SUBLINK
 	ROWCOMPARE_SUBLINK
 	EXPR_SUBLINK
+	MULTIEXPR_SUBLINK
 	ARRAY_SUBLINK
 	CTE_SUBLINK /* for SubPlans only */
 )

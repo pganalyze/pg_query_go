@@ -39,6 +39,7 @@ type Query struct {
 	HasRecursive    bool `json:"hasRecursive"`    /* WITH RECURSIVE was specified */
 	HasModifyingCte bool `json:"hasModifyingCTE"` /* has INSERT/UPDATE/DELETE in WITH */
 	HasForUpdate    bool `json:"hasForUpdate"`    /* FOR [KEY] UPDATE/SHARE was specified */
+	HasRowSecurity  bool `json:"hasRowSecurity"`  /* row security applied? */
 
 	CteList List `json:"cteList"` /* WITH list (of CommonTableExpr's) */
 
@@ -47,11 +48,13 @@ type Query struct {
 
 	TargetList List `json:"targetList"` /* target list (of TargetEntry) */
 
-	WithCheckOptions List `json:"withCheckOptions"` /* a list of WithCheckOption's */
+	OnConflict *OnConflictExpr `json:"onConflict"` /* ON CONFLICT DO [NOTHING | UPDATE] */
 
 	ReturningList List `json:"returningList"` /* return-values list (of TargetEntry) */
 
 	GroupClause List `json:"groupClause"` /* a list of SortGroupClause's */
+
+	GroupingSets List `json:"groupingSets"` /* a list of GroupingSet's if present */
 
 	HavingQual Node `json:"havingQual"` /* qualifications applied to groups */
 
@@ -71,6 +74,10 @@ type Query struct {
 
 	ConstraintDeps List `json:"constraintDeps"` /* a list of pg_constraint OIDs that the query
 	 * depends on to be semantically valid */
+
+	WithCheckOptions List `json:"withCheckOptions"` /* a list of WithCheckOption's, which are
+	 * only added during rewrite and therefore
+	 * are not written out as part of Query. */
 }
 
 func (node Query) MarshalJSON() ([]byte, error) {
@@ -179,6 +186,13 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
+	if fields["hasRowSecurity"] != nil {
+		err = json.Unmarshal(fields["hasRowSecurity"], &node.HasRowSecurity)
+		if err != nil {
+			return
+		}
+	}
+
 	if fields["cteList"] != nil {
 		node.CteList.Items, err = UnmarshalNodeArrayJSON(fields["cteList"])
 		if err != nil {
@@ -212,10 +226,15 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["withCheckOptions"] != nil {
-		node.WithCheckOptions.Items, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
+	if fields["onConflict"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["onConflict"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(OnConflictExpr)
+			node.OnConflict = &val
 		}
 	}
 
@@ -228,6 +247,13 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["groupClause"] != nil {
 		node.GroupClause.Items, err = UnmarshalNodeArrayJSON(fields["groupClause"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["groupingSets"] != nil {
+		node.GroupingSets.Items, err = UnmarshalNodeArrayJSON(fields["groupingSets"])
 		if err != nil {
 			return
 		}
@@ -291,6 +317,13 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["constraintDeps"] != nil {
 		node.ConstraintDeps.Items, err = UnmarshalNodeArrayJSON(fields["constraintDeps"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["withCheckOptions"] != nil {
+		node.WithCheckOptions.Items, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
 		if err != nil {
 			return
 		}

@@ -6,6 +6,11 @@ import "encoding/json"
 
 /*
  * Const
+ *
+ * Note: for varlena data types, we make a rule that a Const node's value
+ * must be in non-extended form (4-byte header, no compression or external
+ * references).  This ensures that the Const node is self-contained and makes
+ * it more likely that equal() will see logically identical values as equal.
  */
 type Const struct {
 	Xpr         Node  `json:"xpr"`

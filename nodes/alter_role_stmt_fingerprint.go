@@ -25,7 +25,14 @@ func (node AlterRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 	}
 
 	if node.Role != nil {
-		ctx.WriteString("role")
-		ctx.WriteString(*node.Role)
+		subCtx := FingerprintSubContext{}
+		node.Role.Fingerprint(&subCtx, "Role")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("role")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

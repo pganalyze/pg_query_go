@@ -10,7 +10,7 @@ import "encoding/json"
  */
 type CreateTableSpaceStmt struct {
 	Tablespacename *string `json:"tablespacename"`
-	Owner          *string `json:"owner"`
+	Owner          Node    `json:"owner"`
 	Location       *string `json:"location"`
 	Options        List    `json:"options"`
 }
@@ -38,7 +38,7 @@ func (node *CreateTableSpaceStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["owner"] != nil {
-		err = json.Unmarshal(fields["owner"], &node.Owner)
+		node.Owner, err = UnmarshalNodeJSON(fields["owner"])
 		if err != nil {
 			return
 		}

@@ -4,8 +4,8 @@ package pg_query
 // https://github.com/golang/go/commit/131758183f7dc2610af489da3a7fcc4d30c6bc48
 
 /*
-#cgo CFLAGS: -I${SRCDIR}/tmp/libpg_query-master
-#cgo LDFLAGS: -L${SRCDIR}/tmp/libpg_query-master -lpg_query -fstack-protector
+#cgo CFLAGS: -I${SRCDIR}/tmp/libpg_query
+#cgo LDFLAGS: -L${SRCDIR}/tmp/libpg_query -lpg_query -fstack-protector
 #include <pg_query.h>
 #include <stdlib.h>
 */

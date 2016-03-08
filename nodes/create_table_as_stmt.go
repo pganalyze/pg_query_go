@@ -22,6 +22,7 @@ type CreateTableAsStmt struct {
 	Into         *IntoClause `json:"into"`           /* destination table */
 	Relkind      ObjectType  `json:"relkind"`        /* OBJECT_TABLE or OBJECT_MATVIEW */
 	IsSelectInto bool        `json:"is_select_into"` /* it was written as SELECT INTO */
+	IfNotExists  bool        `json:"if_not_exists"`  /* just do nothing if it already exists? */
 }
 
 func (node CreateTableAsStmt) MarshalJSON() ([]byte, error) {
@@ -67,6 +68,13 @@ func (node *CreateTableAsStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["is_select_into"] != nil {
 		err = json.Unmarshal(fields["is_select_into"], &node.IsSelectInto)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

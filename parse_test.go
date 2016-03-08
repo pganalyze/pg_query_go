@@ -175,7 +175,7 @@ var parseTests = []struct {
 		`[{"SelectStmt": {"targetList": [{"ResTarget": {"val": {"ColumnRef": {"fields": ` +
 			`[{"A_Star": {}}], "location": 7}}, "location": 7}}], "fromClause": [{"RangeVar": ` +
 			`{"relname": "x", "inhOpt": 2, "relpersistence": "p", "location": 14}}], "whereClause": ` +
-			`{"A_Expr": {"kind": 9, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
+			`{"A_Expr": {"kind": 6, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
 			`{"fields": [{"String": {"str": "y"}}], "location": 22}}, "rexpr": [{"ParamRef": ` +
 			`{"location": 28}}], "location": 24}}, "op": 0}}]`,
 		pg_query.ParsetreeList{
@@ -225,69 +225,18 @@ var parseTests = []struct {
 	},
 	{
 		`SELECT n.nspname as "Schema",
-  c.relname as "Name",
-  CASE c.relkind WHEN 'r' THEN 'table' WHEN 'v' THEN 'view' WHEN 'm' THEN 'materialized view' WHEN 'i' THEN 'index' WHEN 'S' THEN 'sequence' WHEN 's' THEN 'special' WHEN 'f' THEN 'foreign table' END as "Type",
-  pg_catalog.pg_get_userbyid(c.relowner) as "Owner"
-FROM pg_catalog.pg_class c
-     LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.relkind IN ('r','')
-      AND n.nspname <> 'pg_catalog'
-      AND n.nspname <> 'information_schema'
-      AND n.nspname !~ '^pg_toast'
-  AND pg_catalog.pg_table_is_visible(c.oid)
-ORDER BY 1,2;`,
-		`[{"SelectStmt": {"targetList": [{"ResTarget": {"name": "Schema", "val": {"ColumnRef": ` +
-			`{"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 7}}, ` +
-			`"location": 7}}, {"ResTarget": {"name": "Name", "val": {"ColumnRef": {"fields": [{"String": ` +
-			`{"str": "c"}}, {"String": {"str": "relname"}}], "location": 32}}, "location": 32}}, ` +
-			`{"ResTarget": {"name": "Type", "val": {"CaseExpr": {` +
-			`"arg": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relkind"}}], ` +
-			`"location": 60}}, "args": [{"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "r"}}, ` +
-			`"location": 75}}, "result": {"A_Const": {"val": {"String": {"str": "table"}}, "location": 84}}, ` +
-			`"location": 70}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "v"}}, ` +
-			`"location": 97}}, "result": {"A_Const": {"val": {"String": {"str": "view"}}, "location": 106}}, ` +
-			`"location": 92}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "m"}}, ` +
-			`"location": 118}}, "result": {"A_Const": {"val": {"String": {"str": "materialized view"}}, ` +
-			`"location": 127}}, "location": 113}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": ` +
-			`{"str": "i"}}, "location": 152}}, "result": {"A_Const": {"val": {"String": {"str": "index"}}, ` +
-			`"location": 161}}, "location": 147}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": ` +
-			`{"str": "S"}}, "location": 174}}, "result": {"A_Const": {"val": {"String": {"str": "sequence"}}, ` +
-			`"location": 183}}, "location": 169}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": ` +
-			`{"str": "s"}}, "location": 199}}, "result": {"A_Const": {"val": {"String": {"str": "special"}}, ` +
-			`"location": 208}}, "location": 194}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": ` +
-			`{"str": "f"}}, "location": 223}}, "result": {"A_Const": {"val": {"String": {"str": "foreign table"}}, ` +
-			`"location": 232}}, "location": 218}}], "location": 55}}, "location": 55}}, {"ResTarget": ` +
-			`{"name": "Owner", "val": {"FuncCall": {"funcname": [{"String": {"str": "pg_catalog"}}, ` +
-			`{"String": {"str": "pg_get_userbyid"}}], "args": [{"ColumnRef": {"fields": [{"String": ` +
-			`{"str": "c"}}, {"String": {"str": "relowner"}}], "location": 292}}], "location": 265}}, "location": 265}}], ` +
-			`"fromClause": [{"JoinExpr": {"jointype": 1, "larg": {"RangeVar": ` +
-			`{"schemaname": "pg_catalog", "relname": "pg_class", "inhOpt": 2, "relpersistence": "p", ` +
-			`"alias": {"Alias": {"aliasname": "c"}}, "location": 320}}, "rarg": {"RangeVar": {"schemaname": ` +
-			`"pg_catalog", "relname": "pg_namespace", "inhOpt": 2, "relpersistence": "p", "alias": {"Alias": ` +
-			`{"aliasname": "n"}}, "location": 357}}, "quals": {"A_Expr": {"kind": 0, "name": [{"String": ` +
-			`{"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": ` +
-			`{"str": "oid"}}], "location": 386}}, "rexpr": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, ` +
-			`{"String": {"str": "relnamespace"}}], "location": 394}}, "location": 392}}}}], ` +
-			`"whereClause": {"A_Expr": {"kind": 1, "lexpr": {"A_Expr": {"kind": 1, "lexpr": {"A_Expr": ` +
-			`{"kind": 1, "lexpr": {"A_Expr": {"kind": 1, "lexpr": {"A_Expr": {"kind": 9, "name": ` +
-			`[{"String": {"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, ` +
-			`{"String": {"str": "relkind"}}], "location": 415}}, "rexpr": [{"A_Const": {"val": {"String": ` +
-			`{"str": "r"}}, "location": 429}}, {"A_Const": {"val": {"String": {"str": ""}}, "location": 433}}], ` +
-			`"location": 425}}, "rexpr": {"A_Expr": {"kind": 0, "name": [{"String": {"str": "<>"}}], "lexpr": ` +
-			`{"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 447}}, ` +
-			`"rexpr": {"A_Const": {"val": {"String": {"str": "pg_catalog"}}, "location": 460}}, "location": 457}}, ` +
-			`"location": 443}}, "rexpr": {"A_Expr": {"kind": 0, "name": [{"String": {"str": "<>"}}], "lexpr": ` +
-			`{"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 483}}, ` +
-			`"rexpr": {"A_Const": {"val": {"String": {"str": "information_schema"}}, "location": 496}}, "location": ` +
-			`493}}, "location": 479}}, "rexpr": {"A_Expr": {"kind": 0, "name": [{"String": {"str": "!~"}}], "lexpr": ` +
-			`{"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 527}}, ` +
-			`"rexpr": {"A_Const": {"val": {"String": {"str": "^pg_toast"}}, "location": 540}}, "location": 537}}, ` +
-			`"location": 523}}, "rexpr": {"FuncCall": {"funcname": [{"String": {"str": "pg_catalog"}}, {"String": ` +
-			`{"str": "pg_table_is_visible"}}], "args": [{"ColumnRef": {"fields": [{"String": {"str": "c"}}, ` +
-			`{"String": {"str": "oid"}}], "location": 589}}], "location": 558}}, "location": 554}}, "sortClause": ` +
-			`[{"SortBy": {"node": {"A_Const": {"val": {"Integer": {"ival": 1}}, "location": 605}}, "sortby_dir": 0, ` +
-			`"sortby_nulls": 0, "location": -1}}, {"SortBy": {"node": {"A_Const": {"val": {"Integer": {"ival": 2}}, ` +
-			`"location": 607}}, "sortby_dir": 0, "sortby_nulls": 0, "location": -1}}], "op": 0}}]`,
+						c.relname as "Name",
+						CASE c.relkind WHEN 'r' THEN 'table' WHEN 'v' THEN 'view' WHEN 'm' THEN 'materialized view' WHEN 'i' THEN 'index' WHEN 'S' THEN 'sequence' WHEN 's' THEN 'special' WHEN 'f' THEN 'foreign table' END as "Type",
+						pg_catalog.pg_get_userbyid(c.relowner) as "Owner"
+			 FROM pg_catalog.pg_class c
+						LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+			WHERE c.relkind IN ('r','')
+						AND n.nspname <> 'pg_catalog'
+						AND n.nspname <> 'information_schema'
+						AND n.nspname !~ '^pg_toast'
+						AND pg_catalog.pg_table_is_visible(c.oid)
+			ORDER BY 1,2;`,
+		`[{"SelectStmt": {"targetList": [{"ResTarget": {"name": "Schema", "val": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 7}}, "location": 7}}, {"ResTarget": {"name": "Name", "val": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relname"}}], "location": 36}}, "location": 36}}, {"ResTarget": {"name": "Type", "val": {"CaseExpr": {"arg": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relkind"}}], "location": 68}}, "args": [{"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "r"}}, "location": 83}}, "result": {"A_Const": {"val": {"String": {"str": "table"}}, "location": 92}}, "location": 78}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "v"}}, "location": 105}}, "result": {"A_Const": {"val": {"String": {"str": "view"}}, "location": 114}}, "location": 100}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "m"}}, "location": 126}}, "result": {"A_Const": {"val": {"String": {"str": "materialized view"}}, "location": 135}}, "location": 121}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "i"}}, "location": 160}}, "result": {"A_Const": {"val": {"String": {"str": "index"}}, "location": 169}}, "location": 155}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "S"}}, "location": 182}}, "result": {"A_Const": {"val": {"String": {"str": "sequence"}}, "location": 191}}, "location": 177}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "s"}}, "location": 207}}, "result": {"A_Const": {"val": {"String": {"str": "special"}}, "location": 216}}, "location": 202}}, {"CaseWhen": {"expr": {"A_Const": {"val": {"String": {"str": "f"}}, "location": 231}}, "result": {"A_Const": {"val": {"String": {"str": "foreign table"}}, "location": 240}}, "location": 226}}], "location": 63}}, "location": 63}}, {"ResTarget": {"name": "Owner", "val": {"FuncCall": {"funcname": [{"String": {"str": "pg_catalog"}}, {"String": {"str": "pg_get_userbyid"}}], "args": [{"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relowner"}}], "location": 304}}], "location": 277}}, "location": 277}}], "fromClause": [{"JoinExpr": {"jointype": 1, "larg": {"RangeVar": {"schemaname": "pg_catalog", "relname": "pg_class", "inhOpt": 2, "relpersistence": "p", "alias": {"Alias": {"aliasname": "c"}}, "location": 336}}, "rarg": {"RangeVar": {"schemaname": "pg_catalog", "relname": "pg_namespace", "inhOpt": 2, "relpersistence": "p", "alias": {"Alias": {"aliasname": "n"}}, "location": 374}}, "quals": {"A_Expr": {"kind": 0, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "oid"}}], "location": 403}}, "rexpr": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relnamespace"}}], "location": 411}}, "location": 409}}}}], "whereClause": {"BoolExpr": {"boolop": 0, "args": [{"A_Expr": {"kind": 6, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "relkind"}}], "location": 435}}, "rexpr": [{"A_Const": {"val": {"String": {"str": "r"}}, "location": 449}}, {"A_Const": {"val": {"String": {"str": ""}}, "location": 453}}], "location": 445}}, {"A_Expr": {"kind": 0, "name": [{"String": {"str": "<>"}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 467}}, "rexpr": {"A_Const": {"val": {"String": {"str": "pg_catalog"}}, "location": 480}}, "location": 477}}, {"A_Expr": {"kind": 0, "name": [{"String": {"str": "<>"}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 503}}, "rexpr": {"A_Const": {"val": {"String": {"str": "information_schema"}}, "location": 516}}, "location": 513}}, {"A_Expr": {"kind": 0, "name": [{"String": {"str": "!~"}}], "lexpr": {"ColumnRef": {"fields": [{"String": {"str": "n"}}, {"String": {"str": "nspname"}}], "location": 547}}, "rexpr": {"A_Const": {"val": {"String": {"str": "^pg_toast"}}, "location": 560}}, "location": 557}}, {"FuncCall": {"funcname": [{"String": {"str": "pg_catalog"}}, {"String": {"str": "pg_table_is_visible"}}], "args": [{"ColumnRef": {"fields": [{"String": {"str": "c"}}, {"String": {"str": "oid"}}], "location": 613}}], "location": 582}}], "location": 463}}, "sortClause": [{"SortBy": {"node": {"A_Const": {"val": {"Integer": {"ival": 1}}, "location": 632}}, "sortby_dir": 0, "sortby_nulls": 0, "location": -1}}, {"SortBy": {"node": {"A_Const": {"val": {"Integer": {"ival": 2}}, "location": 634}}, "sortby_dir": 0, "sortby_nulls": 0, "location": -1}}], "op": 0}}]`,
 		pg_query.ParsetreeList{
 			Statements: []nodes.Node{
 				nodes.SelectStmt{
@@ -310,9 +259,9 @@ ORDER BY 1,2;`,
 									util.MakeStrNode("c"),
 									util.MakeStrNode("relname"),
 								}),
-								Location: 32,
+								Location: 36,
 							},
-							Location: 32,
+							Location: 36,
 						},
 						nodes.ResTarget{
 							Name: util.MakeStrPtr("Type"),
@@ -322,48 +271,48 @@ ORDER BY 1,2;`,
 										util.MakeStrNode("c"),
 										util.MakeStrNode("relkind"),
 									}),
-									Location: 60,
+									Location: 68,
 								},
 								Args: util.MakeListNode([]nodes.Node{
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("r"), Location: 75},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("table"), Location: 84},
-										Location: 70,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("r"), Location: 83},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("table"), Location: 92},
+										Location: 78,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("v"), Location: 97},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("view"), Location: 106},
-										Location: 92,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("v"), Location: 105},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("view"), Location: 114},
+										Location: 100,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("m"), Location: 118},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("materialized view"), Location: 127},
-										Location: 113,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("m"), Location: 126},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("materialized view"), Location: 135},
+										Location: 121,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("i"), Location: 152},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("index"), Location: 161},
-										Location: 147,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("i"), Location: 160},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("index"), Location: 169},
+										Location: 155,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("S"), Location: 174},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("sequence"), Location: 183},
-										Location: 169,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("S"), Location: 182},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("sequence"), Location: 191},
+										Location: 177,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("s"), Location: 199},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("special"), Location: 208},
-										Location: 194,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("s"), Location: 207},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("special"), Location: 216},
+										Location: 202,
 									},
 									nodes.CaseWhen{
-										Expr:     nodes.A_Const{Val: util.MakeStrNode("f"), Location: 223},
-										Result:   nodes.A_Const{Val: util.MakeStrNode("foreign table"), Location: 232},
-										Location: 218,
+										Expr:     nodes.A_Const{Val: util.MakeStrNode("f"), Location: 231},
+										Result:   nodes.A_Const{Val: util.MakeStrNode("foreign table"), Location: 240},
+										Location: 226,
 									},
 								}),
-								Location: 55,
+								Location: 63,
 							},
-							Location: 55,
+							Location: 63,
 						},
 						nodes.ResTarget{
 							Name: util.MakeStrPtr("Owner"),
@@ -378,12 +327,12 @@ ORDER BY 1,2;`,
 											util.MakeStrNode("c"),
 											util.MakeStrNode("relowner"),
 										}),
-										Location: 292,
+										Location: 304,
 									},
 								}),
-								Location: 265,
+								Location: 277,
 							},
-							Location: 265,
+							Location: 277,
 						},
 					}),
 					FromClause: util.MakeListNode([]nodes.Node{
@@ -397,7 +346,7 @@ ORDER BY 1,2;`,
 								Alias: &nodes.Alias{
 									Aliasname: util.MakeStrPtr("c"),
 								},
-								Location: 320,
+								Location: 336,
 							},
 							Rarg: nodes.RangeVar{
 								Schemaname:     util.MakeStrPtr("pg_catalog"),
@@ -407,109 +356,98 @@ ORDER BY 1,2;`,
 								Alias: &nodes.Alias{
 									Aliasname: util.MakeStrPtr("n"),
 								},
-								Location: 357,
+								Location: 374,
 							},
 							Quals: nodes.A_Expr{
 								Kind: nodes.AEXPR_OP,
 								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("=")}),
 								Lexpr: nodes.ColumnRef{
 									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("oid")}),
-									Location: 386,
+									Location: 403,
 								},
 								Rexpr: nodes.ColumnRef{
 									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("relnamespace")}),
-									Location: 394,
+									Location: 411,
 								},
-								Location: 392,
+								Location: 409,
 							},
 						},
 					}),
-					WhereClause: nodes.A_Expr{
-						Kind: nodes.AEXPR_AND,
-						Lexpr: nodes.A_Expr{
-							Kind: nodes.AEXPR_AND,
-							Lexpr: nodes.A_Expr{
-								Kind: nodes.AEXPR_AND,
-								Lexpr: nodes.A_Expr{
-									Kind: nodes.AEXPR_AND,
-									Lexpr: nodes.A_Expr{
-										Kind: nodes.AEXPR_IN,
-										Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("=")}),
-										Lexpr: nodes.ColumnRef{
-											Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("relkind")}),
-											Location: 415,
-										},
-										Rexpr: util.MakeListNode([]nodes.Node{
-											nodes.A_Const{Val: util.MakeStrNode("r"), Location: 429},
-											nodes.A_Const{Val: util.MakeStrNode(""), Location: 433},
-										}),
-										Location: 425,
-									},
-									Rexpr: nodes.A_Expr{
-										Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("<>")}),
-										Lexpr: nodes.ColumnRef{
-											Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
-											Location: 447,
-										},
-										Rexpr:    nodes.A_Const{Val: util.MakeStrNode("pg_catalog"), Location: 460},
-										Location: 457,
-									},
-									Location: 443,
+					WhereClause: nodes.BoolExpr{
+						Args: util.MakeListNode([]nodes.Node{
+							nodes.A_Expr{
+								Kind: nodes.AEXPR_IN,
+								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("=")}),
+								Lexpr: nodes.ColumnRef{
+									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("relkind")}),
+									Location: 435,
 								},
-								Rexpr: nodes.A_Expr{
-									Kind: nodes.AEXPR_OP,
-									Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("<>")}),
-									Lexpr: nodes.ColumnRef{
-										Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
-										Location: 483,
-									},
-									Rexpr:    nodes.A_Const{Val: util.MakeStrNode("information_schema"), Location: 496},
-									Location: 493,
-								},
-								Location: 479,
+								Rexpr: util.MakeListNode([]nodes.Node{
+									nodes.A_Const{Val: util.MakeStrNode("r"), Location: 449},
+									nodes.A_Const{Val: util.MakeStrNode(""), Location: 453},
+								}),
+								Location: 445,
 							},
-							Rexpr: nodes.A_Expr{
+							nodes.A_Expr{
+								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("<>")}),
+								Lexpr: nodes.ColumnRef{
+									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
+									Location: 467,
+								},
+								Rexpr:    nodes.A_Const{Val: util.MakeStrNode("pg_catalog"), Location: 480},
+								Location: 477,
+							},
+							nodes.A_Expr{
+								Kind: nodes.AEXPR_OP,
+								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("<>")}),
+								Lexpr: nodes.ColumnRef{
+									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
+									Location: 503,
+								},
+								Rexpr:    nodes.A_Const{Val: util.MakeStrNode("information_schema"), Location: 516},
+								Location: 513,
+							},
+							nodes.A_Expr{
 								Kind: nodes.AEXPR_OP,
 								Name: util.MakeListNode([]nodes.Node{util.MakeStrNode("!~")}),
 								Lexpr: nodes.ColumnRef{
 									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("n"), util.MakeStrNode("nspname")}),
-									Location: 527,
+									Location: 547,
 								},
 								Rexpr: nodes.A_Const{
 									Val:      util.MakeStrNode("^pg_toast"),
-									Location: 540,
+									Location: 560,
 								},
-								Location: 537,
+								Location: 557,
 							},
-							Location: 523,
-						},
-						Rexpr: nodes.FuncCall{
-							Funcname: util.MakeListNode([]nodes.Node{
-								util.MakeStrNode("pg_catalog"),
-								util.MakeStrNode("pg_table_is_visible"),
-							}),
-							Args: util.MakeListNode([]nodes.Node{
-								nodes.ColumnRef{
-									Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("oid")}),
-									Location: 589,
-								},
-							}),
-							Location: 558,
-						},
-						Location: 554,
+							nodes.FuncCall{
+								Funcname: util.MakeListNode([]nodes.Node{
+									util.MakeStrNode("pg_catalog"),
+									util.MakeStrNode("pg_table_is_visible"),
+								}),
+								Args: util.MakeListNode([]nodes.Node{
+									nodes.ColumnRef{
+										Fields:   util.MakeListNode([]nodes.Node{util.MakeStrNode("c"), util.MakeStrNode("oid")}),
+										Location: 613,
+									},
+								}),
+								Location: 582,
+							},
+						}),
+						Location: 463,
 					},
 					SortClause: util.MakeListNode([]nodes.Node{
 						nodes.SortBy{
 							Node: nodes.A_Const{
 								Val:      util.MakeIntNode(1),
-								Location: 605,
+								Location: 632,
 							},
 							Location: -1,
 						},
 						nodes.SortBy{
 							Node: nodes.A_Const{
 								Val:      util.MakeIntNode(2),
-								Location: 607,
+								Location: 634,
 							},
 							Location: -1,
 						},
@@ -520,19 +458,14 @@ ORDER BY 1,2;`,
 	},
 	{
 		`CREATE FUNCTION change_trigger_v2() RETURNS trigger
-  LANGUAGE plpgsql
-  AS $$
-    DECLARE
-    BEGIN
-      PERFORM 'dummy';
-    END;
-    $$;`,
-		`[{"CreateFunctionStmt": {"funcname": [{"String": {"str": ` +
-			`"change_trigger_v2"}}], "returnType": {"TypeName": {"names": [{"String": ` +
-			`{"str": "trigger"}}], "typemod": -1, "location": 44}}, "options": [{"DefElem": {"defname": "language", ` +
-			`"arg": {"String": {"str": "plpgsql"}}, "defaction": 0}}, {"DefElem": {"defname": ` +
-			`"as", "arg": [{"String": {"str": "\n    DECLARE\n    BEGIN\n      PERFORM 'dummy';\n    END;\n    "}}], ` +
-			`"defaction": 0}}]}}]`,
+	LANGUAGE plpgsql
+	AS $$
+		DECLARE
+		BEGIN
+			PERFORM 'dummy';
+		END;
+		$$;`,
+		`[{"CreateFunctionStmt": {"funcname": [{"String": {"str": "change_trigger_v2"}}], "returnType": {"TypeName": {"names": [{"String": {"str": "trigger"}}], "typemod": -1, "location": 44}}, "options": [{"DefElem": {"defname": "language", "arg": {"String": {"str": "plpgsql"}}, "defaction": 0}}, {"DefElem": {"defname": "as", "arg": [{"String": {"str": "\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}], "defaction": 0}}]}}]`,
 		pg_query.ParsetreeList{
 			Statements: []nodes.Node{
 				nodes.CreateFunctionStmt{
@@ -553,7 +486,7 @@ ORDER BY 1,2;`,
 						},
 						nodes.DefElem{
 							Defname: util.MakeStrPtr("as"),
-							Arg:     util.MakeListNode([]nodes.Node{util.MakeStrNode("\n    DECLARE\n    BEGIN\n      PERFORM 'dummy';\n    END;\n    ")}),
+							Arg:     util.MakeListNode([]nodes.Node{util.MakeStrNode("\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t")}),
 						},
 					}),
 				},
@@ -562,22 +495,10 @@ ORDER BY 1,2;`,
 	},
 	{
 		`CREATE TABLE test (
-    id SERIAL PRIMARY KEY,
-    user_id integer DEFAULT 0 NOT NULL,
-    created_at timestamp without time zone NOT NULL);`,
-		`[{"CreateStmt": {"relation": {"RangeVar": {"relname": "test", "inhOpt": 2, ` +
-			`"relpersistence": "p", "location": 13}}, "tableElts": [{"ColumnDef": {"colname": ` +
-			`"id", "typeName": {"TypeName": {"names": [{"String": {"str": "serial"}}], ` +
-			`"typemod": -1, "location": 27}}, "is_local": true, "constraints": [{"Constraint": ` +
-			`{"contype": 4, "location": 34}}], "location": 24}}, {"ColumnDef": {"colname": ` +
-			`"user_id", "typeName": {"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, ` +
-			`{"String": {"str": "int4"}}], "typemod": -1, "location": 59}}, "is_local": true, ` +
-			`"constraints": [{"Constraint": {"contype": 2, "location": 67, "raw_expr": {"A_Const": ` +
-			`{"val": {"Integer": {"ival": 0}}, "location": 75}}}}, {"Constraint": {"contype": 1, ` +
-			`"location": 77}}], "location": 51}}, {"ColumnDef": {"colname": "created_at", "typeName": ` +
-			`{"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, {"String": {"str": ` +
-			`"timestamp"}}], "typemod": -1, "location": 102}}, "is_local": true, "constraints": ` +
-			`[{"Constraint": {"contype": 1, "location": 130}}], "location": 91}}], "oncommit": 0}}]`,
+			 id SERIAL PRIMARY KEY,
+			 user_id integer DEFAULT 0 NOT NULL,
+			 created_at timestamp without time zone NOT NULL);`,
+		`[{"CreateStmt": {"relation": {"RangeVar": {"relname": "test", "inhOpt": 2, "relpersistence": "p", "location": 13}}, "tableElts": [{"ColumnDef": {"colname": "id", "typeName": {"TypeName": {"names": [{"String": {"str": "serial"}}], "typemod": -1, "location": 27}}, "is_local": true, "constraints": [{"Constraint": {"contype": 4, "location": 34}}], "location": 24}}, {"ColumnDef": {"colname": "user_id", "typeName": {"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, {"String": {"str": "int4"}}], "typemod": -1, "location": 59}}, "is_local": true, "constraints": [{"Constraint": {"contype": 2, "location": 67, "raw_expr": {"A_Const": {"val": {"Integer": {"ival": 0}}, "location": 75}}}}, {"Constraint": {"contype": 1, "location": 77}}], "location": 51}}, {"ColumnDef": {"colname": "created_at", "typeName": {"TypeName": {"names": [{"String": {"str": "pg_catalog"}}, {"String": {"str": "timestamp"}}], "typemod": -1, "location": 102}}, "is_local": true, "constraints": [{"Constraint": {"contype": 1, "location": 130}}], "location": 91}}], "oncommit": 0}}]`,
 		pg_query.ParsetreeList{
 			Statements: []nodes.Node{
 				nodes.CreateStmt{

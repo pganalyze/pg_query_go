@@ -1,18 +1,21 @@
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+LIB_PG_QUERY_TAG = 9.5-latest
+
 TMPDIR = $(root_dir)/tmp
-LIBDIR = $(TMPDIR)/libpg_query-master
-LIBDIRGZ = $(TMPDIR)/libpg_query-master.tar.gz
+LIBDIR = $(TMPDIR)/libpg_query
+LIBDIRGZ = $(TMPDIR)/libpg_query-$(LIB_PG_QUERY_TAG).tar.gz
 
 default: test
 
 $(LIBDIR): $(LIBDIRGZ)
-	cd $(TMPDIR); tar -xzf $(LIBDIRGZ)
-	cd $(LIBDIR); make JSON_OUTPUT_V2=1
+	mkdir -p $(LIBDIR)
+	cd $(TMPDIR); tar -xzf $(LIBDIRGZ) -C $(LIBDIR) --strip-components=1
+	cd $(LIBDIR); make
 
 $(LIBDIRGZ):
 	mkdir -p $(TMPDIR)
-	curl -o $(LIBDIRGZ) https://codeload.github.com/lfittl/libpg_query/tar.gz/master
+	curl -o $(LIBDIRGZ) https://codeload.github.com/lfittl/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
 
 build: $(LIBDIR)
 

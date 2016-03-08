@@ -9,7 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type CreateUserMappingStmt struct {
-	Username   *string `json:"username"`   /* username or PUBLIC/CURRENT_USER */
+	User       Node    `json:"user"`       /* user role */
 	Servername *string `json:"servername"` /* server name */
 	Options    List    `json:"options"`    /* generic options to server */
 }
@@ -29,8 +29,8 @@ func (node *CreateUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
 		return
 	}
 
-	if fields["username"] != nil {
-		err = json.Unmarshal(fields["username"], &node.Username)
+	if fields["user"] != nil {
+		node.User, err = UnmarshalNodeJSON(fields["user"])
 		if err != nil {
 			return
 		}

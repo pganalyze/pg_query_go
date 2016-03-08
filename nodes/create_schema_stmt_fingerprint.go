@@ -7,9 +7,16 @@ import "strconv"
 func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateSchemaStmt")
 
-	if node.Authid != nil {
-		ctx.WriteString("authid")
-		ctx.WriteString(*node.Authid)
+	if node.Authrole != nil {
+		subCtx := FingerprintSubContext{}
+		node.Authrole.Fingerprint(&subCtx, "Authrole")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("authrole")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.IfNotExists {

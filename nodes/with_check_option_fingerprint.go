@@ -12,6 +12,16 @@ func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentFieldName 
 		ctx.WriteString(strconv.FormatBool(node.Cascaded))
 	}
 
+	if int(node.Kind) != 0 {
+		ctx.WriteString("kind")
+		ctx.WriteString(strconv.Itoa(int(node.Kind)))
+	}
+
+	if node.Polname != nil {
+		ctx.WriteString("polname")
+		ctx.WriteString(*node.Polname)
+	}
+
 	if node.Qual != nil {
 		subCtx := FingerprintSubContext{}
 		node.Qual.Fingerprint(&subCtx, "Qual")
@@ -24,8 +34,8 @@ func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentFieldName 
 		}
 	}
 
-	if node.Viewname != nil {
-		ctx.WriteString("viewname")
-		ctx.WriteString(*node.Viewname)
+	if node.Relname != nil {
+		ctx.WriteString("relname")
+		ctx.WriteString(*node.Relname)
 	}
 }

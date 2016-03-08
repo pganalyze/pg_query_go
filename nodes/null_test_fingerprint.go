@@ -24,6 +24,8 @@ func (node NullTest) Fingerprint(ctx FingerprintContext, parentFieldName string)
 		ctx.WriteString(strconv.FormatBool(node.Argisrow))
 	}
 
+	// Intentionally ignoring node.Location for fingerprinting
+
 	if int(node.Nulltesttype) != 0 {
 		ctx.WriteString("nulltesttype")
 		ctx.WriteString(strconv.Itoa(int(node.Nulltesttype)))

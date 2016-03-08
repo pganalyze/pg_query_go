@@ -24,6 +24,8 @@ func (node BooleanTest) Fingerprint(ctx FingerprintContext, parentFieldName stri
 		ctx.WriteString(strconv.Itoa(int(node.Booltesttype)))
 	}
 
+	// Intentionally ignoring node.Location for fingerprinting
+
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
 		node.Xpr.Fingerprint(&subCtx, "Xpr")

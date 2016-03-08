@@ -5,7 +5,7 @@ package pg_query
 import "encoding/json"
 
 /* ----------------------
- *		Create FOREIGN TABLE Statements
+ *		Create FOREIGN TABLE Statement
  * ----------------------
  */
 type CreateForeignTableStmt struct {

@@ -4,6 +4,7 @@ package pg_query
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -88,6 +89,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "RoleSpec":
+			var outNode RoleSpec
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "FuncCall":
 			var outNode FuncCall
 			err = json.Unmarshal(jsonText, &outNode)
@@ -130,6 +138,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "MultiAssignRef":
+			var outNode MultiAssignRef
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "SortBy":
 			var outNode SortBy
 			err = json.Unmarshal(jsonText, &outNode)
@@ -153,6 +168,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "RangeFunction":
 			var outNode RangeFunction
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "RangeTableSample":
+			var outNode RangeTableSample
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -214,6 +236,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "TableSampleClause":
+			var outNode TableSampleClause
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "WithCheckOption":
 			var outNode WithCheckOption
 			err = json.Unmarshal(jsonText, &outNode)
@@ -223,6 +252,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "SortGroupClause":
 			var outNode SortGroupClause
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "GroupingSet":
+			var outNode GroupingSet
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -244,6 +280,20 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "WithClause":
 			var outNode WithClause
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "InferClause":
+			var outNode InferClause
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "OnConflictClause":
+			var outNode OnConflictClause
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -328,13 +378,6 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "GrantStmt":
 			var outNode GrantStmt
-			err = json.Unmarshal(jsonText, &outNode)
-			if err != nil {
-				return
-			}
-			node = outNode
-		case "PrivGrantee":
-			var outNode PrivGrantee
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -503,6 +546,27 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "DropUserMappingStmt":
 			var outNode DropUserMappingStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "ImportForeignSchemaStmt":
+			var outNode ImportForeignSchemaStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "CreatePolicyStmt":
+			var outNode CreatePolicyStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "AlterPolicyStmt":
+			var outNode AlterPolicyStmt
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -928,6 +992,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "CreateTransformStmt":
+			var outNode CreateTransformStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "PrepareStmt":
 			var outNode PrepareStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -1028,6 +1099,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "Aggref":
 			var outNode Aggref
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "GroupingFunc":
+			var outNode GroupingFunc
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -1257,6 +1335,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "InferenceElem":
+			var outNode InferenceElem
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "TargetEntry":
 			var outNode TargetEntry
 			err = json.Unmarshal(jsonText, &outNode)
@@ -1280,6 +1365,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "FromExpr":
 			var outNode FromExpr
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "OnConflictExpr":
+			var outNode OnConflictExpr
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -1362,6 +1454,9 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		default:
+			err = fmt.Errorf("Could not unmarshal node of type %s and content %s", nodeType, jsonText)
+			return
 		}
 	}
 

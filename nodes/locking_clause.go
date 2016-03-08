@@ -16,7 +16,7 @@ import "encoding/json"
 type LockingClause struct {
 	LockedRels List               `json:"lockedRels"` /* FOR [KEY] UPDATE/SHARE relations */
 	Strength   LockClauseStrength `json:"strength"`
-	NoWait     bool               `json:"noWait"` /* NOWAIT option */
+	WaitPolicy LockWaitPolicy     `json:"waitPolicy"` /* NOWAIT and SKIP LOCKED */
 }
 
 func (node LockingClause) MarshalJSON() ([]byte, error) {
@@ -48,8 +48,8 @@ func (node *LockingClause) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["noWait"] != nil {
-		err = json.Unmarshal(fields["noWait"], &node.NoWait)
+	if fields["waitPolicy"] != nil {
+		err = json.Unmarshal(fields["waitPolicy"], &node.WaitPolicy)
 		if err != nil {
 			return
 		}

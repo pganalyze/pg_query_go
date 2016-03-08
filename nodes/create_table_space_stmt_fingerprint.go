@@ -19,8 +19,15 @@ func (node CreateTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentField
 	}
 
 	if node.Owner != nil {
-		ctx.WriteString("owner")
-		ctx.WriteString(*node.Owner)
+		subCtx := FingerprintSubContext{}
+		node.Owner.Fingerprint(&subCtx, "Owner")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("owner")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if node.Tablespacename != nil {

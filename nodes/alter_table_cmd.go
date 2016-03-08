@@ -11,9 +11,10 @@ import "encoding/json"
 type AlterTableCmd struct {
 	Subtype AlterTableType `json:"subtype"` /* Type of table alteration to apply */
 	Name    *string        `json:"name"`    /* column, constraint, or trigger to act on,
-	 * or new owner or tablespace */
+	 * or tablespace */
 
-	Def Node `json:"def"` /* definition of new column, index,
+	Newowner Node `json:"newowner"` /* RoleSpec */
+	Def      Node `json:"def"`      /* definition of new column, index,
 	 * constraint, or parent table */
 
 	Behavior  DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE for DROP cases */
@@ -44,6 +45,13 @@ func (node *AlterTableCmd) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["name"] != nil {
 		err = json.Unmarshal(fields["name"], &node.Name)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["newowner"] != nil {
+		node.Newowner, err = UnmarshalNodeJSON(fields["newowner"])
 		if err != nil {
 			return
 		}

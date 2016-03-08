@@ -8,8 +8,8 @@ import "encoding/json"
  *		REASSIGN OWNED statement
  */
 type ReassignOwnedStmt struct {
-	Roles   List    `json:"roles"`
-	Newrole *string `json:"newrole"`
+	Roles   List `json:"roles"`
+	Newrole Node `json:"newrole"`
 }
 
 func (node ReassignOwnedStmt) MarshalJSON() ([]byte, error) {
@@ -35,7 +35,7 @@ func (node *ReassignOwnedStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["newrole"] != nil {
-		err = json.Unmarshal(fields["newrole"], &node.Newrole)
+		node.Newrole, err = UnmarshalNodeJSON(fields["newrole"])
 		if err != nil {
 			return
 		}

@@ -20,6 +20,11 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 		}
 	}
 
+	if node.SubLinkId != 0 {
+		ctx.WriteString("subLinkId")
+		ctx.WriteString(strconv.Itoa(int(node.SubLinkId)))
+	}
+
 	if int(node.SubLinkType) != 0 {
 		ctx.WriteString("subLinkType")
 		ctx.WriteString(strconv.Itoa(int(node.SubLinkType)))

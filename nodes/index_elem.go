@@ -5,7 +5,7 @@ package pg_query
 import "encoding/json"
 
 /*
- * IndexElem - index parameters (used in CREATE INDEX)
+ * IndexElem - index parameters (used in CREATE INDEX, and in ON CONFLICT)
  *
  * For a plain index attribute, 'name' is the name of the table column to
  * index, and 'expr' is NULL.  For an index expression, 'name' is NULL and

@@ -7,11 +7,6 @@ import "strconv"
 func (node RowMarkClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("RowMarkClause")
 
-	if node.NoWait {
-		ctx.WriteString("noWait")
-		ctx.WriteString(strconv.FormatBool(node.NoWait))
-	}
-
 	if node.PushedDown {
 		ctx.WriteString("pushedDown")
 		ctx.WriteString(strconv.FormatBool(node.PushedDown))
@@ -25,5 +20,10 @@ func (node RowMarkClause) Fingerprint(ctx FingerprintContext, parentFieldName st
 	if int(node.Strength) != 0 {
 		ctx.WriteString("strength")
 		ctx.WriteString(strconv.Itoa(int(node.Strength)))
+	}
+
+	if int(node.WaitPolicy) != 0 {
+		ctx.WriteString("waitPolicy")
+		ctx.WriteString(strconv.Itoa(int(node.WaitPolicy)))
 	}
 }

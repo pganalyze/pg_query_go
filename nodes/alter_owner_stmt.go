@@ -13,7 +13,7 @@ type AlterOwnerStmt struct {
 	Relation   *RangeVar  `json:"relation"`   /* in case it's a table */
 	Object     List       `json:"object"`     /* in case it's some other object */
 	Objarg     List       `json:"objarg"`     /* argument types, if applicable */
-	Newowner   *string    `json:"newowner"`   /* the new owner */
+	Newowner   Node       `json:"newowner"`   /* the new owner */
 }
 
 func (node AlterOwnerStmt) MarshalJSON() ([]byte, error) {
@@ -65,7 +65,7 @@ func (node *AlterOwnerStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["newowner"] != nil {
-		err = json.Unmarshal(fields["newowner"], &node.Newowner)
+		node.Newowner, err = UnmarshalNodeJSON(fields["newowner"])
 		if err != nil {
 			return
 		}

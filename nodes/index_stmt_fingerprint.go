@@ -44,6 +44,11 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 		ctx.WriteString(*node.Idxname)
 	}
 
+	if node.IfNotExists {
+		ctx.WriteString("if_not_exists")
+		ctx.WriteString(strconv.FormatBool(node.IfNotExists))
+	}
+
 	if node.IndexOid != 0 {
 		ctx.WriteString("indexOid")
 		ctx.WriteString(strconv.Itoa(int(node.IndexOid)))
@@ -108,6 +113,11 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 	if node.TableSpace != nil {
 		ctx.WriteString("tableSpace")
 		ctx.WriteString(*node.TableSpace)
+	}
+
+	if node.Transformed {
+		ctx.WriteString("transformed")
+		ctx.WriteString(strconv.FormatBool(node.Transformed))
 	}
 
 	if node.Unique {

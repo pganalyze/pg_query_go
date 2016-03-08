@@ -4,15 +4,12 @@ package pg_query
 
 import "encoding/json"
 
-/*
- * WithCheckOption -
- *		representation of WITH CHECK OPTION checks to be applied to new tuples
- *		when inserting/updating an auto-updatable view.
- */
 type WithCheckOption struct {
-	Viewname *string `json:"viewname"` /* name of view that specified the WCO */
+	Kind     WCOKind `json:"kind"`     /* kind of WCO */
+	Relname  *string `json:"relname"`  /* name of relation that specified the WCO */
+	Polname  *string `json:"polname"`  /* name of RLS policy being checked */
 	Qual     Node    `json:"qual"`     /* constraint qual to check */
-	Cascaded bool    `json:"cascaded"` /* true = WITH CASCADED CHECK OPTION */
+	Cascaded bool    `json:"cascaded"` /* true for a cascaded WCO on a view */
 }
 
 func (node WithCheckOption) MarshalJSON() ([]byte, error) {
@@ -30,8 +27,22 @@ func (node *WithCheckOption) UnmarshalJSON(input []byte) (err error) {
 		return
 	}
 
-	if fields["viewname"] != nil {
-		err = json.Unmarshal(fields["viewname"], &node.Viewname)
+	if fields["kind"] != nil {
+		err = json.Unmarshal(fields["kind"], &node.Kind)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["relname"] != nil {
+		err = json.Unmarshal(fields["relname"], &node.Relname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["polname"] != nil {
+		err = json.Unmarshal(fields["polname"], &node.Polname)
 		if err != nil {
 			return
 		}

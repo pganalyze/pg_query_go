@@ -18,7 +18,7 @@ type GrantStmt struct {
 	Privileges List `json:"privileges"` /* list of AccessPriv nodes */
 
 	/* privileges == NIL denotes ALL PRIVILEGES */
-	Grantees    List         `json:"grantees"`     /* list of PrivGrantee nodes */
+	Grantees    List         `json:"grantees"`     /* list of RoleSpec nodes */
 	GrantOption bool         `json:"grant_option"` /* grant or revoke grant option */
 	Behavior    DropBehavior `json:"behavior"`     /* drop behavior (for REVOKE) */
 }
