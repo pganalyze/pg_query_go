@@ -2,7 +2,9 @@ package pg_query_test
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 
 	"github.com/kr/pretty"
@@ -624,6 +626,26 @@ var parseTests = []struct {
 			},
 		},
 	},
+	{
+		// Test for null-byte related crashes
+		string([]byte{'S', 'E', 'L', 'E', 'C', 'T', ' ', '1', '\x00'}),
+		`[{"SelectStmt": {"targetList": [{"ResTarget": {"val": {"A_Const": {"val": {"Integer": {"ival": 1}}, "location": 7}}, "location": 7}}], "op": 0}}]`,
+		pg_query.ParsetreeList{
+			Statements: []nodes.Node{
+				nodes.SelectStmt{
+					TargetList: util.MakeListNode([]nodes.Node{
+						nodes.ResTarget{
+							Val: nodes.A_Const{
+								Val:      util.MakeIntNode(1),
+								Location: 7,
+							},
+							Location: 7,
+						},
+					}),
+				},
+			},
+		},
+	},
 }
 
 func TestParse(t *testing.T) {
@@ -669,4 +691,26 @@ func TestParseError(t *testing.T) {
 			t.Errorf("Parse(%s)\nexpected error %s\nactual error %s\n\n", test.input, test.expectedErr, actualErr)
 		}
 	}
+}
+
+func TestParseConcurrency(t *testing.T) {
+	var wg sync.WaitGroup
+
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			_, err := pg_query.Parse("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')")
+
+			if err != nil {
+				t.Errorf("Concurrency test produced error %s\n\n", err)
+			}
+
+			fmt.Printf(".")
+		}()
+	}
+
+	wg.Wait()
 }

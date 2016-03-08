@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"runtime/debug"
+	"sync"
 	"unsafe"
 )
 
@@ -22,12 +23,18 @@ func init() {
 	C.pg_query_init()
 }
 
+var parseMutex sync.Mutex
+
 // ParseToJSON - Parses the given SQL statement into an AST (JSON format)
 func ParseToJSON(input string) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
+	// Due to Postgres' forked model we need to prevent concurrent runs of the native code
+	parseMutex.Lock()
 	resultC := C.pg_query_parse(inputC)
+	parseMutex.Unlock()
+
 	defer C.pg_query_free_parse_result(resultC)
 
 	if resultC.error != nil {
