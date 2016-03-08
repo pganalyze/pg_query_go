@@ -19,6 +19,7 @@ type NullTest struct {
 	Arg          Node         `json:"arg"`          /* input expression */
 	Nulltesttype NullTestType `json:"nulltesttype"` /* IS NULL, IS NOT NULL */
 	Argisrow     bool         `json:"argisrow"`     /* T if input is of a composite type */
+	Location     int          `json:"location"`     /* token location, or -1 if unknown */
 }
 
 func (node NullTest) MarshalJSON() ([]byte, error) {
@@ -59,6 +60,13 @@ func (node *NullTest) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["argisrow"] != nil {
 		err = json.Unmarshal(fields["argisrow"], &node.Argisrow)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
 		if err != nil {
 			return
 		}

@@ -109,6 +109,11 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 		ctx.WriteString(strconv.FormatBool(node.Inh))
 	}
 
+	ctx.WriteString("insertedCols")
+	for _, val := range node.InsertedCols {
+		ctx.WriteString(strconv.Itoa(int(val)))
+	}
+
 	if len(node.Joinaliasvars.Items) > 0 {
 		subCtx := FingerprintSubContext{}
 		node.Joinaliasvars.Fingerprint(&subCtx, "Joinaliasvars")
@@ -129,11 +134,6 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 	if node.Lateral {
 		ctx.WriteString("lateral")
 		ctx.WriteString(strconv.FormatBool(node.Lateral))
-	}
-
-	ctx.WriteString("modifiedCols")
-	for _, val := range node.ModifiedCols {
-		ctx.WriteString(strconv.Itoa(int(val)))
 	}
 
 	if node.Relid != 0 {
@@ -194,6 +194,22 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 				ctx.WriteString(part)
 			}
 		}
+	}
+
+	if node.Tablesample != nil {
+		subCtx := FingerprintSubContext{}
+		node.Tablesample.Fingerprint(&subCtx, "Tablesample")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("tablesample")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+	ctx.WriteString("updatedCols")
+	for _, val := range node.UpdatedCols {
+		ctx.WriteString(strconv.Itoa(int(val)))
 	}
 
 	if len(node.ValuesCollations.Items) > 0 {

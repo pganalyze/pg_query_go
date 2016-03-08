@@ -8,8 +8,15 @@ func (node AlterOwnerStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 	ctx.WriteString("AlterOwnerStmt")
 
 	if node.Newowner != nil {
-		ctx.WriteString("newowner")
-		ctx.WriteString(*node.Newowner)
+		subCtx := FingerprintSubContext{}
+		node.Newowner.Fingerprint(&subCtx, "Newowner")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("newowner")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 
 	if len(node.Objarg.Items) > 0 {

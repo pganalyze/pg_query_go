@@ -34,6 +34,18 @@ func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentFieldName st
 		ctx.WriteString(*node.Name)
 	}
 
+	if node.Newowner != nil {
+		subCtx := FingerprintSubContext{}
+		node.Newowner.Fingerprint(&subCtx, "Newowner")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("newowner")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if int(node.Subtype) != 0 {
 		ctx.WriteString("subtype")
 		ctx.WriteString(strconv.Itoa(int(node.Subtype)))

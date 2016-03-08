@@ -7,6 +7,11 @@ import "strconv"
 func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	ctx.WriteString("CreateTableAsStmt")
 
+	if node.IfNotExists {
+		ctx.WriteString("if_not_exists")
+		ctx.WriteString(strconv.FormatBool(node.IfNotExists))
+	}
+
 	if node.Into != nil {
 		subCtx := FingerprintSubContext{}
 		node.Into.Fingerprint(&subCtx, "Into")

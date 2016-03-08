@@ -65,6 +65,18 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 		}
 	}
 
+	if len(node.GroupingSets.Items) > 0 {
+		subCtx := FingerprintSubContext{}
+		node.GroupingSets.Fingerprint(&subCtx, "GroupingSets")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("groupingSets")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.HasAggs {
 		ctx.WriteString("hasAggs")
 		ctx.WriteString(strconv.FormatBool(node.HasAggs))
@@ -88,6 +100,11 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	if node.HasRecursive {
 		ctx.WriteString("hasRecursive")
 		ctx.WriteString(strconv.FormatBool(node.HasRecursive))
+	}
+
+	if node.HasRowSecurity {
+		ctx.WriteString("hasRowSecurity")
+		ctx.WriteString(strconv.FormatBool(node.HasRowSecurity))
 	}
 
 	if node.HasSubLinks {
@@ -142,6 +159,18 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("limitOffset")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
+	if node.OnConflict != nil {
+		subCtx := FingerprintSubContext{}
+		node.OnConflict.Fingerprint(&subCtx, "OnConflict")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("onConflict")
 			for _, part := range subCtx.parts {
 				ctx.WriteString(part)
 			}

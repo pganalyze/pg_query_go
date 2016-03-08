@@ -7,9 +7,7 @@ package pg_query
  *
  * Even though these are nominally two statements, it's convenient to use
  * just one node type for both.  Note that at least one of VACOPT_VACUUM
- * and VACOPT_ANALYZE must be set in options.  VACOPT_FREEZE is an internal
- * convenience for the grammar and is not examined at runtime --- the
- * freeze_min_age and freeze_table_age fields are what matter.
+ * and VACOPT_ANALYZE must be set in options.
  * ----------------------
  */
 type VacuumOption uint
@@ -21,4 +19,5 @@ const (
 	VACOPT_FREEZE
 	VACOPT_FULL
 	VACOPT_NOWAIT
+	VACOPT_SKIPTOAST
 )

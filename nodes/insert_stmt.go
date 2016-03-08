@@ -13,11 +13,12 @@ import "encoding/json"
  * ----------------------
  */
 type InsertStmt struct {
-	Relation      *RangeVar   `json:"relation"`      /* relation to insert into */
-	Cols          List        `json:"cols"`          /* optional: names of the target columns */
-	SelectStmt    Node        `json:"selectStmt"`    /* the source SELECT/VALUES, or NULL */
-	ReturningList List        `json:"returningList"` /* list of expressions to return */
-	WithClause    *WithClause `json:"withClause"`    /* WITH clause */
+	Relation         *RangeVar         `json:"relation"`         /* relation to insert into */
+	Cols             List              `json:"cols"`             /* optional: names of the target columns */
+	SelectStmt       Node              `json:"selectStmt"`       /* the source SELECT/VALUES, or NULL */
+	OnConflictClause *OnConflictClause `json:"onConflictClause"` /* ON CONFLICT clause */
+	ReturningList    List              `json:"returningList"`    /* list of expressions to return */
+	WithClause       *WithClause       `json:"withClause"`       /* WITH clause */
 }
 
 func (node InsertStmt) MarshalJSON() ([]byte, error) {
@@ -58,6 +59,18 @@ func (node *InsertStmt) UnmarshalJSON(input []byte) (err error) {
 		node.SelectStmt, err = UnmarshalNodeJSON(fields["selectStmt"])
 		if err != nil {
 			return
+		}
+	}
+
+	if fields["onConflictClause"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["onConflictClause"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(OnConflictClause)
+			node.OnConflictClause = &val
 		}
 	}
 

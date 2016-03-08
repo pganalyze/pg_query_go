@@ -4,16 +4,13 @@ package pg_query
 
 import "encoding/json"
 
-/* ----------------------
- *		REINDEX Statement
- * ----------------------
- */
 type ReindexStmt struct {
-	Kind     ObjectType `json:"kind"`      /* OBJECT_INDEX, OBJECT_TABLE, etc. */
-	Relation *RangeVar  `json:"relation"`  /* Table or index to reindex */
-	Name     *string    `json:"name"`      /* name of database to reindex */
-	DoSystem bool       `json:"do_system"` /* include system tables in database case */
-	DoUser   bool       `json:"do_user"`   /* include user tables in database case */
+	Kind ReindexObjectType `json:"kind"` /* REINDEX_OBJECT_INDEX, REINDEX_OBJECT_TABLE,
+	 * etc. */
+
+	Relation *RangeVar `json:"relation"` /* Table or index to reindex */
+	Name     *string   `json:"name"`     /* name of database to reindex */
+	Options  int       `json:"options"`  /* Reindex options flags */
 }
 
 func (node ReindexStmt) MarshalJSON() ([]byte, error) {
@@ -57,15 +54,8 @@ func (node *ReindexStmt) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["do_system"] != nil {
-		err = json.Unmarshal(fields["do_system"], &node.DoSystem)
-		if err != nil {
-			return
-		}
-	}
-
-	if fields["do_user"] != nil {
-		err = json.Unmarshal(fields["do_user"], &node.DoUser)
+	if fields["options"] != nil {
+		err = json.Unmarshal(fields["options"], &node.Options)
 		if err != nil {
 			return
 		}

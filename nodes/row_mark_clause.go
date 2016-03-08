@@ -19,7 +19,7 @@ import "encoding/json"
 type RowMarkClause struct {
 	Rti        Index              `json:"rti"` /* range table index of target relation */
 	Strength   LockClauseStrength `json:"strength"`
-	NoWait     bool               `json:"noWait"`     /* NOWAIT option */
+	WaitPolicy LockWaitPolicy     `json:"waitPolicy"` /* NOWAIT and SKIP LOCKED */
 	PushedDown bool               `json:"pushedDown"` /* pushed down from higher query level? */
 }
 
@@ -52,8 +52,8 @@ func (node *RowMarkClause) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["noWait"] != nil {
-		err = json.Unmarshal(fields["noWait"], &node.NoWait)
+	if fields["waitPolicy"] != nil {
+		err = json.Unmarshal(fields["waitPolicy"], &node.WaitPolicy)
 		if err != nil {
 			return
 		}

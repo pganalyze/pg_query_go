@@ -16,6 +16,7 @@ type BooleanTest struct {
 	Xpr          Node         `json:"xpr"`
 	Arg          Node         `json:"arg"`          /* input expression */
 	Booltesttype BoolTestType `json:"booltesttype"` /* test type */
+	Location     int          `json:"location"`     /* token location, or -1 if unknown */
 }
 
 func (node BooleanTest) MarshalJSON() ([]byte, error) {
@@ -49,6 +50,13 @@ func (node *BooleanTest) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["booltesttype"] != nil {
 		err = json.Unmarshal(fields["booltesttype"], &node.Booltesttype)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
 		if err != nil {
 			return
 		}

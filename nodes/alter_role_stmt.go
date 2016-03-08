@@ -14,9 +14,9 @@ import "encoding/json"
  * ----------------------
  */
 type AlterRoleStmt struct {
-	Role    *string `json:"role"`    /* role name */
-	Options List    `json:"options"` /* List of DefElem nodes */
-	Action  int     `json:"action"`  /* +1 = add members, -1 = drop members */
+	Role    Node `json:"role"`    /* role */
+	Options List `json:"options"` /* List of DefElem nodes */
+	Action  int  `json:"action"`  /* +1 = add members, -1 = drop members */
 }
 
 func (node AlterRoleStmt) MarshalJSON() ([]byte, error) {
@@ -35,7 +35,7 @@ func (node *AlterRoleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["role"] != nil {
-		err = json.Unmarshal(fields["role"], &node.Role)
+		node.Role, err = UnmarshalNodeJSON(fields["role"])
 		if err != nil {
 			return
 		}

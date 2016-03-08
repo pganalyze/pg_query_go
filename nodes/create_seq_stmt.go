@@ -9,9 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateSeqStmt struct {
-	Sequence *RangeVar `json:"sequence"` /* the sequence to create */
-	Options  List      `json:"options"`
-	OwnerId  Oid       `json:"ownerId"` /* ID of owner, or InvalidOid for default */
+	Sequence    *RangeVar `json:"sequence"` /* the sequence to create */
+	Options     List      `json:"options"`
+	OwnerId     Oid       `json:"ownerId"`       /* ID of owner, or InvalidOid for default */
+	IfNotExists bool      `json:"if_not_exists"` /* just do nothing if it already exists? */
 }
 
 func (node CreateSeqStmt) MarshalJSON() ([]byte, error) {
@@ -50,6 +51,13 @@ func (node *CreateSeqStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["ownerId"] != nil {
 		err = json.Unmarshal(fields["ownerId"], &node.OwnerId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

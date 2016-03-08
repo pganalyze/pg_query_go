@@ -32,7 +32,9 @@ type IndexStmt struct {
 	Isconstraint   bool      `json:"isconstraint"`   /* is it for a pkey/unique constraint? */
 	Deferrable     bool      `json:"deferrable"`     /* is the constraint DEFERRABLE? */
 	Initdeferred   bool      `json:"initdeferred"`   /* is the constraint INITIALLY DEFERRED? */
+	Transformed    bool      `json:"transformed"`    /* true when transformIndexStmt is finished */
 	Concurrent     bool      `json:"concurrent"`     /* should this be a concurrent index build? */
+	IfNotExists    bool      `json:"if_not_exists"`  /* just do nothing if index already exists? */
 }
 
 func (node IndexStmt) MarshalJSON() ([]byte, error) {
@@ -167,8 +169,22 @@ func (node *IndexStmt) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
+	if fields["transformed"] != nil {
+		err = json.Unmarshal(fields["transformed"], &node.Transformed)
+		if err != nil {
+			return
+		}
+	}
+
 	if fields["concurrent"] != nil {
 		err = json.Unmarshal(fields["concurrent"], &node.Concurrent)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

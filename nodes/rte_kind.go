@@ -67,11 +67,12 @@ package pg_query
  *	  For SELECT/INSERT/UPDATE permissions, if the user doesn't have
  *	  table-wide permissions then it is sufficient to have the permissions
  *	  on all columns identified in selectedCols (for SELECT) and/or
- *	  modifiedCols (for INSERT/UPDATE; we can tell which from the query type).
- *	  selectedCols and modifiedCols are bitmapsets, which cannot have negative
- *	  integer members, so we subtract FirstLowInvalidHeapAttributeNumber from
- *	  column numbers before storing them in these fields.  A whole-row Var
- *	  reference is represented by setting the bit for InvalidAttrNumber.
+ *	  insertedCols and/or updatedCols (INSERT with ON CONFLICT DO UPDATE may
+ *	  have all 3).  selectedCols, insertedCols and updatedCols are bitmapsets,
+ *	  which cannot have negative integer members, so we subtract
+ *	  FirstLowInvalidHeapAttributeNumber from column numbers before storing
+ *	  them in these fields.  A whole-row Var reference is represented by
+ *	  setting the bit for InvalidAttrNumber.
  *--------------------
  */
 type RTEKind uint

@@ -19,13 +19,13 @@ func (node LockingClause) Fingerprint(ctx FingerprintContext, parentFieldName st
 		}
 	}
 
-	if node.NoWait {
-		ctx.WriteString("noWait")
-		ctx.WriteString(strconv.FormatBool(node.NoWait))
-	}
-
 	if int(node.Strength) != 0 {
 		ctx.WriteString("strength")
 		ctx.WriteString(strconv.Itoa(int(node.Strength)))
+	}
+
+	if int(node.WaitPolicy) != 0 {
+		ctx.WriteString("waitPolicy")
+		ctx.WriteString(strconv.Itoa(int(node.WaitPolicy)))
 	}
 }

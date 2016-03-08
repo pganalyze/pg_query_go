@@ -22,8 +22,15 @@ func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext, parentFiel
 		ctx.WriteString(*node.Servername)
 	}
 
-	if node.Username != nil {
-		ctx.WriteString("username")
-		ctx.WriteString(*node.Username)
+	if node.User != nil {
+		subCtx := FingerprintSubContext{}
+		node.User.Fingerprint(&subCtx, "User")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("user")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
 	}
 }

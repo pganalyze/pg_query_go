@@ -11,5 +11,7 @@ type vartag_external uint
 
 const (
 	VARTAG_INDIRECT vartag_external = iota
+	VARTAG_EXPANDED_RO
+	VARTAG_EXPANDED_RW
 	VARTAG_ONDISK
 )

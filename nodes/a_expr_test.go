@@ -50,7 +50,7 @@ var aExprTests = []struct {
 		},
 	},
 	{
-		`{"kind": 9, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
+		`{"kind": 6, "name": [{"String": {"str": "="}}], "lexpr": {"ColumnRef": ` +
 			`{"fields": [{"String": {"str": "y"}}], "location": 22}}, "rexpr": {"List": ` +
 			`{"items": [{"ParamRef": {"number": 0, "location": 28}}]}}, "location": 24}`,
 		nodes.A_Expr{

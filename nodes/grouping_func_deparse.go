@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node PrivGrantee) Deparse() string {
+func (node GroupingFunc) Deparse() string {
 	panic("Not Implemented")
 }

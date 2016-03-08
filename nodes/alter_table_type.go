@@ -31,11 +31,14 @@ const (
 	AT_AddIndexConstraint        /* add constraint using existing index */
 	AT_DropConstraint            /* drop constraint */
 	AT_DropConstraintRecurse     /* internal to commands/tablecmds.c */
+	AT_ReAddComment              /* internal to commands/tablecmds.c */
 	AT_AlterColumnType           /* alter column type */
 	AT_AlterColumnGenericOptions /* alter column OPTIONS (...) */
 	AT_ChangeOwner               /* change owner */
 	AT_ClusterOn                 /* CLUSTER ON */
 	AT_DropCluster               /* SET WITHOUT CLUSTER */
+	AT_SetLogged                 /* SET LOGGED */
+	AT_SetUnLogged               /* SET UNLOGGED */
 	AT_AddOids                   /* SET WITH OIDS */
 	AT_AddOidsRecurse            /* internal to commands/tablecmds.c */
 	AT_DropOids                  /* SET WITHOUT OIDS */
@@ -60,5 +63,9 @@ const (
 	AT_AddOf                     /* OF <type_name> */
 	AT_DropOf                    /* NOT OF */
 	AT_ReplicaIdentity           /* REPLICA IDENTITY */
+	AT_EnableRowSecurity         /* ENABLE ROW SECURITY */
+	AT_DisableRowSecurity        /* DISABLE ROW SECURITY */
+	AT_ForceRowSecurity          /* FORCE ROW SECURITY */
+	AT_NoForceRowSecurity        /* NO FORCE ROW SECURITY */
 	AT_GenericOptions            /* OPTIONS (...) */
 )

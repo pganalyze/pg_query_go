@@ -4,11 +4,9 @@ package pg_query
 
 import "encoding/json"
 
-/*
- * TS Configuration stmts: DefineStmt, RenameStmt and DropStmt are default
- */
 type AlterTSConfigurationStmt struct {
-	Cfgname List `json:"cfgname"` /* qualified name (list of Value strings) */
+	Kind    AlterTSConfigType `json:"kind"`    /* ALTER_TSCONFIG_ADD_MAPPING, etc */
+	Cfgname List              `json:"cfgname"` /* qualified name (list of Value strings) */
 
 	/*
 	 * dicts will be non-NIL if ADD/ALTER MAPPING was specified. If dicts is
@@ -34,6 +32,13 @@ func (node *AlterTSConfigurationStmt) UnmarshalJSON(input []byte) (err error) {
 	err = json.Unmarshal(input, &fields)
 	if err != nil {
 		return
+	}
+
+	if fields["kind"] != nil {
+		err = json.Unmarshal(fields["kind"], &node.Kind)
+		if err != nil {
+			return
+		}
 	}
 
 	if fields["cfgname"] != nil {
