@@ -131,6 +131,8 @@ class Generator
     ['PrepareStmt', 'name'] => :skip,
     ['ExecuteStmt', 'name'] => :skip,
     ['DeallocateStmt', 'name'] => :skip,
+    ['TransactionStmt', 'options'] => :skip,
+    ['TransactionStmt', 'gid'] => :skip,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
