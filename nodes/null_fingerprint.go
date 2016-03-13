@@ -3,5 +3,5 @@
 package pg_query
 
 func (node Null) Fingerprint(ctx FingerprintContext, parentFieldName string) {
-	ctx.WriteString("Null")
+	// Intentionally ignoring all fields for fingerprinting
 }

@@ -120,6 +120,9 @@ class Generator
     'Alias' => :skip,
     'ParamRef' => :skip,
     'SetToDefault' => :skip,
+    'IntList' => :skip,
+    'OidList' => :skip,
+    'Null' => :skip,
     'List' => LIST_FINGERPRINT,
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
