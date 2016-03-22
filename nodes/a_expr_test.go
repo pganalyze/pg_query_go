@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/kr/pretty"
-	nodes "github.com/lfittl/pg_query.go/nodes"
-	"github.com/lfittl/pg_query.go/util"
+	nodes "github.com/lfittl/pg_query_go/nodes"
+	"github.com/lfittl/pg_query_go/util"
 )
 
 var aExprTests = []struct {

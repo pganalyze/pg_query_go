@@ -1,6 +1,6 @@
-# pg_query.go [![Build Status](https://travis-ci.org/lfittl/pg_query.go.svg)](https://travis-ci.org/lfittl/pg_query.go) [![GoDoc](https://godoc.org/github.com/lfittl/pg_query.go?status.svg)](https://godoc.org/github.com/lfittl/pg_query.go)
+# pg_query_go [![Build Status](https://travis-ci.org/lfittl/pg_query_go.svg)](https://travis-ci.org/lfittl/pg_query_go) [![GoDoc](https://godoc.org/github.com/lfittl/pg_query_go?status.svg)](https://godoc.org/github.com/lfittl/pg_query_go)
 
-Experimental Go version of https://github.com/lfittl/pg_query
+Go version of https://github.com/lfittl/pg_query
 
 This Go library and its cgo extension use the actual PostgreSQL server source to parse SQL queries and return the internal PostgreSQL parse tree.
 
@@ -13,8 +13,8 @@ You can find further background to why a query's parse tree is useful here: http
 
 ```
 cd $GOPATH/src
-git clone git://github.com/lfittl/pg_query.go.git github.com/lfittl/pg_query.go
-cd github.com/lfittl/pg_query.go
+git clone git://github.com/lfittl/pg_query_go.git github.com/lfittl/pg_query_go
+cd github.com/lfittl/pg_query_go
 make
 go build
 ```
@@ -33,7 +33,7 @@ package main
 
 import (
   "fmt"
-  "github.com/lfittl/pg_query.go"
+  "github.com/lfittl/pg_query_go"
 )
 
 func main() {
@@ -62,8 +62,8 @@ package main
 import (
   "fmt"
   "reflect"
-  "github.com/lfittl/pg_query.go"
-  nodes "github.com/lfittl/pg_query.go/nodes"
+  "github.com/lfittl/pg_query_go"
+  nodes "github.com/lfittl/pg_query_go/nodes"
 )
 
 func main() {
@@ -104,7 +104,7 @@ You can find all the node struct types in the `nodes/` directory.
 ## License
 
 Copyright (c) 2015, Lukas Fittl <lukas@fittl.com><br>
-pg_query.go is licensed under the 3-clause BSD license, see LICENSE file for details.
+pg_query_go is licensed under the 3-clause BSD license, see LICENSE file for details.
 
 This project includes code derived from the [PostgreSQL project](http://www.postgresql.org/),
 see LICENSE.POSTGRESQL for details.

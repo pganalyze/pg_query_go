@@ -1,7 +1,7 @@
 package util
 
 import (
-	nodes "github.com/lfittl/pg_query.go/nodes"
+	nodes "github.com/lfittl/pg_query_go/nodes"
 )
 
 func MakeStrPtr(str string) *string {

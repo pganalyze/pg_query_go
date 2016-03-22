@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	nodes "github.com/lfittl/pg_query.go/nodes"
+	nodes "github.com/lfittl/pg_query_go/nodes"
 )
 
 func strPtr(str string) *string {

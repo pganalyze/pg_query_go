@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lfittl/pg_query.go"
+	"github.com/lfittl/pg_query_go"
 )
 
 var normalizeTests = []struct {
