@@ -36,6 +36,10 @@ type FingerprintSubContext struct {
 
 type FingerprintSubContextSlice []FingerprintSubContext
 
+func NewFingerprintSubContext() *FingerprintSubContext {
+	return &FingerprintSubContext{parts: []string{}}
+}
+
 func (ctx *FingerprintSubContext) WriteString(str string) {
 	ctx.parts = append(ctx.parts, str)
 }

@@ -38,7 +38,7 @@ func TestFingerprint(t *testing.T) {
 			t.Errorf("Fingerprint(%s)\nparse error %s\n\n", test.Input, err)
 		}
 
-		ctx := &nodes.FingerprintSubContext{}
+		ctx := nodes.NewFingerprintSubContext()
 		for _, node := range actualTree.Statements {
 			node.Fingerprint(ctx, "")
 		}
