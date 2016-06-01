@@ -1,4 +1,4 @@
-.PHONY: default build clean test update_source
+.PHONY: default build test benchmark update_source clean
 
 default: test
 
@@ -8,6 +8,9 @@ build:
 test: build
 	go get github.com/kr/pretty
 	go test -v ./ ./nodes
+
+benchmark:
+	go test -run=XXX -bench=.
 
 # --- Below only needed for releasing new versions
 
