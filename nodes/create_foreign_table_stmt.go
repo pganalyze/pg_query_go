@@ -30,10 +30,12 @@ func (node *CreateForeignTableStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["base"] != nil {
-		err = json.Unmarshal(fields["base"], &node.Base)
+		var nodeField Node
+		nodeField, err = UnmarshalNodeJSON(fields["base"])
 		if err != nil {
 			return
 		}
+		node.Base = nodeField.(CreateStmt)
 	}
 
 	if fields["servername"] != nil {

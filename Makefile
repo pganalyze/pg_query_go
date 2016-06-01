@@ -1,6 +1,6 @@
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-LIB_PG_QUERY_TAG = 9.5-latest
+LIB_PG_QUERY_TAG = 9.5-1.3.0
 
 TMPDIR = $(root_dir)/tmp
 LIBDIR = $(TMPDIR)/libpg_query
@@ -11,7 +11,7 @@ default: test
 $(LIBDIR): $(LIBDIRGZ)
 	mkdir -p $(LIBDIR)
 	cd $(TMPDIR); tar -xzf $(LIBDIRGZ) -C $(LIBDIR) --strip-components=1
-	cd $(LIBDIR); make
+	cd $(LIBDIR); make build
 
 $(LIBDIRGZ):
 	mkdir -p $(TMPDIR)

@@ -248,6 +248,11 @@ class Generator
             unmarshal_def += format("err = json.Unmarshal(fields[\"%s\"], &strVal)\n", field['name'])
             unmarshal_def += format("node.%s = strVal[0]\n", go_name)
             unmarshal_def += "if err != nil {\nreturn\n}\n"
+          elsif @nodetypes.include?(go_type)
+            unmarshal_def += "var nodeField Node\n"
+            unmarshal_def += format("nodeField, err = UnmarshalNodeJSON(fields[\"%s\"])\n", field['name'])
+            unmarshal_def += "if err != nil {\nreturn\n}\n"
+            unmarshal_def += format("node.%s = nodeField.(%s)", go_name, go_type)
           else
             unmarshal_def += format("err = json.Unmarshal(fields[\"%s\"], &node.%s)\n", field['name'], go_name)
             unmarshal_def += "if err != nil {\nreturn\n}\n"
