@@ -94,6 +94,48 @@ func main() {
 
 You can find all the node struct types in the `nodes/` directory.
 
+## Benchmarks
+
+As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
+
+```
+BenchmarkParseSelect1-4       	   30000	     50649 ns/op
+BenchmarkParseSelect2-4       	   10000	    188459 ns/op
+BenchmarkParseCreateTable-4   	    2000	    642763 ns/op
+```
+
+A good portion of this is due to JSON parsing inside Go so we can work with Go structs - just the raw parser is 10x faster:
+
+```
+BenchmarkRawParseSelect1-4    	  300000	      3748 ns/op
+BenchmarkRawParseSelect2-4    	  200000	      9926 ns/op
+BenchmarkRawParseCreateTable-4	   50000	     28700 ns/op
+```
+
+Similarly, for query fingerprinting, you might want to use `pg_query.FastFingerprint` to let the C extension handle it:
+
+```
+BenchmarkFingerprintSelect1-4        	   30000	     51600 ns/op
+BenchmarkFingerprintSelect2-4        	   10000	    202711 ns/op
+BenchmarkFingerprintCreateTable-4    	    2000	    627461 ns/op
+BenchmarkFastFingerprintSelect1-4    	  300000	      4241 ns/op
+BenchmarkFastFingerprintSelect2-4    	  200000	      8110 ns/op
+BenchmarkFastFingerprintCreateTable-4	  100000	     22056 ns/op
+```
+
+Normalization is already handled in the C extension, doesn't depend on JSON parsing at all, and is fast:
+
+```
+BenchmarkNormalizeSelect1-4          	 1000000	      2158 ns/op
+BenchmarkNormalizeSelect2-4          	  300000	      4335 ns/op
+BenchmarkNormalizeCreateTable-4      	  200000	      7431 ns/op
+```
+
+See `benchmark_test.go` for the queries.
+
+Benchmark numbers from running on a 3.2 GHz Intel Core i5 CPU, OSX 10.11.
+
+
 ## Authors
 
 - [Lukas Fittl](mailto:lukas@fittl.com)

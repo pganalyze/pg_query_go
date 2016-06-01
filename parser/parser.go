@@ -61,3 +61,22 @@ func Normalize(input string) (result string, err error) {
 
 	return
 }
+
+// FastFingerprint - Fingerprint the passed SQL statement using the C extension
+func FastFingerprint(input string) (result string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_fingerprint(inputC)
+	defer C.pg_query_free_fingerprint_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
+		return
+	}
+
+	result = C.GoString(resultC.hexdigest)
+
+	return
+}

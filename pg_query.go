@@ -37,3 +37,8 @@ func Parse(input string) (tree ParsetreeList, err error) {
 func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)
 }
+
+// FastFingerprint - Fingerprint the passed SQL statement using the C extension
+func FastFingerprint(input string) (result string, err error) {
+	return parser.FastFingerprint(input)
+}
