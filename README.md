@@ -12,14 +12,12 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-cd $GOPATH/src
-git clone git://github.com/lfittl/pg_query_go.git github.com/lfittl/pg_query_go
-cd github.com/lfittl/pg_query_go
-make
-go build
+go get github.com/lfittl/pg_query_go
 ```
 
-Due to compiling parts of PostgreSQL, running `make` will take a while. Expect up to 5 minutes.
+Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
+
+Expect up to 3 minutes. You can use `go build -x` to see the progress.
 
 
 ## Usage
