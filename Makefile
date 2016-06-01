@@ -39,6 +39,8 @@ update_source: $(LIBDIR)
 	# Other support files
 	rm -fr testdata
 	cp -a $(LIBDIR)/testdata testdata
+	# Update nodes directory
+	ruby scripts/generate_nodes.rb
 
 clean:
 	-@ $(RM) -r $(TMPDIR)
