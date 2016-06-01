@@ -29,14 +29,16 @@ $(LIBDIRGZ):
 update_source: $(LIBDIR)
 	rm -f parser/*.{c,h}
 	rm -fr parser/include
-	#
+	# Reduce everything down to one directory
 	cp -a $(LIBDIR)/src/* parser/
 	mv parser/postgres/* parser/
 	rmdir parser/postgres
-	#
 	cp -a $(LIBDIR)/pg_query.h parser/include
+	# Make sure every .c file in the top-level directory is its own translation unit
 	mv parser/*{_conds,_defs,_helper,scan}.c parser/include
-
+	# Other support files
+	rm -fr testdata
+	cp -a $(LIBDIR)/testdata testdata
 
 clean:
 	-@ $(RM) -r $(TMPDIR)

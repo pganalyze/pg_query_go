@@ -20,7 +20,7 @@ type fingerprintTest struct {
 func TestFingerprint(t *testing.T) {
 	var fingerprintTests []fingerprintTest
 
-	file, err := ioutil.ReadFile("./tmp/libpg_query/testdata/fingerprint.json")
+	file, err := ioutil.ReadFile("./testdata/fingerprint.json")
 	if err != nil {
 		t.Errorf("Could not load test file: %v\n", err)
 	}
