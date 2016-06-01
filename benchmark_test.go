@@ -6,51 +6,74 @@ import (
 	"github.com/lfittl/pg_query_go"
 )
 
+// Prevent compiler optimizations by assigning all results to global variables
+var err error
+var resultStr string
+var resultTree pg_query.ParsetreeList
+
 func benchmarkParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := pg_query.Parse(input)
+		resultTree, err = pg_query.Parse(input)
 
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
+		}
+
+		if len(resultTree.Statements) == 0 {
+			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
 }
 
 func benchmarkRawParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := pg_query.ParseToJSON(input)
+		resultStr, err = pg_query.ParseToJSON(input)
 
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
+		}
+
+		if resultStr == "" {
+			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
 }
 
 func benchmarkFingerprint(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		tree, err := pg_query.Parse(input)
+		resultTree, err = pg_query.Parse(input)
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
 		}
 
-		tree.Fingerprint()
+		resultStr = resultTree.Fingerprint()
+
+		if resultStr == "" {
+			b.Errorf("Benchmark produced empty result\n\n")
+		}
 	}
 }
 
 func benchmarkFastFingerprint(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := pg_query.FastFingerprint(input)
+		resultStr, err = pg_query.FastFingerprint(input)
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
+		}
+		if resultStr == "" {
+			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
 }
 
 func benchmarkNormalize(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := pg_query.Normalize(input)
+		resultStr, err := pg_query.Normalize(input)
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
+		}
+		if resultStr == "" {
+			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
 }

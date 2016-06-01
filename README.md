@@ -99,36 +99,36 @@ You can find all the node struct types in the `nodes/` directory.
 As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
 
 ```
-BenchmarkParseSelect1-4              	   30000	     48874 ns/op
-BenchmarkParseSelect2-4              	   10000	    183039 ns/op
-BenchmarkParseCreateTable-4          	    2000	    580987 ns/op
+BenchmarkParseSelect1-4              	   30000	     47949 ns/op
+BenchmarkParseSelect2-4              	   10000	    196460 ns/op
+BenchmarkParseCreateTable-4          	    2000	    613098 ns/op
 ```
 
 A good portion of this is due to JSON parsing inside Go so we can work with Go structs - just the raw parser is 10x faster:
 
 ```
-BenchmarkRawParseSelect1-4           	  300000	      3701 ns/op
-BenchmarkRawParseSelect2-4           	  200000	      9925 ns/op
-BenchmarkRawParseCreateTable-4       	   50000	     27598 ns/op
+BenchmarkRawParseSelect1-4           	  500000	      3796 ns/op
+BenchmarkRawParseSelect2-4           	  200000	     10031 ns/op
+BenchmarkRawParseCreateTable-4       	   50000	     27622 ns/op
 ```
 
 Similarly, for query fingerprinting, you might want to use `pg_query.FastFingerprint` to let the C extension handle it:
 
 ```
-BenchmarkFingerprintSelect1-4        	   30000	     49782 ns/op
-BenchmarkFingerprintSelect2-4        	   10000	    205125 ns/op
-BenchmarkFingerprintCreateTable-4    	    2000	    656770 ns/op
-BenchmarkFastFingerprintSelect1-4    	  300000	      4531 ns/op
-BenchmarkFastFingerprintSelect2-4    	  200000	      8324 ns/op
-BenchmarkFastFingerprintCreateTable-4	  100000	     24006 ns/op
+BenchmarkFingerprintSelect1-4        	   30000	     52422 ns/op
+BenchmarkFingerprintSelect2-4        	   10000	    200710 ns/op
+BenchmarkFingerprintCreateTable-4    	    2000	    709827 ns/op
+BenchmarkFastFingerprintSelect1-4    	  300000	      4519 ns/op
+BenchmarkFastFingerprintSelect2-4    	  200000	      8255 ns/op
+BenchmarkFastFingerprintCreateTable-4	  100000	     21798 ns/op
 ```
 
 Normalization is already handled in the C extension, doesn't depend on JSON parsing at all, and is fast:
 
 ```
-BenchmarkNormalizeSelect1-4          	 1000000	      2158 ns/op
-BenchmarkNormalizeSelect2-4          	  300000	      4335 ns/op
-BenchmarkNormalizeCreateTable-4      	  200000	      7431 ns/op
+BenchmarkNormalizeSelect1-4          	 1000000	      2217 ns/op
+BenchmarkNormalizeSelect2-4          	  200000	      5169 ns/op
+BenchmarkNormalizeCreateTable-4      	  200000	      7923 ns/op
 ```
 
 See `benchmark_test.go` for the queries.
