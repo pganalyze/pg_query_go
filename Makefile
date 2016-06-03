@@ -10,7 +10,7 @@ test: build
 	go test -v ./ ./nodes
 
 benchmark:
-	go test -run=XXX -bench=.
+	go test -run=XXX -bench=. -test.benchmem
 
 # --- Below only needed for releasing new versions
 

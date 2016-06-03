@@ -25,6 +25,24 @@ func benchmarkParse(input string, b *testing.B) {
 	}
 }
 
+func benchmarkParseParallel(input string, b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		var tree pg_query.ParsetreeList
+
+		for pb.Next() {
+			tree, err = pg_query.Parse(input)
+
+			if err != nil {
+				b.Errorf("Benchmark produced error %s\n\n", err)
+			}
+
+			if len(tree.Statements) == 0 {
+				b.Errorf("Benchmark produced empty result\n\n")
+			}
+		}
+	})
+}
+
 func benchmarkRawParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		resultStr, err = pg_query.ParseToJSON(input)
@@ -86,6 +104,16 @@ func BenchmarkParseSelect2(b *testing.B) {
 }
 func BenchmarkParseCreateTable(b *testing.B) {
 	benchmarkParse("CREATE TABLE types (a float(2), b float(49), c NUMERIC(2, 3), d character(4), e char(5), f varchar(6), g character varying(7))", b)
+}
+
+func BenchmarkParseSelect1Parallel(b *testing.B) {
+	benchmarkParseParallel("SELECT 1", b)
+}
+func BenchmarkParseSelect2Parallel(b *testing.B) {
+	benchmarkParseParallel("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')", b)
+}
+func BenchmarkParseCreateTableParallel(b *testing.B) {
+	benchmarkParseParallel("CREATE TABLE types (a float(2), b float(49), c NUMERIC(2, 3), d character(4), e char(5), f varchar(6), g character varying(7))", b)
 }
 
 func BenchmarkRawParseSelect1(b *testing.B) {
