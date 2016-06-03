@@ -90,6 +90,8 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 	PgQueryInternalPlpgsqlFuncAndError func_and_error;
 	PgQueryPlpgsqlParseResult result = {0};
 
+	pg_query_init();
+
 	ctx = pg_query_enter_memory_context("pg_query_parse_plpgsql");
 
 	func_and_error = pg_query_raw_parse_plpgsql(input);
