@@ -10,23 +10,26 @@ test: build
 	go test -v ./ ./nodes
 
 benchmark:
-	go test -run=XXX -bench=. -test.benchmem
+	go build -a
+	go test -test.bench=. -test.run=XXX -test.benchtime 10s -test.benchmem -test.cpu=4
+	#go test -c -o benchmark
+	#GODEBUG=schedtrace=100 ./benchmark -test.bench=BenchmarkRawParseCreateTableParallel -test.run=XXX -test.benchtime 20s -test.benchmem -test.cpu=16
 
 # --- Below only needed for releasing new versions
 
 LIB_PG_QUERY_TAG = 9.5-1.3.0
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-TMPDIR = $(root_dir)/tmp
-LIBDIR = $(TMPDIR)/libpg_query
+LIB_TMPDIR = $(root_dir)/tmp
+LIBDIR = $(LIB_TMPDIR)/libpg_query
 LIBDIRGZ = $(TMPDIR)/libpg_query-$(LIB_PG_QUERY_TAG).tar.gz
 
 $(LIBDIR): $(LIBDIRGZ)
 	mkdir -p $(LIBDIR)
-	cd $(TMPDIR); tar -xzf $(LIBDIRGZ) -C $(LIBDIR) --strip-components=1
+	cd $(LIB_TMPDIR); tar -xzf $(LIBDIRGZ) -C $(LIBDIR) --strip-components=1
 
 $(LIBDIRGZ):
-	mkdir -p $(TMPDIR)
+	mkdir -p $(LIB_TMPDIR)
 	curl -o $(LIBDIRGZ) https://codeload.github.com/lfittl/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
 
 update_source: $(LIBDIR)
@@ -46,4 +49,4 @@ update_source: $(LIBDIR)
 	ruby scripts/generate_nodes.rb
 
 clean:
-	-@ $(RM) -r $(TMPDIR)
+	-@ $(RM) -r $(LIB_TMPDIR)

@@ -99,39 +99,42 @@ You can find all the node struct types in the `nodes/` directory.
 As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
 
 ```
-BenchmarkParseSelect1-4              	   30000	     43407 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2-4              	   10000	    177160 ns/op	   49105 B/op	     742 allocs/op
-BenchmarkParseCreateTable-4          	    2000	    573889 ns/op	  149827 B/op	    2123 allocs/op
-BenchmarkParseSelect1Parallel-4      	  100000	     16816 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2Parallel-4      	   20000	     76318 ns/op	   49105 B/op	     742 allocs/op
-BenchmarkParseCreateTableParallel-4  	   10000	    198530 ns/op	  149828 B/op	    2123 allocs/op
+BenchmarkParseSelect1-4               	  300000	     46345 ns/op	   14608 B/op	     226 allocs/op
+BenchmarkParseSelect2-4               	  100000	    189311 ns/op	   49104 B/op	     742 allocs/op
+BenchmarkParseCreateTable-4           	   30000	    561164 ns/op	  149826 B/op	    2123 allocs/op
+BenchmarkParseSelect1Parallel-4       	 1000000	     18704 ns/op	   14608 B/op	     226 allocs/op
+BenchmarkParseSelect2Parallel-4       	  200000	     60778 ns/op	   49105 B/op	     742 allocs/op
+BenchmarkParseCreateTableParallel-4   	  100000	    189316 ns/op	  149827 B/op	    2123 allocs/op
 ```
 
 A good portion of this is due to JSON parsing inside Go so we can work with Go structs - just the raw parser is 10x faster:
 
 ```
-BenchmarkRawParseSelect1-4           	  500000	      3727 ns/op	     192 B/op	       2 allocs/op
-BenchmarkRawParseSelect2-4           	  200000	      9947 ns/op	     672 B/op	       2 allocs/op
-BenchmarkRawParseCreateTable-4       	   50000	     28536 ns/op	    2080 B/op	       2 allocs/op
+BenchmarkRawParseSelect1-4            	 5000000	      3527 ns/op	     192 B/op	       2 allocs/op
+BenchmarkRawParseSelect2-4            	 2000000	      9400 ns/op	     672 B/op	       2 allocs/op
+BenchmarkRawParseCreateTable-4        	  500000	     25336 ns/op	    2080 B/op	       2 allocs/op
+BenchmarkRawParseSelect1Parallel-4    	 5000000	      3404 ns/op	     192 B/op	       2 allocs/op
+BenchmarkRawParseSelect2Parallel-4    	 1000000	     11123 ns/op	     672 B/op	       2 allocs/op
+BenchmarkRawParseCreateTableParallel-4	  500000	     29973 ns/op	    2080 B/op	       2 allocs/op
 ```
 
 Similarly, for query fingerprinting, you might want to use `pg_query.FastFingerprint` to let the C extension handle it:
 
 ```
-BenchmarkFingerprintSelect1-4        	   30000	     51022 ns/op	   15180 B/op	     244 allocs/op
-BenchmarkFingerprintSelect2-4        	   10000	    211596 ns/op	   51919 B/op	     826 allocs/op
-BenchmarkFingerprintCreateTable-4    	    2000	    643965 ns/op	  161483 B/op	    2358 allocs/op
-BenchmarkFastFingerprintSelect1-4    	  300000	      4442 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintSelect2-4    	  200000	      8328 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintCreateTable-4	  100000	     22475 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFingerprintSelect1-4         	  300000	     51988 ns/op	   15180 B/op	     244 allocs/op
+BenchmarkFingerprintSelect2-4         	  100000	    202725 ns/op	   51918 B/op	     826 allocs/op
+BenchmarkFingerprintCreateTable-4     	   20000	    608039 ns/op	  161484 B/op	    2358 allocs/op
+BenchmarkFastFingerprintSelect1-4     	 3000000	      4492 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFastFingerprintSelect2-4     	 2000000	      7960 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFastFingerprintCreateTable-4 	 1000000	     22009 ns/op	      80 B/op	       2 allocs/op
 ```
 
 Normalization is already handled in the C extension, doesn't depend on JSON parsing at all, and is fast:
 
 ```
-BenchmarkNormalizeSelect1-4          	 1000000	      2121 ns/op	      24 B/op	       2 allocs/op
-BenchmarkNormalizeSelect2-4          	  300000	      4219 ns/op	      64 B/op	       2 allocs/op
-BenchmarkNormalizeCreateTable-4      	  200000	      7446 ns/op	     144 B/op	       2 allocs/op
+BenchmarkNormalizeSelect1-4           	10000000	      2349 ns/op	      24 B/op	       2 allocs/op
+BenchmarkNormalizeSelect2-4           	 3000000	      4202 ns/op	      64 B/op	       2 allocs/op
+BenchmarkNormalizeCreateTable-4       	 2000000	      7237 ns/op	     144 B/op	       2 allocs/op
 ```
 
 See `benchmark_test.go` for the queries.
