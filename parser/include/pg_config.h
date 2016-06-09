@@ -906,3 +906,7 @@
 /* Define to the type of an unsigned integer type wide enough to hold a
    pointer, if such a type exists, and if the system does not define it. */
 /* #undef uintptr_t */
+
+#undef WCSTOMBS_L_IN_XLOCALE
+#undef LOCALE_T_IN_XLOCALE
+#undef HAVE_LOCALE_T
