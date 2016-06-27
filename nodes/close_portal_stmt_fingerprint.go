@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node ClosePortalStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ClosePortalStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ClosePortalStmt")
 
 	if node.Portalname != nil {

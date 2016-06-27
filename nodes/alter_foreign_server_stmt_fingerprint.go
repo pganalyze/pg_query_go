@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterForeignServerStmt")
 
 	if node.HasVersion {
@@ -14,7 +14,7 @@ func (node AlterForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFie
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

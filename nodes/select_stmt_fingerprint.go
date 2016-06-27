@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SelectStmt")
 
 	if node.All {
@@ -14,7 +14,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.DistinctClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.DistinctClause.Fingerprint(&subCtx, "DistinctClause")
+		node.DistinctClause.Fingerprint(&subCtx, node, "DistinctClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("distinctClause")
@@ -26,7 +26,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.FromClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.FromClause.Fingerprint(&subCtx, "FromClause")
+		node.FromClause.Fingerprint(&subCtx, node, "FromClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fromClause")
@@ -38,7 +38,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.GroupClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GroupClause.Fingerprint(&subCtx, "GroupClause")
+		node.GroupClause.Fingerprint(&subCtx, node, "GroupClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("groupClause")
@@ -50,7 +50,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.HavingClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.HavingClause.Fingerprint(&subCtx, "HavingClause")
+		node.HavingClause.Fingerprint(&subCtx, node, "HavingClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("havingClause")
@@ -62,7 +62,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.IntoClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.IntoClause.Fingerprint(&subCtx, "IntoClause")
+		node.IntoClause.Fingerprint(&subCtx, node, "IntoClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("intoClause")
@@ -74,7 +74,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Larg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Larg.Fingerprint(&subCtx, "Larg")
+		node.Larg.Fingerprint(&subCtx, node, "Larg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("larg")
@@ -86,7 +86,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.LimitCount != nil {
 		subCtx := FingerprintSubContext{}
-		node.LimitCount.Fingerprint(&subCtx, "LimitCount")
+		node.LimitCount.Fingerprint(&subCtx, node, "LimitCount")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("limitCount")
@@ -98,7 +98,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.LimitOffset != nil {
 		subCtx := FingerprintSubContext{}
-		node.LimitOffset.Fingerprint(&subCtx, "LimitOffset")
+		node.LimitOffset.Fingerprint(&subCtx, node, "LimitOffset")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("limitOffset")
@@ -110,7 +110,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.LockingClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.LockingClause.Fingerprint(&subCtx, "LockingClause")
+		node.LockingClause.Fingerprint(&subCtx, node, "LockingClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("lockingClause")
@@ -127,7 +127,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Rarg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Rarg.Fingerprint(&subCtx, "Rarg")
+		node.Rarg.Fingerprint(&subCtx, node, "Rarg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rarg")
@@ -139,7 +139,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.SortClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.SortClause.Fingerprint(&subCtx, "SortClause")
+		node.SortClause.Fingerprint(&subCtx, node, "SortClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("sortClause")
@@ -151,7 +151,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.TargetList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TargetList.Fingerprint(&subCtx, "TargetList")
+		node.TargetList.Fingerprint(&subCtx, node, "TargetList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("targetList")
@@ -165,7 +165,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 		subCtx := FingerprintSubContext{}
 		for _, nodeList := range node.ValuesLists {
 			for _, subNode := range nodeList {
-				subNode.Fingerprint(&subCtx, "ValuesLists")
+				subNode.Fingerprint(&subCtx, node, "ValuesLists")
 			}
 		}
 
@@ -179,7 +179,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")
@@ -191,7 +191,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.WindowClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.WindowClause.Fingerprint(&subCtx, "WindowClause")
+		node.WindowClause.Fingerprint(&subCtx, node, "WindowClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("windowClause")
@@ -203,7 +203,7 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WithClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WithClause.Fingerprint(&subCtx, "WithClause")
+		node.WithClause.Fingerprint(&subCtx, node, "WithClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("withClause")

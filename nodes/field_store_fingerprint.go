@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node FieldStore) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("FieldStore")
 
 	if node.Arg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Arg.Fingerprint(&subCtx, "Arg")
+		node.Arg.Fingerprint(&subCtx, node, "Arg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg")
@@ -21,7 +21,7 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Fieldnums.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Fieldnums.Fingerprint(&subCtx, "Fieldnums")
+		node.Fieldnums.Fingerprint(&subCtx, node, "Fieldnums")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fieldnums")
@@ -33,7 +33,7 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Newvals.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Newvals.Fingerprint(&subCtx, "Newvals")
+		node.Newvals.Fingerprint(&subCtx, node, "Newvals")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("newvals")
@@ -50,7 +50,7 @@ func (node FieldStore) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

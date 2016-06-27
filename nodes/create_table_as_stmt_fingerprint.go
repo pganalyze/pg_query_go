@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateTableAsStmt")
 
 	if node.IfNotExists {
@@ -14,7 +14,7 @@ func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Into != nil {
 		subCtx := FingerprintSubContext{}
-		node.Into.Fingerprint(&subCtx, "Into")
+		node.Into.Fingerprint(&subCtx, node, "Into")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("into")
@@ -31,7 +31,7 @@ func (node CreateTableAsStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Query != nil {
 		subCtx := FingerprintSubContext{}
-		node.Query.Fingerprint(&subCtx, "Query")
+		node.Query.Fingerprint(&subCtx, node, "Query")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("query")

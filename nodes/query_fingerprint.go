@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node Query) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Query")
 
 	if node.CanSetTag {
@@ -19,7 +19,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.ConstraintDeps.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ConstraintDeps.Fingerprint(&subCtx, "ConstraintDeps")
+		node.ConstraintDeps.Fingerprint(&subCtx, node, "ConstraintDeps")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constraintDeps")
@@ -31,7 +31,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.CteList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.CteList.Fingerprint(&subCtx, "CteList")
+		node.CteList.Fingerprint(&subCtx, node, "CteList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cteList")
@@ -43,7 +43,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.DistinctClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.DistinctClause.Fingerprint(&subCtx, "DistinctClause")
+		node.DistinctClause.Fingerprint(&subCtx, node, "DistinctClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("distinctClause")
@@ -55,7 +55,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.GroupClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GroupClause.Fingerprint(&subCtx, "GroupClause")
+		node.GroupClause.Fingerprint(&subCtx, node, "GroupClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("groupClause")
@@ -67,7 +67,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.GroupingSets.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GroupingSets.Fingerprint(&subCtx, "GroupingSets")
+		node.GroupingSets.Fingerprint(&subCtx, node, "GroupingSets")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("groupingSets")
@@ -119,7 +119,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.HavingQual != nil {
 		subCtx := FingerprintSubContext{}
-		node.HavingQual.Fingerprint(&subCtx, "HavingQual")
+		node.HavingQual.Fingerprint(&subCtx, node, "HavingQual")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("havingQual")
@@ -131,7 +131,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.Jointree != nil {
 		subCtx := FingerprintSubContext{}
-		node.Jointree.Fingerprint(&subCtx, "Jointree")
+		node.Jointree.Fingerprint(&subCtx, node, "Jointree")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("jointree")
@@ -143,7 +143,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.LimitCount != nil {
 		subCtx := FingerprintSubContext{}
-		node.LimitCount.Fingerprint(&subCtx, "LimitCount")
+		node.LimitCount.Fingerprint(&subCtx, node, "LimitCount")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("limitCount")
@@ -155,7 +155,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.LimitOffset != nil {
 		subCtx := FingerprintSubContext{}
-		node.LimitOffset.Fingerprint(&subCtx, "LimitOffset")
+		node.LimitOffset.Fingerprint(&subCtx, node, "LimitOffset")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("limitOffset")
@@ -167,7 +167,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.OnConflict != nil {
 		subCtx := FingerprintSubContext{}
-		node.OnConflict.Fingerprint(&subCtx, "OnConflict")
+		node.OnConflict.Fingerprint(&subCtx, node, "OnConflict")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("onConflict")
@@ -194,7 +194,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.ReturningList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+		node.ReturningList.Fingerprint(&subCtx, node, "ReturningList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("returningList")
@@ -206,7 +206,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.RowMarks.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.RowMarks.Fingerprint(&subCtx, "RowMarks")
+		node.RowMarks.Fingerprint(&subCtx, node, "RowMarks")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rowMarks")
@@ -218,7 +218,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.Rtable.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Rtable.Fingerprint(&subCtx, "Rtable")
+		node.Rtable.Fingerprint(&subCtx, node, "Rtable")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rtable")
@@ -230,7 +230,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.SetOperations != nil {
 		subCtx := FingerprintSubContext{}
-		node.SetOperations.Fingerprint(&subCtx, "SetOperations")
+		node.SetOperations.Fingerprint(&subCtx, node, "SetOperations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("setOperations")
@@ -242,7 +242,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.SortClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.SortClause.Fingerprint(&subCtx, "SortClause")
+		node.SortClause.Fingerprint(&subCtx, node, "SortClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("sortClause")
@@ -254,7 +254,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.TargetList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TargetList.Fingerprint(&subCtx, "TargetList")
+		node.TargetList.Fingerprint(&subCtx, node, "TargetList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("targetList")
@@ -266,7 +266,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.UtilityStmt != nil {
 		subCtx := FingerprintSubContext{}
-		node.UtilityStmt.Fingerprint(&subCtx, "UtilityStmt")
+		node.UtilityStmt.Fingerprint(&subCtx, node, "UtilityStmt")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("utilityStmt")
@@ -278,7 +278,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.WindowClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.WindowClause.Fingerprint(&subCtx, "WindowClause")
+		node.WindowClause.Fingerprint(&subCtx, node, "WindowClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("windowClause")
@@ -290,7 +290,7 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.WithCheckOptions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.WithCheckOptions.Fingerprint(&subCtx, "WithCheckOptions")
+		node.WithCheckOptions.Fingerprint(&subCtx, node, "WithCheckOptions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("withCheckOptions")

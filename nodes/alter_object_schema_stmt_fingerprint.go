@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterObjectSchemaStmt")
 
 	if node.MissingOk {
@@ -19,7 +19,7 @@ func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if len(node.Objarg.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objarg.Fingerprint(&subCtx, "Objarg")
+		node.Objarg.Fingerprint(&subCtx, node, "Objarg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objarg")
@@ -31,7 +31,7 @@ func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if len(node.Object.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Object.Fingerprint(&subCtx, "Object")
+		node.Object.Fingerprint(&subCtx, node, "Object")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("object")
@@ -48,7 +48,7 @@ func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

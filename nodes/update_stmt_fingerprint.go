@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("UpdateStmt")
 
 	if len(node.FromClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.FromClause.Fingerprint(&subCtx, "FromClause")
+		node.FromClause.Fingerprint(&subCtx, node, "FromClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fromClause")
@@ -19,7 +19,7 @@ func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -31,7 +31,7 @@ func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.ReturningList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+		node.ReturningList.Fingerprint(&subCtx, node, "ReturningList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("returningList")
@@ -43,7 +43,7 @@ func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.TargetList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TargetList.Fingerprint(&subCtx, "TargetList")
+		node.TargetList.Fingerprint(&subCtx, node, "TargetList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("targetList")
@@ -55,7 +55,7 @@ func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")
@@ -67,7 +67,7 @@ func (node UpdateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WithClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WithClause.Fingerprint(&subCtx, "WithClause")
+		node.WithClause.Fingerprint(&subCtx, node, "WithClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("withClause")

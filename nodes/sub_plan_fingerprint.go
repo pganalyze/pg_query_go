@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node SubPlan) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SubPlan")
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -36,7 +36,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if len(node.ParParam.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ParParam.Fingerprint(&subCtx, "ParParam")
+		node.ParParam.Fingerprint(&subCtx, node, "ParParam")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("parParam")
@@ -48,7 +48,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if len(node.ParamIds.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ParamIds.Fingerprint(&subCtx, "ParamIds")
+		node.ParamIds.Fingerprint(&subCtx, node, "ParamIds")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("paramIds")
@@ -72,7 +72,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if len(node.SetParam.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.SetParam.Fingerprint(&subCtx, "SetParam")
+		node.SetParam.Fingerprint(&subCtx, node, "SetParam")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("setParam")
@@ -91,7 +91,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Testexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Testexpr.Fingerprint(&subCtx, "Testexpr")
+		node.Testexpr.Fingerprint(&subCtx, node, "Testexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("testexpr")
@@ -113,7 +113,7 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

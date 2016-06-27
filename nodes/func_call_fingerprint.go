@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node FuncCall) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("FuncCall")
 
 	if node.AggDistinct {
@@ -14,7 +14,7 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.AggFilter != nil {
 		subCtx := FingerprintSubContext{}
-		node.AggFilter.Fingerprint(&subCtx, "AggFilter")
+		node.AggFilter.Fingerprint(&subCtx, node, "AggFilter")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("agg_filter")
@@ -26,7 +26,7 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.AggOrder.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.AggOrder.Fingerprint(&subCtx, "AggOrder")
+		node.AggOrder.Fingerprint(&subCtx, node, "AggOrder")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("agg_order")
@@ -48,7 +48,7 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -65,7 +65,7 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Funcname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcname.Fingerprint(&subCtx, "Funcname")
+		node.Funcname.Fingerprint(&subCtx, node, "Funcname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcname")
@@ -78,7 +78,7 @@ func (node FuncCall) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Over != nil {
 		subCtx := FingerprintSubContext{}
-		node.Over.Fingerprint(&subCtx, "Over")
+		node.Over.Fingerprint(&subCtx, node, "Over")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("over")

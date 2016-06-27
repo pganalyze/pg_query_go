@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Param) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node Param) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Param")
 	// Intentionally ignoring node.Location for fingerprinting
 
@@ -35,7 +35,7 @@ func (node Param) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

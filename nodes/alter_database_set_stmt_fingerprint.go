@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node AlterDatabaseSetStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterDatabaseSetStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterDatabaseSetStmt")
 
 	if node.Dbname != nil {
@@ -12,7 +12,7 @@ func (node AlterDatabaseSetStmt) Fingerprint(ctx FingerprintContext, parentField
 
 	if node.Setstmt != nil {
 		subCtx := FingerprintSubContext{}
-		node.Setstmt.Fingerprint(&subCtx, "Setstmt")
+		node.Setstmt.Fingerprint(&subCtx, node, "Setstmt")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("setstmt")

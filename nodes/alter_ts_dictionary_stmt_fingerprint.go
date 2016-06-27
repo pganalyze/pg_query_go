@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node AlterTSDictionaryStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterTSDictionaryStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterTSDictionaryStmt")
 
 	if len(node.Dictname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Dictname.Fingerprint(&subCtx, "Dictname")
+		node.Dictname.Fingerprint(&subCtx, node, "Dictname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("dictname")
@@ -19,7 +19,7 @@ func (node AlterTSDictionaryStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("XmlExpr")
 
 	if len(node.ArgNames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ArgNames.Fingerprint(&subCtx, "ArgNames")
+		node.ArgNames.Fingerprint(&subCtx, node, "ArgNames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg_names")
@@ -21,7 +21,7 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -39,7 +39,7 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if len(node.NamedArgs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.NamedArgs.Fingerprint(&subCtx, "NamedArgs")
+		node.NamedArgs.Fingerprint(&subCtx, node, "NamedArgs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("named_args")
@@ -71,7 +71,7 @@ func (node XmlExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

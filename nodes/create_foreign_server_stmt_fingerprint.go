@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateForeignServerStmt")
 
 	if node.Fdwname != nil {
@@ -12,7 +12,7 @@ func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext, parentFi
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

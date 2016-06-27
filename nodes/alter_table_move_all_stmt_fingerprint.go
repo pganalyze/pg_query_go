@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterTableMoveAllStmt")
 
 	if node.NewTablespacename != nil {
@@ -29,7 +29,7 @@ func (node AlterTableMoveAllStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if len(node.Roles.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Roles.Fingerprint(&subCtx, "Roles")
+		node.Roles.Fingerprint(&subCtx, node, "Roles")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("roles")

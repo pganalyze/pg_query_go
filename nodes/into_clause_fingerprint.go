@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node IntoClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("IntoClause")
 
 	if len(node.ColNames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ColNames.Fingerprint(&subCtx, "ColNames")
+		node.ColNames.Fingerprint(&subCtx, node, "ColNames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("colNames")
@@ -26,7 +26,7 @@ func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -38,7 +38,7 @@ func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Rel != nil {
 		subCtx := FingerprintSubContext{}
-		node.Rel.Fingerprint(&subCtx, "Rel")
+		node.Rel.Fingerprint(&subCtx, node, "Rel")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rel")
@@ -60,7 +60,7 @@ func (node IntoClause) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.ViewQuery != nil {
 		subCtx := FingerprintSubContext{}
-		node.ViewQuery.Fingerprint(&subCtx, "ViewQuery")
+		node.ViewQuery.Fingerprint(&subCtx, node, "ViewQuery")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("viewQuery")

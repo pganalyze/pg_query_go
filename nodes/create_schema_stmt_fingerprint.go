@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateSchemaStmt")
 
 	if node.Authrole != nil {
 		subCtx := FingerprintSubContext{}
-		node.Authrole.Fingerprint(&subCtx, "Authrole")
+		node.Authrole.Fingerprint(&subCtx, node, "Authrole")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("authrole")
@@ -26,7 +26,7 @@ func (node CreateSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.SchemaElts.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.SchemaElts.Fingerprint(&subCtx, "SchemaElts")
+		node.SchemaElts.Fingerprint(&subCtx, node, "SchemaElts")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("schemaElts")

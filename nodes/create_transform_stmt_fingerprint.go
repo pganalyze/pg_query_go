@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateTransformStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateTransformStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateTransformStmt")
 
 	if node.Fromsql != nil {
 		subCtx := FingerprintSubContext{}
-		node.Fromsql.Fingerprint(&subCtx, "Fromsql")
+		node.Fromsql.Fingerprint(&subCtx, node, "Fromsql")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fromsql")
@@ -31,7 +31,7 @@ func (node CreateTransformStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 
 	if node.Tosql != nil {
 		subCtx := FingerprintSubContext{}
-		node.Tosql.Fingerprint(&subCtx, "Tosql")
+		node.Tosql.Fingerprint(&subCtx, node, "Tosql")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("tosql")
@@ -43,7 +43,7 @@ func (node CreateTransformStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 
 	if node.TypeName != nil {
 		subCtx := FingerprintSubContext{}
-		node.TypeName.Fingerprint(&subCtx, "TypeName")
+		node.TypeName.Fingerprint(&subCtx, node, "TypeName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("type_name")

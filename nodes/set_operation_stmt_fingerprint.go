@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SetOperationStmt")
 
 	if node.All {
@@ -14,7 +14,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.ColCollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ColCollations.Fingerprint(&subCtx, "ColCollations")
+		node.ColCollations.Fingerprint(&subCtx, node, "ColCollations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("colCollations")
@@ -26,7 +26,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.ColTypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ColTypes.Fingerprint(&subCtx, "ColTypes")
+		node.ColTypes.Fingerprint(&subCtx, node, "ColTypes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("colTypes")
@@ -38,7 +38,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.ColTypmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ColTypmods.Fingerprint(&subCtx, "ColTypmods")
+		node.ColTypmods.Fingerprint(&subCtx, node, "ColTypmods")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("colTypmods")
@@ -50,7 +50,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.GroupClauses.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GroupClauses.Fingerprint(&subCtx, "GroupClauses")
+		node.GroupClauses.Fingerprint(&subCtx, node, "GroupClauses")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("groupClauses")
@@ -62,7 +62,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Larg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Larg.Fingerprint(&subCtx, "Larg")
+		node.Larg.Fingerprint(&subCtx, node, "Larg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("larg")
@@ -79,7 +79,7 @@ func (node SetOperationStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Rarg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Rarg.Fingerprint(&subCtx, "Rarg")
+		node.Rarg.Fingerprint(&subCtx, node, "Rarg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rarg")

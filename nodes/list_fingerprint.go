@@ -4,14 +4,14 @@ package pg_query
 
 import "sort"
 
-func (node List) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node List) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	if parentFieldName == "FromClause" || parentFieldName == "TargetList" || parentFieldName == "Cols" || parentFieldName == "Rexpr" {
 		var itemsFingerprints FingerprintSubContextSlice
 
 		for _, subNode := range node.Items {
 			if subNode != nil {
 				subCtx := FingerprintSubContext{}
-				subNode.Fingerprint(&subCtx, parentFieldName)
+				subNode.Fingerprint(&subCtx, parentNode, parentFieldName)
 				itemsFingerprints.AddIfUnique(subCtx)
 			}
 		}
@@ -26,7 +26,7 @@ func (node List) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 	} else {
 		for _, subNode := range node.Items {
 			if subNode != nil {
-				subNode.Fingerprint(ctx, parentFieldName)
+				subNode.Fingerprint(ctx, parentNode, parentFieldName)
 			}
 		}
 	}

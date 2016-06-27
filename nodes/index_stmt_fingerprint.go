@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("IndexStmt")
 
 	if node.AccessMethod != nil {
@@ -24,7 +24,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.ExcludeOpNames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ExcludeOpNames.Fingerprint(&subCtx, "ExcludeOpNames")
+		node.ExcludeOpNames.Fingerprint(&subCtx, node, "ExcludeOpNames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("excludeOpNames")
@@ -56,7 +56,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.IndexParams.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.IndexParams.Fingerprint(&subCtx, "IndexParams")
+		node.IndexParams.Fingerprint(&subCtx, node, "IndexParams")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("indexParams")
@@ -83,7 +83,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -100,7 +100,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -127,7 +127,7 @@ func (node IndexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node RefreshMatViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RefreshMatViewStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RefreshMatViewStmt")
 
 	if node.Concurrent {
@@ -14,7 +14,7 @@ func (node RefreshMatViewStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

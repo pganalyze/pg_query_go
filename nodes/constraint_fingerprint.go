@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node Constraint) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Constraint")
 
 	if node.AccessMethod != nil {
@@ -34,7 +34,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Exclusions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Exclusions.Fingerprint(&subCtx, "Exclusions")
+		node.Exclusions.Fingerprint(&subCtx, node, "Exclusions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("exclusions")
@@ -46,7 +46,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.FkAttrs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.FkAttrs.Fingerprint(&subCtx, "FkAttrs")
+		node.FkAttrs.Fingerprint(&subCtx, node, "FkAttrs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fk_attrs")
@@ -101,7 +101,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Keys.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Keys.Fingerprint(&subCtx, "Keys")
+		node.Keys.Fingerprint(&subCtx, node, "Keys")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("keys")
@@ -114,7 +114,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.OldConpfeqop.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.OldConpfeqop.Fingerprint(&subCtx, "OldConpfeqop")
+		node.OldConpfeqop.Fingerprint(&subCtx, node, "OldConpfeqop")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("old_conpfeqop")
@@ -131,7 +131,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -143,7 +143,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.PkAttrs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.PkAttrs.Fingerprint(&subCtx, "PkAttrs")
+		node.PkAttrs.Fingerprint(&subCtx, node, "PkAttrs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("pk_attrs")
@@ -155,7 +155,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Pktable != nil {
 		subCtx := FingerprintSubContext{}
-		node.Pktable.Fingerprint(&subCtx, "Pktable")
+		node.Pktable.Fingerprint(&subCtx, node, "Pktable")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("pktable")
@@ -167,7 +167,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.RawExpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.RawExpr.Fingerprint(&subCtx, "RawExpr")
+		node.RawExpr.Fingerprint(&subCtx, node, "RawExpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("raw_expr")
@@ -184,7 +184,7 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("where_clause")

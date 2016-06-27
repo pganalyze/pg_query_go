@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ParamExternData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ParamExternData) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ParamExternData")
 
 	if node.Isnull {

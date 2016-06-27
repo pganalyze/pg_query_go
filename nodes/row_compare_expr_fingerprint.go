@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RowCompareExpr")
 
 	if len(node.Inputcollids.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Inputcollids.Fingerprint(&subCtx, "Inputcollids")
+		node.Inputcollids.Fingerprint(&subCtx, node, "Inputcollids")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("inputcollids")
@@ -21,7 +21,7 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Largs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Largs.Fingerprint(&subCtx, "Largs")
+		node.Largs.Fingerprint(&subCtx, node, "Largs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("largs")
@@ -33,7 +33,7 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Opfamilies.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Opfamilies.Fingerprint(&subCtx, "Opfamilies")
+		node.Opfamilies.Fingerprint(&subCtx, node, "Opfamilies")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("opfamilies")
@@ -45,7 +45,7 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Opnos.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Opnos.Fingerprint(&subCtx, "Opnos")
+		node.Opnos.Fingerprint(&subCtx, node, "Opnos")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("opnos")
@@ -57,7 +57,7 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Rargs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Rargs.Fingerprint(&subCtx, "Rargs")
+		node.Rargs.Fingerprint(&subCtx, node, "Rargs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rargs")
@@ -74,7 +74,7 @@ func (node RowCompareExpr) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

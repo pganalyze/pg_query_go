@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ClusterStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ClusterStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ClusterStmt")
 
 	if node.Indexname != nil {
@@ -14,7 +14,7 @@ func (node ClusterStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ArrayRef")
 
 	if node.Refarraytype != 0 {
@@ -14,7 +14,7 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Refassgnexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Refassgnexpr.Fingerprint(&subCtx, "Refassgnexpr")
+		node.Refassgnexpr.Fingerprint(&subCtx, node, "Refassgnexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("refassgnexpr")
@@ -36,7 +36,7 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Refexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Refexpr.Fingerprint(&subCtx, "Refexpr")
+		node.Refexpr.Fingerprint(&subCtx, node, "Refexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("refexpr")
@@ -48,7 +48,7 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Reflowerindexpr.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Reflowerindexpr.Fingerprint(&subCtx, "Reflowerindexpr")
+		node.Reflowerindexpr.Fingerprint(&subCtx, node, "Reflowerindexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("reflowerindexpr")
@@ -65,7 +65,7 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Refupperindexpr.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Refupperindexpr.Fingerprint(&subCtx, "Refupperindexpr")
+		node.Refupperindexpr.Fingerprint(&subCtx, node, "Refupperindexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("refupperindexpr")
@@ -77,7 +77,7 @@ func (node ArrayRef) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

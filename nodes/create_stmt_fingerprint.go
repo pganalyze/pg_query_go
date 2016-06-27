@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateStmt")
 
 	if len(node.Constraints.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Constraints.Fingerprint(&subCtx, "Constraints")
+		node.Constraints.Fingerprint(&subCtx, node, "Constraints")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constraints")
@@ -26,7 +26,7 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.InhRelations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.InhRelations.Fingerprint(&subCtx, "InhRelations")
+		node.InhRelations.Fingerprint(&subCtx, node, "InhRelations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("inhRelations")
@@ -38,7 +38,7 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.OfTypename != nil {
 		subCtx := FingerprintSubContext{}
-		node.OfTypename.Fingerprint(&subCtx, "OfTypename")
+		node.OfTypename.Fingerprint(&subCtx, node, "OfTypename")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ofTypename")
@@ -55,7 +55,7 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -67,7 +67,7 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -79,7 +79,7 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.TableElts.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TableElts.Fingerprint(&subCtx, "TableElts")
+		node.TableElts.Fingerprint(&subCtx, node, "TableElts")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("tableElts")

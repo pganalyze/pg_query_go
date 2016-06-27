@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node MultiAssignRef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node MultiAssignRef) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("MultiAssignRef")
 
 	if node.Colno != 0 {
@@ -19,7 +19,7 @@ func (node MultiAssignRef) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.Source != nil {
 		subCtx := FingerprintSubContext{}
-		node.Source.Fingerprint(&subCtx, "Source")
+		node.Source.Fingerprint(&subCtx, node, "Source")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("source")

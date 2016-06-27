@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node LoadStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node LoadStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("LoadStmt")
 
 	if node.Filename != nil {

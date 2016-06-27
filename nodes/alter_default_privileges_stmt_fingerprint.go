@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterDefaultPrivilegesStmt")
 
 	if node.Action != nil {
 		subCtx := FingerprintSubContext{}
-		node.Action.Fingerprint(&subCtx, "Action")
+		node.Action.Fingerprint(&subCtx, node, "Action")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("action")
@@ -19,7 +19,7 @@ func (node AlterDefaultPrivilegesStmt) Fingerprint(ctx FingerprintContext, paren
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

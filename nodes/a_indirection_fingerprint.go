@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node A_Indirection) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node A_Indirection) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("A_Indirection")
 
 	if node.Arg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Arg.Fingerprint(&subCtx, "Arg")
+		node.Arg.Fingerprint(&subCtx, node, "Arg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg")
@@ -19,7 +19,7 @@ func (node A_Indirection) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Indirection.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Indirection.Fingerprint(&subCtx, "Indirection")
+		node.Indirection.Fingerprint(&subCtx, node, "Indirection")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("indirection")

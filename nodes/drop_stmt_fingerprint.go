@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node DropStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node DropStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DropStmt")
 
 	if len(node.Arguments.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Arguments.Fingerprint(&subCtx, "Arguments")
+		node.Arguments.Fingerprint(&subCtx, node, "Arguments")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arguments")
@@ -36,7 +36,7 @@ func (node DropStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Objects.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objects.Fingerprint(&subCtx, "Objects")
+		node.Objects.Fingerprint(&subCtx, node, "Objects")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objects")

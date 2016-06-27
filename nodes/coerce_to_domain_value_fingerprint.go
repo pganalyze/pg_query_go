@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CoerceToDomainValue) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CoerceToDomainValue) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CoerceToDomainValue")
 
 	if node.Collation != 0 {
@@ -26,7 +26,7 @@ func (node CoerceToDomainValue) Fingerprint(ctx FingerprintContext, parentFieldN
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

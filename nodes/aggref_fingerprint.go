@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node Aggref) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Aggref")
 
 	if node.Aggcollid != 0 {
@@ -14,7 +14,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.Aggdirectargs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Aggdirectargs.Fingerprint(&subCtx, "Aggdirectargs")
+		node.Aggdirectargs.Fingerprint(&subCtx, node, "Aggdirectargs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aggdirectargs")
@@ -26,7 +26,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.Aggdistinct.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Aggdistinct.Fingerprint(&subCtx, "Aggdistinct")
+		node.Aggdistinct.Fingerprint(&subCtx, node, "Aggdistinct")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aggdistinct")
@@ -38,7 +38,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.Aggfilter != nil {
 		subCtx := FingerprintSubContext{}
-		node.Aggfilter.Fingerprint(&subCtx, "Aggfilter")
+		node.Aggfilter.Fingerprint(&subCtx, node, "Aggfilter")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aggfilter")
@@ -66,7 +66,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.Aggorder.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Aggorder.Fingerprint(&subCtx, "Aggorder")
+		node.Aggorder.Fingerprint(&subCtx, node, "Aggorder")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aggorder")
@@ -93,7 +93,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -112,7 +112,7 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

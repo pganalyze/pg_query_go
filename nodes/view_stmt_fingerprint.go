@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ViewStmt")
 
 	if len(node.Aliases.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Aliases.Fingerprint(&subCtx, "Aliases")
+		node.Aliases.Fingerprint(&subCtx, node, "Aliases")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aliases")
@@ -21,7 +21,7 @@ func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -33,7 +33,7 @@ func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Query != nil {
 		subCtx := FingerprintSubContext{}
-		node.Query.Fingerprint(&subCtx, "Query")
+		node.Query.Fingerprint(&subCtx, node, "Query")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("query")
@@ -50,7 +50,7 @@ func (node ViewStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.View != nil {
 		subCtx := FingerprintSubContext{}
-		node.View.Fingerprint(&subCtx, "View")
+		node.View.Fingerprint(&subCtx, node, "View")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("view")

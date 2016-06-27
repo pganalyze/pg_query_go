@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RangeTblFunction")
 
 	if len(node.Funccolcollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funccolcollations.Fingerprint(&subCtx, "Funccolcollations")
+		node.Funccolcollations.Fingerprint(&subCtx, node, "Funccolcollations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funccolcollations")
@@ -26,7 +26,7 @@ func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Funccolnames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funccolnames.Fingerprint(&subCtx, "Funccolnames")
+		node.Funccolnames.Fingerprint(&subCtx, node, "Funccolnames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funccolnames")
@@ -38,7 +38,7 @@ func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Funccoltypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funccoltypes.Fingerprint(&subCtx, "Funccoltypes")
+		node.Funccoltypes.Fingerprint(&subCtx, node, "Funccoltypes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funccoltypes")
@@ -50,7 +50,7 @@ func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Funccoltypmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funccoltypmods.Fingerprint(&subCtx, "Funccoltypmods")
+		node.Funccoltypmods.Fingerprint(&subCtx, node, "Funccoltypmods")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funccoltypmods")
@@ -62,7 +62,7 @@ func (node RangeTblFunction) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Funcexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Funcexpr.Fingerprint(&subCtx, "Funcexpr")
+		node.Funcexpr.Fingerprint(&subCtx, node, "Funcexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcexpr")

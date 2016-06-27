@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DeleteStmt")
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -19,7 +19,7 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.ReturningList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ReturningList.Fingerprint(&subCtx, "ReturningList")
+		node.ReturningList.Fingerprint(&subCtx, node, "ReturningList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("returningList")
@@ -31,7 +31,7 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if len(node.UsingClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.UsingClause.Fingerprint(&subCtx, "UsingClause")
+		node.UsingClause.Fingerprint(&subCtx, node, "UsingClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("usingClause")
@@ -43,7 +43,7 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")
@@ -55,7 +55,7 @@ func (node DeleteStmt) Fingerprint(ctx FingerprintContext, parentFieldName strin
 
 	if node.WithClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WithClause.Fingerprint(&subCtx, "WithClause")
+		node.WithClause.Fingerprint(&subCtx, node, "WithClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("withClause")

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterSeqStmt")
 
 	if node.MissingOk {
@@ -14,7 +14,7 @@ func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -26,7 +26,7 @@ func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if node.Sequence != nil {
 		subCtx := FingerprintSubContext{}
-		node.Sequence.Fingerprint(&subCtx, "Sequence")
+		node.Sequence.Fingerprint(&subCtx, node, "Sequence")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("sequence")

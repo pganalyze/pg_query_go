@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CommonTableExpr")
 
 	if len(node.Aliascolnames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Aliascolnames.Fingerprint(&subCtx, "Aliascolnames")
+		node.Aliascolnames.Fingerprint(&subCtx, node, "Aliascolnames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("aliascolnames")
@@ -21,7 +21,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Ctecolcollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecolcollations.Fingerprint(&subCtx, "Ctecolcollations")
+		node.Ctecolcollations.Fingerprint(&subCtx, node, "Ctecolcollations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecolcollations")
@@ -33,7 +33,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Ctecolnames.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecolnames.Fingerprint(&subCtx, "Ctecolnames")
+		node.Ctecolnames.Fingerprint(&subCtx, node, "Ctecolnames")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecolnames")
@@ -45,7 +45,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Ctecoltypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypes.Fingerprint(&subCtx, "Ctecoltypes")
+		node.Ctecoltypes.Fingerprint(&subCtx, node, "Ctecoltypes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecoltypes")
@@ -57,7 +57,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Ctecoltypmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypmods.Fingerprint(&subCtx, "Ctecoltypmods")
+		node.Ctecoltypmods.Fingerprint(&subCtx, node, "Ctecoltypmods")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecoltypmods")
@@ -74,7 +74,7 @@ func (node CommonTableExpr) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if node.Ctequery != nil {
 		subCtx := FingerprintSubContext{}
-		node.Ctequery.Fingerprint(&subCtx, "Ctequery")
+		node.Ctequery.Fingerprint(&subCtx, node, "Ctequery")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctequery")

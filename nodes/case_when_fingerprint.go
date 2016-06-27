@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CaseWhen) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CaseWhen) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CaseWhen")
 
 	if node.Expr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Expr.Fingerprint(&subCtx, "Expr")
+		node.Expr.Fingerprint(&subCtx, node, "Expr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("expr")
@@ -20,7 +20,7 @@ func (node CaseWhen) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Result != nil {
 		subCtx := FingerprintSubContext{}
-		node.Result.Fingerprint(&subCtx, "Result")
+		node.Result.Fingerprint(&subCtx, node, "Result")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("result")
@@ -32,7 +32,7 @@ func (node CaseWhen) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RuleStmt")
 
 	if len(node.Actions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Actions.Fingerprint(&subCtx, "Actions")
+		node.Actions.Fingerprint(&subCtx, node, "Actions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("actions")
@@ -31,7 +31,7 @@ func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -53,7 +53,7 @@ func (node RuleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")

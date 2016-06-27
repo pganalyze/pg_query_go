@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node varatt_external) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node varatt_external) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("varatt_external")
 
 	if node.VaExtsize != 0 {

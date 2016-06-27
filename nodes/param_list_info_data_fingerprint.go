@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ParamListInfoData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ParamListInfoData) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ParamListInfoData")
 
 	if node.NumParams != 0 {

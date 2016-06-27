@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterExtensionStmt")
 
 	if node.Extname != nil {
@@ -12,7 +12,7 @@ func (node AlterExtensionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

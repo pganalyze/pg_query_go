@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateRoleStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateRoleStmt")
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")

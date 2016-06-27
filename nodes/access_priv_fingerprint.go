@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node AccessPriv) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AccessPriv) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AccessPriv")
 
 	if len(node.Cols.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Cols.Fingerprint(&subCtx, "Cols")
+		node.Cols.Fingerprint(&subCtx, node, "Cols")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cols")

@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node RangeTableSample) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RangeTableSample) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RangeTableSample")
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -20,7 +20,7 @@ func (node RangeTableSample) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Method.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Method.Fingerprint(&subCtx, "Method")
+		node.Method.Fingerprint(&subCtx, node, "Method")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("method")
@@ -32,7 +32,7 @@ func (node RangeTableSample) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -44,7 +44,7 @@ func (node RangeTableSample) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Repeatable != nil {
 		subCtx := FingerprintSubContext{}
-		node.Repeatable.Fingerprint(&subCtx, "Repeatable")
+		node.Repeatable.Fingerprint(&subCtx, node, "Repeatable")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("repeatable")

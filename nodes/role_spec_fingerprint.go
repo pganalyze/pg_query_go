@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node RoleSpec) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RoleSpec) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RoleSpec")
 	// Intentionally ignoring node.Location for fingerprinting
 

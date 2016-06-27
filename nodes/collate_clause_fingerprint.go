@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CollateClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CollateClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CollateClause")
 
 	if node.Arg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Arg.Fingerprint(&subCtx, "Arg")
+		node.Arg.Fingerprint(&subCtx, node, "Arg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg")
@@ -19,7 +19,7 @@ func (node CollateClause) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Collname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Collname.Fingerprint(&subCtx, "Collname")
+		node.Collname.Fingerprint(&subCtx, node, "Collname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("collname")

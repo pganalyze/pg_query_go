@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node Integer) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node Integer) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Integer")
 
 	if node.Ival != 0 {

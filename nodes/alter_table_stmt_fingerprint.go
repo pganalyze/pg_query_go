@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterTableStmt")
 
 	if len(node.Cmds.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Cmds.Fingerprint(&subCtx, "Cmds")
+		node.Cmds.Fingerprint(&subCtx, node, "Cmds")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cmds")
@@ -26,7 +26,7 @@ func (node AlterTableStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

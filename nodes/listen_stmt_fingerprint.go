@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node ListenStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ListenStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ListenStmt")
 
 	if node.Conditionname != nil {

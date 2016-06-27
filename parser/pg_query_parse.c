@@ -9,28 +9,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-MemoryContext pg_query_enter_memory_context(const char* ctx_name)
-{
-	MemoryContext ctx = NULL;
-
-	ctx = AllocSetContextCreate(TopMemoryContext,
-								ctx_name,
-								ALLOCSET_DEFAULT_MINSIZE,
-								ALLOCSET_DEFAULT_INITSIZE,
-								ALLOCSET_DEFAULT_MAXSIZE);
-	MemoryContextSwitchTo(ctx);
-
-	return ctx;
-}
-
-void pg_query_exit_memory_context(MemoryContext ctx)
-{
-	// Return to previous PostgreSQL memory context
-	MemoryContextSwitchTo(TopMemoryContext);
-
-	MemoryContextDelete(ctx);
-}
-
 PgQueryInternalParsetreeAndError pg_query_raw_parse(const char* input)
 {
 	PgQueryInternalParsetreeAndError result = {0};
@@ -85,6 +63,8 @@ PgQueryInternalParsetreeAndError pg_query_raw_parse(const char* input)
 		error = malloc(sizeof(PgQueryError));
 		error->message   = strdup(error_data->message);
 		error->filename  = strdup(error_data->filename);
+		error->funcname  = strdup(error_data->funcname);
+		error->context   = NULL;
 		error->lineno    = error_data->lineno;
 		error->cursorpos = error_data->cursorpos;
 
@@ -136,9 +116,7 @@ PgQueryParseResult pg_query_parse(const char* input)
 void pg_query_free_parse_result(PgQueryParseResult result)
 {
   if (result.error) {
-    free(result.error->message);
-    free(result.error->filename);
-    free(result.error);
+		pg_query_free_error(result.error);
   }
 
   free(result.parse_tree);

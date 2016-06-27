@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ColumnDef")
 
 	if node.CollClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.CollClause.Fingerprint(&subCtx, "CollClause")
+		node.CollClause.Fingerprint(&subCtx, node, "CollClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("collClause")
@@ -31,7 +31,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Constraints.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Constraints.Fingerprint(&subCtx, "Constraints")
+		node.Constraints.Fingerprint(&subCtx, node, "Constraints")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constraints")
@@ -43,7 +43,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if node.CookedDefault != nil {
 		subCtx := FingerprintSubContext{}
-		node.CookedDefault.Fingerprint(&subCtx, "CookedDefault")
+		node.CookedDefault.Fingerprint(&subCtx, node, "CookedDefault")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cooked_default")
@@ -55,7 +55,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Fdwoptions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Fdwoptions.Fingerprint(&subCtx, "Fdwoptions")
+		node.Fdwoptions.Fingerprint(&subCtx, node, "Fdwoptions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("fdwoptions")
@@ -89,7 +89,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if node.RawDefault != nil {
 		subCtx := FingerprintSubContext{}
-		node.RawDefault.Fingerprint(&subCtx, "RawDefault")
+		node.RawDefault.Fingerprint(&subCtx, node, "RawDefault")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("raw_default")
@@ -107,7 +107,7 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if node.TypeName != nil {
 		subCtx := FingerprintSubContext{}
-		node.TypeName.Fingerprint(&subCtx, "TypeName")
+		node.TypeName.Fingerprint(&subCtx, node, "TypeName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("typeName")

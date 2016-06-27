@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterTSConfigurationStmt")
 
 	if len(node.Cfgname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Cfgname.Fingerprint(&subCtx, "Cfgname")
+		node.Cfgname.Fingerprint(&subCtx, node, "Cfgname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cfgname")
@@ -21,7 +21,7 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentF
 
 	if len(node.Dicts.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Dicts.Fingerprint(&subCtx, "Dicts")
+		node.Dicts.Fingerprint(&subCtx, node, "Dicts")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("dicts")
@@ -53,7 +53,7 @@ func (node AlterTSConfigurationStmt) Fingerprint(ctx FingerprintContext, parentF
 
 	if len(node.Tokentype.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Tokentype.Fingerprint(&subCtx, "Tokentype")
+		node.Tokentype.Fingerprint(&subCtx, node, "Tokentype")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("tokentype")

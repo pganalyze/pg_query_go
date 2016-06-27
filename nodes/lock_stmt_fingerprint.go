@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node LockStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node LockStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("LockStmt")
 
 	if node.Mode != 0 {
@@ -19,7 +19,7 @@ func (node LockStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Relations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Relations.Fingerprint(&subCtx, "Relations")
+		node.Relations.Fingerprint(&subCtx, node, "Relations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relations")

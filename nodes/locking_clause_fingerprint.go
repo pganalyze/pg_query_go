@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node LockingClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node LockingClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("LockingClause")
 
 	if len(node.LockedRels.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.LockedRels.Fingerprint(&subCtx, "LockedRels")
+		node.LockedRels.Fingerprint(&subCtx, node, "LockedRels")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("lockedRels")

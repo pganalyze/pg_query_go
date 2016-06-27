@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("GroupingFunc")
 
 	if node.Agglevelsup != 0 {
@@ -14,7 +14,7 @@ func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -26,7 +26,7 @@ func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.Cols.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Cols.Fingerprint(&subCtx, "Cols")
+		node.Cols.Fingerprint(&subCtx, node, "Cols")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("cols")
@@ -39,7 +39,7 @@ func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.Refs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Refs.Fingerprint(&subCtx, "Refs")
+		node.Refs.Fingerprint(&subCtx, node, "Refs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("refs")
@@ -51,7 +51,7 @@ func (node GroupingFunc) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

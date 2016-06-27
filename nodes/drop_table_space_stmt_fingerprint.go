@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node DropTableSpaceStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DropTableSpaceStmt")
 
 	if node.MissingOk {

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RangeTblEntry")
 
 	if node.Alias != nil {
 		subCtx := FingerprintSubContext{}
-		node.Alias.Fingerprint(&subCtx, "Alias")
+		node.Alias.Fingerprint(&subCtx, node, "Alias")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("alias")
@@ -26,7 +26,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Ctecolcollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecolcollations.Fingerprint(&subCtx, "Ctecolcollations")
+		node.Ctecolcollations.Fingerprint(&subCtx, node, "Ctecolcollations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecolcollations")
@@ -38,7 +38,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Ctecoltypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypes.Fingerprint(&subCtx, "Ctecoltypes")
+		node.Ctecoltypes.Fingerprint(&subCtx, node, "Ctecoltypes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecoltypes")
@@ -50,7 +50,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Ctecoltypmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypmods.Fingerprint(&subCtx, "Ctecoltypmods")
+		node.Ctecoltypmods.Fingerprint(&subCtx, node, "Ctecoltypmods")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctecoltypmods")
@@ -72,7 +72,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Eref != nil {
 		subCtx := FingerprintSubContext{}
-		node.Eref.Fingerprint(&subCtx, "Eref")
+		node.Eref.Fingerprint(&subCtx, node, "Eref")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("eref")
@@ -89,7 +89,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Functions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Functions.Fingerprint(&subCtx, "Functions")
+		node.Functions.Fingerprint(&subCtx, node, "Functions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("functions")
@@ -116,7 +116,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Joinaliasvars.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Joinaliasvars.Fingerprint(&subCtx, "Joinaliasvars")
+		node.Joinaliasvars.Fingerprint(&subCtx, node, "Joinaliasvars")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("joinaliasvars")
@@ -159,7 +159,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.SecurityQuals.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.SecurityQuals.Fingerprint(&subCtx, "SecurityQuals")
+		node.SecurityQuals.Fingerprint(&subCtx, node, "SecurityQuals")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("securityQuals")
@@ -186,7 +186,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Subquery != nil {
 		subCtx := FingerprintSubContext{}
-		node.Subquery.Fingerprint(&subCtx, "Subquery")
+		node.Subquery.Fingerprint(&subCtx, node, "Subquery")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("subquery")
@@ -198,7 +198,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Tablesample != nil {
 		subCtx := FingerprintSubContext{}
-		node.Tablesample.Fingerprint(&subCtx, "Tablesample")
+		node.Tablesample.Fingerprint(&subCtx, node, "Tablesample")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("tablesample")
@@ -214,7 +214,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.ValuesCollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ValuesCollations.Fingerprint(&subCtx, "ValuesCollations")
+		node.ValuesCollations.Fingerprint(&subCtx, node, "ValuesCollations")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("values_collations")
@@ -226,7 +226,7 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.ValuesLists.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ValuesLists.Fingerprint(&subCtx, "ValuesLists")
+		node.ValuesLists.Fingerprint(&subCtx, node, "ValuesLists")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("values_lists")

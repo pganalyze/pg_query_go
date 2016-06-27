@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("WithCheckOption")
 
 	if node.Cascaded {
@@ -24,7 +24,7 @@ func (node WithCheckOption) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if node.Qual != nil {
 		subCtx := FingerprintSubContext{}
-		node.Qual.Fingerprint(&subCtx, "Qual")
+		node.Qual.Fingerprint(&subCtx, node, "Qual")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("qual")

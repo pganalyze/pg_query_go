@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node RowMarkClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RowMarkClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RowMarkClause")
 
 	if node.PushedDown {

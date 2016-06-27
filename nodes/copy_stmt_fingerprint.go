@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CopyStmt")
 
 	if len(node.Attlist.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Attlist.Fingerprint(&subCtx, "Attlist")
+		node.Attlist.Fingerprint(&subCtx, node, "Attlist")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("attlist")
@@ -36,7 +36,7 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -48,7 +48,7 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Query != nil {
 		subCtx := FingerprintSubContext{}
-		node.Query.Fingerprint(&subCtx, "Query")
+		node.Query.Fingerprint(&subCtx, node, "Query")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("query")
@@ -60,7 +60,7 @@ func (node CopyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

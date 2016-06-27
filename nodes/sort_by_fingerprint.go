@@ -4,13 +4,13 @@ package pg_query
 
 import "strconv"
 
-func (node SortBy) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node SortBy) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SortBy")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if node.Node != nil {
 		subCtx := FingerprintSubContext{}
-		node.Node.Fingerprint(&subCtx, "Node")
+		node.Node.Fingerprint(&subCtx, node, "Node")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("node")
@@ -32,7 +32,7 @@ func (node SortBy) Fingerprint(ctx FingerprintContext, parentFieldName string) {
 
 	if len(node.UseOp.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.UseOp.Fingerprint(&subCtx, "UseOp")
+		node.UseOp.Fingerprint(&subCtx, node, "UseOp")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("useOp")

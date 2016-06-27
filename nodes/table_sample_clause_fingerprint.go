@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node TableSampleClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node TableSampleClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("TableSampleClause")
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -21,7 +21,7 @@ func (node TableSampleClause) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Repeatable != nil {
 		subCtx := FingerprintSubContext{}
-		node.Repeatable.Fingerprint(&subCtx, "Repeatable")
+		node.Repeatable.Fingerprint(&subCtx, node, "Repeatable")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("repeatable")

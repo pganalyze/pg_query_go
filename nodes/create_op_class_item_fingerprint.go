@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateOpClassItem")
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -21,7 +21,7 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if len(node.ClassArgs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ClassArgs.Fingerprint(&subCtx, "ClassArgs")
+		node.ClassArgs.Fingerprint(&subCtx, node, "ClassArgs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("class_args")
@@ -38,7 +38,7 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if len(node.Name.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Name.Fingerprint(&subCtx, "Name")
+		node.Name.Fingerprint(&subCtx, node, "Name")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("name")
@@ -55,7 +55,7 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if len(node.OrderFamily.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.OrderFamily.Fingerprint(&subCtx, "OrderFamily")
+		node.OrderFamily.Fingerprint(&subCtx, node, "OrderFamily")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("order_family")
@@ -67,7 +67,7 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Storedtype != nil {
 		subCtx := FingerprintSubContext{}
-		node.Storedtype.Fingerprint(&subCtx, "Storedtype")
+		node.Storedtype.Fingerprint(&subCtx, node, "Storedtype")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("storedtype")

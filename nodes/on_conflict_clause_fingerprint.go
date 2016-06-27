@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node OnConflictClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node OnConflictClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("OnConflictClause")
 
 	if int(node.Action) != 0 {
@@ -14,7 +14,7 @@ func (node OnConflictClause) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Infer != nil {
 		subCtx := FingerprintSubContext{}
-		node.Infer.Fingerprint(&subCtx, "Infer")
+		node.Infer.Fingerprint(&subCtx, node, "Infer")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("infer")
@@ -27,7 +27,7 @@ func (node OnConflictClause) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.TargetList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TargetList.Fingerprint(&subCtx, "TargetList")
+		node.TargetList.Fingerprint(&subCtx, node, "TargetList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("targetList")
@@ -39,7 +39,7 @@ func (node OnConflictClause) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")

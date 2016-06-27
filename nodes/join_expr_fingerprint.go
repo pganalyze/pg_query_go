@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("JoinExpr")
 
 	if node.Alias != nil {
 		subCtx := FingerprintSubContext{}
-		node.Alias.Fingerprint(&subCtx, "Alias")
+		node.Alias.Fingerprint(&subCtx, node, "Alias")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("alias")
@@ -31,7 +31,7 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Larg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Larg.Fingerprint(&subCtx, "Larg")
+		node.Larg.Fingerprint(&subCtx, node, "Larg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("larg")
@@ -43,7 +43,7 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Quals != nil {
 		subCtx := FingerprintSubContext{}
-		node.Quals.Fingerprint(&subCtx, "Quals")
+		node.Quals.Fingerprint(&subCtx, node, "Quals")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("quals")
@@ -55,7 +55,7 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if node.Rarg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Rarg.Fingerprint(&subCtx, "Rarg")
+		node.Rarg.Fingerprint(&subCtx, node, "Rarg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("rarg")
@@ -72,7 +72,7 @@ func (node JoinExpr) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.UsingClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.UsingClause.Fingerprint(&subCtx, "UsingClause")
+		node.UsingClause.Fingerprint(&subCtx, node, "UsingClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("usingClause")

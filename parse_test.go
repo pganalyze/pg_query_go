@@ -467,7 +467,7 @@ var parseTests = []struct {
 			PERFORM 'dummy';
 		END;
 		$$;`,
-		`[{"CreateFunctionStmt": {"funcname": [{"String": {"str": "change_trigger_v2"}}], "returnType": {"TypeName": {"names": [{"String": {"str": "trigger"}}], "typemod": -1, "location": 44}}, "options": [{"DefElem": {"defname": "language", "arg": {"String": {"str": "plpgsql"}}, "defaction": 0}}, {"DefElem": {"defname": "as", "arg": [{"String": {"str": "\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}], "defaction": 0}}]}}]`,
+		`[{"CreateFunctionStmt": {"funcname": [{"String": {"str": "change_trigger_v2"}}], "returnType": {"TypeName": {"names": [{"String": {"str": "trigger"}}], "typemod": -1, "location": 44}}, "options": [{"DefElem": {"defname": "language", "arg": {"String": {"str": "plpgsql"}}, "defaction": 0, "location": -1}}, {"DefElem": {"defname": "as", "arg": [{"String": {"str": "\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}], "defaction": 0, "location": -1}}]}}]`,
 		pg_query.ParsetreeList{
 			Statements: []nodes.Node{
 				nodes.CreateFunctionStmt{
@@ -483,12 +483,14 @@ var parseTests = []struct {
 					},
 					Options: util.MakeListNode([]nodes.Node{
 						nodes.DefElem{
-							Defname: util.MakeStrPtr("language"),
-							Arg:     util.MakeStrNode("plpgsql"),
+							Defname:  util.MakeStrPtr("language"),
+							Arg:      util.MakeStrNode("plpgsql"),
+							Location: -1,
 						},
 						nodes.DefElem{
-							Defname: util.MakeStrPtr("as"),
-							Arg:     util.MakeListNode([]nodes.Node{util.MakeStrNode("\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t")}),
+							Defname:  util.MakeStrPtr("as"),
+							Arg:      util.MakeListNode([]nodes.Node{util.MakeStrNode("\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t")}),
+							Location: -1,
 						},
 					}),
 				},

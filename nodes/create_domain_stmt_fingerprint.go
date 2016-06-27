@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateDomainStmt")
 
 	if node.CollClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.CollClause.Fingerprint(&subCtx, "CollClause")
+		node.CollClause.Fingerprint(&subCtx, node, "CollClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("collClause")
@@ -19,7 +19,7 @@ func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Constraints.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Constraints.Fingerprint(&subCtx, "Constraints")
+		node.Constraints.Fingerprint(&subCtx, node, "Constraints")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constraints")
@@ -31,7 +31,7 @@ func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Domainname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Domainname.Fingerprint(&subCtx, "Domainname")
+		node.Domainname.Fingerprint(&subCtx, node, "Domainname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("domainname")
@@ -43,7 +43,7 @@ func (node CreateDomainStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.TypeName != nil {
 		subCtx := FingerprintSubContext{}
-		node.TypeName.Fingerprint(&subCtx, "TypeName")
+		node.TypeName.Fingerprint(&subCtx, node, "TypeName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("typeName")

@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("GrantRoleStmt")
 
 	if node.AdminOpt {
@@ -19,7 +19,7 @@ func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.GrantedRoles.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GrantedRoles.Fingerprint(&subCtx, "GrantedRoles")
+		node.GrantedRoles.Fingerprint(&subCtx, node, "GrantedRoles")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("granted_roles")
@@ -31,7 +31,7 @@ func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.GranteeRoles.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.GranteeRoles.Fingerprint(&subCtx, "GranteeRoles")
+		node.GranteeRoles.Fingerprint(&subCtx, node, "GranteeRoles")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("grantee_roles")
@@ -43,7 +43,7 @@ func (node GrantRoleStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Grantor != nil {
 		subCtx := FingerprintSubContext{}
-		node.Grantor.Fingerprint(&subCtx, "Grantor")
+		node.Grantor.Fingerprint(&subCtx, node, "Grantor")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("grantor")

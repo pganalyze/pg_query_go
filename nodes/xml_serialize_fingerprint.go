@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node XmlSerialize) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node XmlSerialize) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("XmlSerialize")
 
 	if node.Expr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Expr.Fingerprint(&subCtx, "Expr")
+		node.Expr.Fingerprint(&subCtx, node, "Expr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("expr")
@@ -22,7 +22,7 @@ func (node XmlSerialize) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if node.TypeName != nil {
 		subCtx := FingerprintSubContext{}
-		node.TypeName.Fingerprint(&subCtx, "TypeName")
+		node.TypeName.Fingerprint(&subCtx, node, "TypeName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("typeName")

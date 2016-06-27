@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node WindowClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("WindowClause")
 
 	if node.CopiedOrder {
@@ -14,7 +14,7 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if node.EndOffset != nil {
 		subCtx := FingerprintSubContext{}
-		node.EndOffset.Fingerprint(&subCtx, "EndOffset")
+		node.EndOffset.Fingerprint(&subCtx, node, "EndOffset")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("endOffset")
@@ -36,7 +36,7 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.OrderClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.OrderClause.Fingerprint(&subCtx, "OrderClause")
+		node.OrderClause.Fingerprint(&subCtx, node, "OrderClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("orderClause")
@@ -48,7 +48,7 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.PartitionClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.PartitionClause.Fingerprint(&subCtx, "PartitionClause")
+		node.PartitionClause.Fingerprint(&subCtx, node, "PartitionClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("partitionClause")
@@ -65,7 +65,7 @@ func (node WindowClause) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if node.StartOffset != nil {
 		subCtx := FingerprintSubContext{}
-		node.StartOffset.Fingerprint(&subCtx, "StartOffset")
+		node.StartOffset.Fingerprint(&subCtx, node, "StartOffset")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("startOffset")

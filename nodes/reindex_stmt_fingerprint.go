@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ReindexStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ReindexStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ReindexStmt")
 
 	if int(node.Kind) != 0 {
@@ -24,7 +24,7 @@ func (node ReindexStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")

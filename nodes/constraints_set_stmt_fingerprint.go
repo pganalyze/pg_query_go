@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node ConstraintsSetStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ConstraintsSetStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ConstraintsSetStmt")
 
 	if len(node.Constraints.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Constraints.Fingerprint(&subCtx, "Constraints")
+		node.Constraints.Fingerprint(&subCtx, node, "Constraints")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constraints")

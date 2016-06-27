@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreatePLangStmt")
 
 	if len(node.Plhandler.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Plhandler.Fingerprint(&subCtx, "Plhandler")
+		node.Plhandler.Fingerprint(&subCtx, node, "Plhandler")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("plhandler")
@@ -21,7 +21,7 @@ func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Plinline.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Plinline.Fingerprint(&subCtx, "Plinline")
+		node.Plinline.Fingerprint(&subCtx, node, "Plinline")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("plinline")
@@ -43,7 +43,7 @@ func (node CreatePLangStmt) Fingerprint(ctx FingerprintContext, parentFieldName 
 
 	if len(node.Plvalidator.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Plvalidator.Fingerprint(&subCtx, "Plvalidator")
+		node.Plvalidator.Fingerprint(&subCtx, node, "Plvalidator")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("plvalidator")

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateConversionStmt")
 
 	if len(node.ConversionName.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ConversionName.Fingerprint(&subCtx, "ConversionName")
+		node.ConversionName.Fingerprint(&subCtx, node, "ConversionName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("conversion_name")
@@ -31,7 +31,7 @@ func (node CreateConversionStmt) Fingerprint(ctx FingerprintContext, parentField
 
 	if len(node.FuncName.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.FuncName.Fingerprint(&subCtx, "FuncName")
+		node.FuncName.Fingerprint(&subCtx, node, "FuncName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("func_name")

@@ -260,7 +260,7 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 
 	if (node == NULL) return false;
 
-	if (IsA(node, A_Const) && ((A_Const *) node)->location >= 0)
+	if ((IsA(node, A_Const) && ((A_Const *) node)->location >= 0) || (IsA(node, DefElem) && ((DefElem *) node)->location >= 0))
 	{
 		/* enlarge array if needed */
 		if (jstate->clocations_count >= jstate->clocations_buf_size)
@@ -271,7 +271,7 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 						 jstate->clocations_buf_size *
 						 sizeof(pgssLocationLen));
 		}
-		jstate->clocations[jstate->clocations_count].location = ((A_Const *) node)->location;
+		jstate->clocations[jstate->clocations_count].location = IsA(node, DefElem) ? ((DefElem *) node)->location : ((A_Const *) node)->location;
 		/* initialize lengths to -1 to simplify fill_in_constant_lengths */
 		jstate->clocations[jstate->clocations_count].length = -1;
 		jstate->clocations_count++;
@@ -287,6 +287,10 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 	else if (IsA(node, ExplainStmt))
 	{
 		return const_record_walker((Node *) ((ExplainStmt *) node)->query, jstate);
+	}
+	else if (IsA(node, AlterRoleStmt))
+	{
+		return const_record_walker((Node *) ((AlterRoleStmt *) node)->options, jstate);
 	}
 
 	PG_TRY();
@@ -308,12 +312,7 @@ PgQueryNormalizeResult pg_query_normalize(const char* input)
 	MemoryContext ctx = NULL;
 	PgQueryNormalizeResult result = {0};
 
-	ctx = AllocSetContextCreate(TopMemoryContext,
-								"pg_query_normalize",
-								ALLOCSET_DEFAULT_MINSIZE,
-								ALLOCSET_DEFAULT_INITSIZE,
-								ALLOCSET_DEFAULT_MAXSIZE);
-	MemoryContextSwitchTo(ctx);
+	ctx = pg_query_enter_memory_context("pg_query_normalize");
 
 	PG_TRY();
 	{
@@ -356,8 +355,7 @@ PgQueryNormalizeResult pg_query_normalize(const char* input)
 	}
 	PG_END_TRY();
 
-	MemoryContextSwitchTo(TopMemoryContext);
-	MemoryContextDelete(ctx);
+	pg_query_exit_memory_context(ctx);
 
 	return result;
 }

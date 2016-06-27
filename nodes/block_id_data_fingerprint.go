@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node BlockIdData) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node BlockIdData) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("BlockIdData")
 
 	if node.BiHi != 0 {

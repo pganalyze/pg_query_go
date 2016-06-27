@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CoerceViaIO) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CoerceViaIO) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CoerceViaIO")
 
 	if node.Arg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Arg.Fingerprint(&subCtx, "Arg")
+		node.Arg.Fingerprint(&subCtx, node, "Arg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg")
@@ -38,7 +38,7 @@ func (node CoerceViaIO) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")

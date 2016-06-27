@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node FuncWithArgs) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node FuncWithArgs) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("FuncWithArgs")
 
 	if len(node.Funcargs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcargs.Fingerprint(&subCtx, "Funcargs")
+		node.Funcargs.Fingerprint(&subCtx, node, "Funcargs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcargs")
@@ -19,7 +19,7 @@ func (node FuncWithArgs) Fingerprint(ctx FingerprintContext, parentFieldName str
 
 	if len(node.Funcname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcname.Fingerprint(&subCtx, "Funcname")
+		node.Funcname.Fingerprint(&subCtx, node, "Funcname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcname")

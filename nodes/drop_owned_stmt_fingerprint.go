@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node DropOwnedStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node DropOwnedStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DropOwnedStmt")
 
 	if int(node.Behavior) != 0 {
@@ -14,7 +14,7 @@ func (node DropOwnedStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Roles.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Roles.Fingerprint(&subCtx, "Roles")
+		node.Roles.Fingerprint(&subCtx, node, "Roles")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("roles")

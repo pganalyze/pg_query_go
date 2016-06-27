@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node ImportForeignSchemaStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ImportForeignSchemaStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ImportForeignSchemaStmt")
 
 	if int(node.ListType) != 0 {
@@ -19,7 +19,7 @@ func (node ImportForeignSchemaStmt) Fingerprint(ctx FingerprintContext, parentFi
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -41,7 +41,7 @@ func (node ImportForeignSchemaStmt) Fingerprint(ctx FingerprintContext, parentFi
 
 	if len(node.TableList.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TableList.Fingerprint(&subCtx, "TableList")
+		node.TableList.Fingerprint(&subCtx, node, "TableList")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("table_list")

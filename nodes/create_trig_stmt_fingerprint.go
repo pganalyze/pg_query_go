@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateTrigStmt")
 
 	if len(node.Args.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, "Args")
+		node.Args.Fingerprint(&subCtx, node, "Args")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("args")
@@ -21,7 +21,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Columns.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Columns.Fingerprint(&subCtx, "Columns")
+		node.Columns.Fingerprint(&subCtx, node, "Columns")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("columns")
@@ -33,7 +33,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.Constrrel != nil {
 		subCtx := FingerprintSubContext{}
-		node.Constrrel.Fingerprint(&subCtx, "Constrrel")
+		node.Constrrel.Fingerprint(&subCtx, node, "Constrrel")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("constrrel")
@@ -55,7 +55,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if len(node.Funcname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcname.Fingerprint(&subCtx, "Funcname")
+		node.Funcname.Fingerprint(&subCtx, node, "Funcname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcname")
@@ -77,7 +77,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
-		node.Relation.Fingerprint(&subCtx, "Relation")
+		node.Relation.Fingerprint(&subCtx, node, "Relation")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("relation")
@@ -104,7 +104,7 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName s
 
 	if node.WhenClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhenClause.Fingerprint(&subCtx, "WhenClause")
+		node.WhenClause.Fingerprint(&subCtx, node, "WhenClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whenClause")

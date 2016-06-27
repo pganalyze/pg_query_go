@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node AlterFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterFunctionStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterFunctionStmt")
 
 	if len(node.Actions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Actions.Fingerprint(&subCtx, "Actions")
+		node.Actions.Fingerprint(&subCtx, node, "Actions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("actions")
@@ -19,7 +19,7 @@ func (node AlterFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Func != nil {
 		subCtx := FingerprintSubContext{}
-		node.Func.Fingerprint(&subCtx, "Func")
+		node.Func.Fingerprint(&subCtx, node, "Func")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("func")

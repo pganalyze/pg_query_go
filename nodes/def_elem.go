@@ -19,6 +19,7 @@ type DefElem struct {
 	Defname      *string       `json:"defname"`
 	Arg          Node          `json:"arg"`       /* a (Value *) or a (TypeName *) */
 	Defaction    DefElemAction `json:"defaction"` /* unspecified action, or SET/ADD/DROP */
+	Location     int           `json:"location"`  /* parse location, or -1 if none/unknown */
 }
 
 func (node DefElem) MarshalJSON() ([]byte, error) {
@@ -59,6 +60,13 @@ func (node *DefElem) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["defaction"] != nil {
 		err = json.Unmarshal(fields["defaction"], &node.Defaction)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["location"] != nil {
+		err = json.Unmarshal(fields["location"], &node.Location)
 		if err != nil {
 			return
 		}

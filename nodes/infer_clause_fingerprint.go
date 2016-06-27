@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node InferClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node InferClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("InferClause")
 
 	if node.Conname != nil {
@@ -12,7 +12,7 @@ func (node InferClause) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if len(node.IndexElems.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.IndexElems.Fingerprint(&subCtx, "IndexElems")
+		node.IndexElems.Fingerprint(&subCtx, node, "IndexElems")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("indexElems")
@@ -25,7 +25,7 @@ func (node InferClause) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if node.WhereClause != nil {
 		subCtx := FingerprintSubContext{}
-		node.WhereClause.Fingerprint(&subCtx, "WhereClause")
+		node.WhereClause.Fingerprint(&subCtx, node, "WhereClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whereClause")

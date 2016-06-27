@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("RangeFunction")
 
 	if node.Alias != nil {
 		subCtx := FingerprintSubContext{}
-		node.Alias.Fingerprint(&subCtx, "Alias")
+		node.Alias.Fingerprint(&subCtx, node, "Alias")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("alias")
@@ -21,7 +21,7 @@ func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Coldeflist.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Coldeflist.Fingerprint(&subCtx, "Coldeflist")
+		node.Coldeflist.Fingerprint(&subCtx, node, "Coldeflist")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("coldeflist")
@@ -33,7 +33,7 @@ func (node RangeFunction) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.Functions.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Functions.Fingerprint(&subCtx, "Functions")
+		node.Functions.Fingerprint(&subCtx, node, "Functions")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("functions")

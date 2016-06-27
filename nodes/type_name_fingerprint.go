@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node TypeName) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node TypeName) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("TypeName")
 
 	if len(node.ArrayBounds.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.ArrayBounds.Fingerprint(&subCtx, "ArrayBounds")
+		node.ArrayBounds.Fingerprint(&subCtx, node, "ArrayBounds")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arrayBounds")
@@ -22,7 +22,7 @@ func (node TypeName) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Names.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Names.Fingerprint(&subCtx, "Names")
+		node.Names.Fingerprint(&subCtx, node, "Names")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("names")
@@ -54,7 +54,7 @@ func (node TypeName) Fingerprint(ctx FingerprintContext, parentFieldName string)
 
 	if len(node.Typmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Typmods.Fingerprint(&subCtx, "Typmods")
+		node.Typmods.Fingerprint(&subCtx, node, "Typmods")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("typmods")

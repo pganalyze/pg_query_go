@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node ReplicaIdentityStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node ReplicaIdentityStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("ReplicaIdentityStmt")
 
 	if node.IdentityType != 0 {

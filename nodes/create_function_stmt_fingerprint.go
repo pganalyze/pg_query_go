@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateFunctionStmt")
 
 	if len(node.Funcname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcname.Fingerprint(&subCtx, "Funcname")
+		node.Funcname.Fingerprint(&subCtx, node, "Funcname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcname")
@@ -21,7 +21,7 @@ func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -33,7 +33,7 @@ func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if len(node.Parameters.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Parameters.Fingerprint(&subCtx, "Parameters")
+		node.Parameters.Fingerprint(&subCtx, node, "Parameters")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("parameters")
@@ -50,7 +50,7 @@ func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if node.ReturnType != nil {
 		subCtx := FingerprintSubContext{}
-		node.ReturnType.Fingerprint(&subCtx, "ReturnType")
+		node.ReturnType.Fingerprint(&subCtx, node, "ReturnType")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("returnType")
@@ -62,7 +62,7 @@ func (node CreateFunctionStmt) Fingerprint(ctx FingerprintContext, parentFieldNa
 
 	if len(node.WithClause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.WithClause.Fingerprint(&subCtx, "WithClause")
+		node.WithClause.Fingerprint(&subCtx, node, "WithClause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("withClause")

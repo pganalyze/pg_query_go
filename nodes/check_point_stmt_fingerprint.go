@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node CheckPointStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CheckPointStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CheckPointStmt")
 }

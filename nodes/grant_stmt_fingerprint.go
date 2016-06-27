@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("GrantStmt")
 
 	if int(node.Behavior) != 0 {
@@ -19,7 +19,7 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Grantees.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Grantees.Fingerprint(&subCtx, "Grantees")
+		node.Grantees.Fingerprint(&subCtx, node, "Grantees")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("grantees")
@@ -36,7 +36,7 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Objects.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objects.Fingerprint(&subCtx, "Objects")
+		node.Objects.Fingerprint(&subCtx, node, "Objects")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objects")
@@ -53,7 +53,7 @@ func (node GrantStmt) Fingerprint(ctx FingerprintContext, parentFieldName string
 
 	if len(node.Privileges.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Privileges.Fingerprint(&subCtx, "Privileges")
+		node.Privileges.Fingerprint(&subCtx, node, "Privileges")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("privileges")

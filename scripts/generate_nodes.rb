@@ -1,4 +1,6 @@
-# rubocop:disable Style/PerlBackrefs, Metrics/AbcSize, Metrics/LineLength, Metrics/MethodLength, Style/WordArray, Metrics/ClassLength, Style/Documentation, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Style/TrailingComma, Style/RegexpLiteral
+#!/usr/bin/env ruby
+
+# rubocop:disable Metrics/AbcSize, Metrics/LineLength, Metrics/MethodLength, Style/WordArray, Metrics/ClassLength, Style/Documentation, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Style/MutableConstant, Style/TrailingCommaInLiteral, Lint/ImplicitStringConcatenation, Style/SignalException, Style/StringLiterals, Style/ConditionalAssignment
 
 require 'bundler'
 require 'json'
@@ -93,7 +95,7 @@ class Generator
 		for _, subNode := range node.Items {
       if subNode != nil {
 			  subCtx := FingerprintSubContext{}
-			  subNode.Fingerprint(&subCtx, parentFieldName)
+			  subNode.Fingerprint(&subCtx, parentNode, parentFieldName)
 			  itemsFingerprints.AddIfUnique(subCtx)
       }
 		}
@@ -108,7 +110,7 @@ class Generator
 	} else {
     for _, subNode := range node.Items {
       if subNode != nil {
-        subNode.Fingerprint(ctx, parentFieldName)
+        subNode.Fingerprint(ctx, parentNode, parentFieldName)
       }
     }
   }
@@ -127,7 +129,20 @@ class Generator
   }
   FINGERPRINT_OVERRIDE_FIELDS = {
     [nil, 'location'] => :skip,
-    ['ResTarget', 'name'] => "if node.Name != nil && parentFieldName != \"TargetList\" {\nctx.WriteString(\"name\")\nctx.WriteString(*node.Name)\n}\n",
+    ['ResTarget', 'name'] => %(
+    switch parentNode.(type) {
+    case SelectStmt:
+      if node.Name != nil && parentFieldName != "TargetList" {
+        ctx.WriteString(\"name\")
+        ctx.WriteString(*node.Name)
+      }
+    default:
+      if node.Name != nil {
+        ctx.WriteString(\"name\")
+        ctx.WriteString(*node.Name)
+      }
+    }
+    ),
     ['PrepareStmt', 'name'] => :skip,
     ['ExecuteStmt', 'name'] => :skip,
     ['DeallocateStmt', 'name'] => :skip,
@@ -141,7 +156,7 @@ class Generator
   FINGERPRINT_NODE = '''
   if node.%<go_field_name>s != nil {
     subCtx := FingerprintSubContext{}
-    node.%<go_field_name>s.Fingerprint(&subCtx, "%<go_field_name>s")
+    node.%<go_field_name>s.Fingerprint(&subCtx, node, "%<go_field_name>s")
 
     if len(subCtx.parts) > 0 {
       ctx.WriteString("%<json_field_name>s")
@@ -155,7 +170,7 @@ class Generator
   FINGERPRINT_LIST = '''
   if len(node.%<go_field_name>s.Items) > 0 {
     subCtx := FingerprintSubContext{}
-    node.%<go_field_name>s.Fingerprint(&subCtx, "%<go_field_name>s")
+    node.%<go_field_name>s.Fingerprint(&subCtx, node, "%<go_field_name>s")
 
     if len(subCtx.parts) > 0 {
       ctx.WriteString("%<json_field_name>s")
@@ -170,7 +185,7 @@ class Generator
   if len(node.%<go_field_name>s) > 0 {
     subCtx := FingerprintSubContext{}
     for _, subNode := range node.%<go_field_name>s {
-      subNode.Fingerprint(&subCtx, "%<go_field_name>s")
+      subNode.Fingerprint(&subCtx, node, "%<go_field_name>s")
     }
 
     if len(subCtx.parts) > 0 {
@@ -187,7 +202,7 @@ class Generator
     subCtx := FingerprintSubContext{}
     for _, nodeList := range node.%<go_field_name>s {
       for _, subNode := range nodeList {
-        subNode.Fingerprint(&subCtx, "%<go_field_name>s")
+        subNode.Fingerprint(&subCtx, node, "%<go_field_name>s")
       }
     }
 
@@ -291,7 +306,7 @@ class Generator
               fingerprint_def += format(FINGERPRINT_LIST, go_field_name: go_name, json_field_name: field['name'])
             when 'CreateStmt'
               fingerprint_def += format("ctx.WriteString(\"%s\")\n", field['name'])
-              fingerprint_def += format("node.%s.Fingerprint(ctx, \"%s\")\n\n", go_name, go_name)
+              fingerprint_def += format("node.%s.Fingerprint(ctx, node, \"%s\")\n\n", go_name, go_name)
             when 'byte'
               fingerprint_def += format("\nif node.%s != 0 {", go_name)
               fingerprint_def += format("ctx.WriteString(\"%s\")\n", field['name'])
@@ -383,7 +398,7 @@ func (node #{type}) Deparse() string {
         write_nodes_file(type + '_fingerprint', %(
 import "strconv"
 
-func (node #{type}) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node #{type}) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
   #{fingerprint_def.strip}
 }
         ), true)

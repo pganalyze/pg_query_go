@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateEventTrigStmt")
 
 	if node.Eventname != nil {
@@ -12,7 +12,7 @@ func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 
 	if len(node.Funcname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Funcname.Fingerprint(&subCtx, "Funcname")
+		node.Funcname.Fingerprint(&subCtx, node, "Funcname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("funcname")
@@ -29,7 +29,7 @@ func (node CreateEventTrigStmt) Fingerprint(ctx FingerprintContext, parentFieldN
 
 	if len(node.Whenclause.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Whenclause.Fingerprint(&subCtx, "Whenclause")
+		node.Whenclause.Fingerprint(&subCtx, node, "Whenclause")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("whenclause")

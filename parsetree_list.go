@@ -41,7 +41,7 @@ func (input ParsetreeList) Fingerprint() string {
 
 	ctx := nodes.NewFingerprintHashContext()
 	for _, node := range input.Statements {
-		node.Fingerprint(ctx, "")
+		node.Fingerprint(ctx, nil, "")
 	}
 
 	return fmt.Sprintf("%02x%s", fingerprintVersion, hex.EncodeToString(ctx.Sum()))

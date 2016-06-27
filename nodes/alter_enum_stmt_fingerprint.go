@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterEnumStmt")
 
 	if node.NewVal != nil {
@@ -29,7 +29,7 @@ func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if len(node.TypeName.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.TypeName.Fingerprint(&subCtx, "TypeName")
+		node.TypeName.Fingerprint(&subCtx, node, "TypeName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("typeName")

@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node GroupingSet) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node GroupingSet) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("GroupingSet")
 
 	if len(node.Content.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Content.Fingerprint(&subCtx, "Content")
+		node.Content.Fingerprint(&subCtx, node, "Content")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("content")

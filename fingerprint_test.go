@@ -40,7 +40,7 @@ func TestFingerprint(t *testing.T) {
 
 		ctx := nodes.NewFingerprintSubContext()
 		for _, node := range actualTree.Statements {
-			node.Fingerprint(ctx, "")
+			node.Fingerprint(ctx, nil, "")
 		}
 		if !reflect.DeepEqual(ctx.Sum(), test.ExpectedParts) {
 			t.Errorf("Fingerprint(%s)\nexpected parts %#v\nactual parts %#v\n\n", test.Input, test.ExpectedParts, ctx.Sum())

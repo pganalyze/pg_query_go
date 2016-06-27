@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterExtensionContentsStmt")
 
 	if node.Action != 0 {
@@ -19,7 +19,7 @@ func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext, paren
 
 	if len(node.Objargs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objargs.Fingerprint(&subCtx, "Objargs")
+		node.Objargs.Fingerprint(&subCtx, node, "Objargs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objargs")
@@ -31,7 +31,7 @@ func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext, paren
 
 	if len(node.Objname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objname.Fingerprint(&subCtx, "Objname")
+		node.Objname.Fingerprint(&subCtx, node, "Objname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objname")

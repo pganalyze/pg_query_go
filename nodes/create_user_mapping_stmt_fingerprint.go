@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateUserMappingStmt")
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Options.Fingerprint(&subCtx, "Options")
+		node.Options.Fingerprint(&subCtx, node, "Options")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("options")
@@ -24,7 +24,7 @@ func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext, parentFiel
 
 	if node.User != nil {
 		subCtx := FingerprintSubContext{}
-		node.User.Fingerprint(&subCtx, "User")
+		node.User.Fingerprint(&subCtx, node, "User")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("user")

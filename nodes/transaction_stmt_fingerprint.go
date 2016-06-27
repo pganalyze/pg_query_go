@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node TransactionStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node TransactionStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("TransactionStmt")
 	// Intentionally ignoring node.Gid for fingerprinting
 

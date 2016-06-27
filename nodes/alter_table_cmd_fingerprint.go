@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterTableCmd")
 
 	if int(node.Behavior) != 0 {
@@ -14,7 +14,7 @@ func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Def != nil {
 		subCtx := FingerprintSubContext{}
-		node.Def.Fingerprint(&subCtx, "Def")
+		node.Def.Fingerprint(&subCtx, node, "Def")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("def")
@@ -36,7 +36,7 @@ func (node AlterTableCmd) Fingerprint(ctx FingerprintContext, parentFieldName st
 
 	if node.Newowner != nil {
 		subCtx := FingerprintSubContext{}
-		node.Newowner.Fingerprint(&subCtx, "Newowner")
+		node.Newowner.Fingerprint(&subCtx, node, "Newowner")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("newowner")

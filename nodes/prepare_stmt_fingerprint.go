@@ -2,12 +2,12 @@
 
 package pg_query
 
-func (node PrepareStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node PrepareStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("PrepareStmt")
 
 	if len(node.Argtypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Argtypes.Fingerprint(&subCtx, "Argtypes")
+		node.Argtypes.Fingerprint(&subCtx, node, "Argtypes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("argtypes")
@@ -20,7 +20,7 @@ func (node PrepareStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if node.Query != nil {
 		subCtx := FingerprintSubContext{}
-		node.Query.Fingerprint(&subCtx, "Query")
+		node.Query.Fingerprint(&subCtx, node, "Query")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("query")

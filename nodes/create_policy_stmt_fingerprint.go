@@ -2,7 +2,7 @@
 
 package pg_query
 
-func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreatePolicyStmt")
 
 	if node.CmdName != nil {
@@ -17,7 +17,7 @@ func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Qual != nil {
 		subCtx := FingerprintSubContext{}
-		node.Qual.Fingerprint(&subCtx, "Qual")
+		node.Qual.Fingerprint(&subCtx, node, "Qual")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("qual")
@@ -29,7 +29,7 @@ func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if len(node.Roles.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Roles.Fingerprint(&subCtx, "Roles")
+		node.Roles.Fingerprint(&subCtx, node, "Roles")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("roles")
@@ -41,7 +41,7 @@ func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.Table != nil {
 		subCtx := FingerprintSubContext{}
-		node.Table.Fingerprint(&subCtx, "Table")
+		node.Table.Fingerprint(&subCtx, node, "Table")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("table")
@@ -53,7 +53,7 @@ func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentFieldName
 
 	if node.WithCheck != nil {
 		subCtx := FingerprintSubContext{}
-		node.WithCheck.Fingerprint(&subCtx, "WithCheck")
+		node.WithCheck.Fingerprint(&subCtx, node, "WithCheck")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("with_check")

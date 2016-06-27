@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node WithClause) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node WithClause) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("WithClause")
 
 	if len(node.Ctes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctes.Fingerprint(&subCtx, "Ctes")
+		node.Ctes.Fingerprint(&subCtx, node, "Ctes")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("ctes")

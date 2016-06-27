@@ -4,7 +4,7 @@ package pg_query
 
 import "strconv"
 
-func (node CommentStmt) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node CommentStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CommentStmt")
 
 	if node.Comment != nil {
@@ -14,7 +14,7 @@ func (node CommentStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if len(node.Objargs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objargs.Fingerprint(&subCtx, "Objargs")
+		node.Objargs.Fingerprint(&subCtx, node, "Objargs")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objargs")
@@ -26,7 +26,7 @@ func (node CommentStmt) Fingerprint(ctx FingerprintContext, parentFieldName stri
 
 	if len(node.Objname.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Objname.Fingerprint(&subCtx, "Objname")
+		node.Objname.Fingerprint(&subCtx, node, "Objname")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("objname")

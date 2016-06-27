@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node FunctionParameter) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node FunctionParameter) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("FunctionParameter")
 
 	if node.ArgType != nil {
 		subCtx := FingerprintSubContext{}
-		node.ArgType.Fingerprint(&subCtx, "ArgType")
+		node.ArgType.Fingerprint(&subCtx, node, "ArgType")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("argType")
@@ -21,7 +21,7 @@ func (node FunctionParameter) Fingerprint(ctx FingerprintContext, parentFieldNam
 
 	if node.Defexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Defexpr.Fingerprint(&subCtx, "Defexpr")
+		node.Defexpr.Fingerprint(&subCtx, node, "Defexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("defexpr")

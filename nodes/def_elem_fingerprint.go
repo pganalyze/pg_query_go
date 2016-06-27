@@ -4,12 +4,12 @@ package pg_query
 
 import "strconv"
 
-func (node DefElem) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node DefElem) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DefElem")
 
 	if node.Arg != nil {
 		subCtx := FingerprintSubContext{}
-		node.Arg.Fingerprint(&subCtx, "Arg")
+		node.Arg.Fingerprint(&subCtx, node, "Arg")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("arg")
@@ -33,4 +33,6 @@ func (node DefElem) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 		ctx.WriteString("defnamespace")
 		ctx.WriteString(*node.Defnamespace)
 	}
+
+	// Intentionally ignoring node.Location for fingerprinting
 }

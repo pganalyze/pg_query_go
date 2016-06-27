@@ -4,13 +4,13 @@ package pg_query
 
 import "strconv"
 
-func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) {
+func (node SubLink) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SubLink")
 	// Intentionally ignoring node.Location for fingerprinting
 
 	if len(node.OperName.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.OperName.Fingerprint(&subCtx, "OperName")
+		node.OperName.Fingerprint(&subCtx, node, "OperName")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("operName")
@@ -32,7 +32,7 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Subselect != nil {
 		subCtx := FingerprintSubContext{}
-		node.Subselect.Fingerprint(&subCtx, "Subselect")
+		node.Subselect.Fingerprint(&subCtx, node, "Subselect")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("subselect")
@@ -44,7 +44,7 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Testexpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Testexpr.Fingerprint(&subCtx, "Testexpr")
+		node.Testexpr.Fingerprint(&subCtx, node, "Testexpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("testexpr")
@@ -56,7 +56,7 @@ func (node SubLink) Fingerprint(ctx FingerprintContext, parentFieldName string) 
 
 	if node.Xpr != nil {
 		subCtx := FingerprintSubContext{}
-		node.Xpr.Fingerprint(&subCtx, "Xpr")
+		node.Xpr.Fingerprint(&subCtx, node, "Xpr")
 
 		if len(subCtx.parts) > 0 {
 			ctx.WriteString("xpr")
