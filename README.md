@@ -99,42 +99,42 @@ You can find all the node struct types in the `nodes/` directory.
 As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
 
 ```
-BenchmarkParseSelect1-4               	  300000	     46345 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2-4               	  100000	    189311 ns/op	   49104 B/op	     742 allocs/op
-BenchmarkParseCreateTable-4           	   30000	    561164 ns/op	  149826 B/op	    2123 allocs/op
-BenchmarkParseSelect1Parallel-4       	 1000000	     18704 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2Parallel-4       	  200000	     60778 ns/op	   49105 B/op	     742 allocs/op
-BenchmarkParseCreateTableParallel-4   	  100000	    189316 ns/op	  149827 B/op	    2123 allocs/op
+BenchmarkParseSelect1-4               	  300000	     40723 ns/op	   14608 B/op	     226 allocs/op
+BenchmarkParseSelect2-4               	  100000	    164339 ns/op	   49105 B/op	     742 allocs/op
+BenchmarkParseCreateTable-4           	   30000	    504815 ns/op	  149826 B/op	    2123 allocs/op
+BenchmarkParseSelect1Parallel-4       	 1000000	     12245 ns/op	   14608 B/op	     226 allocs/op
+BenchmarkParseSelect2Parallel-4       	  300000	     46268 ns/op	   49105 B/op	     742 allocs/op
+BenchmarkParseCreateTableParallel-4   	  100000	    157849 ns/op	  149827 B/op	    2123 allocs/op
 ```
 
 A good portion of this is due to JSON parsing inside Go so we can work with Go structs - just the raw parser is 10x faster:
 
 ```
-BenchmarkRawParseSelect1-4            	 5000000	      3527 ns/op	     192 B/op	       2 allocs/op
-BenchmarkRawParseSelect2-4            	 2000000	      9400 ns/op	     672 B/op	       2 allocs/op
-BenchmarkRawParseCreateTable-4        	  500000	     25336 ns/op	    2080 B/op	       2 allocs/op
-BenchmarkRawParseSelect1Parallel-4    	 5000000	      3404 ns/op	     192 B/op	       2 allocs/op
-BenchmarkRawParseSelect2Parallel-4    	 1000000	     11123 ns/op	     672 B/op	       2 allocs/op
-BenchmarkRawParseCreateTableParallel-4	  500000	     29973 ns/op	    2080 B/op	       2 allocs/op
+BenchmarkRawParseSelect1-4            	 5000000	      3012 ns/op	     192 B/op	       2 allocs/op
+BenchmarkRawParseSelect2-4            	 2000000	      7755 ns/op	     672 B/op	       2 allocs/op
+BenchmarkRawParseCreateTable-4        	 1000000	     20848 ns/op	    2080 B/op	       2 allocs/op
+BenchmarkRawParseSelect1Parallel-4    	20000000	       801 ns/op	     192 B/op	       2 allocs/op
+BenchmarkRawParseSelect2Parallel-4    	10000000	      2220 ns/op	     672 B/op	       2 allocs/op
+BenchmarkRawParseCreateTableParallel-4	 2000000	      6153 ns/op	    2080 B/op	       2 allocs/op
 ```
 
 Similarly, for query fingerprinting, you might want to use `pg_query.FastFingerprint` to let the C extension handle it:
 
 ```
-BenchmarkFingerprintSelect1-4         	  300000	     51988 ns/op	   15180 B/op	     244 allocs/op
-BenchmarkFingerprintSelect2-4         	  100000	    202725 ns/op	   51918 B/op	     826 allocs/op
-BenchmarkFingerprintCreateTable-4     	   20000	    608039 ns/op	  161484 B/op	    2358 allocs/op
-BenchmarkFastFingerprintSelect1-4     	 3000000	      4492 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintSelect2-4     	 2000000	      7960 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintCreateTable-4 	 1000000	     22009 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFingerprintSelect1-4         	  300000	     42318 ns/op	   15564 B/op	     246 allocs/op
+BenchmarkFingerprintSelect2-4         	  100000	    164205 ns/op	   53215 B/op	     834 allocs/op
+BenchmarkFingerprintCreateTable-4     	   30000	    524524 ns/op	  162972 B/op	    2371 allocs/op
+BenchmarkFastFingerprintSelect1-4     	 5000000	      3614 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFastFingerprintSelect2-4     	 2000000	      6748 ns/op	      80 B/op	       2 allocs/op
+BenchmarkFastFingerprintCreateTable-4 	 1000000	     18361 ns/op	      80 B/op	       2 allocs/op
 ```
 
 Normalization is already handled in the C extension, doesn't depend on JSON parsing at all, and is fast:
 
 ```
-BenchmarkNormalizeSelect1-4           	10000000	      2349 ns/op	      24 B/op	       2 allocs/op
-BenchmarkNormalizeSelect2-4           	 3000000	      4202 ns/op	      64 B/op	       2 allocs/op
-BenchmarkNormalizeCreateTable-4       	 2000000	      7237 ns/op	     144 B/op	       2 allocs/op
+BenchmarkNormalizeSelect1-4           	10000000	      1859 ns/op	      24 B/op	       2 allocs/op
+BenchmarkNormalizeSelect2-4           	 5000000	      3551 ns/op	      64 B/op	       2 allocs/op
+BenchmarkNormalizeCreateTable-4       	 2000000	      6051 ns/op	     144 B/op	       2 allocs/op
 ```
 
 See `benchmark_test.go` for the queries.
