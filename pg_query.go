@@ -33,6 +33,11 @@ func Parse(input string) (tree ParsetreeList, err error) {
 	return
 }
 
+// ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into an AST (JSON format)
+func ParsePlPgSqlToJSON(input string) (result string, err error) {
+	return parser.ParsePlPgSqlToJSON(input)
+}
+
 // Normalize the passed SQL statement to replace constant values with ? characters
 func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)

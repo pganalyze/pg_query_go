@@ -94,6 +94,45 @@ func main() {
 
 You can find all the node struct types in the `nodes/` directory.
 
+### Parsing a PL/pgSQL function into JSON (Experimental)
+
+Put the following in a new Go package, after having installed pg_query as above:
+
+```go
+package main
+
+import (
+  "fmt"
+  "github.com/lfittl/pg_query_go"
+)
+
+func main() {
+  tree, err := pg_query.ParsePlPgSqlToJSON(
+  `CREATE OR REPLACE FUNCTION cs_fmt_browser_version(v_name varchar, v_version varchar)
+  			RETURNS varchar AS $$
+  			BEGIN
+  			    IF v_version IS NULL THEN
+  			        RETURN v_name;
+  			    END IF;
+  			    RETURN v_name || '/' || v_version;
+  			END;
+  			$$ LANGUAGE plpgsql;`)
+  if err != nil {
+    panic(err);
+  }
+  fmt.Printf("%s\n", tree)
+}
+```
+
+Running will output the functions's parse tree as JSON:
+
+```json
+$ go run main.go
+[
+{"PLpgSQL_function": {"datums": [{"PLpgSQL_var": {"refname": "found", "datatype": {"PLpgSQL_type": {"typname": "UNKNOWN"}}}}], "action": {"PLpgSQL_stmt_block": {"lineno": 2, "body": [{"PLpgSQL_stmt_if": {"lineno": 3, "cond": {"PLpgSQL_expr": {"query": "SELECT v_version IS NULL"}}, "then_body": [{"PLpgSQL_stmt_return": {"lineno": 4, "expr": {"PLpgSQL_expr": {"query": "SELECT v_name"}}}}]}}, {"PLpgSQL_stmt_return": {"lineno": 6, "expr": {"PLpgSQL_expr": {"query": "SELECT v_name || '/' || v_version"}}}}]}}}}
+]
+```
+
 ## Benchmarks
 
 As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
