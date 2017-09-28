@@ -116,6 +116,35 @@ class Generator
   }
   '''
 
+  VALUES_LIST_FINGERPRINT = '''
+  if len(node.ValuesLists) > 0 {
+		var itemsFingerprints FingerprintSubContextSlice
+
+		for _, nodeList := range node.ValuesLists {
+			subCtx := FingerprintSubContext{}
+			for _, subNode := range nodeList {
+				subNode.Fingerprint(&subCtx, node, "ValuesLists")
+			}
+			itemsFingerprints.AddIfUnique(subCtx)
+		}
+
+		sort.Sort(itemsFingerprints)
+
+    if len(itemsFingerprints) > 0 {
+			firstItem := true
+			for _, fingerprint := range itemsFingerprints {
+				for _, part := range fingerprint.parts {
+					if firstItem {
+						ctx.WriteString("valuesLists")
+						firstItem = false
+					}
+					ctx.WriteString(part)
+				}
+			}
+		}
+	}
+  '''
+
   # Fingerprinting additional code to be inserted
   FINGERPRINT_OVERRIDE_NODES = {
     'A_Const' => :skip,
@@ -143,11 +172,21 @@ class Generator
       }
     }
     ),
+    ['RangeVar', 'relname'] => %(
+    if node.Relname != nil && node.Relpersistence != 't' {
+  		ctx.WriteString("relname")
+  		ctx.WriteString(*node.Relname)
+  	}
+    ),
+    ['DeclareCursorStmt', 'portalname'] => :skip,
+    ['FetchStmt', 'portalname'] => :skip,
+    ['ClosePortalStmt', 'portalname'] => :skip,
     ['PrepareStmt', 'name'] => :skip,
     ['ExecuteStmt', 'name'] => :skip,
     ['DeallocateStmt', 'name'] => :skip,
     ['TransactionStmt', 'options'] => :skip,
     ['TransactionStmt', 'gid'] => :skip,
+    ['SelectStmt', 'valuesLists'] => VALUES_LIST_FINGERPRINT,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']

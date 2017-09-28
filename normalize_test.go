@@ -14,7 +14,7 @@ var normalizeTests = []struct {
 }{
 	{
 		"SELECT 1",
-		"SELECT ?",
+		"SELECT $1",
 	},
 }
 

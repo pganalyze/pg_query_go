@@ -12,10 +12,7 @@ func (node DeclareCursorStmt) Fingerprint(ctx FingerprintContext, parentNode Nod
 		ctx.WriteString(strconv.Itoa(int(node.Options)))
 	}
 
-	if node.Portalname != nil {
-		ctx.WriteString("portalname")
-		ctx.WriteString(*node.Portalname)
-	}
+	// Intentionally ignoring node.Portalname for fingerprinting
 
 	if node.Query != nil {
 		subCtx := FingerprintSubContext{}

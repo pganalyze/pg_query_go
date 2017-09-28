@@ -10,15 +10,23 @@ import "encoding/json"
  * NullTest represents the operation of testing a value for NULLness.
  * The appropriate test is performed and returned as a boolean Datum.
  *
- * NOTE: the semantics of this for rowtype inputs are noticeably different
- * from the scalar case.  We provide an "argisrow" flag to reflect that.
+ * When argisrow is false, this simply represents a test for the null value.
+ *
+ * When argisrow is true, the input expression must yield a rowtype, and
+ * the node implements "row IS [NOT] NULL" per the SQL standard.  This
+ * includes checking individual fields for NULLness when the row datum
+ * itself isn't NULL.
+ *
+ * NOTE: the combination of a rowtype input and argisrow==false does NOT
+ * correspond to the SQL notation "row IS [NOT] NULL"; instead, this case
+ * represents the SQL notation "row IS [NOT] DISTINCT FROM NULL".
  * ----------------
  */
 type NullTest struct {
 	Xpr          Node         `json:"xpr"`
 	Arg          Node         `json:"arg"`          /* input expression */
 	Nulltesttype NullTestType `json:"nulltesttype"` /* IS NULL, IS NOT NULL */
-	Argisrow     bool         `json:"argisrow"`     /* T if input is of a composite type */
+	Argisrow     bool         `json:"argisrow"`     /* T to perform field-by-field null checks */
 	Location     int          `json:"location"`     /* token location, or -1 if unknown */
 }
 

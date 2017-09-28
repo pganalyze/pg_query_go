@@ -31,7 +31,7 @@ func (node RangeVar) Fingerprint(ctx FingerprintContext, parentNode Node, parent
 
 	// Intentionally ignoring node.Location for fingerprinting
 
-	if node.Relname != nil {
+	if node.Relname != nil && node.Relpersistence != 't' {
 		ctx.WriteString("relname")
 		ctx.WriteString(*node.Relname)
 	}

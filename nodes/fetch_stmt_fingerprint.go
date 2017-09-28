@@ -22,8 +22,5 @@ func (node FetchStmt) Fingerprint(ctx FingerprintContext, parentNode Node, paren
 		ctx.WriteString(strconv.FormatBool(node.Ismove))
 	}
 
-	if node.Portalname != nil {
-		ctx.WriteString("portalname")
-		ctx.WriteString(*node.Portalname)
-	}
+	// Intentionally ignoring node.Portalname for fingerprinting
 }

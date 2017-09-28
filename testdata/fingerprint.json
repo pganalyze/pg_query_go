@@ -15,6 +15,11 @@
     "expectedHash": "018e1acac181c6d28f4a923392cf1c4eda49ee4cd2"
   },
   {
+    "input": "SELECT $1",
+    "expectedParts": ["SelectStmt", "targetList", "ResTarget"],
+    "expectedHash": "018e1acac181c6d28f4a923392cf1c4eda49ee4cd2"
+  },
+  {
     "input": "SELECT 1; SELECT a FROM b",
     "expectedParts": ["SelectStmt", "targetList", "ResTarget", "SelectStmt",
       "fromClause", "RangeVar", "inhOpt", "2", "relname", "b", "relpersistence",
@@ -46,6 +51,11 @@
 		"expectedParts": ["InsertStmt", "cols", "ResTarget", "name", "a", "ResTarget", "name", "b", "relation", "RangeVar",
       "inhOpt", "2", "relname", "test", "relpersistence", "p", "selectStmt", "SelectStmt"],
 		"expectedHash": "017987d8bb26ed399b481728a6e8ca1b668f13d93e"
+  },
+  {
+    "input": "INSERT INTO test (a, b) VALUES (ARRAY[?, ?, ?, ?], ?::timestamptz), (ARRAY[?, ?, ?, ?], ?::timestamptz), (?, ?::timestamptz)",
+    "expectedParts": ["InsertStmt", "cols", "ResTarget", "name", "a", "ResTarget", "name", "b", "relation", "RangeVar", "inhOpt", "2", "relname", "test", "relpersistence", "p", "selectStmt", "SelectStmt", "valuesLists", "A_ArrayExpr", "TypeCast", "typeName", "TypeName", "names", "String", "str", "timestamptz", "typemod", "-1", "TypeCast", "typeName", "TypeName", "names", "String", "str", "timestamptz", "typemod", "-1"],
+    "expectedHash": "0151928b5d24bf0848e98b457cd729b57184e6ef21"
   },
   {
     "input": "SELECT b AS x, a AS y FROM z",
@@ -276,6 +286,21 @@
     "expectedHash": "010fdcbd587cb59b80a410f5298953c36e6401342a"
   },
   {
+    "input": "DECLARE cursor_123 CURSOR FOR SELECT * FROM test WHERE id = 123",
+    "expectedParts": ["DeclareCursorStmt", "options", "32", "query", "SelectStmt", "fromClause", "RangeVar", "inhOpt", "2", "relname", "test", "relpersistence", "p", "targetList", "ResTarget", "val", "ColumnRef", "fields", "A_Star", "whereClause", "A_Expr", "lexpr", "ColumnRef", "fields", "String", "str", "id", "name", "String", "str", "="],
+    "expectedHash": "01ec6defa94a57af2acfc46c636c7758c460db0a09"
+  },
+  {
+    "input": "FETCH 1000 FROM cursor_123",
+    "expectedParts": ["FetchStmt", "howMany", "1000"],
+    "expectedHash": "0150ba260f2a074d62d1cf002022dc38ae8182aab4"
+  },
+  {
+    "input": "CLOSE cursor_123",
+    "expectedParts": ["ClosePortalStmt"],
+    "expectedHash": "01cb90bbce23b030cb3ac4c1d306c6dffb6f5840d9"
+  },
+  {
     "input": "-- nothing",
     "expectedParts": [],
     "expectedHash": "01da39a3ee5e6b4b0d3255bfef95601890afd80709"
@@ -294,5 +319,15 @@
     "input": "UPDATE x SET z = now()",
     "expectedParts": ["UpdateStmt", "relation", "RangeVar", "inhOpt", "2", "relname", "x", "relpersistence", "p", "targetList", "ResTarget", "name", "z", "val", "FuncCall", "funcname", "String", "str", "now"],
     "expectedHash": "0156860c0b3361b8865b4e4ff09a2c5f36c7787cb7"
+  },
+  {
+    "input": "CREATE TEMPORARY TABLE my_temp_table (test_id integer NOT NULL) ON COMMIT DROP",
+    "expectedParts": ["CreateStmt", "oncommit", "3", "relation", "RangeVar", "inhOpt", "2", "relpersistence", "t", "tableElts", "ColumnDef", "colname", "test_id", "constraints", "Constraint", "contype", "1", "is_local", "true", "typeName", "TypeName", "names", "String", "str", "pg_catalog", "String", "str", "int4", "typemod", "-1"],
+    "expectedHash": "01c6c745f0655374b4f30d65ec58a07c0facd3ce46"
+  },
+  {
+    "input": "CREATE TEMPORARY TABLE my_temp_table AS SELECT 1",
+    "expectedParts": ["CreateTableAsStmt", "into", "IntoClause", "rel", "RangeVar", "inhOpt", "2", "relpersistence", "t", "query", "SelectStmt", "targetList", "ResTarget", "relkind", "32"],
+    "expectedHash": "0144ce53682faa4488c02710b652abffc76c333b10"
   }
 ]

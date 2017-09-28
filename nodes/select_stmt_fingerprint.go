@@ -2,7 +2,10 @@
 
 package pg_query
 
-import "strconv"
+import (
+	"sort"
+	"strconv"
+)
 
 func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("SelectStmt")
@@ -162,17 +165,28 @@ func (node SelectStmt) Fingerprint(ctx FingerprintContext, parentNode Node, pare
 	}
 
 	if len(node.ValuesLists) > 0 {
-		subCtx := FingerprintSubContext{}
+		var itemsFingerprints FingerprintSubContextSlice
+
 		for _, nodeList := range node.ValuesLists {
+			subCtx := FingerprintSubContext{}
 			for _, subNode := range nodeList {
 				subNode.Fingerprint(&subCtx, node, "ValuesLists")
 			}
+			itemsFingerprints.AddIfUnique(subCtx)
 		}
 
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("valuesLists")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
+		sort.Sort(itemsFingerprints)
+
+		if len(itemsFingerprints) > 0 {
+			firstItem := true
+			for _, fingerprint := range itemsFingerprints {
+				for _, part := range fingerprint.parts {
+					if firstItem {
+						ctx.WriteString("valuesLists")
+						firstItem = false
+					}
+					ctx.WriteString(part)
+				}
 			}
 		}
 	}
