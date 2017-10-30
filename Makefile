@@ -17,7 +17,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 9.5-1.6.2
+LIB_PG_QUERY_TAG = 9.5-1.7.1
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -41,7 +41,7 @@ update_source: $(LIBDIR)
 	rmdir parser/postgres
 	cp -a $(LIBDIR)/pg_query.h parser/include
 	# Make sure every .c file in the top-level directory is its own translation unit
-	mv parser/*{_conds,_defs,_helper}.c parser/include
+	mv parser/*{_conds,_defs,_helper,scan}.c parser/include
 	# Other support files
 	rm -fr testdata
 	cp -a $(LIBDIR)/testdata testdata
