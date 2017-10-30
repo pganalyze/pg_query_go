@@ -2,12 +2,19 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CreateForeignServerStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateForeignServerStmt")
 
 	if node.Fdwname != nil {
 		ctx.WriteString("fdwname")
 		ctx.WriteString(*node.Fdwname)
+	}
+
+	if node.IfNotExists {
+		ctx.WriteString("if_not_exists")
+		ctx.WriteString(strconv.FormatBool(node.IfNotExists))
 	}
 
 	if len(node.Options.Items) > 0 {

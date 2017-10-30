@@ -10,9 +10,7 @@ import "encoding/json"
  *	  for further processing by the rewriter and planner.
  *
  *	  Utility statements (i.e. non-optimizable statements) have the
- *	  utilityStmt field set, and the Query itself is mostly dummy.
- *	  DECLARE CURSOR is a special case: it is represented like a SELECT,
- *	  but the original DeclareCursorStmt is stored in utilityStmt.
+ *	  utilityStmt field set, and the rest of the Query is mostly dummy.
  *
  *	  Planning converts a Query tree into a Plan tree headed by a PlannedStmt
  *	  node --- the Query structure is not used by the executor.
@@ -26,20 +24,20 @@ type Query struct {
 
 	CanSetTag bool `json:"canSetTag"` /* do I set the command result tag? */
 
-	UtilityStmt Node `json:"utilityStmt"` /* non-null if this is DECLARE CURSOR or a
-	 * non-optimizable statement */
+	UtilityStmt Node `json:"utilityStmt"` /* non-null if commandType == CMD_UTILITY */
 
 	ResultRelation int `json:"resultRelation"` /* rtable index of target relation for
 	 * INSERT/UPDATE/DELETE; 0 for SELECT */
 
 	HasAggs         bool `json:"hasAggs"`         /* has aggregates in tlist or havingQual */
 	HasWindowFuncs  bool `json:"hasWindowFuncs"`  /* has window functions in tlist */
+	HasTargetSrfs   bool `json:"hasTargetSRFs"`   /* has set-returning functions in tlist */
 	HasSubLinks     bool `json:"hasSubLinks"`     /* has subquery SubLink */
 	HasDistinctOn   bool `json:"hasDistinctOn"`   /* distinctClause is from DISTINCT ON */
 	HasRecursive    bool `json:"hasRecursive"`    /* WITH RECURSIVE was specified */
 	HasModifyingCte bool `json:"hasModifyingCTE"` /* has INSERT/UPDATE/DELETE in WITH */
 	HasForUpdate    bool `json:"hasForUpdate"`    /* FOR [KEY] UPDATE/SHARE was specified */
-	HasRowSecurity  bool `json:"hasRowSecurity"`  /* row security applied? */
+	HasRowSecurity  bool `json:"hasRowSecurity"`  /* rewriter has applied some RLS policy */
 
 	CteList List `json:"cteList"` /* WITH list (of CommonTableExpr's) */
 
@@ -47,6 +45,8 @@ type Query struct {
 	Jointree *FromExpr `json:"jointree"` /* table join tree (FROM and WHERE clauses) */
 
 	TargetList List `json:"targetList"` /* target list (of TargetEntry) */
+
+	Override OverridingKind `json:"override"` /* OVERRIDING clause */
 
 	OnConflict *OnConflictExpr `json:"onConflict"` /* ON CONFLICT DO [NOTHING | UPDATE] */
 
@@ -78,6 +78,15 @@ type Query struct {
 	WithCheckOptions List `json:"withCheckOptions"` /* a list of WithCheckOption's, which are
 	 * only added during rewrite and therefore
 	 * are not written out as part of Query. */
+
+	/*
+	 * The following two fields identify the portion of the source text string
+	 * containing this query.  They are typically only populated in top-level
+	 * Queries, not in sub-queries.  When not set, they might both be zero, or
+	 * both be -1 meaning "unknown".
+	 */
+	StmtLocation int `json:"stmt_location"` /* start location, or -1 if unknown */
+	StmtLen      int `json:"stmt_len"`      /* length in bytes; 0 means "rest of string" */
 }
 
 func (node Query) MarshalJSON() ([]byte, error) {
@@ -146,6 +155,13 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["hasWindowFuncs"] != nil {
 		err = json.Unmarshal(fields["hasWindowFuncs"], &node.HasWindowFuncs)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["hasTargetSRFs"] != nil {
+		err = json.Unmarshal(fields["hasTargetSRFs"], &node.HasTargetSrfs)
 		if err != nil {
 			return
 		}
@@ -221,6 +237,13 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["targetList"] != nil {
 		node.TargetList.Items, err = UnmarshalNodeArrayJSON(fields["targetList"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["override"] != nil {
+		err = json.Unmarshal(fields["override"], &node.Override)
 		if err != nil {
 			return
 		}
@@ -324,6 +347,20 @@ func (node *Query) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["withCheckOptions"] != nil {
 		node.WithCheckOptions.Items, err = UnmarshalNodeArrayJSON(fields["withCheckOptions"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["stmt_location"] != nil {
+		err = json.Unmarshal(fields["stmt_location"], &node.StmtLocation)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["stmt_len"] != nil {
+		err = json.Unmarshal(fields["stmt_len"], &node.StmtLen)
 		if err != nil {
 			return
 		}

@@ -75,6 +75,13 @@ import "encoding/json"
  *	  FirstLowInvalidHeapAttributeNumber from column numbers before storing
  *	  them in these fields.  A whole-row Var reference is represented by
  *	  setting the bit for InvalidAttrNumber.
+ *
+ *	  securityQuals is a list of security barrier quals (boolean expressions),
+ *	  to be tested in the listed order before returning a row from the
+ *	  relation.  It is always NIL in parser output.  Entries are added by the
+ *	  rewriter to implement security-barrier views and/or row-level security.
+ *	  Note that the planner turns each boolean expression into an implicitly
+ *	  AND'ed sublist, as is its usual habit with qualification expressions.
  *--------------------
  */
 type RangeTblEntry struct {
@@ -88,6 +95,11 @@ type RangeTblEntry struct {
 
 	/*
 	 * Fields valid for a plain relation RTE (else zero):
+	 *
+	 * As a special case, RTE_NAMEDTUPLESTORE can also set relid to indicate
+	 * that the tuple format of the tuplestore is the same as the referenced
+	 * relation.  This allows plans referencing AFTER trigger transition
+	 * tables to be invalidated if the underlying table is altered.
 	 */
 	Relid       Oid                `json:"relid"`       /* OID of the relation */
 	Relkind     byte               `json:"relkind"`     /* relation kind (see pg_class.relkind) */
@@ -131,20 +143,42 @@ type RangeTblEntry struct {
 	Funcordinality bool `json:"funcordinality"` /* is this called WITH ORDINALITY? */
 
 	/*
+	 * Fields valid for a TableFunc RTE (else NULL):
+	 */
+	Tablefunc *TableFunc `json:"tablefunc"`
+
+	/*
 	 * Fields valid for a values RTE (else NIL):
 	 */
-	ValuesLists      List `json:"values_lists"`      /* list of expression lists */
-	ValuesCollations List `json:"values_collations"` /* OID list of column collation OIDs */
+	ValuesLists List `json:"values_lists"` /* list of expression lists */
 
 	/*
 	 * Fields valid for a CTE RTE (else NULL/zero):
 	 */
-	Ctename          *string `json:"ctename"`          /* name of the WITH list item */
-	Ctelevelsup      Index   `json:"ctelevelsup"`      /* number of query levels up */
-	SelfReference    bool    `json:"self_reference"`   /* is this a recursive self-reference? */
-	Ctecoltypes      List    `json:"ctecoltypes"`      /* OID list of column type OIDs */
-	Ctecoltypmods    List    `json:"ctecoltypmods"`    /* integer list of column typmods */
-	Ctecolcollations List    `json:"ctecolcollations"` /* OID list of column collation OIDs */
+	Ctename       *string `json:"ctename"`        /* name of the WITH list item */
+	Ctelevelsup   Index   `json:"ctelevelsup"`    /* number of query levels up */
+	SelfReference bool    `json:"self_reference"` /* is this a recursive self-reference? */
+
+	/*
+	 * Fields valid for table functions, values, CTE and ENR RTEs (else NIL):
+	 *
+	 * We need these for CTE RTEs so that the types of self-referential
+	 * columns are well-defined.  For VALUES RTEs, storing these explicitly
+	 * saves having to re-determine the info by scanning the values_lists. For
+	 * ENRs, we store the types explicitly here (we could get the information
+	 * from the catalogs if 'relid' was supplied, but we'd still need these
+	 * for TupleDesc-based ENRs, so we might as well always store the type
+	 * info here).
+	 */
+	Coltypes      List `json:"coltypes"`      /* OID list of column type OIDs */
+	Coltypmods    List `json:"coltypmods"`    /* integer list of column typmods */
+	Colcollations List `json:"colcollations"` /* OID list of column collation OIDs */
+
+	/*
+	 * Fields valid for ENR RTEs (else NULL/zero):
+	 */
+	Enrname   *string `json:"enrname"`   /* name of ephemeral named relation */
+	Enrtuples float64 `json:"enrtuples"` /* estimated or actual from caller */
 
 	/*
 	 * Fields valid in all RTEs:
@@ -159,7 +193,7 @@ type RangeTblEntry struct {
 	SelectedCols  []uint32 `json:"selectedCols"`  /* columns needing SELECT permission */
 	InsertedCols  []uint32 `json:"insertedCols"`  /* columns needing INSERT permission */
 	UpdatedCols   []uint32 `json:"updatedCols"`   /* columns needing UPDATE permission */
-	SecurityQuals List     `json:"securityQuals"` /* any security barrier quals to apply */
+	SecurityQuals List     `json:"securityQuals"` /* security barrier quals to apply, if any */
 }
 
 func (node RangeTblEntry) MarshalJSON() ([]byte, error) {
@@ -259,15 +293,20 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["values_lists"] != nil {
-		node.ValuesLists.Items, err = UnmarshalNodeArrayJSON(fields["values_lists"])
+	if fields["tablefunc"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["tablefunc"])
 		if err != nil {
 			return
 		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(TableFunc)
+			node.Tablefunc = &val
+		}
 	}
 
-	if fields["values_collations"] != nil {
-		node.ValuesCollations.Items, err = UnmarshalNodeArrayJSON(fields["values_collations"])
+	if fields["values_lists"] != nil {
+		node.ValuesLists.Items, err = UnmarshalNodeArrayJSON(fields["values_lists"])
 		if err != nil {
 			return
 		}
@@ -294,22 +333,36 @@ func (node *RangeTblEntry) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["ctecoltypes"] != nil {
-		node.Ctecoltypes.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypes"])
+	if fields["coltypes"] != nil {
+		node.Coltypes.Items, err = UnmarshalNodeArrayJSON(fields["coltypes"])
 		if err != nil {
 			return
 		}
 	}
 
-	if fields["ctecoltypmods"] != nil {
-		node.Ctecoltypmods.Items, err = UnmarshalNodeArrayJSON(fields["ctecoltypmods"])
+	if fields["coltypmods"] != nil {
+		node.Coltypmods.Items, err = UnmarshalNodeArrayJSON(fields["coltypmods"])
 		if err != nil {
 			return
 		}
 	}
 
-	if fields["ctecolcollations"] != nil {
-		node.Ctecolcollations.Items, err = UnmarshalNodeArrayJSON(fields["ctecolcollations"])
+	if fields["colcollations"] != nil {
+		node.Colcollations.Items, err = UnmarshalNodeArrayJSON(fields["colcollations"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["enrname"] != nil {
+		err = json.Unmarshal(fields["enrname"], &node.Enrname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["enrtuples"] != nil {
+		err = json.Unmarshal(fields["enrtuples"], &node.Enrtuples)
 		if err != nil {
 			return
 		}

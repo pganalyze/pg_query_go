@@ -9,9 +9,9 @@ import "encoding/json"
  * ----------------------
  */
 type AlterUserMappingStmt struct {
-	User       Node    `json:"user"`       /* user role */
-	Servername *string `json:"servername"` /* server name */
-	Options    List    `json:"options"`    /* generic options to server */
+	User       *RoleSpec `json:"user"`       /* user role */
+	Servername *string   `json:"servername"` /* server name */
+	Options    List      `json:"options"`    /* generic options to server */
 }
 
 func (node AlterUserMappingStmt) MarshalJSON() ([]byte, error) {
@@ -30,9 +30,14 @@ func (node *AlterUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["user"] != nil {
-		node.User, err = UnmarshalNodeJSON(fields["user"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["user"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.User = &val
 		}
 	}
 

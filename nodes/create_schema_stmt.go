@@ -13,10 +13,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateSchemaStmt struct {
-	Schemaname  *string `json:"schemaname"`    /* the name of the schema to create */
-	Authrole    Node    `json:"authrole"`      /* the owner of the created schema */
-	SchemaElts  List    `json:"schemaElts"`    /* schema components (list of parsenodes) */
-	IfNotExists bool    `json:"if_not_exists"` /* just do nothing if schema already exists? */
+	Schemaname  *string   `json:"schemaname"`    /* the name of the schema to create */
+	Authrole    *RoleSpec `json:"authrole"`      /* the owner of the created schema */
+	SchemaElts  List      `json:"schemaElts"`    /* schema components (list of parsenodes) */
+	IfNotExists bool      `json:"if_not_exists"` /* just do nothing if schema already exists? */
 }
 
 func (node CreateSchemaStmt) MarshalJSON() ([]byte, error) {
@@ -42,9 +42,14 @@ func (node *CreateSchemaStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["authrole"] != nil {
-		node.Authrole, err = UnmarshalNodeJSON(fields["authrole"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["authrole"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.Authrole = &val
 		}
 	}
 

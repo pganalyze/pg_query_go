@@ -19,6 +19,7 @@ type InsertStmt struct {
 	OnConflictClause *OnConflictClause `json:"onConflictClause"` /* ON CONFLICT clause */
 	ReturningList    List              `json:"returningList"`    /* list of expressions to return */
 	WithClause       *WithClause       `json:"withClause"`       /* WITH clause */
+	Override         OverridingKind    `json:"override"`         /* OVERRIDING clause */
 }
 
 func (node InsertStmt) MarshalJSON() ([]byte, error) {
@@ -90,6 +91,13 @@ func (node *InsertStmt) UnmarshalJSON(input []byte) (err error) {
 		if nodePtr != nil && *nodePtr != nil {
 			val := (*nodePtr).(WithClause)
 			node.WithClause = &val
+		}
+	}
+
+	if fields["override"] != nil {
+		err = json.Unmarshal(fields["override"], &node.Override)
+		if err != nil {
+			return
 		}
 	}
 

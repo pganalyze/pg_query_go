@@ -173,6 +173,20 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "RangeTableFunc":
+			var outNode RangeTableFunc
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "RangeTableFuncCol":
+			var outNode RangeTableFuncCol
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "RangeTableSample":
 			var outNode RangeTableSample
 			err = json.Unmarshal(jsonText, &outNode)
@@ -217,6 +231,41 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "XmlSerialize":
 			var outNode XmlSerialize
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "PartitionElem":
+			var outNode PartitionElem
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "PartitionSpec":
+			var outNode PartitionSpec
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "PartitionBoundSpec":
+			var outNode PartitionBoundSpec
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "PartitionRangeDatum":
+			var outNode PartitionRangeDatum
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "PartitionCmd":
+			var outNode PartitionCmd
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -306,6 +355,20 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "TriggerTransition":
+			var outNode TriggerTransition
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "RawStmt":
+			var outNode RawStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "InsertStmt":
 			var outNode InsertStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -369,6 +432,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "AlterCollationStmt":
+			var outNode AlterCollationStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "AlterDomainStmt":
 			var outNode AlterDomainStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -383,8 +453,8 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
-		case "FuncWithArgs":
-			var outNode FuncWithArgs
+		case "ObjectWithArgs":
+			var outNode ObjectWithArgs
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -572,6 +642,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "CreateAmStmt":
+			var outNode CreateAmStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "CreateTrigStmt":
 			var outNode CreateTrigStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -740,6 +817,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "CreateStatsStmt":
+			var outNode CreateStatsStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "CreateFunctionStmt":
 			var outNode CreateFunctionStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -782,6 +866,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "AlterObjectDependsStmt":
+			var outNode AlterObjectDependsStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "AlterObjectSchemaStmt":
 			var outNode AlterObjectSchemaStmt
 			err = json.Unmarshal(jsonText, &outNode)
@@ -791,6 +882,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "AlterOwnerStmt":
 			var outNode AlterOwnerStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "AlterOperatorStmt":
+			var outNode AlterOperatorStmt
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -1048,6 +1146,41 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "CreatePublicationStmt":
+			var outNode CreatePublicationStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "AlterPublicationStmt":
+			var outNode AlterPublicationStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "CreateSubscriptionStmt":
+			var outNode CreateSubscriptionStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "AlterSubscriptionStmt":
+			var outNode AlterSubscriptionStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "DropSubscriptionStmt":
+			var outNode DropSubscriptionStmt
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "Alias":
 			var outNode Alias
 			err = json.Unmarshal(jsonText, &outNode)
@@ -1057,6 +1190,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "RangeVar":
 			var outNode RangeVar
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "TableFunc":
+			var outNode TableFunc
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return
@@ -1286,6 +1426,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 				return
 			}
 			node = outNode
+		case "SQLValueFunction":
+			var outNode SQLValueFunction
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
 		case "XmlExpr":
 			var outNode XmlExpr
 			err = json.Unmarshal(jsonText, &outNode)
@@ -1330,6 +1477,13 @@ func UnmarshalNodeJSON(input json.RawMessage) (node Node, err error) {
 			node = outNode
 		case "CurrentOfExpr":
 			var outNode CurrentOfExpr
+			err = json.Unmarshal(jsonText, &outNode)
+			if err != nil {
+				return
+			}
+			node = outNode
+		case "NextValueExpr":
+			var outNode NextValueExpr
 			err = json.Unmarshal(jsonText, &outNode)
 			if err != nil {
 				return

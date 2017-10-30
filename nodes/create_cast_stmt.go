@@ -11,7 +11,7 @@ import "encoding/json"
 type CreateCastStmt struct {
 	Sourcetype *TypeName       `json:"sourcetype"`
 	Targettype *TypeName       `json:"targettype"`
-	Func       *FuncWithArgs   `json:"func"`
+	Func       *ObjectWithArgs `json:"func"`
 	Context    CoercionContext `json:"context"`
 	Inout      bool            `json:"inout"`
 }
@@ -62,7 +62,7 @@ func (node *CreateCastStmt) UnmarshalJSON(input []byte) (err error) {
 			return
 		}
 		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(FuncWithArgs)
+			val := (*nodePtr).(ObjectWithArgs)
 			node.Func = &val
 		}
 	}

@@ -73,15 +73,24 @@ package pg_query
  *	  FirstLowInvalidHeapAttributeNumber from column numbers before storing
  *	  them in these fields.  A whole-row Var reference is represented by
  *	  setting the bit for InvalidAttrNumber.
+ *
+ *	  securityQuals is a list of security barrier quals (boolean expressions),
+ *	  to be tested in the listed order before returning a row from the
+ *	  relation.  It is always NIL in parser output.  Entries are added by the
+ *	  rewriter to implement security-barrier views and/or row-level security.
+ *	  Note that the planner turns each boolean expression into an implicitly
+ *	  AND'ed sublist, as is its usual habit with qualification expressions.
  *--------------------
  */
 type RTEKind uint
 
 const (
-	RTE_RELATION RTEKind = iota /* ordinary relation reference */
-	RTE_SUBQUERY                /* subquery in FROM */
-	RTE_JOIN                    /* join */
-	RTE_FUNCTION                /* function in FROM */
-	RTE_VALUES                  /* VALUES (<exprlist>), (<exprlist>), ... */
-	RTE_CTE                     /* common table expr (WITH list element) */
+	RTE_RELATION        RTEKind = iota /* ordinary relation reference */
+	RTE_SUBQUERY                       /* subquery in FROM */
+	RTE_JOIN                           /* join */
+	RTE_FUNCTION                       /* function in FROM */
+	RTE_TABLEFUNC                      /* TableFunc(.., column list) */
+	RTE_VALUES                         /* VALUES (<exprlist>), (<exprlist>), ... */
+	RTE_CTE                            /* common table expr (WITH list element) */
+	RTE_NAMEDTUPLESTORE                /* tuplestore, e.g. for AFTER triggers */
 )

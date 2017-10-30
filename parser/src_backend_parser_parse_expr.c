@@ -9,7 +9,7 @@
  * parse_expr.c
  *	  handle expressions in parser
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -40,7 +40,9 @@
 #include "parser/parse_type.h"
 #include "parser/parse_agg.h"
 #include "utils/builtins.h"
+#include "utils/date.h"
 #include "utils/lsyscache.h"
+#include "utils/timestamp.h"
 #include "utils/xml.h"
 
 
@@ -53,20 +55,20 @@ __thread bool		operator_precedence_warning = false;
  * Node-type groups for operator precedence warnings
  * We use zero for everything not otherwise classified
  */
-#define PREC_GROUP_POSTFIX_IS	1		/* postfix IS tests (NullTest, etc) */
-#define PREC_GROUP_INFIX_IS		2		/* infix IS (IS DISTINCT FROM, etc) */
-#define PREC_GROUP_LESS			3		/* < > */
-#define PREC_GROUP_EQUAL		4		/* = */
-#define PREC_GROUP_LESS_EQUAL	5		/* <= >= <> */
-#define PREC_GROUP_LIKE			6		/* LIKE ILIKE SIMILAR */
-#define PREC_GROUP_BETWEEN		7		/* BETWEEN */
-#define PREC_GROUP_IN			8		/* IN */
-#define PREC_GROUP_NOT_LIKE		9		/* NOT LIKE/ILIKE/SIMILAR */
-#define PREC_GROUP_NOT_BETWEEN	10		/* NOT BETWEEN */
-#define PREC_GROUP_NOT_IN		11		/* NOT IN */
-#define PREC_GROUP_POSTFIX_OP	12		/* generic postfix operators */
-#define PREC_GROUP_INFIX_OP		13		/* generic infix operators */
-#define PREC_GROUP_PREFIX_OP	14		/* generic prefix operators */
+#define PREC_GROUP_POSTFIX_IS	1	/* postfix IS tests (NullTest, etc) */
+#define PREC_GROUP_INFIX_IS		2	/* infix IS (IS DISTINCT FROM, etc) */
+#define PREC_GROUP_LESS			3	/* < > */
+#define PREC_GROUP_EQUAL		4	/* = */
+#define PREC_GROUP_LESS_EQUAL	5	/* <= >= <> */
+#define PREC_GROUP_LIKE			6	/* LIKE ILIKE SIMILAR */
+#define PREC_GROUP_BETWEEN		7	/* BETWEEN */
+#define PREC_GROUP_IN			8	/* IN */
+#define PREC_GROUP_NOT_LIKE		9	/* NOT LIKE/ILIKE/SIMILAR */
+#define PREC_GROUP_NOT_BETWEEN	10	/* NOT BETWEEN */
+#define PREC_GROUP_NOT_IN		11	/* NOT IN */
+#define PREC_GROUP_POSTFIX_OP	12	/* generic postfix operators */
+#define PREC_GROUP_INFIX_OP		13	/* generic infix operators */
+#define PREC_GROUP_PREFIX_OP	14	/* generic prefix operators */
 
 /*
  * Map precedence groupings to old precedence ordering
@@ -107,9 +109,11 @@ static Node *transformCaseExpr(ParseState *pstate, CaseExpr *c);
 static Node *transformSubLink(ParseState *pstate, SubLink *sublink);
 static Node *transformArrayExpr(ParseState *pstate, A_ArrayExpr *a,
 				   Oid array_type, Oid element_type, int32 typmod);
-static Node *transformRowExpr(ParseState *pstate, RowExpr *r);
+static Node *transformRowExpr(ParseState *pstate, RowExpr *r, bool allowDefault);
 static Node *transformCoalesceExpr(ParseState *pstate, CoalesceExpr *c);
 static Node *transformMinMaxExpr(ParseState *pstate, MinMaxExpr *m);
+static Node *transformSQLValueFunction(ParseState *pstate,
+						  SQLValueFunction *svf);
 static Node *transformXmlExpr(ParseState *pstate, XmlExpr *x);
 static Node *transformXmlSerialize(ParseState *pstate, XmlSerialize *xs);
 static Node *transformBooleanTest(ParseState *pstate, BooleanTest *b);
@@ -117,8 +121,7 @@ static Node *transformCurrentOfExpr(ParseState *pstate, CurrentOfExpr *cexpr);
 static Node *transformColumnRef(ParseState *pstate, ColumnRef *cref);
 static Node *transformWholeRowRef(ParseState *pstate, RangeTblEntry *rte,
 					 int location);
-static Node *transformIndirection(ParseState *pstate, Node *basenode,
-					 List *indirection);
+static Node *transformIndirection(ParseState *pstate, A_Indirection *ind);
 static Node *transformTypeCast(ParseState *pstate, TypeCast *tc);
 static Node *transformCollateClause(ParseState *pstate, CollateClause *c);
 static Node *make_row_comparison_op(ParseState *pstate, List *opname,
@@ -127,6 +130,8 @@ static Node *make_row_distinct_op(ParseState *pstate, List *opname,
 					 RowExpr *lrow, RowExpr *rrow, int location);
 static Expr *make_distinct_op(ParseState *pstate, List *opname,
 				 Node *ltree, Node *rtree, int location);
+static Node *make_nulltest_from_distinct(ParseState *pstate,
+							A_Expr *distincta, Node *arg);
 static int	operator_precedence_group(Node *node, const char **nodename);
 static void emit_precedence_warnings(ParseState *pstate,
 						 int opgroup, const char *opname,
@@ -219,6 +224,8 @@ static void emit_precedence_warnings(ParseState *pstate,
 
 
 
+
+
 /*
  * Construct a whole-row reference to represent the notation "relation.*".
  */
@@ -262,6 +269,13 @@ static void emit_precedence_warnings(ParseState *pstate,
 
 /*
  * make the node for an IS DISTINCT FROM operator
+ */
+
+
+/*
+ * Produce a NullTest node from an IS [NOT] DISTINCT FROM NULL construct
+ *
+ * "arg" is the untransformed other argument
  */
 
 

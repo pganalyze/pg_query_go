@@ -9,9 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type AlterSeqStmt struct {
-	Sequence  *RangeVar `json:"sequence"` /* the sequence to alter */
-	Options   List      `json:"options"`
-	MissingOk bool      `json:"missing_ok"` /* skip error if a role is missing? */
+	Sequence    *RangeVar `json:"sequence"` /* the sequence to alter */
+	Options     List      `json:"options"`
+	ForIdentity bool      `json:"for_identity"`
+	MissingOk   bool      `json:"missing_ok"` /* skip error if a role is missing? */
 }
 
 func (node AlterSeqStmt) MarshalJSON() ([]byte, error) {
@@ -43,6 +44,13 @@ func (node *AlterSeqStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["options"] != nil {
 		node.Options.Items, err = UnmarshalNodeArrayJSON(fields["options"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["for_identity"] != nil {
+		err = json.Unmarshal(fields["for_identity"], &node.ForIdentity)
 		if err != nil {
 			return
 		}

@@ -11,8 +11,7 @@ import "encoding/json"
 type AlterObjectSchemaStmt struct {
 	ObjectType ObjectType `json:"objectType"` /* OBJECT_TABLE, OBJECT_TYPE, etc */
 	Relation   *RangeVar  `json:"relation"`   /* in case it's a table */
-	Object     List       `json:"object"`     /* in case it's some other object */
-	Objarg     List       `json:"objarg"`     /* argument types, if applicable */
+	Object     Node       `json:"object"`     /* in case it's some other object */
 	Newschema  *string    `json:"newschema"`  /* the new schema */
 	MissingOk  bool       `json:"missing_ok"` /* skip error if missing? */
 }
@@ -52,14 +51,7 @@ func (node *AlterObjectSchemaStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["object"] != nil {
-		node.Object.Items, err = UnmarshalNodeArrayJSON(fields["object"])
-		if err != nil {
-			return
-		}
-	}
-
-	if fields["objarg"] != nil {
-		node.Objarg.Items, err = UnmarshalNodeArrayJSON(fields["objarg"])
+		node.Object, err = UnmarshalNodeJSON(fields["object"])
 		if err != nil {
 			return
 		}

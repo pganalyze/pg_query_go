@@ -65,6 +65,30 @@ func (node CreateStmt) Fingerprint(ctx FingerprintContext, parentNode Node, pare
 		}
 	}
 
+	if node.Partbound != nil {
+		subCtx := FingerprintSubContext{}
+		node.Partbound.Fingerprint(&subCtx, node, "Partbound")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("partbound")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
+	if node.Partspec != nil {
+		subCtx := FingerprintSubContext{}
+		node.Partspec.Fingerprint(&subCtx, node, "Partspec")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("partspec")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.Relation != nil {
 		subCtx := FingerprintSubContext{}
 		node.Relation.Fingerprint(&subCtx, node, "Relation")

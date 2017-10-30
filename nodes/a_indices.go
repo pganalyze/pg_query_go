@@ -5,11 +5,15 @@ package pg_query
 import "encoding/json"
 
 /*
- * A_Indices - array subscript or slice bounds ([lidx:uidx] or [uidx])
+ * A_Indices - array subscript or slice bounds ([idx] or [lidx:uidx])
+ *
+ * In slice case, either or both of lidx and uidx can be NULL (omitted).
+ * In non-slice case, uidx holds the single subscript and lidx is always NULL.
  */
 type A_Indices struct {
-	Lidx Node `json:"lidx"` /* NULL if it's a single subscript */
-	Uidx Node `json:"uidx"`
+	IsSlice bool `json:"is_slice"` /* true if slice (i.e., colon present) */
+	Lidx    Node `json:"lidx"`     /* slice lower bound, if any */
+	Uidx    Node `json:"uidx"`     /* subscript, or slice upper bound if any */
 }
 
 func (node A_Indices) MarshalJSON() ([]byte, error) {
@@ -25,6 +29,13 @@ func (node *A_Indices) UnmarshalJSON(input []byte) (err error) {
 	err = json.Unmarshal(input, &fields)
 	if err != nil {
 		return
+	}
+
+	if fields["is_slice"] != nil {
+		err = json.Unmarshal(fields["is_slice"], &node.IsSlice)
+		if err != nil {
+			return
+		}
 	}
 
 	if fields["lidx"] != nil {

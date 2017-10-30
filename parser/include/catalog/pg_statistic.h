@@ -5,7 +5,7 @@
  *	  along with the relation's initial contents.
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/catalog/pg_statistic.h
@@ -291,4 +291,4 @@ typedef FormData_pg_statistic *Form_pg_statistic;
  */
 #define STATISTIC_KIND_BOUNDS_HISTOGRAM  7
 
-#endif   /* PG_STATISTIC_H */
+#endif							/* PG_STATISTIC_H */

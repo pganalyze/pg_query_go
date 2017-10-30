@@ -8,15 +8,15 @@ import "encoding/json"
  * RangeVar - range variable, used in FROM clauses
  *
  * Also used to represent table names in utility statements; there, the alias
- * field is not used, and inhOpt shows whether to apply the operation
+ * field is not used, and inh tells whether to apply the operation
  * recursively to child tables.  In some contexts it is also useful to carry
  * a TEMP table indication here.
  */
 type RangeVar struct {
-	Catalogname *string   `json:"catalogname"` /* the catalog (database) name, or NULL */
-	Schemaname  *string   `json:"schemaname"`  /* the schema name, or NULL */
-	Relname     *string   `json:"relname"`     /* the relation/sequence name */
-	InhOpt      InhOption `json:"inhOpt"`      /* expand rel by inheritance? recursively act
+	Catalogname *string `json:"catalogname"` /* the catalog (database) name, or NULL */
+	Schemaname  *string `json:"schemaname"`  /* the schema name, or NULL */
+	Relname     *string `json:"relname"`     /* the relation/sequence name */
+	Inh         bool    `json:"inh"`         /* expand rel by inheritance? recursively act
 	 * on children? */
 
 	Relpersistence byte   `json:"relpersistence"` /* see RELPERSISTENCE_* in pg_class.h */
@@ -60,8 +60,8 @@ func (node *RangeVar) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["inhOpt"] != nil {
-		err = json.Unmarshal(fields["inhOpt"], &node.InhOpt)
+	if fields["inh"] != nil {
+		err = json.Unmarshal(fields["inh"], &node.Inh)
 		if err != nil {
 			return
 		}

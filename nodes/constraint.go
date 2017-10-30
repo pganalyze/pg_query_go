@@ -15,9 +15,10 @@ type Constraint struct {
 	Location     int     `json:"location"`     /* token location, or -1 if unknown */
 
 	/* Fields used for constraints with expressions (CHECK and DEFAULT): */
-	IsNoInherit bool    `json:"is_no_inherit"` /* is constraint non-inheritable? */
-	RawExpr     Node    `json:"raw_expr"`      /* expr, as untransformed parse tree */
-	CookedExpr  *string `json:"cooked_expr"`   /* expr, as nodeToString representation */
+	IsNoInherit   bool    `json:"is_no_inherit"` /* is constraint non-inheritable? */
+	RawExpr       Node    `json:"raw_expr"`      /* expr, as untransformed parse tree */
+	CookedExpr    *string `json:"cooked_expr"`   /* expr, as nodeToString representation */
+	GeneratedWhen byte    `json:"generated_when"`
 
 	/* Fields used for unique constraints (UNIQUE and PRIMARY KEY): */
 	Keys List `json:"keys"` /* String nodes naming referenced column(s) */
@@ -42,7 +43,8 @@ type Constraint struct {
 	FkUpdAction   byte      `json:"fk_upd_action"`   /* ON UPDATE action */
 	FkDelAction   byte      `json:"fk_del_action"`   /* ON DELETE action */
 	OldConpfeqop  List      `json:"old_conpfeqop"`   /* pg_constraint.conpfeqop of my former self */
-	OldPktableOid Oid       `json:"old_pktable_oid"` /* pg_constraint.confrelid of my former self */
+	OldPktableOid Oid       `json:"old_pktable_oid"` /* pg_constraint.confrelid of my former
+	 * self */
 
 	/* Fields used for constraints that allow a NOT VALID specification */
 	SkipValidation bool `json:"skip_validation"` /* skip validation of existing rows? */
@@ -115,6 +117,15 @@ func (node *Constraint) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["cooked_expr"] != nil {
 		err = json.Unmarshal(fields["cooked_expr"], &node.CookedExpr)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["generated_when"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["generated_when"], &strVal)
+		node.GeneratedWhen = strVal[0]
 		if err != nil {
 			return
 		}

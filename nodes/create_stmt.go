@@ -20,12 +20,14 @@ type CreateStmt struct {
 	InhRelations List      `json:"inhRelations"` /* relations to inherit from (list of
 	 * inhRelation) */
 
-	OfTypename     *TypeName      `json:"ofTypename"`     /* OF typename */
-	Constraints    List           `json:"constraints"`    /* constraints (list of Constraint nodes) */
-	Options        List           `json:"options"`        /* options from WITH clause */
-	Oncommit       OnCommitAction `json:"oncommit"`       /* what do we do at COMMIT? */
-	Tablespacename *string        `json:"tablespacename"` /* table space to use, or NULL */
-	IfNotExists    bool           `json:"if_not_exists"`  /* just do nothing if it already exists? */
+	Partbound      *PartitionBoundSpec `json:"partbound"`      /* FOR VALUES clause */
+	Partspec       *PartitionSpec      `json:"partspec"`       /* PARTITION BY clause */
+	OfTypename     *TypeName           `json:"ofTypename"`     /* OF typename */
+	Constraints    List                `json:"constraints"`    /* constraints (list of Constraint nodes) */
+	Options        List                `json:"options"`        /* options from WITH clause */
+	Oncommit       OnCommitAction      `json:"oncommit"`       /* what do we do at COMMIT? */
+	Tablespacename *string             `json:"tablespacename"` /* table space to use, or NULL */
+	IfNotExists    bool                `json:"if_not_exists"`  /* just do nothing if it already exists? */
 }
 
 func (node CreateStmt) MarshalJSON() ([]byte, error) {
@@ -66,6 +68,30 @@ func (node *CreateStmt) UnmarshalJSON(input []byte) (err error) {
 		node.InhRelations.Items, err = UnmarshalNodeArrayJSON(fields["inhRelations"])
 		if err != nil {
 			return
+		}
+	}
+
+	if fields["partbound"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["partbound"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PartitionBoundSpec)
+			node.Partbound = &val
+		}
+	}
+
+	if fields["partspec"] != nil {
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["partspec"])
+		if err != nil {
+			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(PartitionSpec)
+			node.Partspec = &val
 		}
 	}
 

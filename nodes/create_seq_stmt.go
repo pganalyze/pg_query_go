@@ -11,7 +11,8 @@ import "encoding/json"
 type CreateSeqStmt struct {
 	Sequence    *RangeVar `json:"sequence"` /* the sequence to create */
 	Options     List      `json:"options"`
-	OwnerId     Oid       `json:"ownerId"`       /* ID of owner, or InvalidOid for default */
+	OwnerId     Oid       `json:"ownerId"` /* ID of owner, or InvalidOid for default */
+	ForIdentity bool      `json:"for_identity"`
 	IfNotExists bool      `json:"if_not_exists"` /* just do nothing if it already exists? */
 }
 
@@ -51,6 +52,13 @@ func (node *CreateSeqStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["ownerId"] != nil {
 		err = json.Unmarshal(fields["ownerId"], &node.OwnerId)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["for_identity"] != nil {
+		err = json.Unmarshal(fields["for_identity"], &node.ForIdentity)
 		if err != nil {
 			return
 		}

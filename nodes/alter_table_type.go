@@ -68,4 +68,9 @@ const (
 	AT_ForceRowSecurity          /* FORCE ROW SECURITY */
 	AT_NoForceRowSecurity        /* NO FORCE ROW SECURITY */
 	AT_GenericOptions            /* OPTIONS (...) */
+	AT_AttachPartition           /* ATTACH PARTITION */
+	AT_DetachPartition           /* DETACH PARTITION */
+	AT_AddIdentity               /* ADD IDENTITY */
+	AT_SetIdentity               /* SET identity column options */
+	AT_DropIdentity              /* DROP IDENTITY */
 )

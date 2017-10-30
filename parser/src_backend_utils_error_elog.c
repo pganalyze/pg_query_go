@@ -25,8 +25,8 @@
  * - errordata_stack_depth
  * - errordata
  * - elog_finish
- * - errposition
  * - errhint
+ * - errposition
  * - internalerrposition
  * - internalerrquery
  * - geterrposition
@@ -83,7 +83,7 @@
  * overflow.)
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -119,11 +119,10 @@
 #include "utils/ps_status.h"
 
 
+/* In this module, access gettext() via err_gettext() */
 #undef _
 #define _(x) err_gettext(x)
 
-static const char *err_gettext(const char *str) pg_attribute_format_arg(1);
-static void set_errdata_field(MemoryContextData *cxt, char **ptr, const char *str);
 
 /* Global variables */
 __thread ErrorContextCallback *error_context_stack = NULL;
@@ -146,7 +145,9 @@ __thread emit_log_hook_type emit_log_hook = NULL;
 
 /* GUC parameters */
 
-		/* format for extra log line info */
+ /* format for extra log line info */
+
+
 
 
 
@@ -170,25 +171,30 @@ __thread emit_log_hook_type emit_log_hook = NULL;
 static void write_syslog(int level, const char *line);
 #endif
 
-static void write_console(const char *line, int len);
-
 #ifdef WIN32
 extern char *event_source;
+
 static void write_eventlog(int level, const char *line, int len);
 #endif
 
 /* We provide a small stack of ErrorData records for re-entrant cases */
 #define ERRORDATA_STACK_SIZE  5
 
-static ErrorData errordata[ERRORDATA_STACK_SIZE];
+static __thread ErrorData errordata[ERRORDATA_STACK_SIZE];
 
-static int	errordata_stack_depth = -1; /* index of topmost active frame */
 
-static int	recursion_depth = 0;	/* to detect actual recursion */
+static __thread int	errordata_stack_depth = -1;
+ /* index of topmost active frame */
 
-/* buffers for formatted timestamps that might be used by both
- * log_line_prefix and csv logs.
+static __thread int	recursion_depth = 0;
+	/* to detect actual recursion */
+
+/*
+ * Saved timeval and buffers for formatted timestamps that might be used by
+ * both log_line_prefix and csv logs.
  */
+
+
 
 #define FORMATTED_TS_LEN 128
 
@@ -206,9 +212,16 @@ static int	recursion_depth = 0;	/* to detect actual recursion */
 	} while (0)
 
 
+static const char *err_gettext(const char *str) pg_attribute_format_arg(1);
+static void set_errdata_field(MemoryContextData *cxt, char **ptr, const char *str);
+static void write_console(const char *line, int len);
+static void setup_formatted_log_time(void);
+static void setup_formatted_start_time(void);
 static const char *process_log_prefix_padding(const char *p, int *padding);
 static void log_line_prefix(StringInfo buf, ErrorData *edata);
+static void write_csvlog(ErrorData *edata);
 static void send_message_to_server_log(ErrorData *edata);
+static void write_pipe_chunks(char *data, int len, int dest);
 static void send_message_to_frontend(ErrorData *edata);
 static char *expand_fmt_string(const char *fmt, ErrorData *edata);
 static const char *useful_strerror(int errnum);
@@ -216,10 +229,6 @@ static const char *get_errno_symbol(int errnum);
 static const char *error_severity(int elevel);
 static void append_with_tabs(StringInfo buf, const char *str);
 static bool is_log_level_output(int elevel, int log_min_level);
-static void write_pipe_chunks(char *data, int len, int dest);
-static void write_csvlog(ErrorData *edata);
-static void setup_formatted_log_time(void);
-static void setup_formatted_start_time(void);
 
 
 /*
@@ -330,7 +339,7 @@ errstart(int elevel, const char *filename, int lineno,
 	output_to_server = is_log_level_output(elevel, log_min_messages);
 
 	/* Determine whether message is enabled for client output */
-	if (whereToSendOutput == DestRemote && elevel != COMMERROR)
+	if (whereToSendOutput == DestRemote && elevel != LOG_SERVER_ONLY)
 	{
 		/*
 		 * client_min_messages is honored only after we complete the
@@ -355,7 +364,7 @@ errstart(int elevel, const char *filename, int lineno,
 	 */
 	if (ErrorContext == NULL)
 	{
-		/* Ooops, hard crash time; very little we can do safely here */
+		/* Oops, hard crash time; very little we can do safely here */
 		write_stderr("error occurred at %s:%d before error message processing is available\n",
 					 filename ? filename : "(unknown file)", lineno);
 		exit(2);
@@ -368,7 +377,7 @@ errstart(int elevel, const char *filename, int lineno,
 	if (recursion_depth++ > 0 && elevel >= ERROR)
 	{
 		/*
-		 * Ooops, error during error processing.  Clear ErrorContext as
+		 * Oops, error during error processing.  Clear ErrorContext as
 		 * discussed at top of file.  We will not return to the original
 		 * error's reporter or handler, so we don't need it.
 		 */
@@ -393,7 +402,7 @@ errstart(int elevel, const char *filename, int lineno,
 		 * because it suggests an infinite loop of errors during error
 		 * recovery.
 		 */
-		errordata_stack_depth = -1;		/* make room on stack */
+		errordata_stack_depth = -1; /* make room on stack */
 		ereport(PANIC, (errmsg_internal("ERRORDATA_STACK_SIZE exceeded")));
 	}
 
@@ -759,6 +768,7 @@ errmsg(const char *fmt,...)
 	CHECK_STACK_DEPTH();
 	oldcontext = MemoryContextSwitchTo(edata->assoc_context);
 
+	edata->message_id = fmt;
 	EVALUATE_MESSAGE(edata->domain, message, false, true);
 
 	MemoryContextSwitchTo(oldcontext);
@@ -788,6 +798,7 @@ errmsg_internal(const char *fmt,...)
 	CHECK_STACK_DEPTH();
 	oldcontext = MemoryContextSwitchTo(edata->assoc_context);
 
+	edata->message_id = fmt;
 	EVALUATE_MESSAGE(edata->domain, message, false, false);
 
 	MemoryContextSwitchTo(oldcontext);
@@ -945,7 +956,7 @@ set_errcontext_domain(const char *domain)
  * errhidecontext --- optionally suppress CONTEXT: field of log entry
  *
  * This should only be used for verbose debugging messages where the repeated
- * inclusion of CONTEXT: bloats the log volume too much.
+ * inclusion of context would bloat the log volume too much.
  */
 
 
@@ -1098,7 +1109,7 @@ elog_start(const char *filename, int lineno, const char *funcname)
 	/* Make sure that memory context initialization has finished */
 	if (ErrorContext == NULL)
 	{
-		/* Ooops, hard crash time; very little we can do safely here */
+		/* Oops, hard crash time; very little we can do safely here */
 		write_stderr("error occurred at %s:%d before error message processing is available\n",
 					 filename ? filename : "(unknown file)", lineno);
 		exit(2);
@@ -1113,7 +1124,7 @@ elog_start(const char *filename, int lineno, const char *funcname)
 		 * else failure to convert it to client encoding could cause further
 		 * recursion.
 		 */
-		errordata_stack_depth = -1;		/* make room on stack */
+		errordata_stack_depth = -1; /* make room on stack */
 		ereport(PANIC, (errmsg_internal("ERRORDATA_STACK_SIZE exceeded")));
 	}
 
@@ -1162,6 +1173,7 @@ elog_finish(int elevel, const char *fmt,...)
 	recursion_depth++;
 	oldcontext = MemoryContextSwitchTo(edata->assoc_context);
 
+	edata->message_id = fmt;
 	EVALUATE_MESSAGE(edata->domain, message, false, false);
 
 	MemoryContextSwitchTo(oldcontext);
@@ -1230,6 +1242,11 @@ EmitErrorReport(void)
 	 * where it would have much less information available.  emit_log_hook is
 	 * intended for custom log filtering and custom log message transmission
 	 * mechanisms.
+	 *
+	 * The log hook has access to both the translated and original English
+	 * error message text, which is passed through to allow it to be used as a
+	 * message identifier. Note that the original text is not available for
+	 * detail, detail_log, hint and context text elements.
 	 */
 	if (edata->output_to_server && emit_log_hook)
 		(*emit_log_hook) (edata);
@@ -1445,7 +1462,7 @@ pg_re_throw(void)
  * Write a message line to syslog
  */
 
-#endif   /* HAVE_SYSLOG */
+#endif							/* HAVE_SYSLOG */
 
 #ifdef WIN32
 /*
@@ -1477,7 +1494,7 @@ write_eventlog(int level, const char *line, int len)
 	if (evtHandle == INVALID_HANDLE_VALUE)
 	{
 		evtHandle = RegisterEventSource(NULL,
-						 event_source ? event_source : DEFAULT_EVENT_SOURCE);
+										event_source ? event_source : DEFAULT_EVENT_SOURCE);
 		if (evtHandle == NULL)
 		{
 			evtHandle = INVALID_HANDLE_VALUE;
@@ -1493,7 +1510,7 @@ write_eventlog(int level, const char *line, int len)
 		case DEBUG2:
 		case DEBUG1:
 		case LOG:
-		case COMMERROR:
+		case LOG_SERVER_ONLY:
 		case INFO:
 		case NOTICE:
 			eventlevel = EVENTLOG_INFORMATION_TYPE;
@@ -1549,7 +1566,7 @@ write_eventlog(int level, const char *line, int len)
 				 &line,
 				 NULL);
 }
-#endif   /* WIN32 */
+#endif							/* WIN32 */
 
 #ifdef WIN32
 #else
@@ -1920,7 +1937,10 @@ get_errno_symbol(int errnum)
 
 
 /*
- * error_severity --- get localized string representing elevel
+ * error_severity --- get string representing elevel
+ *
+ * The string is not localized here, but we mark the strings for translation
+ * so that callers can invoke _() on the result.
  */
 
 
@@ -1988,7 +2008,7 @@ write_stderr(const char *fmt,...)
 static bool
 is_log_level_output(int elevel, int log_min_level)
 {
-	if (elevel == LOG || elevel == COMMERROR)
+	if (elevel == LOG || elevel == LOG_SERVER_ONLY)
 	{
 		if (log_min_level == LOG || log_min_level <= ERROR)
 			return true;

@@ -12,6 +12,7 @@ type CreatePolicyStmt struct {
 	PolicyName *string   `json:"policy_name"` /* Policy's name */
 	Table      *RangeVar `json:"table"`       /* the table name the policy applies to */
 	CmdName    *string   `json:"cmd_name"`    /* the command name the policy applies to */
+	Permissive bool      `json:"permissive"`  /* restrictive or permissive policy */
 	Roles      List      `json:"roles"`       /* the roles associated with the policy */
 	Qual       Node      `json:"qual"`        /* the policy's condition */
 	WithCheck  Node      `json:"with_check"`  /* the policy's WITH CHECK condition. */
@@ -53,6 +54,13 @@ func (node *CreatePolicyStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["cmd_name"] != nil {
 		err = json.Unmarshal(fields["cmd_name"], &node.CmdName)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["permissive"] != nil {
+		err = json.Unmarshal(fields["permissive"], &node.Permissive)
 		if err != nil {
 			return
 		}

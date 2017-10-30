@@ -9,14 +9,12 @@ import "encoding/json"
  * ----------------------
  */
 type CreateOpClassItem struct {
-	Itemtype int `json:"itemtype"` /* see codes above */
-
-	/* fields used for an operator or function item: */
-	Name        List `json:"name"`         /* operator or function name */
-	Args        List `json:"args"`         /* argument types */
-	Number      int  `json:"number"`       /* strategy num or support proc num */
-	OrderFamily List `json:"order_family"` /* only used for ordering operators */
-	ClassArgs   List `json:"class_args"`   /* only used for functions */
+	Itemtype    int             `json:"itemtype"`     /* see codes above */
+	Name        *ObjectWithArgs `json:"name"`         /* operator or function name and args */
+	Number      int             `json:"number"`       /* strategy num or support proc num */
+	OrderFamily List            `json:"order_family"` /* only used for ordering operators */
+	ClassArgs   List            `json:"class_args"`   /* amproclefttype/amprocrighttype or
+	 * amoplefttype/amoprighttype */
 
 	/* fields used for a storagetype item: */
 	Storedtype *TypeName `json:"storedtype"` /* datatype stored in index */
@@ -45,16 +43,14 @@ func (node *CreateOpClassItem) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["name"] != nil {
-		node.Name.Items, err = UnmarshalNodeArrayJSON(fields["name"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["name"])
 		if err != nil {
 			return
 		}
-	}
-
-	if fields["args"] != nil {
-		node.Args.Items, err = UnmarshalNodeArrayJSON(fields["args"])
-		if err != nil {
-			return
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(ObjectWithArgs)
+			node.Name = &val
 		}
 	}
 

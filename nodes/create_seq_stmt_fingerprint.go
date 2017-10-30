@@ -7,6 +7,11 @@ import "strconv"
 func (node CreateSeqStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateSeqStmt")
 
+	if node.ForIdentity {
+		ctx.WriteString("for_identity")
+		ctx.WriteString(strconv.FormatBool(node.ForIdentity))
+	}
+
 	if node.IfNotExists {
 		ctx.WriteString("if_not_exists")
 		ctx.WriteString(strconv.FormatBool(node.IfNotExists))

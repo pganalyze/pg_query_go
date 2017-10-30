@@ -11,7 +11,7 @@
  *		sprintf into an allocated-on-demand buffer
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -32,7 +32,7 @@
 #include "postgres_fe.h"
 
 /* It's possible we could use a different value for this in frontend code */
-#define MaxAllocSize	((Size) 0x3fffffff)		/* 1 gigabyte - 1 */
+#define MaxAllocSize	((Size) 0x3fffffff) /* 1 gigabyte - 1 */
 
 #endif
 

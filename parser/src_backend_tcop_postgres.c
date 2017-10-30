@@ -16,7 +16,7 @@
  * postgres.c
  *	  POSTGRES C Backend Interface
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -68,6 +68,8 @@
 #include "pg_getopt.h"
 #include "postmaster/autovacuum.h"
 #include "postmaster/postmaster.h"
+#include "replication/logicallauncher.h"
+#include "replication/logicalworker.h"
 #include "replication/slot.h"
 #include "replication/walsender.h"
 #include "rewrite/rewriteHandler.h"
@@ -120,7 +122,8 @@ __thread int			max_stack_depth = 100;
  */
 
 /* max_stack_depth converted to bytes for speed of checking */
-static long max_stack_depth_bytes = 100 * 1024L;
+static __thread long max_stack_depth_bytes = 100 * 1024L;
+
 
 /*
  * Stack base pointer -- initialized by PostmasterMain and inherited by
@@ -167,18 +170,8 @@ char	   *register_stack_base_ptr = NULL;
 
 /* assorted command-line switches */
 	/* -D switch */
-
 	/* -E switch */
-
-/*
- * people who want to use EOF should #define DONTUSENEWLINE in
- * tcop/tcopdebug.h
- */
-#ifndef TCOP_DONTUSENEWLINE
-		/* Use newlines query delimiters (the default) */
-#else
-static int	UseNewLine = 0;		/* Use EOF as query delimiters */
-#endif   /* TCOP_DONTUSENEWLINE */
+	/* -j switch */
 
 /* whether or not, and why, we were canceled by conflict with recovery */
 
@@ -203,8 +196,8 @@ static int	errdetail_recovery_conflict(void);
 static void start_xact_command(void);
 static void finish_xact_command(void);
 static bool IsTransactionExitStmt(Node *parsetree);
-static bool IsTransactionExitStmtList(List *parseTrees);
-static bool IsTransactionStmtList(List *parseTrees);
+static bool IsTransactionExitStmtList(List *pstmts);
+static bool IsTransactionStmtList(List *pstmts);
 static void drop_unnamed_stmt(void);
 static void log_disconnections(int code, Datum arg);
 
@@ -277,8 +270,8 @@ static void log_disconnections(int code, Datum arg);
 /*
  * Do raw parsing (only).
  *
- * A list of parsetrees is returned, since there might be multiple
- * commands in the given string.
+ * A list of parsetrees (RawStmt nodes) is returned, since there might be
+ * multiple commands in the given string.
  *
  * NOTE: for interactive queries, it is important to keep this routine
  * separate from the analysis & rewrite stages.  Analysis and rewriting
@@ -330,8 +323,10 @@ static void log_disconnections(int code, Datum arg);
 /*
  * Generate plans for a list of already-rewritten queries.
  *
- * Normal optimizable statements generate PlannedStmt entries in the result
- * list.  Utility statements are simply represented by their statement nodes.
+ * For normal optimizable statements, invoke the planner.  For utility
+ * statements, just make a wrapper PlannedStmt node.
+ *
+ * The result is a list of PlannedStmt nodes.
  */
 
 
@@ -453,10 +448,10 @@ static void log_disconnections(int code, Datum arg);
 /* Test a bare parsetree */
 
 
-/* Test a list that might contain Query nodes or bare parsetrees */
+/* Test a list that contains PlannedStmt nodes */
 
 
-/* Test a list that might contain Query nodes or bare parsetrees */
+/* Test a list that contains PlannedStmt nodes */
 
 
 /* Release any existing unnamed prepared statement */
@@ -522,37 +517,39 @@ void ProcessInterrupts(void) {}
 /*
  * IA64-specific code to fetch the AR.BSP register for stack depth checks.
  *
- * We currently support gcc, icc, and HP-UX inline assembly here.
+ * We currently support gcc, icc, and HP-UX's native compiler here.
+ *
+ * Note: while icc accepts gcc asm blocks on x86[_64], this is not true on
+ * ia64 (at least not in icc versions before 12.x).  So we have to carry a
+ * separate implementation for it.
  */
 #if defined(__ia64__) || defined(__ia64)
 
-#if defined(__hpux) && !defined(__GNUC__) && !defined __INTEL_COMPILER
+#if defined(__hpux) && !defined(__GNUC__) && !defined(__INTEL_COMPILER)
+/* Assume it's HP-UX native compiler */
 #include <ia64/sys/inline.h>
 #define ia64_get_bsp() ((char *) (_Asm_mov_from_ar(_AREG_BSP, _NO_FENCE)))
-#else
-
-#ifdef __INTEL_COMPILER
+#elif defined(__INTEL_COMPILER)
+/* icc */
 #include <asm/ia64regs.h>
-#endif
-
+#define ia64_get_bsp() ((char *) __getReg(_IA64_REG_AR_BSP))
+#else
+/* gcc */
 static __inline__ char *
 ia64_get_bsp(void)
 {
 	char	   *ret;
 
-#ifndef __INTEL_COMPILER
 	/* the ;; is a "stop", seems to be required before fetching BSP */
-	__asm__		__volatile__(
-										 ";;\n"
-										 "	mov	%0=ar.bsp	\n"
-							 :			 "=r"(ret));
-#else
-	ret = (char *) __getReg(_IA64_REG_AR_BSP);
-#endif
+	__asm__ __volatile__(
+						 ";;\n"
+						 "	mov	%0=ar.bsp	\n"
+:						 "=r"(ret));
+
 	return ret;
 }
 #endif
-#endif   /* IA64 */
+#endif							/* IA64 */
 
 
 /*
@@ -599,7 +596,7 @@ check_stack_depth(void)
 				(errcode(ERRCODE_STATEMENT_TOO_COMPLEX),
 				 errmsg("stack depth limit exceeded"),
 				 errhint("Increase the configuration parameter \"max_stack_depth\" (currently %dkB), "
-			  "after ensuring the platform's stack depth limit is adequate.",
+						 "after ensuring the platform's stack depth limit is adequate.",
 						 max_stack_depth)));
 	}
 }
@@ -647,7 +644,7 @@ stack_is_too_deep(void)
 	if (stack_depth > max_stack_depth_bytes &&
 		register_stack_base_ptr != NULL)
 		return true;
-#endif   /* IA64 */
+#endif							/* IA64 */
 
 	return false;
 }
@@ -743,7 +740,7 @@ stack_is_too_deep(void)
 
 
 #if defined(HAVE_GETRUSAGE)
-#endif   /* HAVE_GETRUSAGE */
+#endif							/* HAVE_GETRUSAGE */
 
 /*
  * on_proc_exit handler to log end of session

@@ -7,9 +7,9 @@ import "encoding/json"
 /* ----------------------
  *		Explain Statement
  *
- * The "query" field is either a raw parse tree (SelectStmt, InsertStmt, etc)
- * or a Query node if parse analysis has been done.  Note that rewriting and
- * planning of the query are always postponed until execution of EXPLAIN.
+ * The "query" field is initially a raw parse tree, and is converted to a
+ * Query node during parse analysis.  Note that rewriting and planning
+ * of the query are always postponed until execution.
  * ----------------------
  */
 type ExplainStmt struct {

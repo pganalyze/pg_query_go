@@ -14,7 +14,7 @@
  * See src/backend/utils/misc/README for more information.
  *
  *
- * Copyright (c) 2000-2015, PostgreSQL Global Development Group
+ * Copyright (c) 2000-2017, PostgreSQL Global Development Group
  * Written by Peter Eisentraut <peter_e@gmx.net>.
  *
  * IDENTIFICATION
@@ -36,12 +36,16 @@
 
 #include "access/commit_ts.h"
 #include "access/gin.h"
+#include "access/rmgr.h"
 #include "access/transam.h"
 #include "access/twophase.h"
 #include "access/xact.h"
+#include "access/xlog_internal.h"
 #include "catalog/namespace.h"
+#include "catalog/pg_authid.h"
 #include "commands/async.h"
 #include "commands/prepare.h"
+#include "commands/user.h"
 #include "commands/vacuum.h"
 #include "commands/variable.h"
 #include "commands/trigger.h"
@@ -61,11 +65,12 @@
 #include "parser/scansup.h"
 #include "pgstat.h"
 #include "postmaster/autovacuum.h"
-#include "postmaster/bgworker.h"
+#include "postmaster/bgworker_internals.h"
 #include "postmaster/bgwriter.h"
 #include "postmaster/postmaster.h"
 #include "postmaster/syslogger.h"
 #include "postmaster/walwriter.h"
+#include "replication/logicallauncher.h"
 #include "replication/slot.h"
 #include "replication/syncrep.h"
 #include "replication/walreceiver.h"
@@ -90,6 +95,7 @@
 #include "utils/rls.h"
 #include "utils/snapmgr.h"
 #include "utils/tzparser.h"
+#include "utils/varlena.h"
 #include "utils/xml.h"
 
 #ifndef PG_KRB_SRVTAB
@@ -138,19 +144,23 @@ static void do_serialize(char **destptr, Size *maxbytes, const char *fmt,...) pg
 
 static void set_config_sourcefile(const char *name, char *sourcefile,
 					  int sourceline);
-static bool call_bool_check_hook(struct config_bool * conf, bool *newval,
+static bool call_bool_check_hook(struct config_bool *conf, bool *newval,
 					 void **extra, GucSource source, int elevel);
-static bool call_int_check_hook(struct config_int * conf, int *newval,
+static bool call_int_check_hook(struct config_int *conf, int *newval,
 					void **extra, GucSource source, int elevel);
-static bool call_real_check_hook(struct config_real * conf, double *newval,
+static bool call_real_check_hook(struct config_real *conf, double *newval,
 					 void **extra, GucSource source, int elevel);
-static bool call_string_check_hook(struct config_string * conf, char **newval,
+static bool call_string_check_hook(struct config_string *conf, char **newval,
 					   void **extra, GucSource source, int elevel);
-static bool call_enum_check_hook(struct config_enum * conf, int *newval,
+static bool call_enum_check_hook(struct config_enum *conf, int *newval,
 					 void **extra, GucSource source, int elevel);
 
 static bool check_log_destination(char **newval, void **extra, GucSource source);
 static void assign_log_destination(const char *newval, void *extra);
+
+static bool check_wal_consistency_checking(char **newval, void **extra,
+							   GucSource source);
+static void assign_wal_consistency_checking(const char *newval, void *extra);
 
 #ifdef HAVE_SYSLOG
 
@@ -244,14 +254,23 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
 
 
 /*
- * Although only "on", "off", "remote_write", and "local" are documented, we
- * accept all the likely variants of "on" and "off".
+ * Although only "on", "off", "remote_apply", "remote_write", and "local" are
+ * documented, we accept all the likely variants of "on" and "off".
  */
 
 
 /*
  * Although only "on", "off", "try" are documented, we accept all the likely
  * variants of "on" and "off".
+ */
+
+
+
+
+/*
+ * password_encryption used to be a boolean, so accept all the likely
+ * variants of "on", too. "off" used to store passwords in plaintext,
+ * but we don't support that anymore.
  */
 
 
@@ -275,16 +294,13 @@ extern const struct config_enum_entry dynamic_shared_memory_options[];
 
 
 
-		/* this is sort of all three
-												 * above together */
+	/* this is sort of all three above
+											 * together */
 
 
 
 
 __thread bool		check_function_bodies = true;
-
-
-
 
 
 
@@ -334,7 +350,6 @@ __thread int			client_min_messages = NOTICE;
  * cases provide the value for SHOW to display.  The real state is elsewhere
  * and is kept in sync by assign_hooks.
  */
-
 
 
 
@@ -426,7 +441,7 @@ typedef struct
 #if XLOG_BLCKSZ < 1024 || XLOG_BLCKSZ > (1024*1024)
 #error XLOG_BLCKSZ must be between 1KB and 1MB
 #endif
-#if XLOG_SEG_SIZE < (1024*1024) || XLOG_BLCKSZ > (1024*1024*1024)
+#if XLOG_SEG_SIZE < (1024*1024) || XLOG_SEG_SIZE > (1024*1024*1024)
 #error XLOG_SEG_SIZE must be between 1MB and 1GB
 #endif
 
@@ -473,6 +488,9 @@ typedef struct
 #endif
 #ifdef BTREE_BUILD_STATS
 #endif
+#ifdef WIN32
+#else
+#endif
 #ifdef LOCK_DEBUG
 #endif
 #ifdef TRACE_SORT
@@ -482,9 +500,6 @@ typedef struct
 #ifdef DEBUG_BOUNDED_SORT
 #endif
 #ifdef WAL_DEBUG
-#endif
-#ifdef HAVE_INT64_TIMESTAMP
-#else
 #endif
 
 
@@ -547,17 +562,17 @@ typedef struct
 static int	guc_var_compare(const void *a, const void *b);
 static int	guc_name_compare(const char *namea, const char *nameb);
 static void InitializeGUCOptionsFromEnvironment(void);
-static void InitializeOneGUCOption(struct config_generic * gconf);
-static void push_old_value(struct config_generic * gconf, GucAction action);
-static void ReportGUCOption(struct config_generic * record);
-static void reapply_stacked_values(struct config_generic * variable,
-					   struct config_string * pHolder,
+static void InitializeOneGUCOption(struct config_generic *gconf);
+static void push_old_value(struct config_generic *gconf, GucAction action);
+static void ReportGUCOption(struct config_generic *record);
+static void reapply_stacked_values(struct config_generic *variable,
+					   struct config_string *pHolder,
 					   GucStack *stack,
 					   const char *curvalue,
 					   GucContext curscontext, GucSource cursource);
 static void ShowGUCConfigOption(const char *name, DestReceiver *dest);
 static void ShowAllGUCConfig(DestReceiver *dest);
-static char *_ShowOption(struct config_generic * record, bool use_units);
+static char *_ShowOption(struct config_generic *record, bool use_units);
 static bool validate_option_array_item(const char *name, const char *value,
 						   bool skipIfNoPermissions);
 static void write_auto_conf_file(int fd, const char *filename, ConfigVariable *head_p);
@@ -623,7 +638,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 
 /*
  * Build the sorted array.  This is split out so that it could be
- * re-executed after startup (eg, we could allow loadable modules to
+ * re-executed after startup (e.g., we could allow loadable modules to
  * add vars, and then we'd need to re-sort).
  */
 
@@ -937,7 +952,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
  * We need to be told the name of the variable the args are for, because
  * the flattening rules vary (ugh).
  *
- * The result is NULL if args is NIL (ie, SET ... TO DEFAULT), otherwise
+ * The result is NULL if args is NIL (i.e., SET ... TO DEFAULT), otherwise
  * a palloc'd string.
  */
 
@@ -1050,8 +1065,9 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 
 
 /*
- * Return GUC variable value by name; optionally return canonical
- * form of name.  Return value is palloc'd.
+ * Return GUC variable value by name; optionally return canonical form of
+ * name.  If the GUC is unset, then throw an error unless missing_ok is true,
+ * in which case return NULL.  Return value is palloc'd (but *varname isn't).
  */
 
 
@@ -1069,6 +1085,13 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 /*
  * show_config_by_name - equiv to SHOW X command but implemented as
  * a function.
+ */
+
+
+/*
+ * show_config_by_name_missing_ok - equiv to SHOW X command but implemented as
+ * a function.  If X does not exist, suppress the error and just return NULL
+ * if missing_ok is TRUE.
  */
 
 
@@ -1113,7 +1136,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
  *		variable scontext, integer
  */
 static void
-write_one_nondefault_variable(FILE *fp, struct config_generic * gconf)
+write_one_nondefault_variable(FILE *fp, struct config_generic *gconf)
 {
 	if (gconf->source == PGC_S_DEFAULT)
 		return;
@@ -1328,7 +1351,7 @@ read_nondefault_variables(void)
 
 	FreeFile(fp);
 }
-#endif   /* EXEC_BACKEND */
+#endif							/* EXEC_BACKEND */
 
 /*
  * can_skip_gucvar:
@@ -1492,6 +1515,10 @@ read_nondefault_variables(void)
  * check_hook, assign_hook and show_hook subroutines
  */
 
+
+
+
+
 #ifdef HAVE_SYSLOG
 #endif
 #ifdef WIN32
@@ -1562,10 +1589,10 @@ read_nondefault_variables(void)
 
 #ifdef USE_PREFETCH
 #else
-#endif   /* USE_PREFETCH */
+#endif							/* USE_PREFETCH */
 
 #ifdef USE_PREFETCH
-#endif   /* USE_PREFETCH */
+#endif							/* USE_PREFETCH */
 
 
 

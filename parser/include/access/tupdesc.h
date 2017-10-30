@@ -4,7 +4,7 @@
  *	  POSTGRES tuple descriptor definitions.
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/access/tupdesc.h
@@ -78,7 +78,7 @@ typedef struct tupleDesc
 	int32		tdtypmod;		/* typmod for tuple type */
 	bool		tdhasoid;		/* tuple has oid attribute in its header */
 	int			tdrefcount;		/* reference count, or -1 if not counting */
-}	*TupleDesc;
+}		   *TupleDesc;
 
 
 /* Accessor for the i'th attribute of tupdesc. */
@@ -122,6 +122,13 @@ extern void TupleDescInitEntry(TupleDesc desc,
 				   int32 typmod,
 				   int attdim);
 
+extern void TupleDescInitBuiltinEntry(TupleDesc desc,
+						  AttrNumber attributeNumber,
+						  const char *attributeName,
+						  Oid oidtypeid,
+						  int32 typmod,
+						  int attdim);
+
 extern void TupleDescInitEntryCollation(TupleDesc desc,
 							AttrNumber attributeNumber,
 							Oid collationid);
@@ -130,4 +137,4 @@ extern TupleDesc BuildDescForRelation(List *schema);
 
 extern TupleDesc BuildDescFromLists(List *names, List *types, List *typmods, List *collations);
 
-#endif   /* TUPDESC_H */
+#endif							/* TUPDESC_H */

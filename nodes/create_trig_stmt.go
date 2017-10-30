@@ -24,6 +24,9 @@ type CreateTrigStmt struct {
 	WhenClause   Node  `json:"whenClause"`   /* qual expression, or NULL if none */
 	Isconstraint bool  `json:"isconstraint"` /* This is a constraint trigger */
 
+	/* explicitly named transition data */
+	TransitionRels List `json:"transitionRels"` /* TriggerTransition nodes, or NIL if none */
+
 	/* The remaining fields are only used for constraint triggers */
 	Deferrable   bool      `json:"deferrable"`   /* [NOT] DEFERRABLE */
 	Initdeferred bool      `json:"initdeferred"` /* INITIALLY {DEFERRED|IMMEDIATE} */
@@ -115,6 +118,13 @@ func (node *CreateTrigStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["isconstraint"] != nil {
 		err = json.Unmarshal(fields["isconstraint"], &node.Isconstraint)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["transitionRels"] != nil {
+		node.TransitionRels.Items, err = UnmarshalNodeArrayJSON(fields["transitionRels"])
 		if err != nil {
 			return
 		}

@@ -9,11 +9,12 @@ import "encoding/json"
  * ----------------------
  */
 type AlterEnumStmt struct {
-	TypeName       List    `json:"typeName"`       /* qualified name (list of Value strings) */
-	NewVal         *string `json:"newVal"`         /* new enum value's name */
-	NewValNeighbor *string `json:"newValNeighbor"` /* neighboring enum value, if specified */
-	NewValIsAfter  bool    `json:"newValIsAfter"`  /* place new enum value after neighbor? */
-	SkipIfExists   bool    `json:"skipIfExists"`   /* no error if label already exists */
+	TypeName           List    `json:"typeName"`           /* qualified name (list of Value strings) */
+	OldVal             *string `json:"oldVal"`             /* old enum value's name, if renaming */
+	NewVal             *string `json:"newVal"`             /* new enum value's name */
+	NewValNeighbor     *string `json:"newValNeighbor"`     /* neighboring enum value, if specified */
+	NewValIsAfter      bool    `json:"newValIsAfter"`      /* place new enum value after neighbor? */
+	SkipIfNewValExists bool    `json:"skipIfNewValExists"` /* no error if new already exists? */
 }
 
 func (node AlterEnumStmt) MarshalJSON() ([]byte, error) {
@@ -33,6 +34,13 @@ func (node *AlterEnumStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["typeName"] != nil {
 		node.TypeName.Items, err = UnmarshalNodeArrayJSON(fields["typeName"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["oldVal"] != nil {
+		err = json.Unmarshal(fields["oldVal"], &node.OldVal)
 		if err != nil {
 			return
 		}
@@ -59,8 +67,8 @@ func (node *AlterEnumStmt) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
-	if fields["skipIfExists"] != nil {
-		err = json.Unmarshal(fields["skipIfExists"], &node.SkipIfExists)
+	if fields["skipIfNewValExists"] != nil {
+		err = json.Unmarshal(fields["skipIfNewValExists"], &node.SkipIfNewValExists)
 		if err != nil {
 			return
 		}

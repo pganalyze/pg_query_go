@@ -11,7 +11,7 @@ import "encoding/json"
 type ViewStmt struct {
 	View            *RangeVar       `json:"view"`            /* the view to be created */
 	Aliases         List            `json:"aliases"`         /* target column names */
-	Query           Node            `json:"query"`           /* the SELECT query */
+	Query           Node            `json:"query"`           /* the SELECT query (as a raw parse tree) */
 	Replace         bool            `json:"replace"`         /* replace an existing view? */
 	Options         List            `json:"options"`         /* options from WITH clause */
 	WithCheckOption ViewCheckOption `json:"withCheckOption"` /* WITH CHECK OPTION */

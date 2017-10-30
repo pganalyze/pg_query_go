@@ -14,8 +14,10 @@ import "encoding/json"
  */
 type CopyStmt struct {
 	Relation *RangeVar `json:"relation"` /* the relation to copy */
-	Query    Node      `json:"query"`    /* the SELECT query to copy */
-	Attlist  List      `json:"attlist"`  /* List of column names (as Strings), or NIL
+	Query    Node      `json:"query"`    /* the query (SELECT or DML statement with
+	 * RETURNING) to copy, as a raw parse tree */
+
+	Attlist List `json:"attlist"` /* List of column names (as Strings), or NIL
 	 * for all columns */
 
 	IsFrom    bool    `json:"is_from"`    /* TO or FROM */

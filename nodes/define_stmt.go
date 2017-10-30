@@ -9,11 +9,12 @@ import "encoding/json"
  * ----------------------
  */
 type DefineStmt struct {
-	Kind       ObjectType `json:"kind"`       /* aggregate, operator, type */
-	Oldstyle   bool       `json:"oldstyle"`   /* hack to signal old CREATE AGG syntax */
-	Defnames   List       `json:"defnames"`   /* qualified name (list of Value strings) */
-	Args       List       `json:"args"`       /* a list of TypeName (if needed) */
-	Definition List       `json:"definition"` /* a list of DefElem */
+	Kind        ObjectType `json:"kind"`          /* aggregate, operator, type */
+	Oldstyle    bool       `json:"oldstyle"`      /* hack to signal old CREATE AGG syntax */
+	Defnames    List       `json:"defnames"`      /* qualified name (list of Value strings) */
+	Args        List       `json:"args"`          /* a list of TypeName (if needed) */
+	Definition  List       `json:"definition"`    /* a list of DefElem */
+	IfNotExists bool       `json:"if_not_exists"` /* just do nothing if it already exists? */
 }
 
 func (node DefineStmt) MarshalJSON() ([]byte, error) {
@@ -61,6 +62,13 @@ func (node *DefineStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["definition"] != nil {
 		node.Definition.Items, err = UnmarshalNodeArrayJSON(fields["definition"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

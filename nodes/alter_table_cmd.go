@@ -13,8 +13,8 @@ type AlterTableCmd struct {
 	Name    *string        `json:"name"`    /* column, constraint, or trigger to act on,
 	 * or tablespace */
 
-	Newowner Node `json:"newowner"` /* RoleSpec */
-	Def      Node `json:"def"`      /* definition of new column, index,
+	Newowner *RoleSpec `json:"newowner"`
+	Def      Node      `json:"def"` /* definition of new column, index,
 	 * constraint, or parent table */
 
 	Behavior  DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE for DROP cases */
@@ -51,9 +51,14 @@ func (node *AlterTableCmd) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["newowner"] != nil {
-		node.Newowner, err = UnmarshalNodeJSON(fields["newowner"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["newowner"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.Newowner = &val
 		}
 	}
 

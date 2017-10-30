@@ -37,6 +37,7 @@ type ParamListInfoData struct {
 	ParamFetchArg  interface{} `json:"paramFetchArg"`
 	ParserSetupArg interface{} `json:"parserSetupArg"`
 	NumParams      int         `json:"numParams"` /* number of ParamExternDatas following */
+	ParamMask      []uint32    `json:"paramMask"` /* if non-NULL, can ignore omitted params */
 }
 
 func (node ParamListInfoData) MarshalJSON() ([]byte, error) {
@@ -70,6 +71,13 @@ func (node *ParamListInfoData) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["numParams"] != nil {
 		err = json.Unmarshal(fields["numParams"], &node.NumParams)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["paramMask"] != nil {
+		err = json.Unmarshal(fields["paramMask"], &node.ParamMask)
 		if err != nil {
 			return
 		}

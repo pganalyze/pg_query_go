@@ -65,9 +65,20 @@ func (node ColumnDef) Fingerprint(ctx FingerprintContext, parentNode Node, paren
 		}
 	}
 
+	if node.Identity != 0 {
+		ctx.WriteString("identity")
+		ctx.WriteString(string(node.Identity))
+
+	}
+
 	if node.Inhcount != 0 {
 		ctx.WriteString("inhcount")
 		ctx.WriteString(strconv.Itoa(int(node.Inhcount)))
+	}
+
+	if node.IsFromParent {
+		ctx.WriteString("is_from_parent")
+		ctx.WriteString(strconv.FormatBool(node.IsFromParent))
 	}
 
 	if node.IsFromType {

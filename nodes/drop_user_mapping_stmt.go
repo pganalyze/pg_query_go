@@ -9,9 +9,9 @@ import "encoding/json"
  * ----------------------
  */
 type DropUserMappingStmt struct {
-	User       Node    `json:"user"`       /* user role */
-	Servername *string `json:"servername"` /* server name */
-	MissingOk  bool    `json:"missing_ok"` /* ignore missing mappings */
+	User       *RoleSpec `json:"user"`       /* user role */
+	Servername *string   `json:"servername"` /* server name */
+	MissingOk  bool      `json:"missing_ok"` /* ignore missing mappings */
 }
 
 func (node DropUserMappingStmt) MarshalJSON() ([]byte, error) {
@@ -30,9 +30,14 @@ func (node *DropUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["user"] != nil {
-		node.User, err = UnmarshalNodeJSON(fields["user"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["user"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.User = &val
 		}
 	}
 

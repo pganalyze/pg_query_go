@@ -7,18 +7,6 @@ import "strconv"
 func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateOpClassItem")
 
-	if len(node.Args.Items) > 0 {
-		subCtx := FingerprintSubContext{}
-		node.Args.Fingerprint(&subCtx, node, "Args")
-
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("args")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
-			}
-		}
-	}
-
 	if len(node.ClassArgs.Items) > 0 {
 		subCtx := FingerprintSubContext{}
 		node.ClassArgs.Fingerprint(&subCtx, node, "ClassArgs")
@@ -36,7 +24,7 @@ func (node CreateOpClassItem) Fingerprint(ctx FingerprintContext, parentNode Nod
 		ctx.WriteString(strconv.Itoa(int(node.Itemtype)))
 	}
 
-	if len(node.Name.Items) > 0 {
+	if node.Name != nil {
 		subCtx := FingerprintSubContext{}
 		node.Name.Fingerprint(&subCtx, node, "Name")
 

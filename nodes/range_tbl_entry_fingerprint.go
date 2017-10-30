@@ -24,36 +24,36 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentNode Node, p
 		ctx.WriteString(strconv.Itoa(int(node.CheckAsUser)))
 	}
 
-	if len(node.Ctecolcollations.Items) > 0 {
+	if len(node.Colcollations.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecolcollations.Fingerprint(&subCtx, node, "Ctecolcollations")
+		node.Colcollations.Fingerprint(&subCtx, node, "Colcollations")
 
 		if len(subCtx.parts) > 0 {
-			ctx.WriteString("ctecolcollations")
+			ctx.WriteString("colcollations")
 			for _, part := range subCtx.parts {
 				ctx.WriteString(part)
 			}
 		}
 	}
 
-	if len(node.Ctecoltypes.Items) > 0 {
+	if len(node.Coltypes.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypes.Fingerprint(&subCtx, node, "Ctecoltypes")
+		node.Coltypes.Fingerprint(&subCtx, node, "Coltypes")
 
 		if len(subCtx.parts) > 0 {
-			ctx.WriteString("ctecoltypes")
+			ctx.WriteString("coltypes")
 			for _, part := range subCtx.parts {
 				ctx.WriteString(part)
 			}
 		}
 	}
 
-	if len(node.Ctecoltypmods.Items) > 0 {
+	if len(node.Coltypmods.Items) > 0 {
 		subCtx := FingerprintSubContext{}
-		node.Ctecoltypmods.Fingerprint(&subCtx, node, "Ctecoltypmods")
+		node.Coltypmods.Fingerprint(&subCtx, node, "Coltypmods")
 
 		if len(subCtx.parts) > 0 {
-			ctx.WriteString("ctecoltypmods")
+			ctx.WriteString("coltypmods")
 			for _, part := range subCtx.parts {
 				ctx.WriteString(part)
 			}
@@ -69,6 +69,14 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentNode Node, p
 		ctx.WriteString("ctename")
 		ctx.WriteString(*node.Ctename)
 	}
+
+	if node.Enrname != nil {
+		ctx.WriteString("enrname")
+		ctx.WriteString(*node.Enrname)
+	}
+
+	ctx.WriteString("enrtuples")
+	ctx.WriteString(strconv.FormatFloat(float64(node.Enrtuples), 'E', -1, 64))
 
 	if node.Eref != nil {
 		subCtx := FingerprintSubContext{}
@@ -196,6 +204,18 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentNode Node, p
 		}
 	}
 
+	if node.Tablefunc != nil {
+		subCtx := FingerprintSubContext{}
+		node.Tablefunc.Fingerprint(&subCtx, node, "Tablefunc")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("tablefunc")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.Tablesample != nil {
 		subCtx := FingerprintSubContext{}
 		node.Tablesample.Fingerprint(&subCtx, node, "Tablesample")
@@ -210,18 +230,6 @@ func (node RangeTblEntry) Fingerprint(ctx FingerprintContext, parentNode Node, p
 	ctx.WriteString("updatedCols")
 	for _, val := range node.UpdatedCols {
 		ctx.WriteString(strconv.Itoa(int(val)))
-	}
-
-	if len(node.ValuesCollations.Items) > 0 {
-		subCtx := FingerprintSubContext{}
-		node.ValuesCollations.Fingerprint(&subCtx, node, "ValuesCollations")
-
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("values_collations")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
-			}
-		}
 	}
 
 	if len(node.ValuesLists.Items) > 0 {

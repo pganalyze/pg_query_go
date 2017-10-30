@@ -11,4 +11,9 @@ func (node ParamListInfoData) Fingerprint(ctx FingerprintContext, parentNode Nod
 		ctx.WriteString("numParams")
 		ctx.WriteString(strconv.Itoa(int(node.NumParams)))
 	}
+
+	ctx.WriteString("paramMask")
+	for _, val := range node.ParamMask {
+		ctx.WriteString(strconv.Itoa(int(val)))
+	}
 }

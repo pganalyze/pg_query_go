@@ -2,8 +2,15 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CreateUserMappingStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreateUserMappingStmt")
+
+	if node.IfNotExists {
+		ctx.WriteString("if_not_exists")
+		ctx.WriteString(strconv.FormatBool(node.IfNotExists))
+	}
 
 	if len(node.Options.Items) > 0 {
 		subCtx := FingerprintSubContext{}

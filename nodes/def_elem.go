@@ -19,7 +19,7 @@ type DefElem struct {
 	Defname      *string       `json:"defname"`
 	Arg          Node          `json:"arg"`       /* a (Value *) or a (TypeName *) */
 	Defaction    DefElemAction `json:"defaction"` /* unspecified action, or SET/ADD/DROP */
-	Location     int           `json:"location"`  /* parse location, or -1 if none/unknown */
+	Location     int           `json:"location"`  /* token location, or -1 if unknown */
 }
 
 func (node DefElem) MarshalJSON() ([]byte, error) {

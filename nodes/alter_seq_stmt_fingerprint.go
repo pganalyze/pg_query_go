@@ -7,6 +7,11 @@ import "strconv"
 func (node AlterSeqStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("AlterSeqStmt")
 
+	if node.ForIdentity {
+		ctx.WriteString("for_identity")
+		ctx.WriteString(strconv.FormatBool(node.ForIdentity))
+	}
+
 	if node.MissingOk {
 		ctx.WriteString("missing_ok")
 		ctx.WriteString(strconv.FormatBool(node.MissingOk))

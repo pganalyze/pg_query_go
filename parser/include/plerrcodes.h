@@ -213,6 +213,10 @@
 },
 
 {
+	"sequence_generator_limit_exceeded", ERRCODE_SEQUENCE_GENERATOR_LIMIT_EXCEEDED
+},
+
+{
 	"string_data_length_mismatch", ERRCODE_STRING_DATA_LENGTH_MISMATCH
 },
 
@@ -350,6 +354,10 @@
 
 {
 	"in_failed_sql_transaction", ERRCODE_IN_FAILED_SQL_TRANSACTION
+},
+
+{
+	"idle_in_transaction_session_timeout", ERRCODE_IDLE_IN_TRANSACTION_SESSION_TIMEOUT
 },
 
 {
@@ -546,6 +554,10 @@
 
 {
 	"wrong_object_type", ERRCODE_WRONG_OBJECT_TYPE
+},
+
+{
+	"generated_always", ERRCODE_GENERATED_ALWAYS
 },
 
 {
@@ -750,6 +762,10 @@
 
 {
 	"duplicate_file", ERRCODE_DUPLICATE_FILE
+},
+
+{
+	"snapshot_too_old", ERRCODE_SNAPSHOT_TOO_OLD
 },
 
 {

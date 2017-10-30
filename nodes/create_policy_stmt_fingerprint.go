@@ -2,12 +2,19 @@
 
 package pg_query
 
+import "strconv"
+
 func (node CreatePolicyStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("CreatePolicyStmt")
 
 	if node.CmdName != nil {
 		ctx.WriteString("cmd_name")
 		ctx.WriteString(*node.CmdName)
+	}
+
+	if node.Permissive {
+		ctx.WriteString("permissive")
+		ctx.WriteString(strconv.FormatBool(node.Permissive))
 	}
 
 	if node.PolicyName != nil {

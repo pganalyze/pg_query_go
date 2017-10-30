@@ -9,9 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateUserMappingStmt struct {
-	User       Node    `json:"user"`       /* user role */
-	Servername *string `json:"servername"` /* server name */
-	Options    List    `json:"options"`    /* generic options to server */
+	User        *RoleSpec `json:"user"`          /* user role */
+	Servername  *string   `json:"servername"`    /* server name */
+	IfNotExists bool      `json:"if_not_exists"` /* just do nothing if it already exists? */
+	Options     List      `json:"options"`       /* generic options to server */
 }
 
 func (node CreateUserMappingStmt) MarshalJSON() ([]byte, error) {
@@ -30,14 +31,26 @@ func (node *CreateUserMappingStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["user"] != nil {
-		node.User, err = UnmarshalNodeJSON(fields["user"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["user"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.User = &val
 		}
 	}
 
 	if fields["servername"] != nil {
 		err = json.Unmarshal(fields["servername"], &node.Servername)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

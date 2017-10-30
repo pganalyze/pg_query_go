@@ -112,6 +112,11 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentNode Node, parentFie
 		ctx.WriteString(strconv.FormatBool(node.HasSubLinks))
 	}
 
+	if node.HasTargetSrfs {
+		ctx.WriteString("hasTargetSRFs")
+		ctx.WriteString(strconv.FormatBool(node.HasTargetSrfs))
+	}
+
 	if node.HasWindowFuncs {
 		ctx.WriteString("hasWindowFuncs")
 		ctx.WriteString(strconv.FormatBool(node.HasWindowFuncs))
@@ -175,6 +180,11 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentNode Node, parentFie
 				ctx.WriteString(part)
 			}
 		}
+	}
+
+	if int(node.Override) != 0 {
+		ctx.WriteString("override")
+		ctx.WriteString(strconv.Itoa(int(node.Override)))
 	}
 
 	if node.QueryId != 0 {
@@ -250,6 +260,16 @@ func (node Query) Fingerprint(ctx FingerprintContext, parentNode Node, parentFie
 				ctx.WriteString(part)
 			}
 		}
+	}
+
+	if node.StmtLen != 0 {
+		ctx.WriteString("stmt_len")
+		ctx.WriteString(strconv.Itoa(int(node.StmtLen)))
+	}
+
+	if node.StmtLocation != 0 {
+		ctx.WriteString("stmt_location")
+		ctx.WriteString(strconv.Itoa(int(node.StmtLocation)))
 	}
 
 	if len(node.TargetList.Items) > 0 {

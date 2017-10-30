@@ -74,6 +74,12 @@ func (node Constraint) Fingerprint(ctx FingerprintContext, parentNode Node, pare
 
 	}
 
+	if node.GeneratedWhen != 0 {
+		ctx.WriteString("generated_when")
+		ctx.WriteString(string(node.GeneratedWhen))
+
+	}
+
 	if node.Indexname != nil {
 		ctx.WriteString("indexname")
 		ctx.WriteString(*node.Indexname)

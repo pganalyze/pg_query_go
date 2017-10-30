@@ -7,6 +7,18 @@ import "strconv"
 func (node Aggref) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("Aggref")
 
+	if len(node.Aggargtypes.Items) > 0 {
+		subCtx := FingerprintSubContext{}
+		node.Aggargtypes.Fingerprint(&subCtx, node, "Aggargtypes")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("aggargtypes")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.Aggcollid != 0 {
 		ctx.WriteString("aggcollid")
 		ctx.WriteString(strconv.Itoa(int(node.Aggcollid)))
@@ -76,9 +88,19 @@ func (node Aggref) Fingerprint(ctx FingerprintContext, parentNode Node, parentFi
 		}
 	}
 
+	if int(node.Aggsplit) != 0 {
+		ctx.WriteString("aggsplit")
+		ctx.WriteString(strconv.Itoa(int(node.Aggsplit)))
+	}
+
 	if node.Aggstar {
 		ctx.WriteString("aggstar")
 		ctx.WriteString(strconv.FormatBool(node.Aggstar))
+	}
+
+	if node.Aggtranstype != 0 {
+		ctx.WriteString("aggtranstype")
+		ctx.WriteString(strconv.Itoa(int(node.Aggtranstype)))
 	}
 
 	if node.Aggtype != 0 {

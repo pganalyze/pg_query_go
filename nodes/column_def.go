@@ -29,9 +29,11 @@ type ColumnDef struct {
 	IsLocal       bool           `json:"is_local"`       /* column has local (non-inherited) def'n */
 	IsNotNull     bool           `json:"is_not_null"`    /* NOT NULL constraint specified? */
 	IsFromType    bool           `json:"is_from_type"`   /* column definition came from table type */
+	IsFromParent  bool           `json:"is_from_parent"` /* column def came from partition parent */
 	Storage       byte           `json:"storage"`        /* attstorage setting, or 0 for default */
 	RawDefault    Node           `json:"raw_default"`    /* default value (untransformed parse tree) */
 	CookedDefault Node           `json:"cooked_default"` /* default value (transformed expr tree) */
+	Identity      byte           `json:"identity"`       /* attidentity setting */
 	CollClause    *CollateClause `json:"collClause"`     /* untransformed COLLATE spec, if any */
 	CollOid       Oid            `json:"collOid"`        /* collation OID (InvalidOid if not set) */
 	Constraints   List           `json:"constraints"`    /* other constraints on column */
@@ -101,6 +103,13 @@ func (node *ColumnDef) UnmarshalJSON(input []byte) (err error) {
 		}
 	}
 
+	if fields["is_from_parent"] != nil {
+		err = json.Unmarshal(fields["is_from_parent"], &node.IsFromParent)
+		if err != nil {
+			return
+		}
+	}
+
 	if fields["storage"] != nil {
 		var strVal string
 		err = json.Unmarshal(fields["storage"], &strVal)
@@ -119,6 +128,15 @@ func (node *ColumnDef) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["cooked_default"] != nil {
 		node.CookedDefault, err = UnmarshalNodeJSON(fields["cooked_default"])
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["identity"] != nil {
+		var strVal string
+		err = json.Unmarshal(fields["identity"], &strVal)
+		node.Identity = strVal[0]
 		if err != nil {
 			return
 		}

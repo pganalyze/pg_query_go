@@ -43,6 +43,11 @@ func (node DefineStmt) Fingerprint(ctx FingerprintContext, parentNode Node, pare
 		}
 	}
 
+	if node.IfNotExists {
+		ctx.WriteString("if_not_exists")
+		ctx.WriteString(strconv.FormatBool(node.IfNotExists))
+	}
+
 	if int(node.Kind) != 0 {
 		ctx.WriteString("kind")
 		ctx.WriteString(strconv.Itoa(int(node.Kind)))

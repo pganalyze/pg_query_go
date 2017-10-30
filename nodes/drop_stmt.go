@@ -9,8 +9,7 @@ import "encoding/json"
  * ----------------------
  */
 type DropStmt struct {
-	Objects    List         `json:"objects"`    /* list of sublists of names (as Values) */
-	Arguments  List         `json:"arguments"`  /* list of sublists of arguments (as Values) */
+	Objects    List         `json:"objects"`    /* list of names */
 	RemoveType ObjectType   `json:"removeType"` /* object type */
 	Behavior   DropBehavior `json:"behavior"`   /* RESTRICT or CASCADE behavior */
 	MissingOk  bool         `json:"missing_ok"` /* skip error if object is missing? */
@@ -34,13 +33,6 @@ func (node *DropStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["objects"] != nil {
 		node.Objects.Items, err = UnmarshalNodeArrayJSON(fields["objects"])
-		if err != nil {
-			return
-		}
-	}
-
-	if fields["arguments"] != nil {
-		node.Arguments.Items, err = UnmarshalNodeArrayJSON(fields["arguments"])
 		if err != nil {
 			return
 		}

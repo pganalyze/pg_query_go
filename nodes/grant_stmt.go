@@ -12,8 +12,8 @@ type GrantStmt struct {
 	IsGrant  bool            `json:"is_grant"` /* true = GRANT, false = REVOKE */
 	Targtype GrantTargetType `json:"targtype"` /* type of the grant target */
 	Objtype  GrantObjectType `json:"objtype"`  /* kind of object being operated on */
-	Objects  List            `json:"objects"`  /* list of RangeVar nodes, FuncWithArgs nodes,
-	 * or plain names (as Value strings) */
+	Objects  List            `json:"objects"`  /* list of RangeVar nodes, ObjectWithArgs
+	 * nodes, or plain names (as Value strings) */
 
 	Privileges List `json:"privileges"` /* list of AccessPriv nodes */
 

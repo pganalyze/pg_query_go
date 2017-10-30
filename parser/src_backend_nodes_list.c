@@ -23,7 +23,7 @@
  *	  implementation for PostgreSQL generic linked list package
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -33,9 +33,6 @@
  *-------------------------------------------------------------------------
  */
 #include "postgres.h"
-
-/* see pg_list.h */
-#define PG_LIST_INCLUDE_DEFINITIONS
 
 #include "nodes/pg_list.h"
 
@@ -74,7 +71,7 @@ check_list_invariants(const List *list)
 }
 #else
 #define check_list_invariants(l)
-#endif   /* USE_ASSERT_CHECKING */
+#endif							/* USE_ASSERT_CHECKING */
 
 /*
  * Return a freshly allocated List. Since empty non-NIL lists are

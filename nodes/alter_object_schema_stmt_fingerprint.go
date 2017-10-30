@@ -17,19 +17,7 @@ func (node AlterObjectSchemaStmt) Fingerprint(ctx FingerprintContext, parentNode
 		ctx.WriteString(*node.Newschema)
 	}
 
-	if len(node.Objarg.Items) > 0 {
-		subCtx := FingerprintSubContext{}
-		node.Objarg.Fingerprint(&subCtx, node, "Objarg")
-
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("objarg")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
-			}
-		}
-	}
-
-	if len(node.Object.Items) > 0 {
+	if node.Object != nil {
 		subCtx := FingerprintSubContext{}
 		node.Object.Fingerprint(&subCtx, node, "Object")
 

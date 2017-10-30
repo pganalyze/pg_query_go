@@ -6,7 +6,7 @@
  * See also lsyscache.h, which provides convenience routines for
  * common cache-lookup operations.
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/utils/syscache.h
@@ -72,15 +72,26 @@ enum SysCacheIdentifier
 	OPEROID,
 	OPFAMILYAMNAMENSP,
 	OPFAMILYOID,
+	PARTRELID,
 	PROCNAMEARGSNSP,
 	PROCOID,
+	PUBLICATIONNAME,
+	PUBLICATIONOID,
+	PUBLICATIONREL,
+	PUBLICATIONRELMAP,
 	RANGETYPE,
 	RELNAMENSP,
 	RELOID,
 	REPLORIGIDENT,
 	REPLORIGNAME,
 	RULERELNAME,
+	SEQRELID,
+	STATEXTNAMENSP,
+	STATEXTOID,
 	STATRELATTINH,
+	SUBSCRIPTIONNAME,
+	SUBSCRIPTIONOID,
+	SUBSCRIPTIONRELMAP,
 	TABLESPACEOID,
 	TRFOID,
 	TRFTYPELANG,
@@ -198,4 +209,4 @@ extern bool RelationSupportsSysCache(Oid relid);
 
 #define ReleaseSysCacheList(x)	ReleaseCatCacheList(x)
 
-#endif   /* SYSCACHE_H */
+#endif							/* SYSCACHE_H */

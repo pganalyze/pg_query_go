@@ -26,9 +26,9 @@
  * - plpgsql_yyerror
  * - plpgsql_push_back_token
  * - plpgsql_token_is_unreserved_keyword
+ * - plpgsql_peek
  * - plpgsql_append_source_text
  * - plpgsql_peek2
- * - plpgsql_peek
  * - plpgsql_scanner_finish
  * - plpgsql_latest_lineno
  *--------------------------------------------------------------------
@@ -40,7 +40,7 @@
  *	  lexical scanning for PL/pgSQL
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -49,12 +49,14 @@
  *
  *-------------------------------------------------------------------------
  */
-#include "plpgsql.h"
+#include "postgres.h"
 
 #include "mb/pg_wchar.h"
 #include "parser/scanner.h"
 
+#include "plpgsql.h"
 #include "pl_gram.h"			/* must be after parser/scanner.h */
+
 
 #define PG_KEYWORD(a,b,c) {a,b,c},
 
@@ -242,29 +244,40 @@ typedef struct
  */
 
 /* The stuff the core lexer needs */
-static core_yyscan_t yyscanner = NULL;
-static core_yy_extra_type core_yy;
+static __thread core_yyscan_t yyscanner = NULL;
+
+static __thread core_yy_extra_type core_yy;
+
 
 /* The original input string */
-static const char *scanorig;
+static __thread const char *scanorig;
+
 
 /* Current token's length (corresponds to plpgsql_yylval and plpgsql_yylloc) */
-static int	plpgsql_yyleng;
+static __thread int	plpgsql_yyleng;
+
 
 /* Current token's code (corresponds to plpgsql_yylval and plpgsql_yylloc) */
-static int	plpgsql_yytoken;
+static __thread int	plpgsql_yytoken;
+
 
 /* Token pushback stack */
 #define MAX_PUSHBACKS 4
 
-static int	num_pushbacks;
-static int	pushback_token[MAX_PUSHBACKS];
-static TokenAuxData pushback_auxdata[MAX_PUSHBACKS];
+static __thread int	num_pushbacks;
+
+static __thread int	pushback_token[MAX_PUSHBACKS];
+
+static __thread TokenAuxData pushback_auxdata[MAX_PUSHBACKS];
+
 
 /* State for plpgsql_location_to_lineno() */
-static const char *cur_line_start;
-static const char *cur_line_end;
-static int	cur_line_num;
+static __thread const char *cur_line_start;
+
+static __thread const char *cur_line_end;
+
+static __thread int	cur_line_num;
+
 
 /* Internal functions */
 static int	internal_yylex(TokenAuxData *auxdata);

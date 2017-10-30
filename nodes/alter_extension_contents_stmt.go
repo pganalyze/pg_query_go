@@ -12,8 +12,7 @@ type AlterExtensionContentsStmt struct {
 	Extname *string    `json:"extname"` /* Extension's name */
 	Action  int        `json:"action"`  /* +1 = add object, -1 = drop object */
 	Objtype ObjectType `json:"objtype"` /* Object's type */
-	Objname List       `json:"objname"` /* Qualified name of the object */
-	Objargs List       `json:"objargs"` /* Arguments if needed (eg, for functions) */
+	Object  Node       `json:"object"`  /* Qualified name of the object */
 }
 
 func (node AlterExtensionContentsStmt) MarshalJSON() ([]byte, error) {
@@ -52,15 +51,8 @@ func (node *AlterExtensionContentsStmt) UnmarshalJSON(input []byte) (err error) 
 		}
 	}
 
-	if fields["objname"] != nil {
-		node.Objname.Items, err = UnmarshalNodeArrayJSON(fields["objname"])
-		if err != nil {
-			return
-		}
-	}
-
-	if fields["objargs"] != nil {
-		node.Objargs.Items, err = UnmarshalNodeArrayJSON(fields["objargs"])
+	if fields["object"] != nil {
+		node.Object, err = UnmarshalNodeJSON(fields["object"])
 		if err != nil {
 			return
 		}

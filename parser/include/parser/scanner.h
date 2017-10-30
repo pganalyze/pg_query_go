@@ -3,12 +3,12 @@
  * scanner.h
  *		API for the core scanner (flex machine)
  *
- * The core scanner is also used by PL/pgsql, so we provide a public API
+ * The core scanner is also used by PL/pgSQL, so we provide a public API
  * for it.  However, the rest of the backend is only expected to use the
  * higher-level API provided by parser.h.
  *
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/parser/scanner.h
@@ -19,7 +19,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#include "parser/keywords.h"
+#include "common/keywords.h"
 
 /*
  * The scanner returns extra data about scanned tokens in this union type.
@@ -127,4 +127,4 @@ extern int core_yylex(core_YYSTYPE *lvalp, YYLTYPE *llocp,
 extern int	scanner_errposition(int location, core_yyscan_t yyscanner);
 extern void scanner_yyerror(const char *message, core_yyscan_t yyscanner) pg_attribute_noreturn();
 
-#endif   /* SCANNER_H */
+#endif							/* SCANNER_H */

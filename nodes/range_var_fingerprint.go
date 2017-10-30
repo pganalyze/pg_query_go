@@ -24,9 +24,9 @@ func (node RangeVar) Fingerprint(ctx FingerprintContext, parentNode Node, parent
 		ctx.WriteString(*node.Catalogname)
 	}
 
-	if int(node.InhOpt) != 0 {
-		ctx.WriteString("inhOpt")
-		ctx.WriteString(strconv.Itoa(int(node.InhOpt)))
+	if node.Inh {
+		ctx.WriteString("inh")
+		ctx.WriteString(strconv.FormatBool(node.Inh))
 	}
 
 	// Intentionally ignoring node.Location for fingerprinting

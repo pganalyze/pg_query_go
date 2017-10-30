@@ -9,11 +9,11 @@ import "encoding/json"
  * ----------------------
  */
 type CreateTransformStmt struct {
-	Replace  bool          `json:"replace"`
-	TypeName *TypeName     `json:"type_name"`
-	Lang     *string       `json:"lang"`
-	Fromsql  *FuncWithArgs `json:"fromsql"`
-	Tosql    *FuncWithArgs `json:"tosql"`
+	Replace  bool            `json:"replace"`
+	TypeName *TypeName       `json:"type_name"`
+	Lang     *string         `json:"lang"`
+	Fromsql  *ObjectWithArgs `json:"fromsql"`
+	Tosql    *ObjectWithArgs `json:"tosql"`
 }
 
 func (node CreateTransformStmt) MarshalJSON() ([]byte, error) {
@@ -64,7 +64,7 @@ func (node *CreateTransformStmt) UnmarshalJSON(input []byte) (err error) {
 			return
 		}
 		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(FuncWithArgs)
+			val := (*nodePtr).(ObjectWithArgs)
 			node.Fromsql = &val
 		}
 	}
@@ -76,7 +76,7 @@ func (node *CreateTransformStmt) UnmarshalJSON(input []byte) (err error) {
 			return
 		}
 		if nodePtr != nil && *nodePtr != nil {
-			val := (*nodePtr).(FuncWithArgs)
+			val := (*nodePtr).(ObjectWithArgs)
 			node.Tosql = &val
 		}
 	}

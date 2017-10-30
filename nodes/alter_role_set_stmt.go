@@ -14,7 +14,7 @@ import "encoding/json"
  * ----------------------
  */
 type AlterRoleSetStmt struct {
-	Role     Node             `json:"role"`     /* role */
+	Role     *RoleSpec        `json:"role"`     /* role */
 	Database *string          `json:"database"` /* database name, or NULL */
 	Setstmt  *VariableSetStmt `json:"setstmt"`  /* SET or RESET subcommand */
 }
@@ -35,9 +35,14 @@ func (node *AlterRoleSetStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["role"] != nil {
-		node.Role, err = UnmarshalNodeJSON(fields["role"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["role"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.Role = &val
 		}
 	}
 

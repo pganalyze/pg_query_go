@@ -302,10 +302,6 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 	{
 		RecordConstLocation(jstate, castNode(A_Const, node)->location);
 	}
-	else if (IsA(node, DefElem))
-	{
-		RecordConstLocation(jstate, castNode(DefElem, node)->location);
-	}
 	else if (IsA(node, ParamRef))
 	{
 		/* Track the highest ParamRef number */
@@ -315,6 +311,10 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 	else if (IsA(node, DefElem))
 	{
 		return const_record_walker((Node *) ((DefElem *) node)->arg, jstate);
+	}
+	else if (IsA(node, RawStmt))
+	{
+		return const_record_walker((Node *) ((RawStmt *) node)->stmt, jstate);
 	}
 	else if (IsA(node, VariableSetStmt))
 	{

@@ -17,24 +17,12 @@ func (node AlterExtensionContentsStmt) Fingerprint(ctx FingerprintContext, paren
 		ctx.WriteString(*node.Extname)
 	}
 
-	if len(node.Objargs.Items) > 0 {
+	if node.Object != nil {
 		subCtx := FingerprintSubContext{}
-		node.Objargs.Fingerprint(&subCtx, node, "Objargs")
+		node.Object.Fingerprint(&subCtx, node, "Object")
 
 		if len(subCtx.parts) > 0 {
-			ctx.WriteString("objargs")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
-			}
-		}
-	}
-
-	if len(node.Objname.Items) > 0 {
-		subCtx := FingerprintSubContext{}
-		node.Objname.Fingerprint(&subCtx, node, "Objname")
-
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("objname")
+			ctx.WriteString("object")
 			for _, part := range subCtx.parts {
 				ctx.WriteString(part)
 			}

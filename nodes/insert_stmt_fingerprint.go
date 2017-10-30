@@ -2,6 +2,8 @@
 
 package pg_query
 
+import "strconv"
+
 func (node InsertStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("InsertStmt")
 
@@ -27,6 +29,11 @@ func (node InsertStmt) Fingerprint(ctx FingerprintContext, parentNode Node, pare
 				ctx.WriteString(part)
 			}
 		}
+	}
+
+	if int(node.Override) != 0 {
+		ctx.WriteString("override")
+		ctx.WriteString(strconv.Itoa(int(node.Override)))
 	}
 
 	if node.Relation != nil {

@@ -46,6 +46,11 @@ func (node SubPlan) Fingerprint(ctx FingerprintContext, parentNode Node, parentF
 		}
 	}
 
+	if node.ParallelSafe {
+		ctx.WriteString("parallel_safe")
+		ctx.WriteString(strconv.FormatBool(node.ParallelSafe))
+	}
+
 	if len(node.ParamIds.Items) > 0 {
 		subCtx := FingerprintSubContext{}
 		node.ParamIds.Fingerprint(&subCtx, node, "ParamIds")

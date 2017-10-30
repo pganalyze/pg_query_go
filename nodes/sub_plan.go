@@ -61,8 +61,8 @@ type SubPlan struct {
 	/* Extra data useful for determining subplan's output type: */
 	FirstColType      Oid   `json:"firstColType"`      /* Type of first column of subplan result */
 	FirstColTypmod    int32 `json:"firstColTypmod"`    /* Typmod of first column of subplan result */
-	FirstColCollation Oid   `json:"firstColCollation"` /* Collation of first column of
-	 * subplan result */
+	FirstColCollation Oid   `json:"firstColCollation"` /* Collation of first column of subplan
+	 * result */
 
 	/* Information about execution strategy: */
 	UseHashTable bool `json:"useHashTable"` /* TRUE to store subselect output in a hash
@@ -71,6 +71,10 @@ type SubPlan struct {
 	UnknownEqFalse bool `json:"unknownEqFalse"` /* TRUE if it's okay to return FALSE when the
 	 * spec result is UNKNOWN; this allows much
 	 * simpler handling of null values */
+
+	ParallelSafe bool `json:"parallel_safe"` /* is the subplan parallel-safe? */
+
+	/* Note: parallel_safe does not consider contents of testexpr or args */
 
 	/* Information for passing params into and out of the subselect: */
 
@@ -173,6 +177,13 @@ func (node *SubPlan) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["unknownEqFalse"] != nil {
 		err = json.Unmarshal(fields["unknownEqFalse"], &node.UnknownEqFalse)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["parallel_safe"] != nil {
+		err = json.Unmarshal(fields["parallel_safe"], &node.ParallelSafe)
 		if err != nil {
 			return
 		}

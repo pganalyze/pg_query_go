@@ -21,6 +21,9 @@ import "encoding/json"
  * reflowerindexpr must be the same length as refupperindexpr when it
  * is not NIL.
  *
+ * In the slice case, individual expressions in the subscript lists can be
+ * NULL, meaning "substitute the array's current lower or upper bound".
+ *
  * Note: the result datatype is the element type when fetching a single
  * element; but it is the array type when doing subarray fetch or either
  * type of store.
@@ -36,11 +39,12 @@ type ArrayRef struct {
 	Refelemtype     Oid   `json:"refelemtype"`     /* type of the array elements */
 	Reftypmod       int32 `json:"reftypmod"`       /* typmod of the array (and elements too) */
 	Refcollid       Oid   `json:"refcollid"`       /* OID of collation, or InvalidOid if none */
-	Refupperindexpr List  `json:"refupperindexpr"` /* expressions that evaluate to upper array
-	 * indexes */
+	Refupperindexpr List  `json:"refupperindexpr"` /* expressions that evaluate to upper
+	 * array indexes */
 
-	Reflowerindexpr List `json:"reflowerindexpr"` /* expressions that evaluate to lower array
-	 * indexes */
+	Reflowerindexpr List `json:"reflowerindexpr"` /* expressions that evaluate to lower
+	 * array indexes, or NIL for single array
+	 * element */
 
 	Refexpr Node `json:"refexpr"` /* the expression that evaluates to an array
 	 * value */

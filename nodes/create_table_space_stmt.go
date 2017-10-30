@@ -9,10 +9,10 @@ import "encoding/json"
  * ----------------------
  */
 type CreateTableSpaceStmt struct {
-	Tablespacename *string `json:"tablespacename"`
-	Owner          Node    `json:"owner"`
-	Location       *string `json:"location"`
-	Options        List    `json:"options"`
+	Tablespacename *string   `json:"tablespacename"`
+	Owner          *RoleSpec `json:"owner"`
+	Location       *string   `json:"location"`
+	Options        List      `json:"options"`
 }
 
 func (node CreateTableSpaceStmt) MarshalJSON() ([]byte, error) {
@@ -38,9 +38,14 @@ func (node *CreateTableSpaceStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["owner"] != nil {
-		node.Owner, err = UnmarshalNodeJSON(fields["owner"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["owner"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.Owner = &val
 		}
 	}
 

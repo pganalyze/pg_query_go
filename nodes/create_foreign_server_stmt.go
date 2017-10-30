@@ -9,11 +9,12 @@ import "encoding/json"
  * ----------------------
  */
 type CreateForeignServerStmt struct {
-	Servername *string `json:"servername"` /* server name */
-	Servertype *string `json:"servertype"` /* optional server type */
-	Version    *string `json:"version"`    /* optional server version */
-	Fdwname    *string `json:"fdwname"`    /* FDW name */
-	Options    List    `json:"options"`    /* generic options to server */
+	Servername  *string `json:"servername"`    /* server name */
+	Servertype  *string `json:"servertype"`    /* optional server type */
+	Version     *string `json:"version"`       /* optional server version */
+	Fdwname     *string `json:"fdwname"`       /* FDW name */
+	IfNotExists bool    `json:"if_not_exists"` /* just do nothing if it already exists? */
+	Options     List    `json:"options"`       /* generic options to server */
 }
 
 func (node CreateForeignServerStmt) MarshalJSON() ([]byte, error) {
@@ -54,6 +55,13 @@ func (node *CreateForeignServerStmt) UnmarshalJSON(input []byte) (err error) {
 
 	if fields["fdwname"] != nil {
 		err = json.Unmarshal(fields["fdwname"], &node.Fdwname)
+		if err != nil {
+			return
+		}
+	}
+
+	if fields["if_not_exists"] != nil {
+		err = json.Unmarshal(fields["if_not_exists"], &node.IfNotExists)
 		if err != nil {
 			return
 		}

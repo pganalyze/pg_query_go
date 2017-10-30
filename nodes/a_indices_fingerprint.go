@@ -2,8 +2,15 @@
 
 package pg_query
 
+import "strconv"
+
 func (node A_Indices) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("A_Indices")
+
+	if node.IsSlice {
+		ctx.WriteString("is_slice")
+		ctx.WriteString(strconv.FormatBool(node.IsSlice))
+	}
 
 	if node.Lidx != nil {
 		subCtx := FingerprintSubContext{}

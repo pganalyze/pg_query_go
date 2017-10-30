@@ -18,7 +18,7 @@ type GrantRoleStmt struct {
 	GranteeRoles List         `json:"grantee_roles"` /* list of member roles to add/delete */
 	IsGrant      bool         `json:"is_grant"`      /* true = GRANT, false = REVOKE */
 	AdminOpt     bool         `json:"admin_opt"`     /* with admin option */
-	Grantor      Node         `json:"grantor"`       /* set grantor to other than current role */
+	Grantor      *RoleSpec    `json:"grantor"`       /* set grantor to other than current role */
 	Behavior     DropBehavior `json:"behavior"`      /* drop behavior (for REVOKE) */
 }
 
@@ -66,9 +66,14 @@ func (node *GrantRoleStmt) UnmarshalJSON(input []byte) (err error) {
 	}
 
 	if fields["grantor"] != nil {
-		node.Grantor, err = UnmarshalNodeJSON(fields["grantor"])
+		var nodePtr *Node
+		nodePtr, err = UnmarshalNodePtrJSON(fields["grantor"])
 		if err != nil {
 			return
+		}
+		if nodePtr != nil && *nodePtr != nil {
+			val := (*nodePtr).(RoleSpec)
+			node.Grantor = &val
 		}
 	}
 

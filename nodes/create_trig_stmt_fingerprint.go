@@ -97,6 +97,18 @@ func (node CreateTrigStmt) Fingerprint(ctx FingerprintContext, parentNode Node, 
 		ctx.WriteString(strconv.Itoa(int(node.Timing)))
 	}
 
+	if len(node.TransitionRels.Items) > 0 {
+		subCtx := FingerprintSubContext{}
+		node.TransitionRels.Fingerprint(&subCtx, node, "TransitionRels")
+
+		if len(subCtx.parts) > 0 {
+			ctx.WriteString("transitionRels")
+			for _, part := range subCtx.parts {
+				ctx.WriteString(part)
+			}
+		}
+	}
+
 	if node.Trigname != nil {
 		ctx.WriteString("trigname")
 		ctx.WriteString(*node.Trigname)

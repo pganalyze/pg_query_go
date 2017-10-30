@@ -14,7 +14,7 @@
  * globals.c
  *	  global variable declarations
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -38,6 +38,7 @@
 
 
 __thread volatile bool InterruptPending = false;
+
 
 
 
@@ -76,13 +77,15 @@ __thread volatile uint32 CritSectionCount = 0;
 	/* debugging output file */
 
 	/* full path to my executable */
-		/* full path to lib directory */
+ /* full path to lib directory */
 
 #ifdef EXEC_BACKEND
-char		postgres_exec_path[MAXPGPATH];		/* full path to backend */
+char		postgres_exec_path[MAXPGPATH];	/* full path to backend */
 
 /* note: currently this is not valid in backend processes */
 #endif
+
+
 
 
 
@@ -127,6 +130,7 @@ __thread bool		ExitOnAnyError = false;
 
 
 
+
 /*
  * Primary determinants of sizes of shared-memory structures.
  *
@@ -138,7 +142,8 @@ __thread bool		ExitOnAnyError = false;
 
 
 
-		/* GUC parameters for vacuum */
+
+	/* GUC parameters for vacuum */
 
 
 
@@ -148,5 +153,5 @@ __thread bool		ExitOnAnyError = false;
 
 
 
-		/* working state for vacuum */
+	/* working state for vacuum */
 

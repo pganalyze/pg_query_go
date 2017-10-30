@@ -22,9 +22,14 @@ func (node AlterEnumStmt) Fingerprint(ctx FingerprintContext, parentNode Node, p
 		ctx.WriteString(*node.NewValNeighbor)
 	}
 
-	if node.SkipIfExists {
-		ctx.WriteString("skipIfExists")
-		ctx.WriteString(strconv.FormatBool(node.SkipIfExists))
+	if node.OldVal != nil {
+		ctx.WriteString("oldVal")
+		ctx.WriteString(*node.OldVal)
+	}
+
+	if node.SkipIfNewValExists {
+		ctx.WriteString("skipIfNewValExists")
+		ctx.WriteString(strconv.FormatBool(node.SkipIfNewValExists))
 	}
 
 	if len(node.TypeName.Items) > 0 {

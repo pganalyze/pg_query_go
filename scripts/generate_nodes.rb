@@ -49,7 +49,7 @@ class Generator
 
     if c_type == 'List*'
       'List'
-    elsif ['Node*', 'Value', 'Expr', 'Expr*'].include?(c_type)
+    elsif ['Node*', 'Value', 'Value*', 'Expr', 'Expr*'].include?(c_type)
       'Node'
     elsif @nodetypes.include?(c_type[0..-2])
       '*' + c_type[0..-2]
@@ -186,11 +186,13 @@ class Generator
     ['DeallocateStmt', 'name'] => :skip,
     ['TransactionStmt', 'options'] => :skip,
     ['TransactionStmt', 'gid'] => :skip,
+    ['RawStmt', 'stmt_len'] => :skip,
+    ['RawStmt', 'stmt_location'] => :skip,
     ['SelectStmt', 'valuesLists'] => VALUES_LIST_FINGERPRINT,
   }
   GO_INT_TYPES = ['int', 'int16', 'int32', 'int64', 'uint16', 'uint32', 'uint64', 'Oid', 'Index', 'AclMode', 'AttrNumber']
   GO_INT_ARRAY_TYPES = ['[]uint32']
-  GO_FLOAT_TYPES = ['Cost']
+  GO_FLOAT_TYPES = ['Cost', 'float64']
 
   FINGERPRINT_NODE = '''
   if node.%<go_field_name>s != nil {

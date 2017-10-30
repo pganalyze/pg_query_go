@@ -11,7 +11,7 @@
  *	  Functions to convert stored expressions/querytrees back to
  *	  source text
  *
- * Portions Copyright (c) 1996-2015, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -26,11 +26,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "access/amapi.h"
 #include "access/htup_details.h"
 #include "access/sysattr.h"
 #include "catalog/dependency.h"
 #include "catalog/indexing.h"
+#include "catalog/partition.h"
 #include "catalog/pg_aggregate.h"
+#include "catalog/pg_am.h"
 #include "catalog/pg_authid.h"
 #include "catalog/pg_collation.h"
 #include "catalog/pg_constraint.h"
@@ -38,11 +41,14 @@
 #include "catalog/pg_language.h"
 #include "catalog/pg_opclass.h"
 #include "catalog/pg_operator.h"
+#include "catalog/pg_partitioned_table.h"
 #include "catalog/pg_proc.h"
+#include "catalog/pg_statistic_ext.h"
 #include "catalog/pg_trigger.h"
 #include "catalog/pg_type.h"
 #include "commands/defrem.h"
 #include "commands/tablespace.h"
+#include "common/keywords.h"
 #include "executor/spi.h"
 #include "funcapi.h"
 #include "mb/pg_wchar.h"
@@ -50,7 +56,6 @@
 #include "nodes/makefuncs.h"
 #include "nodes/nodeFuncs.h"
 #include "optimizer/tlist.h"
-#include "parser/keywords.h"
 #include "parser/parse_node.h"
 #include "parser/parse_agg.h"
 #include "parser/parse_func.h"
@@ -71,6 +76,7 @@
 #include "utils/syscache.h"
 #include "utils/tqual.h"
 #include "utils/typcache.h"
+#include "utils/varlena.h"
 #include "utils/xml.h"
 
 
@@ -84,7 +90,7 @@
 #define PRETTYINDENT_JOIN		4
 #define PRETTYINDENT_VAR		4
 
-#define PRETTYINDENT_LIMIT		40		/* wrap limit */
+#define PRETTYINDENT_LIMIT		40	/* wrap limit */
 
 /* Pretty flags */
 #define PRETTYFLAG_PAREN		1
@@ -114,8 +120,8 @@ typedef struct
 	int			wrapColumn;		/* max line length, or -1 for no limit */
 	int			indentLevel;	/* current indent level for prettyprint */
 	bool		varprefix;		/* TRUE to print prefixes on Vars */
-	ParseExprKind special_exprkind;		/* set only for exprkinds needing
-										 * special handling */
+	ParseExprKind special_exprkind; /* set only for exprkinds needing special
+									 * handling */
 } deparse_context;
 
 /*
@@ -281,7 +287,7 @@ typedef struct
  */
 typedef struct
 {
-	char		name[NAMEDATALEN];		/* Hash key --- must be first */
+	char		name[NAMEDATALEN];	/* Hash key --- must be first */
 	int			counter;		/* Largest addition used so far for name */
 } NameHashEntry;
 
@@ -320,9 +326,12 @@ static char *pg_get_ruledef_worker(Oid ruleoid, int prettyFlags);
 static char *pg_get_indexdef_worker(Oid indexrelid, int colno,
 					   const Oid *excludeOps,
 					   bool attrsOnly, bool showTblSpc,
-					   int prettyFlags);
+					   int prettyFlags, bool missing_ok);
+static char *pg_get_statisticsobj_worker(Oid statextid, bool missing_ok);
+static char *pg_get_partkeydef_worker(Oid relid, int prettyFlags,
+						 bool attrsOnly, bool missing_ok);
 static char *pg_get_constraintdef_worker(Oid constraintId, bool fullCommand,
-							int prettyFlags);
+							int prettyFlags, bool missing_ok);
 static text *pg_get_expr_worker(text *expr, Oid relid, const char *relname,
 				   int prettyFlags);
 static int print_function_arguments(StringInfo buf, HeapTuple proctup,
@@ -398,6 +407,11 @@ static void get_rule_windowspec(WindowClause *wc, List *targetList,
 					deparse_context *context);
 static char *get_variable(Var *var, int levelsup, bool istoplevel,
 			 deparse_context *context);
+static void get_special_variable(Node *node, deparse_context *context,
+					 void *private);
+static void resolve_special_varno(Node *node, deparse_context *context,
+					  void *private,
+					  void (*callback) (Node *, deparse_context *, void *));
 static Node *find_param_referent(Param *param, deparse_context *context,
 					deparse_namespace **dpns_p, ListCell **ancestor_cell_p);
 static void get_parameter(Param *param, deparse_context *context);
@@ -416,7 +430,10 @@ static bool looks_like_function(Node *node);
 static void get_oper_expr(OpExpr *expr, deparse_context *context);
 static void get_func_expr(FuncExpr *expr, deparse_context *context,
 			  bool showimplicit);
-static void get_agg_expr(Aggref *aggref, deparse_context *context);
+static void get_agg_expr(Aggref *aggref, deparse_context *context,
+			 Aggref *original_aggref);
+static void get_agg_combine_expr(Node *node, deparse_context *context,
+					 void *private);
 static void get_windowfunc_expr(WindowFunc *wfunc, deparse_context *context);
 static void get_coercion_expr(Node *arg, deparse_context *context,
 				  Oid resulttype, int32 resulttypmod,
@@ -426,6 +443,8 @@ static void get_const_expr(Const *constval, deparse_context *context,
 static void get_const_collation(Const *constval, deparse_context *context);
 static void simple_quote_literal(StringInfo buf, const char *val);
 static void get_sublink_expr(SubLink *sublink, deparse_context *context);
+static void get_tablefunc(TableFunc *tf, deparse_context *context,
+			  bool showimplicit);
 static void get_from_clause(Query *query, const char *prefix,
 				deparse_context *context);
 static void get_from_clause_item(Node *jtnode, Query *query,
@@ -439,8 +458,7 @@ static void get_tablesample_def(TableSampleClause *tablesample,
 					deparse_context *context);
 static void get_opclass_name(Oid opclass, Oid actual_datatype,
 				 StringInfo buf);
-static Node *processIndirection(Node *node, deparse_context *context,
-				   bool printit);
+static Node *processIndirection(Node *node, deparse_context *context);
 static void printSubscripts(ArrayRef *aref, deparse_context *context);
 static char *get_relation_name(Oid relid);
 static char *generate_relation_name(Oid relid, List *namespaces);
@@ -537,6 +555,40 @@ static char *flatten_reloptions(Oid relid);
  */
 
 
+/*
+ * pg_get_statisticsobjdef
+ *		Get the definition of an extended statistics object
+ */
+
+
+/*
+ * Internal workhorse to decompile an extended statistics object.
+ */
+
+
+/*
+ * pg_get_partkeydef
+ *
+ * Returns the partition key specification, ie, the following:
+ *
+ * PARTITION BY { RANGE | LIST } (column opt_collation opt_opclass [, ...])
+ */
+
+
+/* Internal version that just reports the column definitions */
+
+
+/*
+ * Internal workhorse to decompile a partition key definition.
+ */
+
+
+/*
+ * pg_get_partition_constraintdef
+ *
+ * Returns partition constraint expression as a string for the input relation
+ */
+
 
 /*
  * pg_get_constraintdef
@@ -596,7 +648,7 @@ static char *flatten_reloptions(Oid relid);
 
 /*
  * pg_get_serial_sequence
- *		Get the name of the sequence used by a serial column,
+ *		Get the name of the sequence used by an identity or serial column,
  *		formatted suitably for passing to setval, nextval or currval.
  *		First parameter is not treated as double-quoted, second parameter
  *		is --- see documentation for reason.
@@ -1077,7 +1129,6 @@ static char *flatten_reloptions(Oid relid);
  */
 
 
-
 /*
  * Display a Var appropriately.
  *
@@ -1098,6 +1149,21 @@ static char *flatten_reloptions(Oid relid);
  * it is a whole-row Var or a subplan output reference).
  */
 
+
+/*
+ * Deparse a Var which references OUTER_VAR, INNER_VAR, or INDEX_VAR.  This
+ * routine is actually a callback for get_special_varno, which handles finding
+ * the correct TargetEntry.  We get the expression contained in that
+ * TargetEntry and just need to deparse it, a job we can throw back on
+ * get_rule_expr.
+ */
+
+
+/*
+ * Chase through plan references to special varnos (OUTER_VAR, INNER_VAR,
+ * INDEX_VAR) until we find a real Var or some kind of non-Var node; then,
+ * invoke the callback provided.
+ */
 
 
 /*
@@ -1247,6 +1313,13 @@ static char *flatten_reloptions(Oid relid);
 
 
 /*
+ * This is a helper function for get_agg_expr().  It's used when we deparse
+ * a combining Aggref; resolve_special_varno locates the corresponding partial
+ * Aggref and then calls this.
+ */
+
+
+/*
  * get_windowfunc_expr	- Parse back a WindowFunc node
  */
 
@@ -1292,6 +1365,12 @@ static char *flatten_reloptions(Oid relid);
  * ----------
  */
 
+
+
+/* ----------
+ * get_tablefunc			- Parse back a table function
+ * ----------
+ */
 
 
 /* ----------
@@ -1347,9 +1426,8 @@ static char *flatten_reloptions(Oid relid);
  * processIndirection - take care of array and subfield assignment
  *
  * We strip any top-level FieldStore or assignment ArrayRef nodes that
- * appear in the input, and return the subexpression that's to be assigned.
- * If printit is true, we also print out the appropriate decoration for the
- * base column name (that the caller just printed).  We might also need to
+ * appear in the input, printing them as decoration for the base column
+ * name (which we assume the caller just printed).  We might also need to
  * strip CoerceToDomain nodes, but only ones that appear above assignment
  * nodes.
  *
@@ -1529,5 +1607,11 @@ quote_identifier(const char *ident)
 
 /*
  * Generate a C string representing a relation's reloptions, or NULL if none.
+ */
+
+
+/*
+ * get_one_range_partition_bound_string
+ *		A C string representation of one range partition bound
  */
 

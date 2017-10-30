@@ -37,7 +37,7 @@ func (output *ParsetreeList) UnmarshalJSON(input []byte) (err error) {
 }
 
 func (input ParsetreeList) Fingerprint() string {
-	const fingerprintVersion uint = 1
+	const fingerprintVersion uint = 2
 
 	ctx := nodes.NewFingerprintHashContext()
 	for _, node := range input.Statements {

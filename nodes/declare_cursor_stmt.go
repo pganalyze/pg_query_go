@@ -8,7 +8,7 @@ import "encoding/json"
 type DeclareCursorStmt struct {
 	Portalname *string `json:"portalname"` /* name of the portal (cursor) */
 	Options    int     `json:"options"`    /* bitmask of options (see above) */
-	Query      Node    `json:"query"`      /* the raw SELECT query */
+	Query      Node    `json:"query"`      /* the query (see comments above) */
 }
 
 func (node DeclareCursorStmt) MarshalJSON() ([]byte, error) {

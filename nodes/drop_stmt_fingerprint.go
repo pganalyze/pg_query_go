@@ -7,18 +7,6 @@ import "strconv"
 func (node DropStmt) Fingerprint(ctx FingerprintContext, parentNode Node, parentFieldName string) {
 	ctx.WriteString("DropStmt")
 
-	if len(node.Arguments.Items) > 0 {
-		subCtx := FingerprintSubContext{}
-		node.Arguments.Fingerprint(&subCtx, node, "Arguments")
-
-		if len(subCtx.parts) > 0 {
-			ctx.WriteString("arguments")
-			for _, part := range subCtx.parts {
-				ctx.WriteString(part)
-			}
-		}
-	}
-
 	if int(node.Behavior) != 0 {
 		ctx.WriteString("behavior")
 		ctx.WriteString(strconv.Itoa(int(node.Behavior)))
