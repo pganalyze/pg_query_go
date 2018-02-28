@@ -1,8 +1,8 @@
 package parser
 
 /*
-#cgo CFLAGS: -Iinclude -g
-#cgo LDFLAGS: -fstack-protector
+#cgo CFLAGS: -Iinclude -g -fstack-protector
+#cgo LDFLAGS:
 #include "pg_query.h"
 #include <stdlib.h>
 */
