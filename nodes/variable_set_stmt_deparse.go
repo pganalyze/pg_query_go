@@ -2,6 +2,21 @@
 
 package pg_query
 
-func (node VariableSetStmt) Deparse() string {
-	panic("Not Implemented")
+import (
+	"strings"
+)
+
+func (node VariableSetStmt) Deparse(ctx DeparseContext) (string, error) {
+	out := []string{"SET"}
+	if node.IsLocal {
+		out = append(out, "LOCAL")
+	}
+	out = append(out, *node.Name)
+	out = append(out, "TO")
+	if args, err := node.Args.DeparseList(DeparseContextNone); err != nil {
+		return "", err
+	} else {
+		out = append(out, args...)
+	}
+	return strings.Join(out, " "), nil
 }

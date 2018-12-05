@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node RenameStmt) Deparse() string {
+func (node RenameStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node GroupingFunc) Deparse() string {
+func (node GroupingFunc) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

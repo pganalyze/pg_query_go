@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node AlterPolicyStmt) Deparse() string {
+func (node AlterPolicyStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

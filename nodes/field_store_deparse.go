@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node FieldStore) Deparse() string {
+func (node FieldStore) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node AlterOwnerStmt) Deparse() string {
+func (node AlterOwnerStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

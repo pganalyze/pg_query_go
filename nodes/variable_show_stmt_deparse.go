@@ -2,6 +2,10 @@
 
 package pg_query
 
-func (node VariableShowStmt) Deparse() string {
-	panic("Not Implemented")
+import (
+	"fmt"
+)
+
+func (node VariableShowStmt) Deparse(ctx DeparseContext) (string, error) {
+	return fmt.Sprintf("SHOW %s", *node.Name), nil
 }

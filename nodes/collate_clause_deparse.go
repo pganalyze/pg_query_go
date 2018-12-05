@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node CollateClause) Deparse() string {
+func (node CollateClause) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

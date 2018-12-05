@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node SecLabelStmt) Deparse() string {
+func (node SecLabelStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

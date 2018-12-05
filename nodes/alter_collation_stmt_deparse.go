@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node AlterCollationStmt) Deparse() string {
+func (node AlterCollationStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

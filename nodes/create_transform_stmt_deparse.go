@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node CreateTransformStmt) Deparse() string {
+func (node CreateTransformStmt) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

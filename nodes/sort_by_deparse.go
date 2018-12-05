@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node SortBy) Deparse() string {
+func (node SortBy) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

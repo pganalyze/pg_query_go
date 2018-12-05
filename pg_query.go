@@ -2,6 +2,7 @@ package pg_query
 
 import (
 	"encoding/json"
+	"github.com/lfittl/pg_query_go/nodes"
 	"runtime/debug"
 
 	"github.com/lfittl/pg_query_go/parser"
@@ -31,6 +32,29 @@ func Parse(input string) (tree ParsetreeList, err error) {
 
 	err = json.Unmarshal([]byte(jsonTree), &tree)
 	return
+}
+
+// Deparse will take a ParseTreeList and convert it back into normalized queries.
+// Each statement will be returned as a separate string in the stmts array
+func Deparse(tree ParsetreeList) (stmts []string, err error) {
+	// Not all of the nodes have implemented deparsing yet. This will catch those and return
+	// gracefully as an error.
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+			err = r.(error)
+		}
+	}()
+
+	stmts = make([]string, len(tree.Statements))
+	for i, stmt := range tree.Statements {
+		if resultStmt, err := stmt.Deparse(pg_query.DeparseContextNone); err != nil {
+			return nil, err
+		} else {
+			stmts[i] = resultStmt
+		}
+	}
+	return stmts, err
 }
 
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into an AST (JSON format)

@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node ScalarArrayOpExpr) Deparse() string {
+func (node ScalarArrayOpExpr) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

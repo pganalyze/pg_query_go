@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node InlineCodeBlock) Deparse() string {
+func (node InlineCodeBlock) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

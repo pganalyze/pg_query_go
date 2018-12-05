@@ -77,8 +77,7 @@ func (p *FingerprintSubContextSlice) AddIfUnique(ctx FingerprintSubContext) {
 }
 
 // ...
-
 type Node interface {
-	Deparse() string
+	Deparse(ctx DeparseContext) (string, error)
 	Fingerprint(FingerprintContext, Node, string)
 }

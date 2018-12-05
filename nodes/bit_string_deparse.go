@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node BitString) Deparse() string {
+func (node BitString) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

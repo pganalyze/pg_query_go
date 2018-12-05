@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node RawStmt) Deparse() string {
-	panic("Not Implemented")
+func (node RawStmt) Deparse(ctx DeparseContext) (string, error) {
+	return node.Stmt.Deparse(DeparseContextNone)
 }

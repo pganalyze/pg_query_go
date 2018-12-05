@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node RowCompareExpr) Deparse() string {
+func (node RowCompareExpr) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }

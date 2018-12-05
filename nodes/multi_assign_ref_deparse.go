@@ -2,6 +2,6 @@
 
 package pg_query
 
-func (node MultiAssignRef) Deparse() string {
+func (node MultiAssignRef) Deparse(ctx DeparseContext) (string, error) {
 	panic("Not Implemented")
 }
