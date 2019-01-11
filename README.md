@@ -19,6 +19,20 @@ Due to compiling parts of PostgreSQL, the first time you build against this libr
 
 Expect up to 3 minutes. You can use `go build -x` to see the progress.
 
+## Usage with Go modules
+
+When integrating this library using Go modules, and using a vendor/ directory,
+you will need to explicitly copy over some of the C build files, since Go does
+not copy files in subfolders without .go files whilst vendoring.
+
+The best way to do so is to use [modvendor](https://github.com/goware/modvendor),
+and vendor your modules like this:
+
+```
+go mod vendor
+go get -u github.com/goware/modvendor
+modvendor -copy="**/*.c **/*.h **/*.proto" -v
+```
 
 ## Usage
 
