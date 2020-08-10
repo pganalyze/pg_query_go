@@ -1,9 +1,9 @@
 package pg_query
 
 import (
-	"encoding/json"
-	"runtime/debug"
+	proto "github.com/golang/protobuf/proto"
 
+	nodes "github.com/lfittl/pg_query_go/nodes"
 	"github.com/lfittl/pg_query_go/parser"
 )
 
@@ -12,24 +12,20 @@ func ParseToJSON(input string) (result string, err error) {
 	return parser.ParseToJSON(input)
 }
 
+// ParseToProtobuf - Parses the given SQL statement into an AST (JSON format)
+func ParseToProtobuf(input string) (result string, err error) {
+	return parser.ParseToProtobuf(input)
+}
+
 // Parse the given SQL statement into an AST (native Go structs)
-func Parse(input string) (tree ParsetreeList, err error) {
-	jsonTree, err := ParseToJSON(input)
+func Parse(input string) (tree *nodes.Node, err error) {
+	protobufTree, err := ParseToProtobuf(input)
 	if err != nil {
 		return
 	}
 
-	// JSON unmarshalling can panic in edge cases we don't support yet. This is
-	// still a *bug that needs to be fixed*, but this way the caller can expect an
-	// error to be returned always, instead of a panic
-	defer func() {
-		if r := recover(); r != nil {
-			debug.PrintStack()
-			err = r.(error)
-		}
-	}()
-
-	err = json.Unmarshal([]byte(jsonTree), &tree)
+	tree = &nodes.Node{}
+	err = proto.Unmarshal([]byte(protobufTree), tree)
 	return
 }
 

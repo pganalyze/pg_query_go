@@ -1,6 +1,6 @@
 package pg_query
 
-import (
+/*import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -45,4 +45,4 @@ func (input ParsetreeList) Fingerprint() string {
 	}
 
 	return fmt.Sprintf("%02x%s", fingerprintVersion, hex.EncodeToString(ctx.Sum()))
-}
+}*/

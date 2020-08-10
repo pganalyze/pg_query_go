@@ -2,6 +2,7 @@ package parser
 
 /*
 #cgo CFLAGS: -Iinclude -g -fstack-protector
+#cgo CXXFLAGS: -Iinclude -Iprotobuf-v3.12.0/google/protobuf -DHAVE_PTHREAD -std=c++11
 #cgo LDFLAGS:
 #include "pg_query.h"
 #include <stdlib.h>
@@ -23,6 +24,26 @@ func ParseToJSON(input string) (result string, err error) {
 	defer C.free(unsafe.Pointer(inputC))
 
 	resultC := C.pg_query_parse(inputC)
+
+	defer C.pg_query_free_parse_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
+		return
+	}
+
+	result = C.GoString(resultC.parse_tree)
+
+	return
+}
+
+// ParseToProtobuf - Parses the given SQL statement into an AST (Protobuf format)
+func ParseToProtobuf(input string) (result string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf(inputC)
 
 	defer C.pg_query_free_parse_result(resultC)
 

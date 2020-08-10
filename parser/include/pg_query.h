@@ -11,6 +11,13 @@ typedef struct {
 } PgQueryError;
 
 typedef struct {
+  void* pbuf;
+	unsigned int pbuf_len;
+  char* stderr_buffer;
+  PgQueryError* error;
+} PgQueryScanResult;
+
+typedef struct {
   char* parse_tree;
   char* stderr_buffer;
   PgQueryError* error;
@@ -37,20 +44,23 @@ extern "C" {
 #endif
 
 PgQueryNormalizeResult pg_query_normalize(const char* input);
+PgQueryScanResult pg_query_scan(const char* input);
 PgQueryParseResult pg_query_parse(const char* input);
+PgQueryParseResult pg_query_parse_protobuf(const char* input);
 PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input);
 
 PgQueryFingerprintResult pg_query_fingerprint(const char* input);
 
 void pg_query_free_normalize_result(PgQueryNormalizeResult result);
+void pg_query_free_scan_result(PgQueryScanResult result);
 void pg_query_free_parse_result(PgQueryParseResult result);
 void pg_query_free_plpgsql_parse_result(PgQueryPlpgsqlParseResult result);
 void pg_query_free_fingerprint_result(PgQueryFingerprintResult result);
 
 // Postgres version information
-#define PG_VERSION "10.0"
-#define PG_MAJORVERSION "10"
-#define PG_VERSION_NUM 100000
+#define PG_VERSION "12.3"
+#define PG_MAJORVERSION "12"
+#define PG_VERSION_NUM 120003
 
 // Deprecated APIs below
 

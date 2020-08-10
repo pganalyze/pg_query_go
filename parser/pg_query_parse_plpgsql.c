@@ -8,7 +8,8 @@
 #include <assert.h>
 
 #include <catalog/pg_type.h>
-#include <catalog/pg_proc_fn.h>
+#include <catalog/objectaddress.h>
+#include <catalog/pg_proc.h>
 #include <nodes/parsenodes.h>
 #include <nodes/nodeFuncs.h>
 
@@ -209,17 +210,18 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	var = plpgsql_build_variable("found", 0,
 								 plpgsql_build_datatype(BOOLOID,
 														-1,
-														InvalidOid),
+														InvalidOid,
+														NULL),
 								 true);
 	function->found_varno = var->dno;
 
 	if (is_trigger) {
 		/* Add the record for referencing NEW */
-		rec = plpgsql_build_record("new", 0, true);
+		rec = plpgsql_build_record("new", 0, NULL, RECORDOID, true);
 		function->new_varno = rec->dno;
 
 		/* Add the record for referencing OLD */
-		rec = plpgsql_build_record("old", 0, true);
+		rec = plpgsql_build_record("old", 0, NULL, RECORDOID, true);
 		function->old_varno = rec->dno;
 	}
 
@@ -430,12 +432,11 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 		if (func_and_error.func != NULL) {
 			char *func_json;
 			char *new_out;
-			int ignored;
 
 			func_json = plpgsqlToJSON(func_and_error.func);
 			plpgsql_free_function_memory(func_and_error.func);
 
-			ignored = asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
+			(void)asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
 			free(result.plpgsql_funcs);
 			result.plpgsql_funcs = new_out;
 
@@ -446,6 +447,7 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 	result.plpgsql_funcs[strlen(result.plpgsql_funcs) - 2] = '\n';
 	result.plpgsql_funcs[strlen(result.plpgsql_funcs) - 1] = ']';
 
+	free(parse_result.stderr_buffer);
 	pg_query_exit_memory_context(ctx);
 
 	return result;

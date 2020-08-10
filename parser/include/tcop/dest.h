@@ -57,7 +57,7 @@
  * calls in portal and cursor manipulations.
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2019, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/tcop/dest.h
@@ -129,7 +129,8 @@ struct _DestReceiver
 	/* Private fields might appear beyond this point... */
 };
 
-extern DestReceiver *None_Receiver; /* permanent receiver for DestNone */
+extern PGDLLIMPORT DestReceiver *None_Receiver; /* permanent receiver for
+												 * DestNone */
 
 /* The primary destination management functions */
 

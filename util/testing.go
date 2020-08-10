@@ -12,10 +12,10 @@ func MakeStrNode(str string) nodes.String {
 	return nodes.String{Str: str}
 }
 
-func MakeIntNode(ival int64) nodes.Integer {
-	return nodes.Integer{Ival: ival}
+func MakeIntNode(ival int64) *nodes.Node {
+	return &nodes.Node{Node: &nodes.Node_Integer{Integer: &nodes.Integer{Ival: int32(ival)}}} // FIXME
 }
 
-func MakeListNode(items []nodes.Node) nodes.List {
+func MakeListNode(items []*nodes.Node) nodes.List {
 	return nodes.List{Items: items}
 }
