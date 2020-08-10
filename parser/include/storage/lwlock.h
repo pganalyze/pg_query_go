@@ -4,7 +4,7 @@
  *	  Lightweight lock manager
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/storage/lwlock.h
@@ -18,9 +18,9 @@
 #error "lwlock.h may not be included from frontend code"
 #endif
 
+#include "port/atomics.h"
 #include "storage/proclist_types.h"
 #include "storage/s_lock.h"
-#include "port/atomics.h"
 
 struct PGPROC;
 
@@ -88,7 +88,6 @@ typedef union LWLockMinimallyPadded
 } LWLockMinimallyPadded;
 
 extern PGDLLIMPORT LWLockPadded *MainLWLockArray;
-extern char *MainLWLockNames[];
 
 /* struct for storing named tranche information */
 typedef struct NamedLWLockTranche
@@ -133,7 +132,7 @@ typedef enum LWLockMode
 {
 	LW_EXCLUSIVE,
 	LW_SHARED,
-	LW_WAIT_UNTIL_FREE			/* A special mode used in PGPROC->lwlockMode,
+	LW_WAIT_UNTIL_FREE			/* A special mode used in PGPROC->lwWaitMode,
 								 * when waiting for lock to become free. Not
 								 * to be used as LWLockAcquire argument */
 } LWLockMode;
@@ -184,7 +183,7 @@ extern LWLockPadded *GetNamedLWLockTranche(const char *tranche_name);
  * registration in the main shared memory segment wouldn't work for that case.
  */
 extern int	LWLockNewTrancheId(void);
-extern void LWLockRegisterTranche(int tranche_id, char *tranche_name);
+extern void LWLockRegisterTranche(int tranche_id, const char *tranche_name);
 extern void LWLockInitialize(LWLock *lock, int tranche_id);
 
 /*
@@ -195,24 +194,31 @@ extern void LWLockInitialize(LWLock *lock, int tranche_id);
  */
 typedef enum BuiltinTrancheIds
 {
-	LWTRANCHE_CLOG_BUFFERS = NUM_INDIVIDUAL_LWLOCKS,
-	LWTRANCHE_COMMITTS_BUFFERS,
-	LWTRANCHE_SUBTRANS_BUFFERS,
-	LWTRANCHE_MXACTOFFSET_BUFFERS,
-	LWTRANCHE_MXACTMEMBER_BUFFERS,
-	LWTRANCHE_ASYNC_BUFFERS,
-	LWTRANCHE_OLDSERXID_BUFFERS,
+	LWTRANCHE_XACT_BUFFER = NUM_INDIVIDUAL_LWLOCKS,
+	LWTRANCHE_COMMITTS_BUFFER,
+	LWTRANCHE_SUBTRANS_BUFFER,
+	LWTRANCHE_MULTIXACTOFFSET_BUFFER,
+	LWTRANCHE_MULTIXACTMEMBER_BUFFER,
+	LWTRANCHE_NOTIFY_BUFFER,
+	LWTRANCHE_SERIAL_BUFFER,
 	LWTRANCHE_WAL_INSERT,
 	LWTRANCHE_BUFFER_CONTENT,
-	LWTRANCHE_BUFFER_IO_IN_PROGRESS,
-	LWTRANCHE_REPLICATION_ORIGIN,
-	LWTRANCHE_REPLICATION_SLOT_IO_IN_PROGRESS,
-	LWTRANCHE_PROC,
+	LWTRANCHE_BUFFER_IO,
+	LWTRANCHE_REPLICATION_ORIGIN_STATE,
+	LWTRANCHE_REPLICATION_SLOT_IO,
+	LWTRANCHE_LOCK_FASTPATH,
 	LWTRANCHE_BUFFER_MAPPING,
 	LWTRANCHE_LOCK_MANAGER,
 	LWTRANCHE_PREDICATE_LOCK_MANAGER,
+	LWTRANCHE_PARALLEL_HASH_JOIN,
 	LWTRANCHE_PARALLEL_QUERY_DSA,
-	LWTRANCHE_TBM,
+	LWTRANCHE_PER_SESSION_DSA,
+	LWTRANCHE_PER_SESSION_RECORD_TYPE,
+	LWTRANCHE_PER_SESSION_RECORD_TYPMOD,
+	LWTRANCHE_SHARED_TUPLESTORE,
+	LWTRANCHE_SHARED_TIDBITMAP,
+	LWTRANCHE_PARALLEL_APPEND,
+	LWTRANCHE_PER_XACT_PREDICATE_LIST,
 	LWTRANCHE_FIRST_USER_DEFINED
 }			BuiltinTrancheIds;
 

@@ -6,7 +6,7 @@
  * NOTE: for historical reasons, this does not correspond to pqcomm.c.
  * pqcomm.c's routines are declared in libpq.h.
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/libpq/pqcomm.h
@@ -68,10 +68,10 @@ typedef struct
 /* Configure the UNIX socket location for the well known port. */
 
 #define UNIXSOCK_PATH(path, port, sockdir) \
+	   (AssertMacro(sockdir), \
+		AssertMacro(*(sockdir) != '\0'), \
 		snprintf(path, sizeof(path), "%s/.s.PGSQL.%d", \
-				((sockdir) && *(sockdir) != '\0') ? (sockdir) : \
-				DEFAULT_PGSOCKET_DIR, \
-				(port))
+				 (sockdir), (port)))
 
 /*
  * The maximum workable length of a socket path is what will fit into
@@ -199,9 +199,10 @@ typedef struct CancelRequestPacket
 
 
 /*
- * A client can also start by sending a SSL negotiation request, to get a
- * secure channel.
+ * A client can also start by sending a SSL or GSSAPI negotiation request to
+ * get a secure channel.
  */
 #define NEGOTIATE_SSL_CODE PG_PROTOCOL(1234,5679)
+#define NEGOTIATE_GSS_CODE PG_PROTOCOL(1234,5680)
 
 #endif							/* PQCOMM_H */

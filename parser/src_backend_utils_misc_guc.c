@@ -2,6 +2,8 @@
  * Symbols referenced in this file:
  * - log_min_messages
  * - client_min_messages
+ * - backtrace_functions
+ * - backtrace_symbol_list
  * - check_function_bodies
  *--------------------------------------------------------------------
  */
@@ -14,7 +16,7 @@
  * See src/backend/utils/misc/README for more information.
  *
  *
- * Copyright (c) 2000-2017, PostgreSQL Global Development Group
+ * Copyright (c) 2000-2020, PostgreSQL Global Development Group
  * Written by Peter Eisentraut <peter_e@gmx.net>.
  *
  * IDENTIFICATION
@@ -37,26 +39,30 @@
 #include "access/commit_ts.h"
 #include "access/gin.h"
 #include "access/rmgr.h"
+#include "access/tableam.h"
 #include "access/transam.h"
 #include "access/twophase.h"
 #include "access/xact.h"
 #include "access/xlog_internal.h"
 #include "catalog/namespace.h"
 #include "catalog/pg_authid.h"
+#include "catalog/storage.h"
 #include "commands/async.h"
 #include "commands/prepare.h"
+#include "commands/trigger.h"
 #include "commands/user.h"
 #include "commands/vacuum.h"
 #include "commands/variable.h"
-#include "commands/trigger.h"
+#include "common/string.h"
 #include "funcapi.h"
+#include "jit/jit.h"
 #include "libpq/auth.h"
-#include "libpq/be-fsstubs.h"
 #include "libpq/libpq.h"
 #include "libpq/pqformat.h"
 #include "miscadmin.h"
 #include "optimizer/cost.h"
 #include "optimizer/geqo.h"
+#include "optimizer/optimizer.h"
 #include "optimizer/paths.h"
 #include "optimizer/planmain.h"
 #include "parser/parse_expr.h"
@@ -71,24 +77,29 @@
 #include "postmaster/syslogger.h"
 #include "postmaster/walwriter.h"
 #include "replication/logicallauncher.h"
+#include "replication/reorderbuffer.h"
 #include "replication/slot.h"
 #include "replication/syncrep.h"
 #include "replication/walreceiver.h"
 #include "replication/walsender.h"
 #include "storage/bufmgr.h"
 #include "storage/dsm_impl.h"
-#include "storage/standby.h"
 #include "storage/fd.h"
+#include "storage/large_object.h"
 #include "storage/pg_shmem.h"
-#include "storage/proc.h"
 #include "storage/predicate.h"
+#include "storage/proc.h"
+#include "storage/standby.h"
 #include "tcop/tcopprot.h"
 #include "tsearch/ts_cache.h"
+#include "utils/acl.h"
 #include "utils/builtins.h"
 #include "utils/bytea.h"
+#include "utils/float.h"
 #include "utils/guc_tables.h"
 #include "utils/memutils.h"
 #include "utils/pg_locale.h"
+#include "utils/pg_lsn.h"
 #include "utils/plancache.h"
 #include "utils/portal.h"
 #include "utils/ps_status.h"
@@ -124,6 +135,7 @@ extern int	CommitSiblings;
 extern char *default_tablespace;
 extern char *temp_tablespaces;
 extern bool ignore_checksum_failure;
+extern bool ignore_invalid_pages;
 extern bool synchronize_seqscans;
 
 #ifdef TRACE_SYNCSCAN
@@ -143,23 +155,23 @@ extern bool optimize_bounded_sort;
 static void do_serialize(char **destptr, Size *maxbytes, const char *fmt,...) pg_attribute_printf(3, 4);
 
 static void set_config_sourcefile(const char *name, char *sourcefile,
-					  int sourceline);
+								  int sourceline);
 static bool call_bool_check_hook(struct config_bool *conf, bool *newval,
-					 void **extra, GucSource source, int elevel);
+								 void **extra, GucSource source, int elevel);
 static bool call_int_check_hook(struct config_int *conf, int *newval,
-					void **extra, GucSource source, int elevel);
+								void **extra, GucSource source, int elevel);
 static bool call_real_check_hook(struct config_real *conf, double *newval,
-					 void **extra, GucSource source, int elevel);
+								 void **extra, GucSource source, int elevel);
 static bool call_string_check_hook(struct config_string *conf, char **newval,
-					   void **extra, GucSource source, int elevel);
+								   void **extra, GucSource source, int elevel);
 static bool call_enum_check_hook(struct config_enum *conf, int *newval,
-					 void **extra, GucSource source, int elevel);
+								 void **extra, GucSource source, int elevel);
 
 static bool check_log_destination(char **newval, void **extra, GucSource source);
 static void assign_log_destination(const char *newval, void *extra);
 
 static bool check_wal_consistency_checking(char **newval, void **extra,
-							   GucSource source);
+										   GucSource source);
 static void assign_wal_consistency_checking(const char *newval, void *extra);
 
 #ifdef HAVE_SYSLOG
@@ -171,7 +183,6 @@ static int	syslog_facility = 0;
 static void assign_syslog_facility(int newval, void *extra);
 static void assign_syslog_ident(const char *newval, void *extra);
 static void assign_session_replication_role(int newval, void *extra);
-static bool check_client_min_messages(int *newval, void **extra, GucSource source);
 static bool check_temp_buffers(int *newval, void **extra, GucSource source);
 static bool check_bonjour(bool *newval, void **extra, GucSource source);
 static bool check_ssl(bool *newval, void **extra, GucSource source);
@@ -185,25 +196,45 @@ static const char *show_archive_command(void);
 static void assign_tcp_keepalives_idle(int newval, void *extra);
 static void assign_tcp_keepalives_interval(int newval, void *extra);
 static void assign_tcp_keepalives_count(int newval, void *extra);
+static void assign_tcp_user_timeout(int newval, void *extra);
 static const char *show_tcp_keepalives_idle(void);
 static const char *show_tcp_keepalives_interval(void);
 static const char *show_tcp_keepalives_count(void);
+static const char *show_tcp_user_timeout(void);
 static bool check_maxconnections(int *newval, void **extra, GucSource source);
 static bool check_max_worker_processes(int *newval, void **extra, GucSource source);
 static bool check_autovacuum_max_workers(int *newval, void **extra, GucSource source);
+static bool check_max_wal_senders(int *newval, void **extra, GucSource source);
 static bool check_autovacuum_work_mem(int *newval, void **extra, GucSource source);
 static bool check_effective_io_concurrency(int *newval, void **extra, GucSource source);
-static void assign_effective_io_concurrency(int newval, void *extra);
+static bool check_maintenance_io_concurrency(int *newval, void **extra, GucSource source);
 static void assign_pgstat_temp_directory(const char *newval, void *extra);
 static bool check_application_name(char **newval, void **extra, GucSource source);
 static void assign_application_name(const char *newval, void *extra);
 static bool check_cluster_name(char **newval, void **extra, GucSource source);
 static const char *show_unix_socket_permissions(void);
 static const char *show_log_file_mode(void);
+static const char *show_data_directory_mode(void);
+static bool check_backtrace_functions(char **newval, void **extra, GucSource source);
+static void assign_backtrace_functions(const char *newval, void *extra);
+static bool check_recovery_target_timeline(char **newval, void **extra, GucSource source);
+static void assign_recovery_target_timeline(const char *newval, void *extra);
+static bool check_recovery_target(char **newval, void **extra, GucSource source);
+static void assign_recovery_target(const char *newval, void *extra);
+static bool check_recovery_target_xid(char **newval, void **extra, GucSource source);
+static void assign_recovery_target_xid(const char *newval, void *extra);
+static bool check_recovery_target_time(char **newval, void **extra, GucSource source);
+static void assign_recovery_target_time(const char *newval, void *extra);
+static bool check_recovery_target_name(char **newval, void **extra, GucSource source);
+static void assign_recovery_target_name(const char *newval, void *extra);
+static bool check_recovery_target_lsn(char **newval, void **extra, GucSource source);
+static void assign_recovery_target_lsn(const char *newval, void *extra);
+static bool check_primary_slot_name(char **newval, void **extra, GucSource source);
+static bool check_default_with_oids(bool *newval, void **extra, GucSource source);
 
 /* Private functions in guc-file.l that need to be called from guc.c */
 static ConfigVariable *ProcessConfigFileInternal(GucContext context,
-						  bool applySettings, int elevel);
+												 bool applySettings, int elevel);
 
 
 /*
@@ -214,9 +245,13 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
 
 
 
+StaticAssertDecl(lengthof(bytea_output_options) == (BYTEA_OUTPUT_HEX + 2),
+				 "array length mismatch");
+
 /*
  * We have different sets for client and server message level options because
- * they sort slightly different (see "log" level)
+ * they sort slightly different (see "log" level), and because "fatal"/"panic"
+ * aren't sensible for client_min_messages.
  */
 
 
@@ -224,13 +259,25 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
 
 
 
+StaticAssertDecl(lengthof(intervalstyle_options) == (INTSTYLE_ISO_8601 + 2),
+				 "array length mismatch");
+
+
+
+StaticAssertDecl(lengthof(log_error_verbosity_options) == (PGERROR_VERBOSE + 2),
+				 "array length mismatch");
+
+
+
+StaticAssertDecl(lengthof(log_statement_options) == (LOGSTMT_ALL + 2),
+				 "array length mismatch");
 
 
 
 
 
-
-
+StaticAssertDecl(lengthof(session_replication_role_options) == (SESSION_REPLICATION_ROLE_LOCAL + 2),
+				 "array length mismatch");
 
 #ifdef HAVE_SYSLOG
 #else
@@ -238,9 +285,18 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
 
 
 
+StaticAssertDecl(lengthof(track_function_options) == (TRACK_FUNC_ALL + 2),
+				 "array length mismatch");
 
 
 
+StaticAssertDecl(lengthof(xmlbinary_options) == (XMLBINARY_HEX + 2),
+				 "array length mismatch");
+
+
+
+StaticAssertDecl(lengthof(xmloption_options) == (XMLOPTION_CONTENT + 2),
+				 "array length mismatch");
 
 /*
  * Although only "on", "off", and "safe_encoding" are documented, we
@@ -268,6 +324,8 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
 
 
 
+
+
 /*
  * password_encryption used to be a boolean, so accept all the likely
  * variants of "on", too. "off" used to store passwords in plaintext,
@@ -275,11 +333,24 @@ static ConfigVariable *ProcessConfigFileInternal(GucContext context,
  */
 
 
+
+
+StaticAssertDecl(lengthof(ssl_protocol_versions_info) == (PG_TLS1_3_VERSION + 2),
+				 "array length mismatch");
+
+#ifndef WIN32
+#endif
+#ifndef EXEC_BACKEND
+#endif
+#ifdef WIN32
+#endif
+
 /*
  * Options for enum values stored in other modules
  */
 extern const struct config_enum_entry wal_level_options[];
 extern const struct config_enum_entry archive_mode_options[];
+extern const struct config_enum_entry recovery_target_action_options[];
 extern const struct config_enum_entry sync_method_options[];
 extern const struct config_enum_entry dynamic_shared_memory_options[];
 
@@ -304,6 +375,11 @@ extern const struct config_enum_entry dynamic_shared_memory_options[];
 __thread bool		check_function_bodies = true;
 
 
+/*
+ * This GUC exists solely for backward compatibility, check its definition for
+ * details.
+ */
+
 
 
 
@@ -312,6 +388,16 @@ __thread int			log_min_messages = WARNING;
 __thread int			client_min_messages = NOTICE;
 
 
+
+
+
+
+
+
+
+__thread char	   *backtrace_functions;
+
+__thread char	   *backtrace_symbol_list;
 
 
 
@@ -378,6 +464,10 @@ __thread int			client_min_messages = NOTICE;
 
 
 
+
+
+
+
 /* should be static, but commands/variable.c needs to get at this */
 
 
@@ -389,6 +479,9 @@ __thread int			client_min_messages = NOTICE;
  */
 
 
+StaticAssertDecl(lengthof(GucContext_Names) == (PGC_USERSET + 1),
+				 "array length mismatch");
+
 /*
  * Displayable names for source types (enum GucSource)
  *
@@ -396,10 +489,16 @@ __thread int			client_min_messages = NOTICE;
  */
 
 
+StaticAssertDecl(lengthof(GucSource_Names) == (PGC_S_SESSION + 1),
+				 "array length mismatch");
+
 /*
  * Displayable names for the groupings defined in enum config_group
  */
 
+
+StaticAssertDecl(lengthof(config_group_names) == (DEVELOPER_OPTIONS + 2),
+				 "array length mismatch");
 
 /*
  * Displayable names for GUC variable types (enum config_type)
@@ -408,6 +507,9 @@ __thread int			client_min_messages = NOTICE;
  */
 
 
+StaticAssertDecl(lengthof(config_type_names) == (PGC_ENUM + 1),
+				 "array length mismatch");
+
 /*
  * Unit conversion tables.
  *
@@ -415,13 +517,13 @@ __thread int			client_min_messages = NOTICE;
  * For each supported conversion from one unit to another, we have an entry
  * in the table.
  *
- * To keep things simple, and to avoid intermediate-value overflows,
+ * To keep things simple, and to avoid possible roundoff error,
  * conversions are never chained.  There needs to be a direct conversion
  * between all units (of the same type).
  *
- * The conversions from each base unit must be kept in order from greatest
- * to smallest unit; convert_from_base_unit() relies on that.  (The order of
- * the base units does not matter.)
+ * The conversions for each base unit must be kept in order from greatest to
+ * smallest human-friendly unit; convert_xxx_from_base_unit() rely on that.
+ * (The order of the base-unit groups does not matter.)
  */
 #define MAX_UNIT_LEN		3	/* length of longest recognized unit string */
 
@@ -430,9 +532,7 @@ typedef struct
 	char		unit[MAX_UNIT_LEN + 1]; /* unit, as a string, like "kB" or
 										 * "min" */
 	int			base_unit;		/* GUC_UNIT_XXX */
-	int			multiplier;		/* If positive, multiply the value with this
-								 * for unit -> base_unit conversion.  If
-								 * negative, divide (with the absolute value) */
+	double		multiplier;		/* Factor for converting unit -> base_unit */
 } unit_conversion;
 
 /* Ensure that the constants in the tables don't overflow or underflow */
@@ -441,9 +541,6 @@ typedef struct
 #endif
 #if XLOG_BLCKSZ < 1024 || XLOG_BLCKSZ > (1024*1024)
 #error XLOG_BLCKSZ must be between 1KB and 1MB
-#endif
-#if XLOG_SEG_SIZE < (1024*1024) || XLOG_SEG_SIZE > (1024*1024*1024)
-#error XLOG_SEG_SIZE must be between 1MB and 1GB
 #endif
 
 
@@ -509,6 +606,9 @@ typedef struct
 #ifdef USE_PREFETCH
 #else
 #endif
+#ifdef USE_PREFETCH
+#else
+#endif
 
 
 
@@ -518,6 +618,9 @@ typedef struct
 #else
 #endif
 #ifdef USE_SSL
+#else
+#endif
+#ifdef USE_OPENSSL
 #else
 #endif
 #ifdef USE_SSL
@@ -553,9 +656,9 @@ typedef struct
 
 
 
-			/* TRUE if need to do commit/abort work */
+			/* true if need to do commit/abort work */
 
-	/* TRUE to enable GUC_REPORT */
+	/* true to enable GUC_REPORT */
 
 	/* 1 when in main transaction */
 
@@ -567,18 +670,18 @@ static void InitializeOneGUCOption(struct config_generic *gconf);
 static void push_old_value(struct config_generic *gconf, GucAction action);
 static void ReportGUCOption(struct config_generic *record);
 static void reapply_stacked_values(struct config_generic *variable,
-					   struct config_string *pHolder,
-					   GucStack *stack,
-					   const char *curvalue,
-					   GucContext curscontext, GucSource cursource);
+								   struct config_string *pHolder,
+								   GucStack *stack,
+								   const char *curvalue,
+								   GucContext curscontext, GucSource cursource);
 static void ShowGUCConfigOption(const char *name, DestReceiver *dest);
 static void ShowAllGUCConfig(DestReceiver *dest);
 static char *_ShowOption(struct config_generic *record, bool use_units);
 static bool validate_option_array_item(const char *name, const char *value,
-						   bool skipIfNoPermissions);
+									   bool skipIfNoPermissions);
 static void write_auto_conf_file(int fd, const char *filename, ConfigVariable *head_p);
 static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **tail_p,
-						  const char *name, const char *value);
+									  const char *name, const char *value);
 
 
 /*
@@ -657,7 +760,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 
 /*
  * Look up option NAME.  If it exists, return a pointer to its record,
- * else return NULL.  If create_placeholders is TRUE, we'll create a
+ * else return NULL.  If create_placeholders is true, we'll create a
  * placeholder record for a valid-looking custom variable name.
  */
 
@@ -767,39 +870,62 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 /*
  * Convert a value from one of the human-friendly units ("kB", "min" etc.)
  * to the given base unit.  'value' and 'unit' are the input value and unit
- * to convert from.  The converted value is stored in *base_value.
+ * to convert from (there can be trailing spaces in the unit string).
+ * The converted value is stored in *base_value.
+ * It's caller's responsibility to round off the converted value as necessary
+ * and check for out-of-range.
  *
  * Returns true on success, false if the input unit is not recognized.
  */
 
 
 /*
- * Convert a value in some base unit to a human-friendly unit.  The output
- * unit is chosen so that it's the greatest unit that can represent the value
- * without loss.  For example, if the base unit is GUC_UNIT_KB, 1024 is
- * converted to 1 MB, but 1025 is represented as 1025 kB.
+ * Convert an integer value in some base unit to a human-friendly unit.
+ *
+ * The output unit is chosen so that it's the greatest unit that can represent
+ * the value without loss.  For example, if the base unit is GUC_UNIT_KB, 1024
+ * is converted to 1 MB, but 1025 is represented as 1025 kB.
+ */
+
+
+/*
+ * Convert a floating-point value in some base unit to a human-friendly unit.
+ *
+ * Same as above, except we have to do the math a bit differently, and
+ * there's a possibility that we don't find any exact divisor.
+ */
+
+
+/*
+ * Return the name of a GUC's base unit (e.g. "ms") given its flags.
+ * Return NULL if the GUC is unitless.
  */
 
 
 
 /*
  * Try to parse value as an integer.  The accepted formats are the
- * usual decimal, octal, or hexadecimal formats, optionally followed by
- * a unit name if "flags" indicates a unit is allowed.
+ * usual decimal, octal, or hexadecimal formats, as well as floating-point
+ * formats (which will be rounded to integer after any units conversion).
+ * Optionally, the value can be followed by a unit name if "flags" indicates
+ * a unit is allowed.
  *
  * If the string parses okay, return true, else false.
  * If okay and result is not NULL, return the value in *result.
  * If not okay and hintmsg is not NULL, *hintmsg is set to a suitable
- *	HINT message, or NULL if no hint provided.
+ * HINT message, or NULL if no hint provided.
  */
-
-
 
 
 /*
  * Try to parse value as a floating point number in the usual format.
+ * Optionally, the value can be followed by a unit name if "flags" indicates
+ * a unit is allowed.
+ *
  * If the string parses okay, return true, else false.
  * If okay and result is not NULL, return the value in *result.
+ * If not okay and hintmsg is not NULL, *hintmsg is set to a suitable
+ * HINT message, or NULL if no hint provided.
  */
 
 
@@ -819,7 +945,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
  * Lookup the value for an enum option with the selected name
  * (case-insensitive).
  * If the enum option is found, sets the retval value and returns
- * true. If it's not found, return FALSE and retval is set to 0.
+ * true. If it's not found, return false and retval is set to 0.
  */
 
 
@@ -1074,6 +1200,14 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 
 
 /*
+ * Return an array of modified GUC options to show in EXPLAIN.
+ *
+ * We only report options related to query planning (marked with GUC_EXPLAIN),
+ * with values different from their built-in defaults.
+ */
+
+
+/*
  * Return GUC variable value by name; optionally return canonical form of
  * name.  If the GUC is unset, then throw an error unless missing_ok is true,
  * in which case return NULL.  Return value is palloc'd (but *varname isn't).
@@ -1100,7 +1234,7 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
 /*
  * show_config_by_name_missing_ok - equiv to SHOW X command but implemented as
  * a function.  If X does not exist, suppress the error and just return NULL
- * if missing_ok is TRUE.
+ * if missing_ok is true.
  */
 
 
@@ -1496,7 +1630,7 @@ read_nondefault_variables(void)
  * or NULL for the Delete/Reset cases.  If skipIfNoPermissions is true, it's
  * not an error to have no permissions to set the option.
  *
- * Returns TRUE if OK, FALSE if skipIfNoPermissions is true and user does not
+ * Returns true if OK, false if skipIfNoPermissions is true and user does not
  * have permission to change this option (all other error cases result in an
  * error being thrown).
  */
@@ -1557,8 +1691,6 @@ read_nondefault_variables(void)
 
 
 
-
-
 #ifndef USE_BONJOUR
 #endif
 
@@ -1609,12 +1741,80 @@ read_nondefault_variables(void)
 
 
 
-#ifdef USE_PREFETCH
-#else
+
+
+
+
+
+
+#ifndef USE_PREFETCH
 #endif							/* USE_PREFETCH */
 
-#ifdef USE_PREFETCH
+#ifndef USE_PREFETCH
 #endif							/* USE_PREFETCH */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * We split the input string, where commas separate function names
+ * and certain whitespace chars are ignored, into a \0-separated (and
+ * \0\0-terminated) list of function names.  This formulation allows
+ * easy scanning when an error is thrown while avoiding the use of
+ * non-reentrant strtok(), as well as keeping the output data in a
+ * single palloc() chunk.
+ */
+
+
+
+
+
+
+
+
+/*
+ * Recovery target settings: Only one of the several recovery_target* settings
+ * may be set.  Setting a second one results in an error.  The global variable
+ * recoveryTarget tracks which kind of recovery target was chosen.  Other
+ * variables store the actual target value (for example a string or a xid).
+ * The assign functions of the parameters check whether a competing parameter
+ * was already set.  But we want to allow setting the same parameter multiple
+ * times.  We also want to allow unsetting a parameter and setting a different
+ * one, so we unset recoveryTarget when the parameter is set to an empty
+ * string.
+ */
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * The interpretation of the recovery_target_time string can depend on the
+ * time zone setting, so we need to wait until after all GUC processing is
+ * done before we can do the final parsing of the string.  This check function
+ * only does a parsing pass to catch syntax errors, but we store the string
+ * and parse it again when we need to use it.
+ */
+
+
+
 
 
 

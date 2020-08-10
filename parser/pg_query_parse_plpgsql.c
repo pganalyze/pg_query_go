@@ -8,7 +8,8 @@
 #include <assert.h>
 
 #include <catalog/pg_type.h>
-#include <catalog/pg_proc_fn.h>
+#include <catalog/objectaddress.h>
+#include <catalog/pg_proc.h>
 #include <nodes/parsenodes.h>
 #include <nodes/nodeFuncs.h>
 
@@ -182,6 +183,8 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	function->fn_rettype = VOIDOID;
 	function->fn_retset = is_setof;
 	function->fn_retistuple = false;
+	function->fn_retisdomain = false;
+	function->fn_prokind = PROKIND_FUNCTION;
 	/* a bit of hardwired knowledge about type VOID here */
 	function->fn_retbyval = true;
 	function->fn_rettyplen = sizeof(int32);
@@ -198,17 +201,18 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	var = plpgsql_build_variable("found", 0,
 								 plpgsql_build_datatype(BOOLOID,
 														-1,
-														InvalidOid),
+														InvalidOid,
+														NULL),
 								 true);
 	function->found_varno = var->dno;
 
 	if (is_trigger) {
 		/* Add the record for referencing NEW */
-		rec = plpgsql_build_record("new", 0, true);
+		rec = plpgsql_build_record("new", 0, NULL, RECORDOID, true);
 		function->new_varno = rec->dno;
 
 		/* Add the record for referencing OLD */
-		rec = plpgsql_build_record("old", 0, true);
+		rec = plpgsql_build_record("old", 0, NULL, RECORDOID, true);
 		function->old_varno = rec->dno;
 	}
 

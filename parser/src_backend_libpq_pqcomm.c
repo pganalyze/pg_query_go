@@ -33,7 +33,7 @@
  * the backend's "backend/libpq" is quite separate from "interfaces/libpq".
  * All that remains is similarities of names to trap the unwary...
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *	src/backend/libpq/pqcomm.c
@@ -50,8 +50,8 @@
  *		StreamClose			- Close a client/backend connection
  *		TouchSocketFiles	- Protect socket files against /tmp cleaners
  *		pq_init			- initialize libpq at backend startup
- *		pq_comm_reset	- reset libpq during error recovery
- *		pq_close		- shutdown libpq at backend exit
+ *		socket_comm_reset	- reset libpq during error recovery
+ *		socket_close		- shutdown libpq at backend exit
  *
  * low-level I/O:
  *		pq_getbytes		- get a known number of bytes from connection
@@ -87,10 +87,7 @@
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
 #endif
-#include <arpa/inet.h>
-#ifdef HAVE_UTIME_H
 #include <utime.h>
-#endif
 #ifdef _MSC_VER					/* mstcpip.h is missing on mingw */
 #include <mstcpip.h>
 #endif
@@ -98,6 +95,7 @@
 #include "common/ip.h"
 #include "libpq/libpq.h"
 #include "miscadmin.h"
+#include "port/pg_bswap.h"
 #include "storage/ipc.h"
 #include "utils/guc.h"
 #include "utils/memutils.h"
@@ -172,13 +170,13 @@ static int	internal_putbytes(const char *s, size_t len);
 static int	internal_flush(void);
 
 #ifdef HAVE_UNIX_SOCKETS
-static int	Lock_AF_UNIX(char *unixSocketDir, char *unixSocketPath);
-static int	Setup_AF_UNIX(char *sock_path);
+static int	Lock_AF_UNIX(const char *unixSocketDir, const char *unixSocketPath);
+static int	Setup_AF_UNIX(const char *sock_path);
 #endif							/* HAVE_UNIX_SOCKETS */
 
 
 
-PQcommMethods *PqCommMethods = NULL;
+const PQcommMethods *PqCommMethods = NULL;
 
 
 
@@ -209,10 +207,8 @@ PQcommMethods *PqCommMethods = NULL;
  * safe to run at any instant.
  * --------------------------------
  */
-#if defined(ENABLE_GSS) || defined(ENABLE_SSPI)
 #ifdef ENABLE_GSS
 #endif							/* ENABLE_GSS */
-#endif							/* ENABLE_GSS || ENABLE_SSPI */
 
 
 
@@ -315,11 +311,7 @@ PQcommMethods *PqCommMethods = NULL;
  * overenthusiastic /tmp-directory-cleaner daemons.  (Another reason we should
  * never have put the socket file in /tmp...)
  */
-#ifdef HAVE_UTIME
-#else							/* !HAVE_UTIME */
-#ifdef HAVE_UTIMES
-#endif							/* HAVE_UTIMES */
-#endif							/* HAVE_UTIME */
+
 
 /*
  * RemoveSocketFiles -- unlink socket files at postmaster shutdown
@@ -338,7 +330,7 @@ PQcommMethods *PqCommMethods = NULL;
 /* --------------------------------
  *			  socket_set_nonblocking - set socket blocking/non-blocking
  *
- * Sets the socket non-blocking if nonblocking is TRUE, or sets it
+ * Sets the socket non-blocking if nonblocking is true, or sets it
  * blocking otherwise.
  * --------------------------------
  */
@@ -647,5 +639,13 @@ pq_setkeepaliveswin32(Port *port, int idle, int interval)
 #endif
 
 #ifdef TCP_KEEPCNT
+#else
+#endif
+
+#ifdef TCP_USER_TIMEOUT
+#else
+#endif
+
+#ifdef TCP_USER_TIMEOUT
 #else
 #endif

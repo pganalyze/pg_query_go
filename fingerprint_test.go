@@ -1,5 +1,6 @@
 package pg_query_test
 
+/*
 import (
 	"encoding/json"
 	"fmt"
@@ -55,3 +56,4 @@ func TestFingerprint(t *testing.T) {
 
 	fmt.Printf("\n")
 }
+*/

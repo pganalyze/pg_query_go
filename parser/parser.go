@@ -37,6 +37,26 @@ func ParseToJSON(input string) (result string, err error) {
 	return
 }
 
+// ParseToProtobuf - Parses the given SQL statement into an AST (Protobuf format)
+func ParseToProtobuf(input string) (result []byte, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf(inputC)
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
+		return
+	}
+
+	result = []byte(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len)))
+
+	return
+}
+
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into an AST (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	inputC := C.CString(input)
@@ -90,7 +110,7 @@ func FastFingerprint(input string) (result string, err error) {
 		return
 	}
 
-	result = C.GoString(resultC.hexdigest)
+	result = C.GoString(resultC.fingerprint_str)
 
 	return
 }

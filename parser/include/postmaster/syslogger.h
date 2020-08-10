@@ -3,7 +3,7 @@
  * syslogger.h
  *	  Exports from postmaster/syslogger.c.
  *
- * Copyright (c) 2004-2017, PostgreSQL Global Development Group
+ * Copyright (c) 2004-2020, PostgreSQL Global Development Group
  *
  * src/include/postmaster/syslogger.h
  *
@@ -70,8 +70,6 @@ extern PGDLLIMPORT char *Log_filename;
 extern bool Log_truncate_on_rotation;
 extern int	Log_file_mode;
 
-extern bool am_syslogger;
-
 #ifndef WIN32
 extern int	syslogPipe[2];
 #else
@@ -86,6 +84,9 @@ extern void write_syslogger_file(const char *buffer, int count, int dest);
 #ifdef EXEC_BACKEND
 extern void SysLoggerMain(int argc, char *argv[]) pg_attribute_noreturn();
 #endif
+
+extern bool CheckLogrotateSignal(void);
+extern void RemoveLogrotateSignalFiles(void);
 
 /*
  * Name of files saving meta-data information about the log

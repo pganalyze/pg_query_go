@@ -1,8 +1,9 @@
 /*--------------------------------------------------------------------
  * Symbols referenced in this file:
- * - makeInteger
  * - makeString
+ * - makeInteger
  * - makeFloat
+ * - makeBitString
  *--------------------------------------------------------------------
  */
 
@@ -12,7 +13,7 @@
  *	  implementation of Value nodes
  *
  *
- * Copyright (c) 2003-2017, PostgreSQL Global Development Group
+ * Copyright (c) 2003-2020, PostgreSQL Global Development Group
  *
  *
  * IDENTIFICATION
@@ -28,7 +29,7 @@
  *	makeInteger
  */
 Value *
-makeInteger(long i)
+makeInteger(int i)
 {
 	Value	   *v = makeNode(Value);
 
@@ -72,4 +73,12 @@ makeString(char *str)
  *
  * Caller is responsible for passing a palloc'd string.
  */
+Value *
+makeBitString(char *str)
+{
+	Value	   *v = makeNode(Value);
 
+	v->type = T_BitString;
+	v->val.str = str;
+	return v;
+}
