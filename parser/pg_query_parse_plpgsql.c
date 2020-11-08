@@ -430,12 +430,11 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 		if (func_and_error.func != NULL) {
 			char *func_json;
 			char *new_out;
-			int ignored;
 
 			func_json = plpgsqlToJSON(func_and_error.func);
 			plpgsql_free_function_memory(func_and_error.func);
 
-			ignored = asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
+			(void)asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
 			free(result.plpgsql_funcs);
 			result.plpgsql_funcs = new_out;
 
@@ -446,6 +445,7 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 	result.plpgsql_funcs[strlen(result.plpgsql_funcs) - 2] = '\n';
 	result.plpgsql_funcs[strlen(result.plpgsql_funcs) - 1] = ']';
 
+	free(parse_result.stderr_buffer);
 	pg_query_exit_memory_context(ctx);
 
 	return result;

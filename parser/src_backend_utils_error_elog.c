@@ -518,9 +518,7 @@ errfinish(int dummy,...)
 	 * progress, so that we can report the message before dying.  (Without
 	 * this, pq_putmessage will refuse to send the message at all, which is
 	 * what we want for NOTICE messages, but not for fatal exits.) This hack
-	 * is necessary because of poor design of old-style copy protocol.  Note
-	 * we must do this even if client is fool enough to have set
-	 * client_min_messages above FATAL, so don't look at output_to_client.
+	 * is necessary because of poor design of old-style copy protocol.
 	 */
 	if (elevel >= FATAL && whereToSendOutput == DestRemote)
 		pq_endcopyout(true);
@@ -1407,12 +1405,7 @@ pg_re_throw(void)
 		else
 			edata->output_to_server = (FATAL >= log_min_messages);
 		if (whereToSendOutput == DestRemote)
-		{
-			if (ClientAuthInProgress)
-				edata->output_to_client = true;
-			else
-				edata->output_to_client = (FATAL >= client_min_messages);
-		}
+			edata->output_to_client = true;
 
 		/*
 		 * We can use errfinish() for the rest, but we don't want it to call
@@ -1532,10 +1525,15 @@ write_eventlog(int level, const char *line, int len)
 	 * try to convert the message to UTF16 and write it with ReportEventW().
 	 * Fall back on ReportEventA() if conversion failed.
 	 *
+	 * Since we palloc the structure required for conversion, also fall
+	 * through to writing unconverted if we have not yet set up
+	 * CurrentMemoryContext.
+	 *
 	 * Also verify that we are not on our way into error recursion trouble due
 	 * to error messages thrown deep inside pgwin32_message_to_UTF16().
 	 */
 	if (!in_error_recursion_trouble() &&
+		CurrentMemoryContext != NULL &&
 		GetMessageEncoding() != GetACPEncoding())
 	{
 		utf16 = pgwin32_message_to_UTF16(line, len, NULL);

@@ -255,7 +255,7 @@ typedef struct PROC_HDR
 	int			startupBufferPinWaitBufId;
 } PROC_HDR;
 
-extern PROC_HDR *ProcGlobal;
+extern PGDLLIMPORT PROC_HDR *ProcGlobal;
 
 extern PGPROC *PreparedXactProcs;
 
@@ -273,10 +273,10 @@ extern PGPROC *PreparedXactProcs;
 #define NUM_AUXILIARY_PROCS		4
 
 /* configurable options */
-extern int	DeadlockTimeout;
-extern int	StatementTimeout;
-extern int	LockTimeout;
-extern int	IdleInTransactionSessionTimeout;
+extern PGDLLIMPORT int DeadlockTimeout;
+extern PGDLLIMPORT int StatementTimeout;
+extern PGDLLIMPORT int LockTimeout;
+extern PGDLLIMPORT int IdleInTransactionSessionTimeout;
 extern bool log_lock_waits;
 
 

@@ -2,6 +2,7 @@
  *
  * funcapi.h
  *	  Definitions for functions which return composite type and/or sets
+ *	  or work on VARIADIC inputs.
  *
  * This file must be included by all Postgres modules that either define
  * or call FUNCAPI-callable functions or macros.
@@ -237,7 +238,7 @@ extern TupleTableSlot *TupleDescGetSlot(TupleDesc tupdesc);
 /*----------
  *		Support for Set Returning Functions (SRFs)
  *
- * The basic API for SRFs looks something like:
+ * The basic API for SRFs using ValuePerCall mode looks something like this:
  *
  * Datum
  * my_Set_Returning_Function(PG_FUNCTION_ARGS)
@@ -273,6 +274,17 @@ extern TupleTableSlot *TupleDescGetSlot(TupleDesc tupdesc);
  *	else
  *		SRF_RETURN_DONE(funcctx);
  * }
+ *
+ * NOTE: there is no guarantee that a SRF using ValuePerCall mode will be
+ * run to completion; for example, a query with LIMIT might stop short of
+ * fetching all the rows.  Therefore, do not expect that you can do resource
+ * cleanup just before SRF_RETURN_DONE().  You need not worry about releasing
+ * memory allocated in multi_call_memory_ctx, but holding file descriptors or
+ * other non-memory resources open across calls is a bug.  SRFs that need
+ * such resources should not use these macros, but instead populate a
+ * tuplestore during a single call, and return that using SFRM_Materialize
+ * mode (see fmgr/README).  Alternatively, set up a callback to release
+ * resources at query shutdown, using RegisterExprContextCallback().
  *
  *----------
  */
@@ -314,5 +326,27 @@ extern void end_MultiFuncCall(PG_FUNCTION_ARGS, FuncCallContext *funcctx);
 		rsi->isDone = ExprEndResult; \
 		PG_RETURN_NULL(); \
 	} while (0)
+
+/*----------
+ *	Support to ease writing of functions dealing with VARIADIC inputs
+ *----------
+ *
+ * This function extracts a set of argument values, types and NULL markers
+ * for a given input function. This returns a set of data:
+ * - **values includes the set of Datum values extracted.
+ * - **types the data type OID for each element.
+ * - **nulls tracks if an element is NULL.
+ *
+ * variadic_start indicates the argument number where the VARIADIC argument
+ * starts.
+ * convert_unknown set to true will enforce the conversion of arguments
+ * with unknown data type to text.
+ *
+ * The return result is the number of elements stored, or -1 in the case of
+ * "VARIADIC NULL".
+ */
+extern int extract_variadic_args(FunctionCallInfo fcinfo, int variadic_start,
+								 bool convert_unknown, Datum **values,
+								 Oid **types, bool **nulls);
 
 #endif							/* FUNCAPI_H */

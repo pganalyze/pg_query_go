@@ -171,6 +171,7 @@ static int	syslog_facility = 0;
 static void assign_syslog_facility(int newval, void *extra);
 static void assign_syslog_ident(const char *newval, void *extra);
 static void assign_session_replication_role(int newval, void *extra);
+static bool check_client_min_messages(int *newval, void **extra, GucSource source);
 static bool check_temp_buffers(int *newval, void **extra, GucSource source);
 static bool check_bonjour(bool *newval, void **extra, GucSource source);
 static bool check_ssl(bool *newval, void **extra, GucSource source);
@@ -305,6 +306,7 @@ __thread bool		check_function_bodies = true;
 
 
 
+
 __thread int			log_min_messages = WARNING;
 
 __thread int			client_min_messages = NOTICE;
@@ -350,7 +352,6 @@ __thread int			client_min_messages = NOTICE;
  * cases provide the value for SHOW to display.  The real state is elsewhere
  * and is kept in sync by assign_hooks.
  */
-
 
 
 
@@ -476,8 +477,8 @@ typedef struct
  *
  * 6. Don't forget to document the option (at least in config.sgml).
  *
- * 7. If it's a new GUC_LIST option you must edit pg_dumpall.c to ensure
- *	  it is not single quoted at dump time.
+ * 7. If it's a new GUC_LIST_QUOTE option, you must add it to
+ *	  variable_is_guc_list_quote() in src/bin/pg_dump/dumputils.c.
  */
 
 
@@ -925,9 +926,9 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
  * this cannot be distinguished from a string variable with a NULL value!),
  * otherwise throw an ereport and don't return.
  *
- * If restrict_superuser is true, we also enforce that only superusers can
- * see GUC_SUPERUSER_ONLY variables.  This should only be passed as true
- * in user-driven calls.
+ * If restrict_privileged is true, we also enforce that only superusers and
+ * members of the pg_read_all_settings role can see GUC_SUPERUSER_ONLY
+ * variables.  This should only be passed as true in user-driven calls.
  *
  * The string is *not* allocated for modification and is really only
  * valid until the next call to configuration related functions.
@@ -940,6 +941,14 @@ static void replace_auto_config_value(ConfigVariable **head_p, ConfigVariable **
  * Note: this is not re-entrant, due to use of static result buffer;
  * not to mention that a string variable could have its reset_val changed.
  * Beware of assuming the result value is good for very long.
+ */
+
+
+/*
+ * Get the GUC flags associated with the given option.
+ *
+ * If the option doesn't exist, return 0 if missing_ok is true,
+ * otherwise throw an ereport and don't return.
  */
 
 
@@ -1370,6 +1379,11 @@ read_nondefault_variables(void)
  * constants; a few, like server_encoding and lc_ctype, are handled specially
  * outside the serialize/restore procedure.  Therefore, SerializeGUCState()
  * never sends these, and RestoreGUCState() never changes them.
+ *
+ * Role is a special variable in the sense that its current value can be an
+ * invalid value and there are multiple ways by which that can happen (like
+ * after setting the role, someone drops it).  So we handle it outside of
+ * serialize/restore machinery.
  */
 
 
@@ -1419,6 +1433,12 @@ read_nondefault_variables(void)
 
 
 /* Binary read version of read_gucstate(). Copies into dest */
+
+
+/*
+ * Callback used to add a context message when reporting errors that occur
+ * while trying to restore GUCs in parallel workers.
+ */
 
 
 /*
@@ -1531,6 +1551,8 @@ read_nondefault_variables(void)
 
 #ifdef HAVE_SYSLOG
 #endif
+
+
 
 
 

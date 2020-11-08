@@ -28,6 +28,9 @@
 /* The normal alignment of `long long int', in bytes. */
 /* #undef ALIGNOF_LONG_LONG_INT */
 
+/* The normal alignment of `PG_INT128_TYPE', in bytes. */
+#define ALIGNOF_PG_INT128_TYPE 16
+
 /* The normal alignment of `short', in bytes. */
 #define ALIGNOF_SHORT 2
 
@@ -148,9 +151,13 @@
    don't. */
 #define HAVE_DECL_STRLCPY 1
 
-/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+/* Define to 1 if you have the declaration of `strtoll', and to 0 if you
    don't. */
-#define HAVE_DECL_SYS_SIGLIST 1
+#define HAVE_DECL_STRTOLL 1
+
+/* Define to 1 if you have the declaration of `strtoull', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRTOULL 1
 
 /* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
    don't. */
@@ -205,13 +212,14 @@
 /* Define to 1 if you have __sync_lock_test_and_set(char *) and friends. */
 #define HAVE_GCC__SYNC_CHAR_TAS 1
 
-/* Define to 1 if you have __sync_compare_and_swap(int *, int, int). */
+/* Define to 1 if you have __sync_val_compare_and_swap(int *, int, int). */
 #define HAVE_GCC__SYNC_INT32_CAS 1
 
 /* Define to 1 if you have __sync_lock_test_and_set(int *) and friends. */
 #define HAVE_GCC__SYNC_INT32_TAS 1
 
-/* Define to 1 if you have __sync_compare_and_swap(int64 *, int64, int64). */
+/* Define to 1 if you have __sync_val_compare_and_swap(int64 *, int64, int64).
+   */
 #define HAVE_GCC__SYNC_INT64_CAS 1
 
 /* Define to 1 if you have the `getaddrinfo' function. */
@@ -500,6 +508,9 @@
 /* Define to use have a strong random number source */
 #define HAVE_STRONG_RANDOM 1
 
+/* Define to 1 if you have the `strsignal' function. */
+#define HAVE_STRSIGNAL 1
+
 /* Define to 1 if you have the `strtoll' function. */
 #define HAVE_STRTOLL 1
 
@@ -633,6 +644,9 @@
 /* Define to 1 if the system has the type `unsigned long long int'. */
 #define HAVE_UNSIGNED_LONG_LONG_INT 1
 
+/* Define to 1 if you have the `uselocale' function. */
+#define HAVE_USELOCALE 1
+
 /* Define to 1 if you have the `utime' function. */
 #define HAVE_UTIME 1
 
@@ -690,6 +704,9 @@
 /* Define to 1 if your compiler understands __builtin_unreachable. */
 #define HAVE__BUILTIN_UNREACHABLE 1
 
+/* Define to 1 if you have the `_configthreadlocale' function. */
+/* #undef HAVE__CONFIGTHREADLOCALE */
+
 /* Define to 1 if you have __cpuid. */
 /* #undef HAVE__CPUID */
 
@@ -701,6 +718,12 @@
 
 /* Define to 1 if your compiler understands __VA_ARGS__ in macros. */
 #define HAVE__VA_ARGS 1
+
+/* Define to 1 if you have the `__strtoll' function. */
+/* #undef HAVE___STRTOLL */
+
+/* Define to 1 if you have the `__strtoull' function. */
+/* #undef HAVE___STRTOULL */
 
 /* Define to the appropriate snprintf length modifier for 64-bit ints. */
 #define INT64_MODIFIER "l"
@@ -721,7 +744,7 @@
 #define PACKAGE_NAME "PostgreSQL"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PostgreSQL 10.0"
+#define PACKAGE_STRING "PostgreSQL 10.14"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "postgresql"
@@ -730,7 +753,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "10.0"
+#define PACKAGE_VERSION "10.14"
 
 /* Define to the name of a signed 128-bit integer type. */
 #define PG_INT128_TYPE __int128
@@ -749,13 +772,13 @@
 #define PG_PRINTF_ATTRIBUTE printf
 
 /* PostgreSQL version as a string */
-#define PG_VERSION "10.0"
+#define PG_VERSION "10.14"
 
 /* PostgreSQL version as a number */
-#define PG_VERSION_NUM 100000
+#define PG_VERSION_NUM 100014
 
 /* A string containing the version number, platform, and C compiler */
-#define PG_VERSION_STR "PostgreSQL 10.0 on x86_64-apple-darwin16.7.0, compiled by Apple LLVM version 9.0.0 (clang-900.0.38), 64-bit"
+#define PG_VERSION_STR "PostgreSQL 10.14 on x86_64-apple-darwin19.6.0, compiled by Apple clang version 12.0.0 (clang-1200.0.32.21), 64-bit"
 
 /* Define to 1 to allow profiling output to be saved separately for each
    process. */
@@ -793,7 +816,7 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
-/* Define to 1 if strerror_r() returns a int. */
+/* Define to 1 if strerror_r() returns int. */
 #define STRERROR_R_INT 1
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
@@ -847,13 +870,13 @@
 /* Use replacement snprintf() functions. */
 /* #undef USE_REPL_SNPRINTF */
 
-/* Define to 1 to use Intel SSE 4.2 CRC instructions with a runtime check. */
+/* Define to 1 to use software CRC-32C implementation (slicing-by-8). */
 /* #undef USE_SLICING_BY_8_CRC32C */
 
 /* Define to 1 use Intel SSE 4.2 CRC instructions. */
 /* #undef USE_SSE42_CRC32C */
 
-/* Define to 1 to use Intel SSSE 4.2 CRC instructions with a runtime check. */
+/* Define to 1 to use Intel SSE 4.2 CRC instructions with a runtime check. */
 #define USE_SSE42_CRC32C_WITH_RUNTIME_CHECK 1
 
 /* Define to build with systemd support. (--with-systemd) */

@@ -109,6 +109,7 @@
 #include "lib/ilist.h"
 #include "libpq/auth.h"
 #include "libpq/libpq.h"
+#include "libpq/pqformat.h"
 #include "libpq/pqsignal.h"
 #include "miscadmin.h"
 #include "pg_getopt.h"
@@ -420,10 +421,11 @@ static void ExitPostmaster(int status) pg_attribute_noreturn();
 static int	ServerLoop(void);
 static int	BackendStartup(Port *port);
 static int	ProcessStartupPacket(Port *port, bool SSLdone);
+static void SendNegotiateProtocolVersion(List *unrecognized_protocol_options);
 static void processCancelRequest(Port *port, void *pkt);
 static int	initMasks(fd_set *rmask);
 static void report_fork_failure_to_client(Port *port, int errnum);
-static CAC_state canAcceptConnections(void);
+static CAC_state canAcceptConnections(int backend_type);
 static bool RandomCancelKey(int32 *cancel_key);
 static void signal_child(pid_t pid, int signal);
 static bool SignalSomeChildren(int signal, int targets);
@@ -498,6 +500,7 @@ typedef struct
 #ifndef WIN32
 	unsigned long UsedShmemSegID;
 #else
+	void	   *ShmemProtectiveRegion;
 	HANDLE		UsedShmemSegID;
 #endif
 	void	   *UsedShmemSegAddr;
@@ -666,6 +669,20 @@ HANDLE		PostmasterHandle;
 #ifdef USE_SSL
 #endif
 
+/*
+ * Send a NegotiateProtocolVersion to the client.  This lets the client know
+ * that they have requested a newer minor protocol version than we are able
+ * to speak.  We'll speak the highest version we know about; the client can,
+ * of course, abandon the connection if that's a problem.
+ *
+ * We also include in the response a list of protocol options we didn't
+ * understand.  This allows clients to include optional parameters that might
+ * be present either in newer protocol versions or third-party protocol
+ * extensions without fear of having to reconnect if those options are not
+ * understood, while at the same time making certain that the client is aware
+ * of which options were actually accepted.
+ */
+
 
 /*
  * The client has sent a cancel request packet, not a normal
@@ -680,7 +697,10 @@ HANDLE		PostmasterHandle;
 #endif
 
 /*
- * canAcceptConnections --- check to see if database state allows connections.
+ * canAcceptConnections --- check to see if database state allows connections
+ * of the specified type.  backend_type can be BACKEND_TYPE_NORMAL,
+ * BACKEND_TYPE_AUTOVAC, or BACKEND_TYPE_BGWORKER.  (Note that we don't yet
+ * know whether a NORMAL connection might turn into a walsender.)
  */
 
 
@@ -1387,7 +1407,7 @@ SubPostmasterMain(int argc, char *argv[])
 		InitProcess();
 
 		/* Attach process to shared data structures */
-		CreateSharedMemoryAndSemaphores(false, 0);
+		CreateSharedMemoryAndSemaphores(0);
 
 		/* And run the backend */
 		BackendRun(&port);		/* does not return */
@@ -1401,7 +1421,7 @@ SubPostmasterMain(int argc, char *argv[])
 		InitAuxiliaryProcess();
 
 		/* Attach process to shared data structures */
-		CreateSharedMemoryAndSemaphores(false, 0);
+		CreateSharedMemoryAndSemaphores(0);
 
 		AuxiliaryProcessMain(argc - 2, argv + 2);	/* does not return */
 	}
@@ -1414,7 +1434,7 @@ SubPostmasterMain(int argc, char *argv[])
 		InitProcess();
 
 		/* Attach process to shared data structures */
-		CreateSharedMemoryAndSemaphores(false, 0);
+		CreateSharedMemoryAndSemaphores(0);
 
 		AutoVacLauncherMain(argc - 2, argv + 2);	/* does not return */
 	}
@@ -1427,7 +1447,7 @@ SubPostmasterMain(int argc, char *argv[])
 		InitProcess();
 
 		/* Attach process to shared data structures */
-		CreateSharedMemoryAndSemaphores(false, 0);
+		CreateSharedMemoryAndSemaphores(0);
 
 		AutoVacWorkerMain(argc - 2, argv + 2);	/* does not return */
 	}
@@ -1445,7 +1465,7 @@ SubPostmasterMain(int argc, char *argv[])
 		InitProcess();
 
 		/* Attach process to shared data structures */
-		CreateSharedMemoryAndSemaphores(false, 0);
+		CreateSharedMemoryAndSemaphores(0);
 
 		/* Fetch MyBgworkerEntry from shared memory */
 		shmem_slot = atoi(argv[1] + 15);
@@ -1566,6 +1586,14 @@ SubPostmasterMain(int argc, char *argv[])
 /*
  * MaybeStartWalReceiver
  *		Start the WAL receiver process, if not running and our state allows.
+ *
+ * Note: if WalReceiverPID is already nonzero, it might seem that we should
+ * clear WalReceiverRequested.  However, there's a race condition if the
+ * walreceiver terminates and the startup process immediately requests a new
+ * one: it's quite possible to get the signal for the request before reaping
+ * the dead walreceiver process.  Better to risk launching an extra
+ * walreceiver than to miss launching one we need.  (The walreceiver code
+ * has logic to recognize that it should go away if not needed.)
  */
 
 
@@ -1725,6 +1753,9 @@ save_backend_variables(BackendParameters *param, Port *port,
 	param->MyCancelKey = MyCancelKey;
 	param->MyPMChildSlot = MyPMChildSlot;
 
+#ifdef WIN32
+	param->ShmemProtectiveRegion = ShmemProtectiveRegion;
+#endif
 	param->UsedShmemSegID = UsedShmemSegID;
 	param->UsedShmemSegAddr = UsedShmemSegAddr;
 
@@ -1958,6 +1989,9 @@ restore_backend_variables(BackendParameters *param, Port *port)
 	MyCancelKey = param->MyCancelKey;
 	MyPMChildSlot = param->MyPMChildSlot;
 
+#ifdef WIN32
+	ShmemProtectiveRegion = param->ShmemProtectiveRegion;
+#endif
 	UsedShmemSegID = param->UsedShmemSegID;
 	UsedShmemSegAddr = param->UsedShmemSegAddr;
 

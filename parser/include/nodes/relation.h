@@ -1171,6 +1171,9 @@ typedef struct CustomPath
  * elements.  These cases are optimized during create_append_plan.
  * In particular, an AppendPath with no subpaths is a "dummy" path that
  * is created to represent the case that a relation is provably empty.
+ * (This is a convenient representation because it means that when we build
+ * an appendrel and find that all its children have been excluded, no extra
+ * action is needed to recognize the relation as dummy.)
  */
 typedef struct AppendPath
 {
@@ -1180,13 +1183,16 @@ typedef struct AppendPath
 	List	   *subpaths;		/* list of component Paths */
 } AppendPath;
 
-#define IS_DUMMY_PATH(p) \
+#define IS_DUMMY_APPEND(p) \
 	(IsA((p), AppendPath) && ((AppendPath *) (p))->subpaths == NIL)
 
-/* A relation that's been proven empty will have one path that is dummy */
-#define IS_DUMMY_REL(r) \
-	((r)->cheapest_total_path != NULL && \
-	 IS_DUMMY_PATH((r)->cheapest_total_path))
+/*
+ * A relation that's been proven empty will have one path that is dummy
+ * (but might have projection paths on top).  For historical reasons,
+ * this is provided as a macro that wraps is_dummy_rel().
+ */
+#define IS_DUMMY_REL(r) is_dummy_rel(r)
+extern bool is_dummy_rel(RelOptInfo *rel);
 
 /*
  * MergeAppendPath represents a MergeAppend plan, ie, the merging of sorted
@@ -1669,7 +1675,8 @@ typedef struct LimitPath
  * if we decide that it can be pushed down into the nullable side of the join.
  * In that case it acts as a plain filter qual for wherever it gets evaluated.
  * (In short, is_pushed_down is only false for non-degenerate outer join
- * conditions.  Possibly we should rename it to reflect that meaning?)
+ * conditions.  Possibly we should rename it to reflect that meaning?  But
+ * see also the comments for RINFO_IS_PUSHED_DOWN, below.)
  *
  * RestrictInfo nodes also contain an outerjoin_delayed flag, which is true
  * if the clause's applicability must be delayed due to any outer joins
@@ -1808,6 +1815,20 @@ typedef struct RestrictInfo
 	Selectivity left_bucketsize;	/* avg bucketsize of left side */
 	Selectivity right_bucketsize;	/* avg bucketsize of right side */
 } RestrictInfo;
+
+/*
+ * This macro embodies the correct way to test whether a RestrictInfo is
+ * "pushed down" to a given outer join, that is, should be treated as a filter
+ * clause rather than a join clause at that outer join.  This is certainly so
+ * if is_pushed_down is true; but examining that is not sufficient anymore,
+ * because outer-join clauses will get pushed down to lower outer joins when
+ * we generate a path for the lower outer join that is parameterized by the
+ * LHS of the upper one.  We can detect such a clause by noting that its
+ * required_relids exceed the scope of the join.
+ */
+#define RINFO_IS_PUSHED_DOWN(rinfo, joinrelids) \
+	((rinfo)->is_pushed_down || \
+	 !bms_is_subset((rinfo)->required_relids, joinrelids))
 
 /*
  * Since mergejoinscansel() is a relatively expensive function, and would
