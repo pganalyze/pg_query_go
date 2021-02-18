@@ -19,11 +19,6 @@ typedef struct {
 
 static PgQueryInternalPlpgsqlFuncAndError pg_query_raw_parse_plpgsql(CreateFunctionStmt* stmt);
 
-static int	datums_alloc;
-extern __thread int			plpgsql_nDatums;
-extern __thread PLpgSQL_datum **plpgsql_Datums;
-static int	datums_last = 0;
-
 static void add_dummy_return(PLpgSQL_function *function)
 {
 	/*
@@ -159,10 +154,8 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	 * its own memory context, so it can be reclaimed easily.
 	 */
 	func_cxt = AllocSetContextCreate(CurrentMemoryContext,
-									 "PL/pgSQL function context",
-									 ALLOCSET_DEFAULT_MINSIZE,
-									 ALLOCSET_DEFAULT_INITSIZE,
-									 ALLOCSET_DEFAULT_MAXSIZE);
+									 "PL/pgSQL pg_query context",
+									 ALLOCSET_DEFAULT_SIZES);
 	plpgsql_compile_tmp_cxt = MemoryContextSwitchTo(func_cxt);
 
 	function->fn_signature = pstrdup(func_name);
@@ -183,11 +176,7 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	plpgsql_ns_init();
 	plpgsql_ns_push(func_name, PLPGSQL_LABEL_BLOCK);
 	plpgsql_DumpExecTree = false;
-
-	datums_alloc = 128;
-	plpgsql_nDatums = 0;
-	plpgsql_Datums = palloc(sizeof(PLpgSQL_datum *) * datums_alloc);
-	datums_last = 0;
+	plpgsql_start_datums();
 
 	/* Set up as though in a function returning VOID */
 	function->fn_rettype = VOIDOID;
@@ -244,10 +233,8 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 	 * Complete the function's info
 	 */
 	function->fn_nargs = 0;
-	function->ndatums = plpgsql_nDatums;
-	function->datums = palloc(sizeof(PLpgSQL_datum *) * plpgsql_nDatums);
-	for (i = 0; i < plpgsql_nDatums; i++)
-		function->datums[i] = plpgsql_Datums[i];
+
+	plpgsql_finish_datums(function);
 
 	/*
 	 * Pop the error context stack
@@ -265,7 +252,7 @@ static PLpgSQL_function *compile_create_function_stmt(CreateFunctionStmt* stmt)
 PgQueryInternalPlpgsqlFuncAndError pg_query_raw_parse_plpgsql(CreateFunctionStmt* stmt)
 {
 	PgQueryInternalPlpgsqlFuncAndError result = {0};
-	MemoryContext parse_context = CurrentMemoryContext;
+	MemoryContext cctx = CurrentMemoryContext;
 
 	char stderr_buffer[STDERR_BUFFER_LEN + 1] = {0};
 #ifndef DEBUG
@@ -316,7 +303,7 @@ PgQueryInternalPlpgsqlFuncAndError pg_query_raw_parse_plpgsql(CreateFunctionStmt
 		ErrorData* error_data;
 		PgQueryError* error;
 
-		MemoryContextSwitchTo(parse_context);
+		MemoryContextSwitchTo(cctx);
 		error_data = CopyErrorData();
 
 		// Note: This is intentionally malloc so exiting the memory context doesn't free this
@@ -353,6 +340,7 @@ typedef struct createFunctionStmts
 static bool create_function_stmts_walker(Node *node, createFunctionStmts *state)
 {
 	bool result;
+	MemoryContext ccxt = CurrentMemoryContext;
 
 	if (node == NULL) return false;
 
@@ -375,6 +363,7 @@ static bool create_function_stmts_walker(Node *node, createFunctionStmts *state)
 	}
 	PG_CATCH();
 	{
+		MemoryContextSwitchTo(ccxt);
 		FlushErrorState();
 		result = false;
 	}
@@ -391,7 +380,7 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 	createFunctionStmts statements;
 	size_t i;
 
-	ctx = pg_query_enter_memory_context("pg_query_parse_plpgsql");
+	ctx = pg_query_enter_memory_context();
 
 	parse_result = pg_query_raw_parse(input);
 	result.error = parse_result.error;
@@ -434,9 +423,15 @@ PgQueryPlpgsqlParseResult pg_query_parse_plpgsql(const char* input)
 			func_json = plpgsqlToJSON(func_and_error.func);
 			plpgsql_free_function_memory(func_and_error.func);
 
-			(void)asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
-			free(result.plpgsql_funcs);
-			result.plpgsql_funcs = new_out;
+			int err = asprintf(&new_out, "%s%s,\n", result.plpgsql_funcs, func_json);
+			if (err == -1) {
+				PgQueryError* error = malloc(sizeof(PgQueryError));
+				error->message = strdup("Failed to output PL/pgSQL functions due to asprintf failure");
+				result.error = error;
+			} else {
+				free(result.plpgsql_funcs);
+				result.plpgsql_funcs = new_out;
+			}
 
 			pfree(func_json);
 		}
