@@ -13,6 +13,7 @@
  * - AllocSetGetChunkSpace
  * - AllocSetIsEmpty
  * - AllocSetStats
+ * - AllocSetCheck
  * - AllocSetContextCreate
  *--------------------------------------------------------------------
  */
@@ -235,7 +236,7 @@ static void AllocSetCheck(MemoryContext context);
 /*
  * This is the virtual function table for AllocSet contexts.
  */
-static __thread MemoryContextMethods AllocSetMethods = {
+static const MemoryContextMethods AllocSetMethods = {
 	AllocSetAlloc,
 	AllocSetFree,
 	AllocSetRealloc,
@@ -249,7 +250,6 @@ static __thread MemoryContextMethods AllocSetMethods = {
 	,AllocSetCheck
 #endif
 };
-
 
 /*
  * Table for AllocSetFreeIndex

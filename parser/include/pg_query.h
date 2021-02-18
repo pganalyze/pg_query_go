@@ -47,10 +47,13 @@ void pg_query_free_parse_result(PgQueryParseResult result);
 void pg_query_free_plpgsql_parse_result(PgQueryPlpgsqlParseResult result);
 void pg_query_free_fingerprint_result(PgQueryFingerprintResult result);
 
+// Optional, cleans up the top-level memory context (automatically done for threads that exit)
+void pg_query_exit(void);
+
 // Postgres version information
-#define PG_VERSION "10.14"
+#define PG_VERSION "10.16"
 #define PG_MAJORVERSION "10"
-#define PG_VERSION_NUM 100014
+#define PG_VERSION_NUM 100016
 
 // Deprecated APIs below
 
