@@ -3,14 +3,14 @@ package pg_query_test
 import (
 	"testing"
 
-	"github.com/lfittl/pg_query_go"
-	nodes "github.com/lfittl/pg_query_go/nodes"
+	pg_query "github.com/lfittl/pg_query_go"
+	"github.com/lfittl/pg_query_go/parser"
 )
 
 // Prevent compiler optimizations by assigning all results to global variables
 var err error
-var resultStr string
-var resultTree *nodes.Node
+var resultStr []byte
+var resultTree *pg_query.ParseResult
 
 func benchmarkParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -19,40 +19,30 @@ func benchmarkParse(input string, b *testing.B) {
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
 		}
-
-		/*if len(resultTree.Statements) == 0 {
-			b.Errorf("Benchmark produced empty result\n\n")
-		}*/
 	}
 }
 
 func benchmarkParseParallel(input string, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
-		//var tree nodes.Node
-
 		for pb.Next() {
 			_, err = pg_query.Parse(input)
 
 			if err != nil {
 				b.Errorf("Benchmark produced error %s\n\n", err)
 			}
-
-			/*if len(tree.Statements) == 0 {
-				b.Errorf("Benchmark produced empty result\n\n")
-			}*/
 		}
 	})
 }
 
 func benchmarkRawParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		resultStr, err = pg_query.ParseToProtobuf(input)
+		resultStr, err = parser.ParseToProtobuf(input)
 
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
 		}
 
-		if resultStr == "" {
+		if len(resultStr) == 0 {
 			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
@@ -60,44 +50,30 @@ func benchmarkRawParse(input string, b *testing.B) {
 
 func benchmarkRawParseParallel(input string, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
-		var str string
+		var str []byte
 
 		for pb.Next() {
-			str, err = pg_query.ParseToProtobuf(input)
+			str, err = parser.ParseToProtobuf(input)
 
 			if err != nil {
 				b.Errorf("Benchmark produced error %s\n\n", err)
 			}
 
-			if str == "" {
+			if len(str) == 0 {
 				b.Errorf("Benchmark produced empty result\n\n")
 			}
 		}
 	})
 }
 
-/*func benchmarkFingerprint(input string, b *testing.B) {
+func benchmarkFingerprint(input string, b *testing.B) {
+	var str string
 	for i := 0; i < b.N; i++ {
-		resultTree, err = pg_query.Parse(input)
+		str, err = pg_query.Fingerprint(input)
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
 		}
-
-		resultStr = resultTree.Fingerprint()
-
-		if resultStr == "" {
-			b.Errorf("Benchmark produced empty result\n\n")
-		}
-	}
-}*/
-
-func benchmarkFastFingerprint(input string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		resultStr, err = pg_query.FastFingerprint(input)
-		if err != nil {
-			b.Errorf("Benchmark produced error %s\n\n", err)
-		}
-		if resultStr == "" {
+		if str == "" {
 			b.Errorf("Benchmark produced empty result\n\n")
 		}
 	}
@@ -155,7 +131,7 @@ func BenchmarkRawParseCreateTableParallel(b *testing.B) {
 	benchmarkRawParseParallel("CREATE TABLE types (a float(2), b float(49), c NUMERIC(2, 3), d character(4), e char(5), f varchar(6), g character varying(7))", b)
 }
 
-/*func BenchmarkFingerprintSelect1(b *testing.B) {
+func BenchmarkFingerprintSelect1(b *testing.B) {
 	benchmarkFingerprint("SELECT 1", b)
 }
 func BenchmarkFingerprintSelect2(b *testing.B) {
@@ -163,16 +139,6 @@ func BenchmarkFingerprintSelect2(b *testing.B) {
 }
 func BenchmarkFingerprintCreateTable(b *testing.B) {
 	benchmarkFingerprint("CREATE TABLE types (a float(2), b float(49), c NUMERIC(2, 3), d character(4), e char(5), f varchar(6), g character varying(7))", b)
-}*/
-
-func BenchmarkFastFingerprintSelect1(b *testing.B) {
-	benchmarkFastFingerprint("SELECT 1", b)
-}
-func BenchmarkFastFingerprintSelect2(b *testing.B) {
-	benchmarkFastFingerprint("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')", b)
-}
-func BenchmarkFastFingerprintCreateTable(b *testing.B) {
-	benchmarkFastFingerprint("CREATE TABLE types (a float(2), b float(49), c NUMERIC(2, 3), d character(4), e char(5), f varchar(6), g character varying(7))", b)
 }
 
 func BenchmarkNormalizeSelect1(b *testing.B) {

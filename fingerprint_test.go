@@ -1,15 +1,12 @@
 package pg_query_test
 
-/*
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
-	"github.com/lfittl/pg_query_go"
-	nodes "github.com/lfittl/pg_query_go/nodes"
+	pg_query "github.com/lfittl/pg_query_go"
 )
 
 type fingerprintTest struct {
@@ -34,26 +31,15 @@ func TestFingerprint(t *testing.T) {
 	for _, test := range fingerprintTests {
 		fmt.Printf(".")
 
-		actualTree, err := pg_query.Parse(test.Input)
+		fingerprint, err := pg_query.Fingerprint(test.Input)
 		if err != nil {
 			t.Errorf("Fingerprint(%s)\nparse error %s\n\n", test.Input, err)
 		}
 
-		ctx := nodes.NewFingerprintSubContext()
-		for _, node := range actualTree.Statements {
-			node.Fingerprint(ctx, nil, "")
-		}
-		if !reflect.DeepEqual(ctx.Sum(), test.ExpectedParts) {
-			t.Errorf("Fingerprint(%s)\nexpected parts %#v\nactual parts %#v\n\n", test.Input, test.ExpectedParts, ctx.Sum())
-		}
-
-		actual := actualTree.Fingerprint()
-
-		if string(actual) != test.ExpectedHash {
-			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, actual)
+		if string(fingerprint) != test.ExpectedHash {
+			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, fingerprint)
 		}
 	}
 
 	fmt.Printf("\n")
 }
-*/

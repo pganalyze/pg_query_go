@@ -6,8 +6,7 @@ build:
 	go build
 
 test: build
-	go get github.com/kr/pretty
-	go test -v ./ ./nodes
+	go test -v ./
 
 benchmark:
 	go build -a
@@ -41,7 +40,7 @@ update_source: $(LIBDIR)
 	mv parser/postgres/* parser/
 	rmdir parser/postgres
 	cp -a $(LIBDIR)/pg_query.h parser/include
-	# Make sure every .c and .cc file in the top-level directory is its own translation unit
+	# Make sure every .c in the top-level directory is its own translation unit
 	mv parser/*{_conds,_defs,_helper}.c parser/include
 	# Protobuf definitions
 	mkdir -p $(PWD)/bin
