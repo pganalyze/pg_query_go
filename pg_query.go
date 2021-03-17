@@ -6,12 +6,12 @@ import (
 	"github.com/lfittl/pg_query_go/parser"
 )
 
-// ParseToJSON - Parses the given SQL statement into an AST (JSON format)
+// ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)
 func ParseToJSON(input string) (result string, err error) {
 	return parser.ParseToJSON(input)
 }
 
-// Parse the given SQL statement into an AST (native Go structs)
+// Parse the given SQL statement into a parse tree (Go struct format)
 func Parse(input string) (tree *ParseResult, err error) {
 	protobufTree, err := parser.ParseToProtobuf(input)
 	if err != nil {
@@ -23,7 +23,18 @@ func Parse(input string) (tree *ParseResult, err error) {
 	return
 }
 
-// ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into an AST (JSON format)
+// Deparses a given Go parse tree into a SQL statement
+func Deparse(tree *ParseResult) (output string, err error) {
+	protobufTree, err := proto.Marshal(tree)
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseFromProtobuf(protobufTree)
+	return
+}
+
+// ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)
 }
