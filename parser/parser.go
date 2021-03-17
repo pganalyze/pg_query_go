@@ -96,8 +96,8 @@ func Normalize(input string) (result string, err error) {
 	return
 }
 
-// FastFingerprint - Fingerprint the passed SQL statement using the C extension
-func FastFingerprint(input string) (result string, err error) {
+// Fingerprint - Fingerprint the passed SQL statement using the C extension
+func Fingerprint(input string) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
