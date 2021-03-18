@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3      2021-03-18
+
+* Republish of 1.0.2 to avoid proxy.golang.org problems
+
+
 ## 1.0.2      2021-02-18
 
 * Update libpg_query to 10-1.0.5
