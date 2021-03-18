@@ -3,8 +3,8 @@
  * - plpgsql_yyparse
  * - plpgsql_yynerrs
  * - plpgsql_yychar
- * - plpgsql_yylloc
  * - plpgsql_yylval
+ * - plpgsql_yylloc
  * - yypact
  * - yytranslate
  * - yycheck
@@ -47,17 +47,17 @@
  *--------------------------------------------------------------------
  */
 
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison implementation for Yacc-like parsers in C
+/* Skeleton implementation for Bison's Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -65,7 +65,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -90,14 +92,11 @@
    define necessary library symbols; they are noted "INFRINGES ON
    USER NAME SPACE" below.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
-
 /* Identify Bison output.  */
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.3.2"
+#define YYBISON_VERSION "2.3"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -105,32 +104,300 @@
 /* Pure parsers.  */
 #define YYPURE 0
 
-/* Push parsers.  */
-#define YYPUSH 0
-
-/* Pull parsers.  */
-#define YYPULL 1
-
+/* Using locations.  */
+#define YYLSP_NEEDED 1
 
 /* Substitute the variable and function names.  */
-#define yyparse         plpgsql_yyparse
-#define yylex           plpgsql_yylex
-#define yyerror         plpgsql_yyerror
-#define yydebug         plpgsql_yydebug
-#define yynerrs         plpgsql_yynerrs
+#define yyparse plpgsql_yyparse
+#define yylex   plpgsql_yylex
+#define yyerror plpgsql_yyerror
+#define yylval  plpgsql_yylval
+#define yychar  plpgsql_yychar
+#define yydebug plpgsql_yydebug
+#define yynerrs plpgsql_yynerrs
+#define yylloc plpgsql_yylloc
 
-#define yylval          plpgsql_yylval
-#define yychar          plpgsql_yychar
-#define yylloc          plpgsql_yylloc
+/* Tokens.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     IDENT = 258,
+     UIDENT = 259,
+     FCONST = 260,
+     SCONST = 261,
+     USCONST = 262,
+     BCONST = 263,
+     XCONST = 264,
+     Op = 265,
+     ICONST = 266,
+     PARAM = 267,
+     TYPECAST = 268,
+     DOT_DOT = 269,
+     COLON_EQUALS = 270,
+     EQUALS_GREATER = 271,
+     LESS_EQUALS = 272,
+     GREATER_EQUALS = 273,
+     NOT_EQUALS = 274,
+     SQL_COMMENT = 275,
+     C_COMMENT = 276,
+     T_WORD = 277,
+     T_CWORD = 278,
+     T_DATUM = 279,
+     LESS_LESS = 280,
+     GREATER_GREATER = 281,
+     K_ABSOLUTE = 282,
+     K_ALIAS = 283,
+     K_ALL = 284,
+     K_AND = 285,
+     K_ARRAY = 286,
+     K_ASSERT = 287,
+     K_BACKWARD = 288,
+     K_BEGIN = 289,
+     K_BY = 290,
+     K_CALL = 291,
+     K_CASE = 292,
+     K_CHAIN = 293,
+     K_CLOSE = 294,
+     K_COLLATE = 295,
+     K_COLUMN = 296,
+     K_COLUMN_NAME = 297,
+     K_COMMIT = 298,
+     K_CONSTANT = 299,
+     K_CONSTRAINT = 300,
+     K_CONSTRAINT_NAME = 301,
+     K_CONTINUE = 302,
+     K_CURRENT = 303,
+     K_CURSOR = 304,
+     K_DATATYPE = 305,
+     K_DEBUG = 306,
+     K_DECLARE = 307,
+     K_DEFAULT = 308,
+     K_DETAIL = 309,
+     K_DIAGNOSTICS = 310,
+     K_DO = 311,
+     K_DUMP = 312,
+     K_ELSE = 313,
+     K_ELSIF = 314,
+     K_END = 315,
+     K_ERRCODE = 316,
+     K_ERROR = 317,
+     K_EXCEPTION = 318,
+     K_EXECUTE = 319,
+     K_EXIT = 320,
+     K_FETCH = 321,
+     K_FIRST = 322,
+     K_FOR = 323,
+     K_FOREACH = 324,
+     K_FORWARD = 325,
+     K_FROM = 326,
+     K_GET = 327,
+     K_HINT = 328,
+     K_IF = 329,
+     K_IMPORT = 330,
+     K_IN = 331,
+     K_INFO = 332,
+     K_INSERT = 333,
+     K_INTO = 334,
+     K_IS = 335,
+     K_LAST = 336,
+     K_LOG = 337,
+     K_LOOP = 338,
+     K_MESSAGE = 339,
+     K_MESSAGE_TEXT = 340,
+     K_MOVE = 341,
+     K_NEXT = 342,
+     K_NO = 343,
+     K_NOT = 344,
+     K_NOTICE = 345,
+     K_NULL = 346,
+     K_OPEN = 347,
+     K_OPTION = 348,
+     K_OR = 349,
+     K_PERFORM = 350,
+     K_PG_CONTEXT = 351,
+     K_PG_DATATYPE_NAME = 352,
+     K_PG_EXCEPTION_CONTEXT = 353,
+     K_PG_EXCEPTION_DETAIL = 354,
+     K_PG_EXCEPTION_HINT = 355,
+     K_PRINT_STRICT_PARAMS = 356,
+     K_PRIOR = 357,
+     K_QUERY = 358,
+     K_RAISE = 359,
+     K_RELATIVE = 360,
+     K_RESET = 361,
+     K_RETURN = 362,
+     K_RETURNED_SQLSTATE = 363,
+     K_REVERSE = 364,
+     K_ROLLBACK = 365,
+     K_ROW_COUNT = 366,
+     K_ROWTYPE = 367,
+     K_SCHEMA = 368,
+     K_SCHEMA_NAME = 369,
+     K_SCROLL = 370,
+     K_SET = 371,
+     K_SLICE = 372,
+     K_SQLSTATE = 373,
+     K_STACKED = 374,
+     K_STRICT = 375,
+     K_TABLE = 376,
+     K_TABLE_NAME = 377,
+     K_THEN = 378,
+     K_TO = 379,
+     K_TYPE = 380,
+     K_USE_COLUMN = 381,
+     K_USE_VARIABLE = 382,
+     K_USING = 383,
+     K_VARIABLE_CONFLICT = 384,
+     K_WARNING = 385,
+     K_WHEN = 386,
+     K_WHILE = 387
+   };
+#endif
+/* Tokens.  */
+#define IDENT 258
+#define UIDENT 259
+#define FCONST 260
+#define SCONST 261
+#define USCONST 262
+#define BCONST 263
+#define XCONST 264
+#define Op 265
+#define ICONST 266
+#define PARAM 267
+#define TYPECAST 268
+#define DOT_DOT 269
+#define COLON_EQUALS 270
+#define EQUALS_GREATER 271
+#define LESS_EQUALS 272
+#define GREATER_EQUALS 273
+#define NOT_EQUALS 274
+#define SQL_COMMENT 275
+#define C_COMMENT 276
+#define T_WORD 277
+#define T_CWORD 278
+#define T_DATUM 279
+#define LESS_LESS 280
+#define GREATER_GREATER 281
+#define K_ABSOLUTE 282
+#define K_ALIAS 283
+#define K_ALL 284
+#define K_AND 285
+#define K_ARRAY 286
+#define K_ASSERT 287
+#define K_BACKWARD 288
+#define K_BEGIN 289
+#define K_BY 290
+#define K_CALL 291
+#define K_CASE 292
+#define K_CHAIN 293
+#define K_CLOSE 294
+#define K_COLLATE 295
+#define K_COLUMN 296
+#define K_COLUMN_NAME 297
+#define K_COMMIT 298
+#define K_CONSTANT 299
+#define K_CONSTRAINT 300
+#define K_CONSTRAINT_NAME 301
+#define K_CONTINUE 302
+#define K_CURRENT 303
+#define K_CURSOR 304
+#define K_DATATYPE 305
+#define K_DEBUG 306
+#define K_DECLARE 307
+#define K_DEFAULT 308
+#define K_DETAIL 309
+#define K_DIAGNOSTICS 310
+#define K_DO 311
+#define K_DUMP 312
+#define K_ELSE 313
+#define K_ELSIF 314
+#define K_END 315
+#define K_ERRCODE 316
+#define K_ERROR 317
+#define K_EXCEPTION 318
+#define K_EXECUTE 319
+#define K_EXIT 320
+#define K_FETCH 321
+#define K_FIRST 322
+#define K_FOR 323
+#define K_FOREACH 324
+#define K_FORWARD 325
+#define K_FROM 326
+#define K_GET 327
+#define K_HINT 328
+#define K_IF 329
+#define K_IMPORT 330
+#define K_IN 331
+#define K_INFO 332
+#define K_INSERT 333
+#define K_INTO 334
+#define K_IS 335
+#define K_LAST 336
+#define K_LOG 337
+#define K_LOOP 338
+#define K_MESSAGE 339
+#define K_MESSAGE_TEXT 340
+#define K_MOVE 341
+#define K_NEXT 342
+#define K_NO 343
+#define K_NOT 344
+#define K_NOTICE 345
+#define K_NULL 346
+#define K_OPEN 347
+#define K_OPTION 348
+#define K_OR 349
+#define K_PERFORM 350
+#define K_PG_CONTEXT 351
+#define K_PG_DATATYPE_NAME 352
+#define K_PG_EXCEPTION_CONTEXT 353
+#define K_PG_EXCEPTION_DETAIL 354
+#define K_PG_EXCEPTION_HINT 355
+#define K_PRINT_STRICT_PARAMS 356
+#define K_PRIOR 357
+#define K_QUERY 358
+#define K_RAISE 359
+#define K_RELATIVE 360
+#define K_RESET 361
+#define K_RETURN 362
+#define K_RETURNED_SQLSTATE 363
+#define K_REVERSE 364
+#define K_ROLLBACK 365
+#define K_ROW_COUNT 366
+#define K_ROWTYPE 367
+#define K_SCHEMA 368
+#define K_SCHEMA_NAME 369
+#define K_SCROLL 370
+#define K_SET 371
+#define K_SLICE 372
+#define K_SQLSTATE 373
+#define K_STACKED 374
+#define K_STRICT 375
+#define K_TABLE 376
+#define K_TABLE_NAME 377
+#define K_THEN 378
+#define K_TO 379
+#define K_TYPE 380
+#define K_USE_COLUMN 381
+#define K_USE_VARIABLE 382
+#define K_USING 383
+#define K_VARIABLE_CONFLICT 384
+#define K_WARNING 385
+#define K_WHEN 386
+#define K_WHILE 387
 
-/* First part of user prologue.  */
-#line 1 "pl_gram.y" /* yacc.c:337  */
+
+
+
+/* Copy the first part of user declarations.  */
+#line 1 "pl_gram.y"
 
 /*-------------------------------------------------------------------------
  *
  * pl_gram.y			- Parser for the PL/pgSQL procedural language
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -143,6 +410,7 @@
 #include "postgres.h"
 
 #include "catalog/namespace.h"
+#include "catalog/pg_proc.h"
 #include "catalog/pg_type.h"
 #include "parser/parser.h"
 #include "parser/parse_type.h"
@@ -217,7 +485,7 @@ static  PLpgSQL_stmt	*make_case(int location, PLpgSQL_expr *t_expr,
 								   List *case_when_list, List *else_stmts);
 static	char			*NameOfDatum(PLwdatum *wdatum);
 static	void			 check_assignable(PLpgSQL_datum *datum, int location);
-static	void			 read_into_target(PLpgSQL_rec **rec, PLpgSQL_row **row,
+static	void			 read_into_target(PLpgSQL_variable **target,
 										  bool *strict);
 static	PLpgSQL_row		*read_into_scalar_list(char *initial_name,
 											   PLpgSQL_datum *initial_datum,
@@ -238,18 +506,11 @@ static	List			*read_raise_options(void);
 static	void			check_raise_parameters(PLpgSQL_stmt_raise *stmt);
 
 
-#line 193 "pl_gram.c" /* yacc.c:337  */
-# ifndef YY_NULLPTR
-#  if defined __cplusplus
-#   if 201103L <= __cplusplus
-#    define YY_NULLPTR nullptr
-#   else
-#    define YY_NULLPTR 0
-#   endif
-#  else
-#   define YY_NULLPTR ((void*)0)
-#  endif
-# endif
+
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE
@@ -259,152 +520,15 @@ static	void			check_raise_parameters(PLpgSQL_stmt_raise *stmt);
 # define YYERROR_VERBOSE 0
 #endif
 
-/* In a future release of Bison, this section will be replaced
-   by #include "pl_gram.h".  */
-#ifndef YY_PLPGSQL_YY_PL_GRAM_H_INCLUDED
-# define YY_PLPGSQL_YY_PL_GRAM_H_INCLUDED
-/* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int plpgsql_yydebug;
+/* Enabling the token table.  */
+#ifndef YYTOKEN_TABLE
+# define YYTOKEN_TABLE 0
 #endif
 
-/* Token type.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
-  {
-    IDENT = 258,
-    FCONST = 259,
-    SCONST = 260,
-    BCONST = 261,
-    XCONST = 262,
-    Op = 263,
-    ICONST = 264,
-    PARAM = 265,
-    TYPECAST = 266,
-    DOT_DOT = 267,
-    COLON_EQUALS = 268,
-    EQUALS_GREATER = 269,
-    LESS_EQUALS = 270,
-    GREATER_EQUALS = 271,
-    NOT_EQUALS = 272,
-    T_WORD = 273,
-    T_CWORD = 274,
-    T_DATUM = 275,
-    LESS_LESS = 276,
-    GREATER_GREATER = 277,
-    K_ABSOLUTE = 278,
-    K_ALIAS = 279,
-    K_ALL = 280,
-    K_ARRAY = 281,
-    K_ASSERT = 282,
-    K_BACKWARD = 283,
-    K_BEGIN = 284,
-    K_BY = 285,
-    K_CASE = 286,
-    K_CLOSE = 287,
-    K_COLLATE = 288,
-    K_COLUMN = 289,
-    K_COLUMN_NAME = 290,
-    K_CONSTANT = 291,
-    K_CONSTRAINT = 292,
-    K_CONSTRAINT_NAME = 293,
-    K_CONTINUE = 294,
-    K_CURRENT = 295,
-    K_CURSOR = 296,
-    K_DATATYPE = 297,
-    K_DEBUG = 298,
-    K_DECLARE = 299,
-    K_DEFAULT = 300,
-    K_DETAIL = 301,
-    K_DIAGNOSTICS = 302,
-    K_DUMP = 303,
-    K_ELSE = 304,
-    K_ELSIF = 305,
-    K_END = 306,
-    K_ERRCODE = 307,
-    K_ERROR = 308,
-    K_EXCEPTION = 309,
-    K_EXECUTE = 310,
-    K_EXIT = 311,
-    K_FETCH = 312,
-    K_FIRST = 313,
-    K_FOR = 314,
-    K_FOREACH = 315,
-    K_FORWARD = 316,
-    K_FROM = 317,
-    K_GET = 318,
-    K_HINT = 319,
-    K_IF = 320,
-    K_IMPORT = 321,
-    K_IN = 322,
-    K_INFO = 323,
-    K_INSERT = 324,
-    K_INTO = 325,
-    K_IS = 326,
-    K_LAST = 327,
-    K_LOG = 328,
-    K_LOOP = 329,
-    K_MESSAGE = 330,
-    K_MESSAGE_TEXT = 331,
-    K_MOVE = 332,
-    K_NEXT = 333,
-    K_NO = 334,
-    K_NOT = 335,
-    K_NOTICE = 336,
-    K_NULL = 337,
-    K_OPEN = 338,
-    K_OPTION = 339,
-    K_OR = 340,
-    K_PERFORM = 341,
-    K_PG_CONTEXT = 342,
-    K_PG_DATATYPE_NAME = 343,
-    K_PG_EXCEPTION_CONTEXT = 344,
-    K_PG_EXCEPTION_DETAIL = 345,
-    K_PG_EXCEPTION_HINT = 346,
-    K_PRINT_STRICT_PARAMS = 347,
-    K_PRIOR = 348,
-    K_QUERY = 349,
-    K_RAISE = 350,
-    K_RELATIVE = 351,
-    K_RESULT_OID = 352,
-    K_RETURN = 353,
-    K_RETURNED_SQLSTATE = 354,
-    K_REVERSE = 355,
-    K_ROW_COUNT = 356,
-    K_ROWTYPE = 357,
-    K_SCHEMA = 358,
-    K_SCHEMA_NAME = 359,
-    K_SCROLL = 360,
-    K_SLICE = 361,
-    K_SQLSTATE = 362,
-    K_STACKED = 363,
-    K_STRICT = 364,
-    K_TABLE = 365,
-    K_TABLE_NAME = 366,
-    K_THEN = 367,
-    K_TO = 368,
-    K_TYPE = 369,
-    K_USE_COLUMN = 370,
-    K_USE_VARIABLE = 371,
-    K_USING = 372,
-    K_VARIABLE_CONFLICT = 373,
-    K_WARNING = 374,
-    K_WHEN = 375,
-    K_WHILE = 376
-  };
-#endif
-
-/* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
-union YYSTYPE
+typedef union YYSTYPE
+#line 120 "pl_gram.y"
 {
-#line 119 "pl_gram.y" /* yacc.c:352  */
-
 		core_YYSTYPE			core_yystype;
 		/* these fields must match core_YYSTYPE: */
 		int						ival;
@@ -426,8 +550,7 @@ union YYSTYPE
 			char *name;
 			int  lineno;
 			PLpgSQL_datum   *scalar;
-			PLpgSQL_rec		*rec;
-			PLpgSQL_row		*row;
+			PLpgSQL_datum   *row;
 		}						forvariable;
 		struct
 		{
@@ -454,37 +577,34 @@ union YYSTYPE
 		PLpgSQL_diag_item		*diagitem;
 		PLpgSQL_stmt_fetch		*fetch;
 		PLpgSQL_case_when		*casewhen;
-
-#line 410 "pl_gram.c" /* yacc.c:352  */
-};
-
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 193 of yacc.c.  */
+#line 534 "pl_gram.c"
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
-/* Location type.  */
 #if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
+typedef struct YYLTYPE
 {
   int first_line;
   int first_column;
   int last_line;
   int last_column;
-};
+} YYLTYPE;
+# define yyltype YYLTYPE /* obsolescent; will be withdrawn */
 # define YYLTYPE_IS_DECLARED 1
 # define YYLTYPE_IS_TRIVIAL 1
 #endif
 
 
-extern __thread  YYSTYPE plpgsql_yylval;
-extern __thread  YYLTYPE plpgsql_yylloc;
-int plpgsql_yyparse (void);
-
-#endif /* !YY_PLPGSQL_YY_PL_GRAM_H_INCLUDED  */
+/* Copy the second part of user declarations.  */
 
 
+/* Line 216 of yacc.c.  */
+#line 559 "pl_gram.c"
 
 #ifdef short
 # undef short
@@ -498,20 +618,23 @@ typedef unsigned char yytype_uint8;
 
 #ifdef YYTYPE_INT8
 typedef YYTYPE_INT8 yytype_int8;
-#else
+#elif (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 typedef signed char yytype_int8;
+#else
+typedef short int yytype_int8;
 #endif
 
 #ifdef YYTYPE_UINT16
 typedef YYTYPE_UINT16 yytype_uint16;
 #else
-typedef unsigned short yytype_uint16;
+typedef unsigned short int yytype_uint16;
 #endif
 
 #ifdef YYTYPE_INT16
 typedef YYTYPE_INT16 yytype_int16;
 #else
-typedef short yytype_int16;
+typedef short int yytype_int16;
 #endif
 
 #ifndef YYSIZE_T
@@ -519,11 +642,12 @@ typedef short yytype_int16;
 #  define YYSIZE_T __SIZE_TYPE__
 # elif defined size_t
 #  define YYSIZE_T size_t
-# elif ! defined YYSIZE_T
+# elif ! defined YYSIZE_T && (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 #  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
 #  define YYSIZE_T size_t
 # else
-#  define YYSIZE_T unsigned
+#  define YYSIZE_T unsigned int
 # endif
 #endif
 
@@ -533,58 +657,38 @@ typedef short yytype_int16;
 # if defined YYENABLE_NLS && YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
-#   define YY_(Msgid) dgettext ("bison-runtime", Msgid)
+#   define YY_(msgid) dgettext ("bison-runtime", msgid)
 #  endif
 # endif
 # ifndef YY_
-#  define YY_(Msgid) Msgid
+#  define YY_(msgid) msgid
 # endif
-#endif
-
-#ifndef YY_ATTRIBUTE
-# if (defined __GNUC__                                               \
-      && (2 < __GNUC__ || (__GNUC__ == 2 && 96 <= __GNUC_MINOR__)))  \
-     || defined __SUNPRO_C && 0x5110 <= __SUNPRO_C
-#  define YY_ATTRIBUTE(Spec) __attribute__(Spec)
-# else
-#  define YY_ATTRIBUTE(Spec) /* empty */
-# endif
-#endif
-
-#ifndef YY_ATTRIBUTE_PURE
-# define YY_ATTRIBUTE_PURE   YY_ATTRIBUTE ((__pure__))
-#endif
-
-#ifndef YY_ATTRIBUTE_UNUSED
-# define YY_ATTRIBUTE_UNUSED YY_ATTRIBUTE ((__unused__))
 #endif
 
 /* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YYUSE(e) ((void) (e))
 #else
-# define YYUSE(E) /* empty */
+# define YYUSE(e) /* empty */
 #endif
 
-#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
-/* Suppress an incorrect diagnostic about yylval being uninitialized.  */
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wuninitialized\"")\
-    _Pragma ("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END \
-    _Pragma ("GCC diagnostic pop")
+/* Identity function, used to suppress warnings about constant conditions.  */
+#ifndef lint
+# define YYID(n) (n)
 #else
-# define YY_INITIAL_VALUE(Value) Value
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
+static int
+YYID (int i)
+#else
+static int
+YYID (i)
+    int i;
 #endif
-#ifndef YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-# define YY_IGNORE_MAYBE_UNINITIALIZED_END
+{
+  return i;
+}
 #endif
-#ifndef YY_INITIAL_VALUE
-# define YY_INITIAL_VALUE(Value) /* Nothing. */
-#endif
-
 
 #if ! defined yyoverflow || YYERROR_VERBOSE
 
@@ -603,11 +707,11 @@ typedef short yytype_int16;
 #    define alloca _alloca
 #   else
 #    define YYSTACK_ALLOC alloca
-#    if ! defined _ALLOCA_H && ! defined EXIT_SUCCESS
+#    if ! defined _ALLOCA_H && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 #     include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-      /* Use EXIT_SUCCESS as a witness for stdlib.h.  */
-#     ifndef EXIT_SUCCESS
-#      define EXIT_SUCCESS 0
+#     ifndef _STDLIB_H
+#      define _STDLIB_H 1
 #     endif
 #    endif
 #   endif
@@ -615,8 +719,8 @@ typedef short yytype_int16;
 # endif
 
 # ifdef YYSTACK_ALLOC
-   /* Pacify GCC's 'empty if-body' warning.  */
-#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
+   /* Pacify GCC's `empty if-body' warning.  */
+#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (YYID (0))
 #  ifndef YYSTACK_ALLOC_MAXIMUM
     /* The OS might guarantee only one guard page at the bottom of the stack,
        and a page size can be as small as 4096 bytes.  So we cannot safely
@@ -630,23 +734,25 @@ typedef short yytype_int16;
 #  ifndef YYSTACK_ALLOC_MAXIMUM
 #   define YYSTACK_ALLOC_MAXIMUM YYSIZE_MAXIMUM
 #  endif
-#  if (defined __cplusplus && ! defined EXIT_SUCCESS \
+#  if (defined __cplusplus && ! defined _STDLIB_H \
        && ! ((defined YYMALLOC || defined malloc) \
-             && (defined YYFREE || defined free)))
+	     && (defined YYFREE || defined free)))
 #   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
-#   ifndef EXIT_SUCCESS
-#    define EXIT_SUCCESS 0
+#   ifndef _STDLIB_H
+#    define _STDLIB_H 1
 #   endif
 #  endif
 #  ifndef YYMALLOC
 #   define YYMALLOC malloc
-#   if ! defined malloc && ! defined EXIT_SUCCESS
+#   if ! defined malloc && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 void *malloc (YYSIZE_T); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
 #  ifndef YYFREE
 #   define YYFREE free
-#   if ! defined free && ! defined EXIT_SUCCESS
+#   if ! defined free && ! defined _STDLIB_H && (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 void free (void *); /* INFRINGES ON USER NAME SPACE */
 #   endif
 #  endif
@@ -656,15 +762,15 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 
 #if (! defined yyoverflow \
      && (! defined __cplusplus \
-         || (defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL \
-             && defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
+	 || (defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL \
+	     && defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
-  yytype_int16 yyss_alloc;
-  YYSTYPE yyvs_alloc;
-  YYLTYPE yyls_alloc;
+  yytype_int16 yyss;
+  YYSTYPE yyvs;
+    YYLTYPE yyls;
 };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
@@ -676,82 +782,76 @@ union yyalloc
      ((N) * (sizeof (yytype_int16) + sizeof (YYSTYPE) + sizeof (YYLTYPE)) \
       + 2 * YYSTACK_GAP_MAXIMUM)
 
-# define YYCOPY_NEEDED 1
+/* Copy COUNT objects from FROM to TO.  The source and destination do
+   not overlap.  */
+# ifndef YYCOPY
+#  if defined __GNUC__ && 1 < __GNUC__
+#   define YYCOPY(To, From, Count) \
+      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+#  else
+#   define YYCOPY(To, From, Count)		\
+      do					\
+	{					\
+	  YYSIZE_T yyi;				\
+	  for (yyi = 0; yyi < (Count); yyi++)	\
+	    (To)[yyi] = (From)[yyi];		\
+	}					\
+      while (YYID (0))
+#  endif
+# endif
 
 /* Relocate STACK from its old location to the new one.  The
    local variables YYSIZE and YYSTACKSIZE give the old and new number of
    elements in the stack, and YYPTR gives the new location of the
    stack.  Advance YYPTR to a properly aligned location for the next
    stack.  */
-# define YYSTACK_RELOCATE(Stack_alloc, Stack)                           \
-    do                                                                  \
-      {                                                                 \
-        YYSIZE_T yynewbytes;                                            \
-        YYCOPY (&yyptr->Stack_alloc, Stack, yysize);                    \
-        Stack = &yyptr->Stack_alloc;                                    \
-        yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
-        yyptr += yynewbytes / sizeof (*yyptr);                          \
-      }                                                                 \
-    while (0)
+# define YYSTACK_RELOCATE(Stack)					\
+    do									\
+      {									\
+	YYSIZE_T yynewbytes;						\
+	YYCOPY (&yyptr->Stack, Stack, yysize);				\
+	Stack = &yyptr->Stack;						\
+	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
+	yyptr += yynewbytes / sizeof (*yyptr);				\
+      }									\
+    while (YYID (0))
 
 #endif
-
-#if defined YYCOPY_NEEDED && YYCOPY_NEEDED
-/* Copy COUNT objects from SRC to DST.  The source and destination do
-   not overlap.  */
-# ifndef YYCOPY
-#  if defined __GNUC__ && 1 < __GNUC__
-#   define YYCOPY(Dst, Src, Count) \
-      __builtin_memcpy (Dst, Src, (Count) * sizeof (*(Src)))
-#  else
-#   define YYCOPY(Dst, Src, Count)              \
-      do                                        \
-        {                                       \
-          YYSIZE_T yyi;                         \
-          for (yyi = 0; yyi < (Count); yyi++)   \
-            (Dst)[yyi] = (Src)[yyi];            \
-        }                                       \
-      while (0)
-#  endif
-# endif
-#endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   1205
+#define YYLAST   1465
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  129
+#define YYNTOKENS  140
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  85
+#define YYNNTS  90
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  238
-/* YYNSTATES -- Number of states.  */
-#define YYNSTATES  317
+#define YYNRULES  258
+/* YYNRULES -- Number of states.  */
+#define YYNSTATES  342
 
+/* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   376
+#define YYMAXUTOK   387
 
-/* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
-   as returned by yylex, with out-of-bounds checking.  */
-#define YYTRANSLATE(YYX)                                                \
-  ((unsigned) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+#define YYTRANSLATE(YYX)						\
+  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
-/* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
-   as returned by yylex.  */
+/* YYTRANSLATE[YYLEX] -- Bison symbol number corresponding to YYLEX.  */
 static const yytype_uint8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,   122,     2,     2,     2,     2,
-     124,   125,     2,     2,   126,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,   123,
-       2,   127,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,   133,     2,     2,     2,     2,
+     135,   136,     2,     2,   137,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,   134,
+       2,   138,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,   128,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,   139,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -779,96 +879,201 @@ static const yytype_uint8 yytranslate[] =
       85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
       95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
      105,   106,   107,   108,   109,   110,   111,   112,   113,   114,
-     115,   116,   117,   118,   119,   120,   121
+     115,   116,   117,   118,   119,   120,   121,   122,   123,   124,
+     125,   126,   127,   128,   129,   130,   131,   132
 };
 
 #if YYDEBUG
-  /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
+/* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
+   YYRHS.  */
+static const yytype_uint16 yyprhs[] =
+{
+       0,     0,     3,     7,     8,    11,    15,    19,    23,    27,
+      31,    33,    35,    36,    38,    45,    47,    50,    54,    56,
+      59,    61,    63,    65,    69,    76,    82,    83,    91,    92,
+      95,    97,    98,    99,   103,   105,   109,   112,   114,   116,
+     118,   120,   122,   124,   126,   127,   129,   130,   131,   134,
+     137,   140,   141,   144,   146,   148,   150,   152,   154,   156,
+     157,   160,   163,   165,   167,   169,   171,   173,   175,   177,
+     179,   181,   183,   185,   187,   189,   191,   193,   195,   197,
+     199,   201,   203,   205,   207,   209,   211,   214,   216,   218,
+     222,   228,   229,   231,   233,   237,   239,   243,   244,   246,
+     248,   250,   252,   256,   265,   266,   271,   272,   275,   283,
+     284,   287,   289,   293,   294,   297,   301,   306,   311,   314,
+     316,   318,   320,   329,   330,   333,   337,   339,   341,   343,
+     345,   347,   353,   355,   357,   359,   361,   363,   366,   371,
+     376,   377,   381,   384,   388,   392,   395,   399,   400,   402,
+     404,   406,   408,   410,   411,   412,   416,   419,   421,   426,
+     430,   432,   434,   435,   436,   437,   438,   439,   443,   444,
+     448,   449,   451,   453,   456,   458,   460,   462,   464,   466,
+     468,   470,   472,   474,   476,   478,   480,   482,   484,   486,
+     488,   490,   492,   494,   496,   498,   500,   502,   504,   506,
+     508,   510,   512,   514,   516,   518,   520,   522,   524,   526,
+     528,   530,   532,   534,   536,   538,   540,   542,   544,   546,
+     548,   550,   552,   554,   556,   558,   560,   562,   564,   566,
+     568,   570,   572,   574,   576,   578,   580,   582,   584,   586,
+     588,   590,   592,   594,   596,   598,   600,   602,   604,   606,
+     608,   610,   612,   614,   616,   618,   620,   622,   624
+};
+
+/* YYRHS -- A `-1'-separated list of the rules' RHS.  */
+static const yytype_int16 yyrhs[] =
+{
+     141,     0,    -1,   142,   146,   145,    -1,    -1,   142,   143,
+      -1,   133,    93,    57,    -1,   133,   101,   144,    -1,   133,
+     129,    62,    -1,   133,   129,   127,    -1,   133,   129,   126,
+      -1,    22,    -1,   229,    -1,    -1,   134,    -1,   147,    34,
+     168,   214,    60,   226,    -1,   224,    -1,   224,   148,    -1,
+     224,   148,   149,    -1,    52,    -1,   149,   150,    -1,   150,
+      -1,   151,    -1,    52,    -1,    25,   228,    26,    -1,   160,
+     161,   162,   163,   164,   165,    -1,   160,    28,    68,   159,
+     134,    -1,    -1,   160,   153,    49,   152,   155,   158,   154,
+      -1,    -1,    88,   115,    -1,   115,    -1,    -1,    -1,   135,
+     156,   136,    -1,   157,    -1,   156,   137,   157,    -1,   160,
+     162,    -1,    80,    -1,    68,    -1,    22,    -1,   229,    -1,
+      23,    -1,    22,    -1,   229,    -1,    -1,    44,    -1,    -1,
+      -1,    40,    22,    -1,    40,   229,    -1,    40,    23,    -1,
+      -1,    89,    91,    -1,   134,    -1,   166,    -1,   167,    -1,
+      53,    -1,   138,    -1,    15,    -1,    -1,   168,   169,    -1,
+     146,   134,    -1,   172,    -1,   180,    -1,   183,    -1,   188,
+      -1,   189,    -1,   190,    -1,   193,    -1,   195,    -1,   197,
+      -1,   198,    -1,   199,    -1,   201,    -1,   202,    -1,   170,
+      -1,   171,    -1,   173,    -1,   203,    -1,   204,    -1,   205,
+      -1,   207,    -1,   208,    -1,   209,    -1,   210,    -1,   212,
+      -1,    95,   220,    -1,    36,    -1,    56,    -1,   179,   167,
+     220,    -1,    72,   174,    55,   175,   134,    -1,    -1,    48,
+      -1,   119,    -1,   175,   137,   176,    -1,   176,    -1,   178,
+     167,   177,    -1,    -1,   179,    -1,    22,    -1,    23,    -1,
+      24,    -1,   179,   139,   221,    -1,    74,   222,   168,   181,
+     182,    60,    74,   134,    -1,    -1,   181,    59,   222,   168,
+      -1,    -1,    58,   168,    -1,    37,   184,   185,   187,    60,
+      37,   134,    -1,    -1,   185,   186,    -1,   186,    -1,   131,
+     222,   168,    -1,    -1,    58,   168,    -1,   225,    83,   200,
+      -1,   225,   132,   223,   200,    -1,   225,    68,   191,   200,
+      -1,   192,    76,    -1,    24,    -1,    22,    -1,    23,    -1,
+     225,    69,   192,   194,    76,    31,   223,   200,    -1,    -1,
+     117,    11,    -1,   196,   226,   227,    -1,    65,    -1,    47,
+      -1,   107,    -1,   104,    -1,    32,    -1,   168,    60,    83,
+     226,   134,    -1,    75,    -1,    78,    -1,    22,    -1,    23,
+      -1,    64,    -1,    92,   213,    -1,    66,   206,   213,    79,
+      -1,    86,   206,   213,   134,    -1,    -1,    39,   213,   134,
+      -1,    91,   134,    -1,    43,   211,   134,    -1,   110,   211,
+     134,    -1,    30,    38,    -1,    30,    88,    38,    -1,    -1,
+     116,    -1,   106,    -1,    24,    -1,    22,    -1,    23,    -1,
+      -1,    -1,    63,   215,   216,    -1,   216,   217,    -1,   217,
+      -1,   131,   218,   123,   168,    -1,   218,    94,   219,    -1,
+     219,    -1,   228,    -1,    -1,    -1,    -1,    -1,    -1,    25,
+     228,    26,    -1,    -1,    25,   228,    26,    -1,    -1,   228,
+      -1,   134,    -1,   131,   220,    -1,    22,    -1,   229,    -1,
+      24,    -1,    27,    -1,    28,    -1,    30,    -1,    31,    -1,
+      32,    -1,    33,    -1,    36,    -1,    38,    -1,    39,    -1,
+      40,    -1,    41,    -1,    42,    -1,    43,    -1,    44,    -1,
+      45,    -1,    46,    -1,    47,    -1,    48,    -1,    49,    -1,
+      50,    -1,    51,    -1,    53,    -1,    54,    -1,    55,    -1,
+      56,    -1,    57,    -1,    59,    -1,    61,    -1,    62,    -1,
+      63,    -1,    65,    -1,    66,    -1,    67,    -1,    70,    -1,
+      72,    -1,    73,    -1,    75,    -1,    77,    -1,    78,    -1,
+      80,    -1,    81,    -1,    82,    -1,    84,    -1,    85,    -1,
+      86,    -1,    87,    -1,    88,    -1,    90,    -1,    92,    -1,
+      93,    -1,    95,    -1,    96,    -1,    97,    -1,    98,    -1,
+      99,    -1,   100,    -1,   101,    -1,   102,    -1,   103,    -1,
+     104,    -1,   105,    -1,   106,    -1,   107,    -1,   108,    -1,
+     109,    -1,   110,    -1,   111,    -1,   112,    -1,   113,    -1,
+     114,    -1,   115,    -1,   116,    -1,   117,    -1,   118,    -1,
+     119,    -1,   121,    -1,   122,    -1,   125,    -1,   126,    -1,
+     127,    -1,   129,    -1,   130,    -1
+};
+
+/* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   353,   353,   359,   360,   363,   367,   376,   380,   384,
-     390,   394,   399,   400,   403,   425,   433,   440,   449,   461,
-     462,   465,   466,   470,   483,   538,   544,   543,   596,   599,
-     603,   610,   616,   619,   648,   652,   658,   666,   667,   669,
-     684,   699,   727,   755,   786,   787,   792,   803,   804,   809,
-     814,   821,   822,   826,   828,   834,   835,   843,   844,   848,
-     849,   859,   861,   863,   865,   867,   869,   871,   873,   875,
-     877,   879,   881,   883,   885,   887,   889,   891,   893,   895,
-     897,   899,   903,   916,   930,   993,   996,  1000,  1006,  1010,
-    1016,  1029,  1076,  1087,  1092,  1100,  1105,  1122,  1139,  1142,
-    1156,  1159,  1165,  1172,  1186,  1190,  1196,  1208,  1211,  1226,
-    1243,  1261,  1295,  1557,  1589,  1604,  1611,  1654,  1657,  1663,
-    1715,  1719,  1725,  1751,  1895,  1918,  1936,  1940,  1944,  1954,
-    1966,  2030,  2107,  2139,  2152,  2157,  2170,  2177,  2199,  2204,
-    2212,  2214,  2213,  2253,  2257,  2263,  2276,  2285,  2291,  2328,
-    2332,  2336,  2340,  2344,  2348,  2356,  2360,  2368,  2371,  2378,
-    2380,  2387,  2391,  2395,  2404,  2405,  2406,  2407,  2408,  2409,
-    2410,  2411,  2412,  2413,  2414,  2415,  2416,  2417,  2418,  2419,
-    2420,  2421,  2422,  2423,  2424,  2425,  2426,  2427,  2428,  2429,
-    2430,  2431,  2432,  2433,  2434,  2435,  2436,  2437,  2438,  2439,
-    2440,  2441,  2442,  2443,  2444,  2445,  2446,  2447,  2448,  2449,
-    2450,  2451,  2452,  2453,  2454,  2455,  2456,  2457,  2458,  2459,
-    2460,  2461,  2462,  2463,  2464,  2465,  2466,  2467,  2468,  2469,
-    2470,  2471,  2472,  2473,  2474,  2475,  2476,  2477,  2478
+       0,   364,   364,   370,   371,   374,   378,   387,   391,   395,
+     401,   405,   410,   411,   414,   437,   445,   452,   461,   473,
+     474,   477,   478,   482,   495,   533,   539,   538,   591,   594,
+     598,   605,   611,   614,   645,   649,   655,   663,   664,   666,
+     681,   696,   724,   752,   783,   784,   789,   800,   801,   806,
+     811,   818,   819,   823,   825,   831,   832,   840,   841,   845,
+     846,   856,   858,   860,   862,   864,   866,   868,   870,   872,
+     874,   876,   878,   880,   882,   884,   886,   888,   890,   892,
+     894,   896,   898,   900,   902,   904,   908,   922,   936,   953,
+     968,  1031,  1034,  1038,  1044,  1048,  1054,  1067,  1111,  1122,
+    1127,  1135,  1140,  1157,  1175,  1178,  1192,  1195,  1201,  1208,
+    1222,  1226,  1232,  1244,  1247,  1262,  1280,  1299,  1333,  1595,
+    1621,  1635,  1642,  1681,  1684,  1690,  1743,  1747,  1753,  1779,
+    1924,  1948,  1966,  1970,  1974,  1984,  1996,  2060,  2138,  2168,
+    2181,  2186,  2200,  2207,  2221,  2236,  2237,  2238,  2241,  2254,
+    2269,  2291,  2296,  2304,  2306,  2305,  2347,  2351,  2357,  2370,
+    2379,  2385,  2422,  2426,  2430,  2434,  2438,  2442,  2450,  2454,
+    2462,  2465,  2472,  2474,  2481,  2485,  2489,  2498,  2499,  2500,
+    2501,  2502,  2503,  2504,  2505,  2506,  2507,  2508,  2509,  2510,
+    2511,  2512,  2513,  2514,  2515,  2516,  2517,  2518,  2519,  2520,
+    2521,  2522,  2523,  2524,  2525,  2526,  2527,  2528,  2529,  2530,
+    2531,  2532,  2533,  2534,  2535,  2536,  2537,  2538,  2539,  2540,
+    2541,  2542,  2543,  2544,  2545,  2546,  2547,  2548,  2549,  2550,
+    2551,  2552,  2553,  2554,  2555,  2556,  2557,  2558,  2559,  2560,
+    2561,  2562,  2563,  2564,  2565,  2566,  2567,  2568,  2569,  2570,
+    2571,  2572,  2573,  2574,  2575,  2576,  2577,  2578,  2579
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 0
+#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "IDENT", "FCONST", "SCONST", "BCONST",
-  "XCONST", "Op", "ICONST", "PARAM", "TYPECAST", "DOT_DOT", "COLON_EQUALS",
-  "EQUALS_GREATER", "LESS_EQUALS", "GREATER_EQUALS", "NOT_EQUALS",
-  "T_WORD", "T_CWORD", "T_DATUM", "LESS_LESS", "GREATER_GREATER",
-  "K_ABSOLUTE", "K_ALIAS", "K_ALL", "K_ARRAY", "K_ASSERT", "K_BACKWARD",
-  "K_BEGIN", "K_BY", "K_CASE", "K_CLOSE", "K_COLLATE", "K_COLUMN",
-  "K_COLUMN_NAME", "K_CONSTANT", "K_CONSTRAINT", "K_CONSTRAINT_NAME",
-  "K_CONTINUE", "K_CURRENT", "K_CURSOR", "K_DATATYPE", "K_DEBUG",
-  "K_DECLARE", "K_DEFAULT", "K_DETAIL", "K_DIAGNOSTICS", "K_DUMP",
-  "K_ELSE", "K_ELSIF", "K_END", "K_ERRCODE", "K_ERROR", "K_EXCEPTION",
-  "K_EXECUTE", "K_EXIT", "K_FETCH", "K_FIRST", "K_FOR", "K_FOREACH",
-  "K_FORWARD", "K_FROM", "K_GET", "K_HINT", "K_IF", "K_IMPORT", "K_IN",
-  "K_INFO", "K_INSERT", "K_INTO", "K_IS", "K_LAST", "K_LOG", "K_LOOP",
-  "K_MESSAGE", "K_MESSAGE_TEXT", "K_MOVE", "K_NEXT", "K_NO", "K_NOT",
-  "K_NOTICE", "K_NULL", "K_OPEN", "K_OPTION", "K_OR", "K_PERFORM",
-  "K_PG_CONTEXT", "K_PG_DATATYPE_NAME", "K_PG_EXCEPTION_CONTEXT",
-  "K_PG_EXCEPTION_DETAIL", "K_PG_EXCEPTION_HINT", "K_PRINT_STRICT_PARAMS",
-  "K_PRIOR", "K_QUERY", "K_RAISE", "K_RELATIVE", "K_RESULT_OID",
-  "K_RETURN", "K_RETURNED_SQLSTATE", "K_REVERSE", "K_ROW_COUNT",
-  "K_ROWTYPE", "K_SCHEMA", "K_SCHEMA_NAME", "K_SCROLL", "K_SLICE",
-  "K_SQLSTATE", "K_STACKED", "K_STRICT", "K_TABLE", "K_TABLE_NAME",
-  "K_THEN", "K_TO", "K_TYPE", "K_USE_COLUMN", "K_USE_VARIABLE", "K_USING",
-  "K_VARIABLE_CONFLICT", "K_WARNING", "K_WHEN", "K_WHILE", "'#'", "';'",
-  "'('", "')'", "','", "'='", "'['", "$accept", "pl_function",
-  "comp_options", "comp_option", "option_value", "opt_semi", "pl_block",
-  "decl_sect", "decl_start", "decl_stmts", "decl_stmt", "decl_statement",
-  "$@1", "opt_scrollable", "decl_cursor_query", "decl_cursor_args",
-  "decl_cursor_arglist", "decl_cursor_arg", "decl_is_for",
-  "decl_aliasitem", "decl_varname", "decl_const", "decl_datatype",
-  "decl_collate", "decl_notnull", "decl_defval", "decl_defkey",
-  "assign_operator", "proc_sect", "proc_stmt", "stmt_perform",
-  "stmt_assign", "stmt_getdiag", "getdiag_area_opt", "getdiag_list",
-  "getdiag_list_item", "getdiag_item", "getdiag_target", "assign_var",
-  "stmt_if", "stmt_elsifs", "stmt_else", "stmt_case",
-  "opt_expr_until_when", "case_when_list", "case_when", "opt_case_else",
-  "stmt_loop", "stmt_while", "stmt_for", "for_control", "for_variable",
-  "stmt_foreach_a", "foreach_slice", "stmt_exit", "exit_type",
-  "stmt_return", "stmt_raise", "stmt_assert", "loop_body", "stmt_execsql",
-  "stmt_dynexecute", "stmt_open", "stmt_fetch", "stmt_move",
-  "opt_fetch_direction", "stmt_close", "stmt_null", "cursor_variable",
-  "exception_sect", "@2", "proc_exceptions", "proc_exception",
-  "proc_conditions", "proc_condition", "expr_until_semi",
+  "$end", "error", "$undefined", "IDENT", "UIDENT", "FCONST", "SCONST",
+  "USCONST", "BCONST", "XCONST", "Op", "ICONST", "PARAM", "TYPECAST",
+  "DOT_DOT", "COLON_EQUALS", "EQUALS_GREATER", "LESS_EQUALS",
+  "GREATER_EQUALS", "NOT_EQUALS", "SQL_COMMENT", "C_COMMENT", "T_WORD",
+  "T_CWORD", "T_DATUM", "LESS_LESS", "GREATER_GREATER", "K_ABSOLUTE",
+  "K_ALIAS", "K_ALL", "K_AND", "K_ARRAY", "K_ASSERT", "K_BACKWARD",
+  "K_BEGIN", "K_BY", "K_CALL", "K_CASE", "K_CHAIN", "K_CLOSE", "K_COLLATE",
+  "K_COLUMN", "K_COLUMN_NAME", "K_COMMIT", "K_CONSTANT", "K_CONSTRAINT",
+  "K_CONSTRAINT_NAME", "K_CONTINUE", "K_CURRENT", "K_CURSOR", "K_DATATYPE",
+  "K_DEBUG", "K_DECLARE", "K_DEFAULT", "K_DETAIL", "K_DIAGNOSTICS", "K_DO",
+  "K_DUMP", "K_ELSE", "K_ELSIF", "K_END", "K_ERRCODE", "K_ERROR",
+  "K_EXCEPTION", "K_EXECUTE", "K_EXIT", "K_FETCH", "K_FIRST", "K_FOR",
+  "K_FOREACH", "K_FORWARD", "K_FROM", "K_GET", "K_HINT", "K_IF",
+  "K_IMPORT", "K_IN", "K_INFO", "K_INSERT", "K_INTO", "K_IS", "K_LAST",
+  "K_LOG", "K_LOOP", "K_MESSAGE", "K_MESSAGE_TEXT", "K_MOVE", "K_NEXT",
+  "K_NO", "K_NOT", "K_NOTICE", "K_NULL", "K_OPEN", "K_OPTION", "K_OR",
+  "K_PERFORM", "K_PG_CONTEXT", "K_PG_DATATYPE_NAME",
+  "K_PG_EXCEPTION_CONTEXT", "K_PG_EXCEPTION_DETAIL", "K_PG_EXCEPTION_HINT",
+  "K_PRINT_STRICT_PARAMS", "K_PRIOR", "K_QUERY", "K_RAISE", "K_RELATIVE",
+  "K_RESET", "K_RETURN", "K_RETURNED_SQLSTATE", "K_REVERSE", "K_ROLLBACK",
+  "K_ROW_COUNT", "K_ROWTYPE", "K_SCHEMA", "K_SCHEMA_NAME", "K_SCROLL",
+  "K_SET", "K_SLICE", "K_SQLSTATE", "K_STACKED", "K_STRICT", "K_TABLE",
+  "K_TABLE_NAME", "K_THEN", "K_TO", "K_TYPE", "K_USE_COLUMN",
+  "K_USE_VARIABLE", "K_USING", "K_VARIABLE_CONFLICT", "K_WARNING",
+  "K_WHEN", "K_WHILE", "'#'", "';'", "'('", "')'", "','", "'='", "'['",
+  "$accept", "pl_function", "comp_options", "comp_option", "option_value",
+  "opt_semi", "pl_block", "decl_sect", "decl_start", "decl_stmts",
+  "decl_stmt", "decl_statement", "@1", "opt_scrollable",
+  "decl_cursor_query", "decl_cursor_args", "decl_cursor_arglist",
+  "decl_cursor_arg", "decl_is_for", "decl_aliasitem", "decl_varname",
+  "decl_const", "decl_datatype", "decl_collate", "decl_notnull",
+  "decl_defval", "decl_defkey", "assign_operator", "proc_sect",
+  "proc_stmt", "stmt_perform", "stmt_call", "stmt_assign", "stmt_getdiag",
+  "getdiag_area_opt", "getdiag_list", "getdiag_list_item", "getdiag_item",
+  "getdiag_target", "assign_var", "stmt_if", "stmt_elsifs", "stmt_else",
+  "stmt_case", "opt_expr_until_when", "case_when_list", "case_when",
+  "opt_case_else", "stmt_loop", "stmt_while", "stmt_for", "for_control",
+  "for_variable", "stmt_foreach_a", "foreach_slice", "stmt_exit",
+  "exit_type", "stmt_return", "stmt_raise", "stmt_assert", "loop_body",
+  "stmt_execsql", "stmt_dynexecute", "stmt_open", "stmt_fetch",
+  "stmt_move", "opt_fetch_direction", "stmt_close", "stmt_null",
+  "stmt_commit", "stmt_rollback", "opt_transaction_chain", "stmt_set",
+  "cursor_variable", "exception_sect", "@2", "proc_exceptions",
+  "proc_exception", "proc_conditions", "proc_condition", "expr_until_semi",
   "expr_until_rightbracket", "expr_until_then", "expr_until_loop",
   "opt_block_label", "opt_loop_label", "opt_label", "opt_exitcond",
-  "any_identifier", "unreserved_keyword", YY_NULLPTR
+  "any_identifier", "unreserved_keyword", 0
 };
 #endif
 
 # ifdef YYPRINT
-/* YYTOKNUM[NUM] -- (External) token number corresponding to the
-   (internal) symbol number NUM (which must be that of a token).  */
+/* YYTOKNUM[YYLEX-NUM] -- Internal token number corresponding to
+   token YYLEX-NUM.  */
 static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
@@ -883,446 +1088,43 @@ static const yytype_uint16 yytoknum[] =
      345,   346,   347,   348,   349,   350,   351,   352,   353,   354,
      355,   356,   357,   358,   359,   360,   361,   362,   363,   364,
      365,   366,   367,   368,   369,   370,   371,   372,   373,   374,
-     375,   376,    35,    59,    40,    41,    44,    61,    91
+     375,   376,   377,   378,   379,   380,   381,   382,   383,   384,
+     385,   386,   387,    35,    59,    40,    41,    44,    61,    91
 };
 # endif
 
-#define YYPACT_NINF -245
-
-#define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-245)))
-
-#define YYTABLE_NINF -155
-
-#define yytable_value_is_error(Yytable_value) \
-  0
-
-  /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
-     STATE-NUM.  */
-static const yytype_int16 yypact[] =
-{
-    -245,    42,   -18,  -245,   303,   -57,  -245,   -75,    24,    22,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,    51,  -245,    16,
-     606,   -29,  -245,  -245,  -245,  -245,   201,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,   927,  -245,   303,  -245,   201,
-    -245,  -245,    -5,  -245,  -245,  -245,  -245,   303,  -245,  -245,
-      76,  -245,  -245,  -245,  -245,  -245,   -23,  -245,  -245,  -245,
-    -245,   -48,    76,  -245,  -245,  -245,   -41,  -245,  -245,  -245,
-    -245,   -11,  -245,  -245,  -245,  -245,  -245,  -245,  -245,   303,
-    -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-      33,   -20,    66,  -245,    31,  -245,    -3,  -245,    57,  -245,
-      86,    -9,  -245,  -245,  -245,   -14,    -2,    76,  -245,  -245,
-      65,  -245,    76,  -245,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,   -79,  -245,   303,    87,    87,  -245,  -245,  -245,   405,
-    -245,  -245,    91,     3,  -245,   -39,  -245,  -245,   303,    -2,
-    -245,    55,   103,   807,     4,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,    59,    27,   987,  -245,  -245,
-    -245,  -245,     5,  -245,    10,   507,    56,  -245,  -245,  -245,
-      84,   -56,  -245,  -245,  -245,  -245,  -245,  -245,   -58,  -245,
-      -7,     9,    20,  -245,  -245,  -245,  -245,   130,    74,    70,
-    -245,  -245,   705,   -13,  -245,  -245,  -245,    63,    -8,    -6,
-    1047,   118,   303,  -245,  -245,   103,  -245,  -245,  -245,   100,
-    -245,   126,   303,   -47,  -245,  -245,  -245,  -245,  -245,  -245,
-    -245,  -245,  -245,  -245,  -245,    30,  -245,   111,  -245,  -245,
-    1107,  -245,    89,  -245,    34,  -245,   705,  -245,  -245,  -245,
-     867,    35,  -245,  -245,  -245,  -245,  -245
-};
-
-  /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
-     Performed when YYTABLE does not specify something else to do.  Zero
-     means the default is an error.  */
-static const yytype_uint8 yydefact[] =
-{
-       3,     0,   153,     1,     0,     0,     4,    12,     0,    15,
-     161,   163,   164,   165,   166,   167,   168,   169,   170,   171,
-     172,   173,   174,   175,   176,   177,   178,   179,   180,   181,
-     182,   183,   184,   185,   186,   187,   188,   189,   190,   191,
-     192,   193,   194,   195,   196,   197,   198,   199,   200,   201,
-     202,   203,   204,   205,   206,   207,   208,   209,   210,   211,
-     212,   213,   214,   215,   216,   217,   218,   219,   220,   221,
-     222,   223,   224,   225,   226,   227,   228,   229,   230,   231,
-     232,   233,   234,   235,   236,   237,   238,     0,   162,     0,
-       0,     0,    13,     2,    59,    18,    16,   154,     5,    10,
-       6,    11,     7,     9,     8,   155,    42,     0,    22,    17,
-      20,    21,    44,    43,   128,   129,    95,     0,   124,   103,
-       0,   121,   141,   130,   120,   134,    85,   151,   126,   127,
-     134,     0,     0,   149,   123,   122,     0,    60,    75,    62,
-      76,     0,    63,    64,    65,    66,    67,    68,    69,   157,
-      70,    71,    72,    73,    74,    77,    78,    79,    80,    81,
-       0,     0,     0,    19,     0,    45,     0,    30,     0,    46,
-       0,     0,   138,   139,   137,     0,     0,     0,    86,    87,
-       0,    59,     0,   136,   131,    82,    61,    58,    57,   150,
-     149,     0,   158,   157,     0,     0,    59,   152,    23,     0,
-      29,    26,    47,   156,   151,   107,   105,   135,     0,   142,
-     144,     0,     0,   155,     0,    96,    83,   149,   159,   119,
-      14,   114,   115,   113,    59,     0,   117,   155,   109,    59,
-      39,    41,     0,    40,    32,     0,    51,    59,    59,   104,
-       0,     0,   147,   148,   143,   132,    93,    94,     0,    89,
-       0,    92,   100,   133,   160,   111,   112,     0,     0,     0,
-     110,    25,     0,     0,    48,    50,    49,     0,     0,   155,
-     155,     0,     0,    59,    84,     0,    91,    59,   151,     0,
-     118,     0,   157,     0,    34,    46,    38,    37,    31,    52,
-      56,    53,    24,    54,    55,     0,   146,   155,    88,    90,
-     155,    59,     0,   152,     0,    33,     0,    36,    27,   102,
-     155,     0,    59,   125,    35,    97,   116
-};
-
-  /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int16 yypgoto[] =
-{
-    -245,  -245,  -245,  -245,  -245,  -245,   154,  -245,  -245,  -245,
-      50,  -245,  -245,  -245,  -245,  -245,  -245,  -146,  -245,  -245,
-    -244,  -245,  -124,  -245,  -245,  -245,  -245,  -216,   -90,  -245,
-    -245,  -245,  -245,  -245,  -245,  -112,  -245,  -245,  -182,  -245,
-    -245,  -245,  -245,  -245,  -245,   -40,  -245,  -245,  -245,  -245,
-    -245,   -31,  -245,  -245,  -245,  -245,  -245,  -245,  -245,  -213,
-    -245,  -245,  -245,  -245,  -245,    39,  -245,  -245,  -110,  -245,
-    -245,  -245,   -38,  -245,  -102,  -162,  -245,  -195,  -131,  -245,
-    -245,  -185,  -245,    -4,   -89
-};
-
-  /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int16 yydefgoto[] =
-{
-      -1,     1,     2,     6,   100,    93,   136,     8,    96,   109,
-     110,   111,   234,   168,   308,   263,   283,   284,   288,   232,
-     112,   169,   202,   236,   268,   292,   293,   190,   227,   137,
-     138,   139,   140,   180,   248,   249,   299,   250,   141,   142,
-     252,   279,   143,   171,   205,   206,   240,   144,   145,   146,
-     224,   225,   147,   258,   148,   149,   150,   151,   152,   228,
-     153,   154,   155,   156,   157,   177,   158,   159,   175,   160,
-     176,   209,   210,   241,   242,   185,   215,   181,   229,     9,
-     161,   191,   219,   192,    88
-};
-
-  /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
-     positive, shift that token.  If negative, reduce the rule whose
-     number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int16 yytable[] =
-{
-      87,   101,   187,     4,   105,   187,   187,   113,   220,   237,
-     238,   255,   114,   115,   116,   117,   260,   178,   285,   164,
-     113,   118,   184,  -153,   102,   119,   120,    89,   216,   272,
-     251,   165,  -154,   121,   276,    90,   -28,   290,  -153,   194,
-     195,   217,     3,  -106,   218,  -106,   286,  -154,    92,   123,
-     124,   125,   294,    94,   196,   254,   273,   126,   287,   127,
-     128,    91,   285,   129,    98,   274,    95,   211,   275,   277,
-     278,   130,   214,    97,   166,   183,   131,   132,   305,   306,
-     133,   204,   186,   301,   193,   179,   103,   104,   198,   134,
-     199,   213,   135,   251,   172,   173,   174,   304,   201,   316,
-     167,   197,   200,   162,     5,   221,   222,   223,   203,   207,
-     233,   204,   212,   170,  -106,   291,   188,   189,   208,   188,
-     188,   246,   247,   116,   235,   245,   256,   253,   261,   114,
-     115,   116,   117,   257,   262,   271,   267,   189,   118,   280,
-    -153,   281,   119,   120,   282,   289,   266,   269,   270,   295,
-     121,   302,   303,   309,   311,  -153,     7,   313,   315,   163,
-     314,   307,  -145,   298,   226,   239,   123,   124,   125,   182,
-     296,   244,   312,   113,   126,     0,   127,   128,     0,     0,
-     129,     0,     0,   297,     0,     0,     0,   300,   130,     0,
-       0,     0,     0,   131,   132,     0,     0,   133,     0,     0,
-       0,     0,     0,     0,   243,     0,   134,     0,     0,   135,
-       0,   310,     0,     0,     0,     0,     0,   113,     0,   106,
-       0,     0,   107,     0,    12,    13,     0,    14,    15,    16,
-       0,  -145,     0,    17,    18,    19,    20,    21,    22,    23,
-      24,    25,    26,    27,    28,   108,    29,    30,    31,    32,
-       0,    33,     0,    34,    35,    36,     0,    37,    38,    39,
-       0,     0,    40,     0,    41,    42,     0,    43,   243,    44,
-      45,     0,    46,    47,    48,     0,    49,    50,    51,    52,
-      53,     0,    54,     0,    55,    56,     0,    57,    58,    59,
-      60,    61,    62,    63,    64,    65,    66,    67,    68,    69,
-      70,    71,    72,    73,    74,    75,    76,    77,    78,    79,
-       0,    80,    81,     0,     0,    82,    83,    84,     0,    85,
-      86,    10,     0,    11,     0,     0,    12,    13,     0,    14,
-      15,    16,     0,     0,     0,    17,    18,    19,    20,    21,
-      22,    23,    24,    25,    26,    27,    28,     0,    29,    30,
-      31,    32,     0,    33,     0,    34,    35,    36,     0,    37,
-      38,    39,     0,     0,    40,     0,    41,    42,     0,    43,
-       0,    44,    45,     0,    46,    47,    48,     0,    49,    50,
-      51,    52,    53,     0,    54,     0,    55,    56,     0,    57,
-      58,    59,    60,    61,    62,    63,    64,    65,    66,    67,
-      68,    69,    70,    71,    72,    73,    74,    75,    76,    77,
-      78,    79,     0,    80,    81,     0,     0,    82,    83,    84,
-       0,    85,    86,   230,   231,     0,     0,     0,    12,    13,
-       0,    14,    15,    16,     0,     0,     0,    17,    18,    19,
-      20,    21,    22,    23,    24,    25,    26,    27,    28,     0,
-      29,    30,    31,    32,     0,    33,     0,    34,    35,    36,
-       0,    37,    38,    39,     0,     0,    40,     0,    41,    42,
-       0,    43,     0,    44,    45,     0,    46,    47,    48,     0,
-      49,    50,    51,    52,    53,     0,    54,     0,    55,    56,
-       0,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-      66,    67,    68,    69,    70,    71,    72,    73,    74,    75,
-      76,    77,    78,    79,     0,    80,    81,     0,     0,    82,
-      83,    84,     0,    85,    86,   264,   265,     0,     0,     0,
-      12,    13,     0,    14,    15,    16,     0,     0,     0,    17,
-      18,    19,    20,    21,    22,    23,    24,    25,    26,    27,
-      28,     0,    29,    30,    31,    32,     0,    33,     0,    34,
-      35,    36,     0,    37,    38,    39,     0,     0,    40,     0,
-      41,    42,     0,    43,     0,    44,    45,     0,    46,    47,
-      48,     0,    49,    50,    51,    52,    53,     0,    54,     0,
-      55,    56,     0,    57,    58,    59,    60,    61,    62,    63,
-      64,    65,    66,    67,    68,    69,    70,    71,    72,    73,
-      74,    75,    76,    77,    78,    79,     0,    80,    81,     0,
-       0,    82,    83,    84,    99,    85,    86,     0,     0,    12,
-      13,     0,    14,    15,    16,     0,     0,     0,    17,    18,
-      19,    20,    21,    22,    23,    24,    25,    26,    27,    28,
-       0,    29,    30,    31,    32,     0,    33,     0,    34,    35,
-      36,     0,    37,    38,    39,     0,     0,    40,     0,    41,
-      42,     0,    43,     0,    44,    45,     0,    46,    47,    48,
-       0,    49,    50,    51,    52,    53,     0,    54,     0,    55,
-      56,     0,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
-      75,    76,    77,    78,    79,     0,    80,    81,     0,     0,
-      82,    83,    84,   106,    85,    86,     0,     0,    12,    13,
-       0,    14,    15,    16,     0,     0,     0,    17,    18,    19,
-      20,    21,    22,    23,    24,    25,    26,    27,    28,     0,
-      29,    30,    31,    32,     0,    33,     0,    34,    35,    36,
-       0,    37,    38,    39,     0,     0,    40,     0,    41,    42,
-       0,    43,     0,    44,    45,     0,    46,    47,    48,     0,
-      49,    50,    51,    52,    53,     0,    54,     0,    55,    56,
-       0,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-      66,    67,    68,    69,    70,    71,    72,    73,    74,    75,
-      76,    77,    78,    79,     0,    80,    81,     0,     0,    82,
-      83,    84,     0,    85,    86,   114,   115,   116,   117,     0,
-       0,     0,     0,     0,   118,     0,  -153,     0,   119,   120,
-       0,     0,     0,     0,     0,     0,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,   -98,   -98,   -98,     0,
-       0,     0,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,   114,   115,   116,   117,   131,
-     132,     0,     0,   133,   118,     0,  -153,     0,   119,   120,
-       0,     0,   134,     0,     0,   135,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,   -99,   -99,   -99,     0,
-       0,     0,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,   114,   115,   116,   117,   131,
-     132,     0,     0,   133,   118,     0,  -153,     0,   119,   120,
-       0,     0,   134,     0,     0,   135,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,     0,     0,  -140,     0,
-       0,   122,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,   114,   115,   116,   117,   131,
-     132,     0,     0,   133,   118,     0,  -153,     0,   119,   120,
-       0,     0,   134,     0,     0,   135,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,     0,     0,   259,     0,
-       0,     0,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,   114,   115,   116,   117,   131,
-     132,     0,     0,   133,   118,     0,  -153,     0,   119,   120,
-       0,     0,   134,     0,     0,   135,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,     0,     0,  -108,     0,
-       0,     0,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,   114,   115,   116,   117,   131,
-     132,     0,     0,   133,   118,     0,  -153,     0,   119,   120,
-       0,     0,   134,     0,     0,   135,   121,     0,     0,     0,
-       0,  -153,     0,     0,     0,     0,     0,     0,  -101,     0,
-       0,     0,   123,   124,   125,     0,     0,     0,     0,     0,
-     126,     0,   127,   128,     0,     0,   129,     0,     0,     0,
-       0,     0,     0,     0,   130,     0,     0,     0,     0,   131,
-     132,     0,     0,   133,     0,     0,     0,     0,     0,     0,
-       0,     0,   134,     0,     0,   135
-};
-
-static const yytype_int16 yycheck[] =
-{
-       4,    90,    13,    21,    94,    13,    13,    96,   193,   204,
-      49,   224,    18,    19,    20,    21,   229,    40,   262,    24,
-     109,    27,   132,    29,    53,    31,    32,    84,   190,    85,
-     212,    36,    29,    39,   250,    92,    41,    45,    44,    59,
-      60,   120,     0,    49,   123,    51,    59,    44,   123,    55,
-      56,    57,   268,    29,    74,   217,   112,    63,    71,    65,
-      66,   118,   306,    69,    48,   123,    44,   177,   126,    49,
-      50,    77,   182,    22,    79,   123,    82,    83,   125,   126,
-      86,   120,   123,   278,    51,   108,   115,   116,    22,    95,
-      59,   181,    98,   275,    18,    19,    20,   282,    41,   312,
-     105,   121,   105,   107,   122,    18,    19,    20,    22,   123,
-     199,   120,    47,   117,   120,   123,   127,   128,   120,   127,
-     127,    18,    19,    20,    33,    70,    67,   123,   123,    18,
-      19,    20,    21,   106,   124,    51,    80,   128,    27,     9,
-      29,    67,    31,    32,    74,    82,   235,   237,   238,    31,
-      39,    51,    26,   123,    65,    44,     2,   123,   123,   109,
-     306,   285,    51,   275,   195,   205,    55,    56,    57,   130,
-     272,   209,   303,   262,    63,    -1,    65,    66,    -1,    -1,
-      69,    -1,    -1,   273,    -1,    -1,    -1,   277,    77,    -1,
-      -1,    -1,    -1,    82,    83,    -1,    -1,    86,    -1,    -1,
-      -1,    -1,    -1,    -1,   208,    -1,    95,    -1,    -1,    98,
-      -1,   301,    -1,    -1,    -1,    -1,    -1,   306,    -1,    18,
-      -1,    -1,    21,    -1,    23,    24,    -1,    26,    27,    28,
-      -1,   120,    -1,    32,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    42,    43,    44,    45,    46,    47,    48,
-      -1,    50,    -1,    52,    53,    54,    -1,    56,    57,    58,
-      -1,    -1,    61,    -1,    63,    64,    -1,    66,   272,    68,
-      69,    -1,    71,    72,    73,    -1,    75,    76,    77,    78,
-      79,    -1,    81,    -1,    83,    84,    -1,    86,    87,    88,
-      89,    90,    91,    92,    93,    94,    95,    96,    97,    98,
-      99,   100,   101,   102,   103,   104,   105,   106,   107,   108,
-      -1,   110,   111,    -1,    -1,   114,   115,   116,    -1,   118,
-     119,    18,    -1,    20,    -1,    -1,    23,    24,    -1,    26,
-      27,    28,    -1,    -1,    -1,    32,    33,    34,    35,    36,
-      37,    38,    39,    40,    41,    42,    43,    -1,    45,    46,
-      47,    48,    -1,    50,    -1,    52,    53,    54,    -1,    56,
-      57,    58,    -1,    -1,    61,    -1,    63,    64,    -1,    66,
-      -1,    68,    69,    -1,    71,    72,    73,    -1,    75,    76,
-      77,    78,    79,    -1,    81,    -1,    83,    84,    -1,    86,
-      87,    88,    89,    90,    91,    92,    93,    94,    95,    96,
-      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
-     107,   108,    -1,   110,   111,    -1,    -1,   114,   115,   116,
-      -1,   118,   119,    18,    19,    -1,    -1,    -1,    23,    24,
-      -1,    26,    27,    28,    -1,    -1,    -1,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42,    43,    -1,
-      45,    46,    47,    48,    -1,    50,    -1,    52,    53,    54,
-      -1,    56,    57,    58,    -1,    -1,    61,    -1,    63,    64,
-      -1,    66,    -1,    68,    69,    -1,    71,    72,    73,    -1,
-      75,    76,    77,    78,    79,    -1,    81,    -1,    83,    84,
-      -1,    86,    87,    88,    89,    90,    91,    92,    93,    94,
-      95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
-     105,   106,   107,   108,    -1,   110,   111,    -1,    -1,   114,
-     115,   116,    -1,   118,   119,    18,    19,    -1,    -1,    -1,
-      23,    24,    -1,    26,    27,    28,    -1,    -1,    -1,    32,
-      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
-      43,    -1,    45,    46,    47,    48,    -1,    50,    -1,    52,
-      53,    54,    -1,    56,    57,    58,    -1,    -1,    61,    -1,
-      63,    64,    -1,    66,    -1,    68,    69,    -1,    71,    72,
-      73,    -1,    75,    76,    77,    78,    79,    -1,    81,    -1,
-      83,    84,    -1,    86,    87,    88,    89,    90,    91,    92,
-      93,    94,    95,    96,    97,    98,    99,   100,   101,   102,
-     103,   104,   105,   106,   107,   108,    -1,   110,   111,    -1,
-      -1,   114,   115,   116,    18,   118,   119,    -1,    -1,    23,
-      24,    -1,    26,    27,    28,    -1,    -1,    -1,    32,    33,
-      34,    35,    36,    37,    38,    39,    40,    41,    42,    43,
-      -1,    45,    46,    47,    48,    -1,    50,    -1,    52,    53,
-      54,    -1,    56,    57,    58,    -1,    -1,    61,    -1,    63,
-      64,    -1,    66,    -1,    68,    69,    -1,    71,    72,    73,
-      -1,    75,    76,    77,    78,    79,    -1,    81,    -1,    83,
-      84,    -1,    86,    87,    88,    89,    90,    91,    92,    93,
-      94,    95,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   106,   107,   108,    -1,   110,   111,    -1,    -1,
-     114,   115,   116,    18,   118,   119,    -1,    -1,    23,    24,
-      -1,    26,    27,    28,    -1,    -1,    -1,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42,    43,    -1,
-      45,    46,    47,    48,    -1,    50,    -1,    52,    53,    54,
-      -1,    56,    57,    58,    -1,    -1,    61,    -1,    63,    64,
-      -1,    66,    -1,    68,    69,    -1,    71,    72,    73,    -1,
-      75,    76,    77,    78,    79,    -1,    81,    -1,    83,    84,
-      -1,    86,    87,    88,    89,    90,    91,    92,    93,    94,
-      95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
-     105,   106,   107,   108,    -1,   110,   111,    -1,    -1,   114,
-     115,   116,    -1,   118,   119,    18,    19,    20,    21,    -1,
-      -1,    -1,    -1,    -1,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    -1,    -1,    -1,    -1,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    49,    50,    51,    -1,
-      -1,    -1,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    18,    19,    20,    21,    82,
-      83,    -1,    -1,    86,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    95,    -1,    -1,    98,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    49,    50,    51,    -1,
-      -1,    -1,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    18,    19,    20,    21,    82,
-      83,    -1,    -1,    86,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    95,    -1,    -1,    98,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    -1,    -1,    51,    -1,
-      -1,    54,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    18,    19,    20,    21,    82,
-      83,    -1,    -1,    86,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    95,    -1,    -1,    98,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    -1,    -1,    51,    -1,
-      -1,    -1,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    18,    19,    20,    21,    82,
-      83,    -1,    -1,    86,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    95,    -1,    -1,    98,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    -1,    -1,    51,    -1,
-      -1,    -1,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    18,    19,    20,    21,    82,
-      83,    -1,    -1,    86,    27,    -1,    29,    -1,    31,    32,
-      -1,    -1,    95,    -1,    -1,    98,    39,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    -1,    -1,    51,    -1,
-      -1,    -1,    55,    56,    57,    -1,    -1,    -1,    -1,    -1,
-      63,    -1,    65,    66,    -1,    -1,    69,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    77,    -1,    -1,    -1,    -1,    82,
-      83,    -1,    -1,    86,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    95,    -1,    -1,    98
-};
-
-  /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
-     symbol of state STATE-NUM.  */
-static const yytype_uint8 yystos[] =
-{
-       0,   130,   131,     0,    21,   122,   132,   135,   136,   208,
-      18,    20,    23,    24,    26,    27,    28,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    42,    43,    45,
-      46,    47,    48,    50,    52,    53,    54,    56,    57,    58,
-      61,    63,    64,    66,    68,    69,    71,    72,    73,    75,
-      76,    77,    78,    79,    81,    83,    84,    86,    87,    88,
-      89,    90,    91,    92,    93,    94,    95,    96,    97,    98,
-      99,   100,   101,   102,   103,   104,   105,   106,   107,   108,
-     110,   111,   114,   115,   116,   118,   119,   212,   213,    84,
-      92,   118,   123,   134,    29,    44,   137,    22,    48,    18,
-     133,   213,    53,   115,   116,   157,    18,    21,    44,   138,
-     139,   140,   149,   213,    18,    19,    20,    21,    27,    31,
-      32,    39,    54,    55,    56,    57,    63,    65,    66,    69,
-      77,    82,    83,    86,    95,    98,   135,   158,   159,   160,
-     161,   167,   168,   171,   176,   177,   178,   181,   183,   184,
-     185,   186,   187,   189,   190,   191,   192,   193,   195,   196,
-     198,   209,   212,   139,    24,    36,    79,   105,   142,   150,
-     212,   172,    18,    19,    20,   197,   199,   194,    40,   108,
-     162,   206,   194,   123,   197,   204,   123,    13,   127,   128,
-     156,   210,   212,    51,    59,    60,    74,   121,    22,    59,
-     105,    41,   151,    22,   120,   173,   174,   123,   120,   200,
-     201,   197,    47,   157,   197,   205,   204,   120,   123,   211,
-     210,    18,    19,    20,   179,   180,   180,   157,   188,   207,
-      18,    19,   148,   213,   141,    33,   152,   206,    49,   174,
-     175,   202,   203,   212,   201,    70,    18,    19,   163,   164,
-     166,   167,   169,   123,   204,   188,    67,   106,   182,    51,
-     188,   123,   124,   144,    18,    19,   213,    80,   153,   157,
-     157,    51,    85,   112,   123,   126,   156,    49,    50,   170,
-       9,    67,    74,   145,   146,   149,    59,    71,   147,    82,
-      45,   123,   154,   155,   156,    31,   203,   157,   164,   165,
-     157,   206,    51,    26,   210,   125,   126,   151,   143,   123,
-     157,    65,   207,   123,   146,   123,   188
-};
-
-  /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
+/* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,   129,   130,   131,   131,   132,   132,   132,   132,   132,
-     133,   133,   134,   134,   135,   136,   136,   136,   137,   138,
-     138,   139,   139,   139,   140,   140,   141,   140,   142,   142,
-     142,   143,   144,   144,   145,   145,   146,   147,   147,   148,
-     148,   148,   149,   149,   150,   150,   151,   152,   152,   152,
-     152,   153,   153,   154,   154,   155,   155,   156,   156,   157,
-     157,   158,   158,   158,   158,   158,   158,   158,   158,   158,
-     158,   158,   158,   158,   158,   158,   158,   158,   158,   158,
-     158,   158,   159,   160,   161,   162,   162,   162,   163,   163,
-     164,   165,   166,   166,   166,   167,   167,   168,   169,   169,
-     170,   170,   171,   172,   173,   173,   174,   175,   175,   176,
-     177,   178,   179,   180,   180,   180,   181,   182,   182,   183,
-     184,   184,   185,   186,   187,   188,   189,   189,   189,   189,
-     190,   191,   192,   193,   194,   195,   196,   197,   197,   197,
-     198,   199,   198,   200,   200,   201,   202,   202,   203,   204,
-     205,   206,   207,   208,   208,   209,   209,   210,   210,   211,
-     211,   212,   212,   212,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213,   213,
-     213,   213,   213,   213,   213,   213,   213,   213,   213
+       0,   140,   141,   142,   142,   143,   143,   143,   143,   143,
+     144,   144,   145,   145,   146,   147,   147,   147,   148,   149,
+     149,   150,   150,   150,   151,   151,   152,   151,   153,   153,
+     153,   154,   155,   155,   156,   156,   157,   158,   158,   159,
+     159,   159,   160,   160,   161,   161,   162,   163,   163,   163,
+     163,   164,   164,   165,   165,   166,   166,   167,   167,   168,
+     168,   169,   169,   169,   169,   169,   169,   169,   169,   169,
+     169,   169,   169,   169,   169,   169,   169,   169,   169,   169,
+     169,   169,   169,   169,   169,   169,   170,   171,   171,   172,
+     173,   174,   174,   174,   175,   175,   176,   177,   178,   178,
+     178,   179,   179,   180,   181,   181,   182,   182,   183,   184,
+     185,   185,   186,   187,   187,   188,   189,   190,   191,   192,
+     192,   192,   193,   194,   194,   195,   196,   196,   197,   198,
+     199,   200,   201,   201,   201,   201,   202,   203,   204,   205,
+     206,   207,   208,   209,   210,   211,   211,   211,   212,   212,
+     213,   213,   213,   214,   215,   214,   216,   216,   217,   218,
+     218,   219,   220,   221,   222,   223,   224,   224,   225,   225,
+     226,   226,   227,   227,   228,   228,   228,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229,   229,
+     229,   229,   229,   229,   229,   229,   229,   229,   229
 };
 
-  /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
+/* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     3,     0,     2,     3,     3,     3,     3,     3,
@@ -1333,15 +1135,17 @@ static const yytype_uint8 yyr2[] =
        2,     0,     2,     1,     1,     1,     1,     1,     1,     0,
        2,     2,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     2,     3,     5,     0,     1,     1,     3,     1,
-       3,     0,     1,     1,     1,     1,     3,     8,     0,     4,
-       0,     2,     7,     0,     2,     1,     3,     0,     2,     3,
-       4,     4,     2,     1,     1,     1,     8,     0,     2,     3,
-       1,     1,     1,     1,     1,     5,     1,     1,     1,     1,
-       1,     2,     4,     4,     0,     3,     2,     1,     1,     1,
-       0,     0,     3,     2,     1,     4,     3,     1,     1,     0,
-       0,     0,     0,     0,     3,     0,     3,     0,     1,     1,
-       2,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     2,     1,     1,     3,
+       5,     0,     1,     1,     3,     1,     3,     0,     1,     1,
+       1,     1,     3,     8,     0,     4,     0,     2,     7,     0,
+       2,     1,     3,     0,     2,     3,     4,     4,     2,     1,
+       1,     1,     8,     0,     2,     3,     1,     1,     1,     1,
+       1,     5,     1,     1,     1,     1,     1,     2,     4,     4,
+       0,     3,     2,     3,     3,     2,     3,     0,     1,     1,
+       1,     1,     1,     0,     0,     3,     2,     1,     4,     3,
+       1,     1,     0,     0,     0,     0,     0,     3,     0,     3,
+       0,     1,     1,     2,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
@@ -1351,67 +1155,555 @@ static const yytype_uint8 yyr2[] =
        1,     1,     1,     1,     1,     1,     1,     1,     1
 };
 
+/* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
+   STATE-NUM when YYTABLE doesn't specify something else to do.  Zero
+   means the default is an error.  */
+static const yytype_uint16 yydefact[] =
+{
+       3,     0,   166,     1,     0,     0,     4,    12,     0,    15,
+     174,   176,   177,   178,   179,   180,   181,   182,   183,   184,
+     185,   186,   187,   188,   189,   190,   191,   192,   193,   194,
+     195,   196,   197,   198,   199,   200,   201,   202,   203,   204,
+     205,   206,   207,   208,   209,   210,   211,   212,   213,   214,
+     215,   216,   217,   218,   219,   220,   221,   222,   223,   224,
+     225,   226,   227,   228,   229,   230,   231,   232,   233,   234,
+     235,   236,   237,   238,   239,   240,   241,   242,   243,   244,
+     245,   246,   247,   248,   249,   250,   251,   252,   253,   254,
+     255,   256,   257,   258,     0,   175,     0,     0,     0,    13,
+       2,    59,    18,    16,   167,     5,    10,     6,    11,     7,
+       9,     8,   168,    42,     0,    22,    17,    20,    21,    44,
+      43,   134,   135,   101,     0,   130,    87,   109,     0,   147,
+     127,    88,   154,   136,   126,   140,    91,   164,   132,   133,
+     140,     0,     0,   162,   129,   149,   128,   147,   148,     0,
+      60,    75,    76,    62,    77,     0,    63,    64,    65,    66,
+      67,    68,    69,   170,    70,    71,    72,    73,    74,    78,
+      79,    80,    81,    82,    83,    84,    85,     0,     0,     0,
+      19,     0,    45,     0,    30,     0,    46,     0,     0,   151,
+     152,   150,     0,     0,     0,     0,     0,    92,    93,     0,
+      59,     0,   142,   137,    86,     0,    61,    58,    57,   163,
+     162,     0,   171,   170,     0,     0,    59,   165,    23,     0,
+      29,    26,    47,   169,   164,   113,   111,   141,   145,     0,
+     143,     0,   155,   157,     0,     0,   168,     0,   144,   102,
+      89,   162,   172,   125,    14,   120,   121,   119,    59,     0,
+     123,   168,   115,    59,    39,    41,     0,    40,    32,     0,
+      51,    59,    59,   110,     0,   146,     0,   160,   161,   156,
+     138,    99,   100,     0,    95,     0,    98,   106,   139,   173,
+     117,   118,     0,     0,     0,   116,    25,     0,     0,    48,
+      50,    49,     0,     0,   168,   168,     0,     0,    59,    90,
+       0,    97,    59,   164,     0,   124,     0,   170,     0,    34,
+      46,    38,    37,    31,    52,    56,    53,    24,    54,    55,
+       0,   159,   168,    94,    96,   168,    59,     0,   165,     0,
+      33,     0,    36,    27,   108,   168,     0,    59,   131,    35,
+     103,   122
+};
 
-#define yyerrok         (yyerrstatus = 0)
-#define yyclearin       (yychar = YYEMPTY)
-#define YYEMPTY         (-2)
-#define YYEOF           0
+/* YYDEFGOTO[NTERM-NUM].  */
+static const yytype_int16 yydefgoto[] =
+{
+      -1,     1,     2,     6,   107,   100,   149,     8,   103,   116,
+     117,   118,   258,   185,   333,   288,   308,   309,   313,   256,
+     119,   186,   222,   260,   293,   317,   318,   210,   251,   150,
+     151,   152,   153,   154,   199,   273,   274,   324,   275,   155,
+     156,   277,   304,   157,   188,   225,   226,   264,   158,   159,
+     160,   248,   249,   161,   283,   162,   163,   164,   165,   166,
+     252,   167,   168,   169,   170,   171,   196,   172,   173,   174,
+     175,   194,   176,   192,   177,   195,   232,   233,   266,   267,
+     204,   239,   200,   253,     9,   178,   211,   243,   212,    95
+};
 
-#define YYACCEPT        goto yyacceptlab
-#define YYABORT         goto yyabortlab
-#define YYERROR         goto yyerrorlab
+/* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
+   STATE-NUM.  */
+#define YYPACT_NINF -272
+static const yytype_int16 yypact[] =
+{
+    -272,    34,   -17,  -272,   365,   -71,  -272,   -92,    15,    20,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,    48,  -272,    25,   689,   -49,  -272,
+    -272,  -272,  -272,   256,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  1082,  -272,   365,  -272,   256,  -272,  -272,     3,
+    -272,  -272,  -272,  -272,   365,  -272,  -272,  -272,    40,    55,
+    -272,  -272,  -272,  -272,  -272,  -272,   -36,  -272,  -272,  -272,
+    -272,   -48,    40,  -272,  -272,  -272,  -272,    55,  -272,   -46,
+    -272,  -272,  -272,  -272,  -272,   -13,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,   365,  -272,  -272,  -272,  -272,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,    42,   -51,    68,
+    -272,    36,  -272,    -6,  -272,    57,  -272,    89,   -12,  -272,
+    -272,  -272,    -1,   -19,     0,     4,    40,  -272,  -272,    72,
+    -272,    40,  -272,  -272,  -272,     2,  -272,  -272,  -272,  -272,
+    -272,   -80,  -272,   365,    77,    77,  -272,  -272,  -272,   474,
+    -272,  -272,    91,    -7,  -272,   -47,  -272,  -272,  -272,    92,
+    -272,   365,     4,  -272,    58,    90,   904,     5,  -272,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,    62,
+      23,  1171,  -272,  -272,  -272,  -272,     7,  -272,     8,   583,
+      53,  -272,  -272,  -272,    84,  -272,   -73,  -272,  -272,  -272,
+    -272,  -272,  -272,   -66,  -272,    -9,     6,    -3,  -272,  -272,
+    -272,  -272,   135,    71,    65,  -272,  -272,   795,   -39,  -272,
+    -272,  -272,    59,   -10,     1,  1260,   112,   365,  -272,  -272,
+      90,  -272,  -272,  -272,    93,  -272,   120,   365,   -15,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+      18,  -272,   146,  -272,  -272,  1349,  -272,    80,  -272,    21,
+    -272,   795,  -272,  -272,  -272,   993,    22,  -272,  -272,  -272,
+    -272,  -272
+};
 
+/* YYPGOTO[NTERM-NUM].  */
+static const yytype_int16 yypgoto[] =
+{
+    -272,  -272,  -272,  -272,  -272,  -272,   155,  -272,  -272,  -272,
+      43,  -272,  -272,  -272,  -272,  -272,  -272,  -173,  -272,  -272,
+    -271,  -272,  -150,  -272,  -272,  -272,  -272,  -247,   -97,  -272,
+    -272,  -272,  -272,  -272,  -272,  -272,  -139,  -272,  -272,  -220,
+    -272,  -272,  -272,  -272,  -272,  -272,   -63,  -272,  -272,  -272,
+    -272,  -272,   -43,  -272,  -272,  -272,  -272,  -272,  -272,  -272,
+    -239,  -272,  -272,  -272,  -272,  -272,    26,  -272,  -272,  -272,
+    -272,    27,  -272,  -106,  -272,  -272,  -272,   -65,  -272,  -124,
+    -171,  -272,  -214,  -153,  -272,  -272,  -210,  -272,    -4,   -96
+};
+
+/* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
+   positive, shift that token.  If negative, reduce the rule which
+   number is the opposite.  If zero, do what YYDEFACT says.
+   If YYTABLE_NINF, syntax error.  */
+#define YYTABLE_NINF -168
+static const yytype_int16 yytable[] =
+{
+      94,   108,   207,   244,   112,   207,   207,   120,     4,   280,
+     261,   262,   197,   109,   285,   276,   310,   214,   215,   228,
+     120,   297,    96,   121,   122,   123,   124,  -167,   301,   311,
+      97,   181,   216,   125,     3,  -166,   203,   126,   127,   240,
+     128,   312,    99,   315,   129,  -167,   319,   182,   130,   101,
+     298,   241,   -28,  -166,   242,   302,   303,   131,    98,  -112,
+     310,  -112,   189,   190,   191,   133,   134,   135,   299,   229,
+     279,   300,   102,   136,   104,   137,   138,   110,   111,   139,
+     276,   217,   105,   198,   224,   193,   202,   140,   206,   326,
+     234,   183,   141,   142,   218,   237,   143,   329,   341,   245,
+     246,   247,   213,   236,   219,   144,   221,   145,   146,   220,
+     179,   147,   271,   272,   123,   223,     5,   148,   184,   224,
+     187,   330,   331,   257,   316,   208,   209,   235,   208,   208,
+     265,   259,  -112,   227,   230,   231,   238,   270,   281,   278,
+     282,   286,   292,   287,   296,   209,   305,   306,   307,   320,
+     314,   328,   334,   327,   336,   338,   340,     7,   339,   180,
+     332,   323,   263,   291,   294,   295,   201,   269,   121,   122,
+     123,   124,   250,   321,   205,   337,     0,     0,   125,     0,
+    -166,     0,   126,   127,     0,   128,     0,     0,     0,   129,
+       0,   120,     0,   130,     0,     0,     0,     0,  -166,     0,
+       0,   322,   131,     0,     0,   325,  -158,     0,     0,     0,
+     133,   134,   135,     0,     0,     0,     0,     0,   136,     0,
+     137,   138,     0,     0,   139,     0,     0,   268,     0,   335,
+       0,     0,   140,     0,     0,   120,     0,   141,   142,     0,
+       0,   143,     0,     0,     0,     0,     0,     0,     0,     0,
+     144,     0,   145,   146,     0,     0,   147,     0,     0,     0,
+       0,     0,   148,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,  -158,   113,     0,
+       0,   114,     0,    12,    13,     0,    14,    15,    16,    17,
+       0,     0,    18,   268,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,    31,    32,   115,    33,
+      34,    35,    36,    37,     0,    38,     0,    39,    40,    41,
+       0,    42,    43,    44,     0,     0,    45,     0,    46,    47,
+       0,    48,     0,    49,    50,     0,    51,    52,    53,     0,
+      54,    55,    56,    57,    58,     0,    59,     0,    60,    61,
+       0,    62,    63,    64,    65,    66,    67,    68,    69,    70,
+      71,    72,    73,    74,    75,    76,    77,    78,    79,    80,
+      81,    82,    83,    84,    85,    86,     0,    87,    88,     0,
+       0,    89,    90,    91,     0,    92,    93,    10,     0,    11,
+       0,     0,    12,    13,     0,    14,    15,    16,    17,     0,
+       0,    18,     0,    19,    20,    21,    22,    23,    24,    25,
+      26,    27,    28,    29,    30,    31,    32,     0,    33,    34,
+      35,    36,    37,     0,    38,     0,    39,    40,    41,     0,
+      42,    43,    44,     0,     0,    45,     0,    46,    47,     0,
+      48,     0,    49,    50,     0,    51,    52,    53,     0,    54,
+      55,    56,    57,    58,     0,    59,     0,    60,    61,     0,
+      62,    63,    64,    65,    66,    67,    68,    69,    70,    71,
+      72,    73,    74,    75,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    86,     0,    87,    88,     0,     0,
+      89,    90,    91,     0,    92,    93,   254,   255,     0,     0,
+       0,    12,    13,     0,    14,    15,    16,    17,     0,     0,
+      18,     0,    19,    20,    21,    22,    23,    24,    25,    26,
+      27,    28,    29,    30,    31,    32,     0,    33,    34,    35,
+      36,    37,     0,    38,     0,    39,    40,    41,     0,    42,
+      43,    44,     0,     0,    45,     0,    46,    47,     0,    48,
+       0,    49,    50,     0,    51,    52,    53,     0,    54,    55,
+      56,    57,    58,     0,    59,     0,    60,    61,     0,    62,
+      63,    64,    65,    66,    67,    68,    69,    70,    71,    72,
+      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,     0,    87,    88,     0,     0,    89,
+      90,    91,     0,    92,    93,   289,   290,     0,     0,     0,
+      12,    13,     0,    14,    15,    16,    17,     0,     0,    18,
+       0,    19,    20,    21,    22,    23,    24,    25,    26,    27,
+      28,    29,    30,    31,    32,     0,    33,    34,    35,    36,
+      37,     0,    38,     0,    39,    40,    41,     0,    42,    43,
+      44,     0,     0,    45,     0,    46,    47,     0,    48,     0,
+      49,    50,     0,    51,    52,    53,     0,    54,    55,    56,
+      57,    58,     0,    59,     0,    60,    61,     0,    62,    63,
+      64,    65,    66,    67,    68,    69,    70,    71,    72,    73,
+      74,    75,    76,    77,    78,    79,    80,    81,    82,    83,
+      84,    85,    86,     0,    87,    88,     0,     0,    89,    90,
+      91,   106,    92,    93,     0,     0,    12,    13,     0,    14,
+      15,    16,    17,     0,     0,    18,     0,    19,    20,    21,
+      22,    23,    24,    25,    26,    27,    28,    29,    30,    31,
+      32,     0,    33,    34,    35,    36,    37,     0,    38,     0,
+      39,    40,    41,     0,    42,    43,    44,     0,     0,    45,
+       0,    46,    47,     0,    48,     0,    49,    50,     0,    51,
+      52,    53,     0,    54,    55,    56,    57,    58,     0,    59,
+       0,    60,    61,     0,    62,    63,    64,    65,    66,    67,
+      68,    69,    70,    71,    72,    73,    74,    75,    76,    77,
+      78,    79,    80,    81,    82,    83,    84,    85,    86,     0,
+      87,    88,     0,     0,    89,    90,    91,   113,    92,    93,
+       0,     0,    12,    13,     0,    14,    15,    16,    17,     0,
+       0,    18,     0,    19,    20,    21,    22,    23,    24,    25,
+      26,    27,    28,    29,    30,    31,    32,     0,    33,    34,
+      35,    36,    37,     0,    38,     0,    39,    40,    41,     0,
+      42,    43,    44,     0,     0,    45,     0,    46,    47,     0,
+      48,     0,    49,    50,     0,    51,    52,    53,     0,    54,
+      55,    56,    57,    58,     0,    59,     0,    60,    61,     0,
+      62,    63,    64,    65,    66,    67,    68,    69,    70,    71,
+      72,    73,    74,    75,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    86,     0,    87,    88,     0,     0,
+      89,    90,    91,     0,    92,    93,   121,   122,   123,   124,
+       0,     0,     0,     0,     0,     0,   125,     0,  -166,     0,
+     126,   127,     0,   128,     0,     0,     0,   129,     0,     0,
+       0,   130,     0,     0,     0,     0,  -166,     0,     0,     0,
+     131,     0,  -104,  -104,  -104,     0,     0,     0,   133,   134,
+     135,     0,     0,     0,     0,     0,   136,     0,   137,   138,
+       0,     0,   139,     0,     0,     0,     0,     0,     0,     0,
+     140,     0,     0,     0,     0,   141,   142,     0,     0,   143,
+       0,     0,     0,     0,     0,     0,     0,     0,   144,     0,
+     145,   146,     0,     0,   147,   121,   122,   123,   124,     0,
+     148,     0,     0,     0,     0,   125,     0,  -166,     0,   126,
+     127,     0,   128,     0,     0,     0,   129,     0,     0,     0,
+     130,     0,     0,     0,     0,  -166,     0,     0,     0,   131,
+       0,  -105,  -105,  -105,     0,     0,     0,   133,   134,   135,
+       0,     0,     0,     0,     0,   136,     0,   137,   138,     0,
+       0,   139,     0,     0,     0,     0,     0,     0,     0,   140,
+       0,     0,     0,     0,   141,   142,     0,     0,   143,     0,
+       0,     0,     0,     0,     0,     0,     0,   144,     0,   145,
+     146,     0,     0,   147,   121,   122,   123,   124,     0,   148,
+       0,     0,     0,     0,   125,     0,  -166,     0,   126,   127,
+       0,   128,     0,     0,     0,   129,     0,     0,     0,   130,
+       0,     0,     0,     0,  -166,     0,     0,     0,   131,     0,
+       0,     0,  -153,     0,     0,   132,   133,   134,   135,     0,
+       0,     0,     0,     0,   136,     0,   137,   138,     0,     0,
+     139,     0,     0,     0,     0,     0,     0,     0,   140,     0,
+       0,     0,     0,   141,   142,     0,     0,   143,     0,     0,
+       0,     0,     0,     0,     0,     0,   144,     0,   145,   146,
+       0,     0,   147,   121,   122,   123,   124,     0,   148,     0,
+       0,     0,     0,   125,     0,  -166,     0,   126,   127,     0,
+     128,     0,     0,     0,   129,     0,     0,     0,   130,     0,
+       0,     0,     0,  -166,     0,     0,     0,   131,     0,     0,
+       0,   284,     0,     0,     0,   133,   134,   135,     0,     0,
+       0,     0,     0,   136,     0,   137,   138,     0,     0,   139,
+       0,     0,     0,     0,     0,     0,     0,   140,     0,     0,
+       0,     0,   141,   142,     0,     0,   143,     0,     0,     0,
+       0,     0,     0,     0,     0,   144,     0,   145,   146,     0,
+       0,   147,   121,   122,   123,   124,     0,   148,     0,     0,
+       0,     0,   125,     0,  -166,     0,   126,   127,     0,   128,
+       0,     0,     0,   129,     0,     0,     0,   130,     0,     0,
+       0,     0,  -166,     0,     0,     0,   131,     0,     0,     0,
+    -114,     0,     0,     0,   133,   134,   135,     0,     0,     0,
+       0,     0,   136,     0,   137,   138,     0,     0,   139,     0,
+       0,     0,     0,     0,     0,     0,   140,     0,     0,     0,
+       0,   141,   142,     0,     0,   143,     0,     0,     0,     0,
+       0,     0,     0,     0,   144,     0,   145,   146,     0,     0,
+     147,   121,   122,   123,   124,     0,   148,     0,     0,     0,
+       0,   125,     0,  -166,     0,   126,   127,     0,   128,     0,
+       0,     0,   129,     0,     0,     0,   130,     0,     0,     0,
+       0,  -166,     0,     0,     0,   131,     0,     0,     0,  -107,
+       0,     0,     0,   133,   134,   135,     0,     0,     0,     0,
+       0,   136,     0,   137,   138,     0,     0,   139,     0,     0,
+       0,     0,     0,     0,     0,   140,     0,     0,     0,     0,
+     141,   142,     0,     0,   143,     0,     0,     0,     0,     0,
+       0,     0,     0,   144,     0,   145,   146,     0,     0,   147,
+       0,     0,     0,     0,     0,   148
+};
+
+static const yytype_int16 yycheck[] =
+{
+       4,    97,    15,   213,   101,    15,    15,   103,    25,   248,
+     224,    58,    48,    62,   253,   235,   287,    68,    69,    38,
+     116,    94,    93,    22,    23,    24,    25,    34,   275,    68,
+     101,    28,    83,    32,     0,    34,   142,    36,    37,   210,
+      39,    80,   134,    53,    43,    52,   293,    44,    47,    34,
+     123,   131,    49,    52,   134,    58,    59,    56,   129,    58,
+     331,    60,    22,    23,    24,    64,    65,    66,   134,    88,
+     241,   137,    52,    72,    26,    74,    75,   126,   127,    78,
+     300,   132,    57,   119,   131,    30,   134,    86,   134,   303,
+     196,    88,    91,    92,    26,   201,    95,   307,   337,    22,
+      23,    24,    60,   200,    68,   104,    49,   106,   107,   115,
+     114,   110,    22,    23,    24,    26,   133,   116,   115,   131,
+     124,   136,   137,   219,   134,   138,   139,    55,   138,   138,
+      38,    40,   131,   134,   134,   131,   134,    79,    76,   134,
+     117,   134,    89,   135,    60,   139,    11,    76,    83,    37,
+      91,    31,   134,    60,    74,   134,   134,     2,   331,   116,
+     310,   300,   225,   259,   261,   262,   140,   232,    22,    23,
+      24,    25,   215,   297,   147,   328,    -1,    -1,    32,    -1,
+      34,    -1,    36,    37,    -1,    39,    -1,    -1,    -1,    43,
+      -1,   287,    -1,    47,    -1,    -1,    -1,    -1,    52,    -1,
+      -1,   298,    56,    -1,    -1,   302,    60,    -1,    -1,    -1,
+      64,    65,    66,    -1,    -1,    -1,    -1,    -1,    72,    -1,
+      74,    75,    -1,    -1,    78,    -1,    -1,   231,    -1,   326,
+      -1,    -1,    86,    -1,    -1,   331,    -1,    91,    92,    -1,
+      -1,    95,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+     104,    -1,   106,   107,    -1,    -1,   110,    -1,    -1,    -1,
+      -1,    -1,   116,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,   131,    22,    -1,
+      -1,    25,    -1,    27,    28,    -1,    30,    31,    32,    33,
+      -1,    -1,    36,   297,    38,    39,    40,    41,    42,    43,
+      44,    45,    46,    47,    48,    49,    50,    51,    52,    53,
+      54,    55,    56,    57,    -1,    59,    -1,    61,    62,    63,
+      -1,    65,    66,    67,    -1,    -1,    70,    -1,    72,    73,
+      -1,    75,    -1,    77,    78,    -1,    80,    81,    82,    -1,
+      84,    85,    86,    87,    88,    -1,    90,    -1,    92,    93,
+      -1,    95,    96,    97,    98,    99,   100,   101,   102,   103,
+     104,   105,   106,   107,   108,   109,   110,   111,   112,   113,
+     114,   115,   116,   117,   118,   119,    -1,   121,   122,    -1,
+      -1,   125,   126,   127,    -1,   129,   130,    22,    -1,    24,
+      -1,    -1,    27,    28,    -1,    30,    31,    32,    33,    -1,
+      -1,    36,    -1,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    -1,    53,    54,
+      55,    56,    57,    -1,    59,    -1,    61,    62,    63,    -1,
+      65,    66,    67,    -1,    -1,    70,    -1,    72,    73,    -1,
+      75,    -1,    77,    78,    -1,    80,    81,    82,    -1,    84,
+      85,    86,    87,    88,    -1,    90,    -1,    92,    93,    -1,
+      95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
+     105,   106,   107,   108,   109,   110,   111,   112,   113,   114,
+     115,   116,   117,   118,   119,    -1,   121,   122,    -1,    -1,
+     125,   126,   127,    -1,   129,   130,    22,    23,    -1,    -1,
+      -1,    27,    28,    -1,    30,    31,    32,    33,    -1,    -1,
+      36,    -1,    38,    39,    40,    41,    42,    43,    44,    45,
+      46,    47,    48,    49,    50,    51,    -1,    53,    54,    55,
+      56,    57,    -1,    59,    -1,    61,    62,    63,    -1,    65,
+      66,    67,    -1,    -1,    70,    -1,    72,    73,    -1,    75,
+      -1,    77,    78,    -1,    80,    81,    82,    -1,    84,    85,
+      86,    87,    88,    -1,    90,    -1,    92,    93,    -1,    95,
+      96,    97,    98,    99,   100,   101,   102,   103,   104,   105,
+     106,   107,   108,   109,   110,   111,   112,   113,   114,   115,
+     116,   117,   118,   119,    -1,   121,   122,    -1,    -1,   125,
+     126,   127,    -1,   129,   130,    22,    23,    -1,    -1,    -1,
+      27,    28,    -1,    30,    31,    32,    33,    -1,    -1,    36,
+      -1,    38,    39,    40,    41,    42,    43,    44,    45,    46,
+      47,    48,    49,    50,    51,    -1,    53,    54,    55,    56,
+      57,    -1,    59,    -1,    61,    62,    63,    -1,    65,    66,
+      67,    -1,    -1,    70,    -1,    72,    73,    -1,    75,    -1,
+      77,    78,    -1,    80,    81,    82,    -1,    84,    85,    86,
+      87,    88,    -1,    90,    -1,    92,    93,    -1,    95,    96,
+      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
+     107,   108,   109,   110,   111,   112,   113,   114,   115,   116,
+     117,   118,   119,    -1,   121,   122,    -1,    -1,   125,   126,
+     127,    22,   129,   130,    -1,    -1,    27,    28,    -1,    30,
+      31,    32,    33,    -1,    -1,    36,    -1,    38,    39,    40,
+      41,    42,    43,    44,    45,    46,    47,    48,    49,    50,
+      51,    -1,    53,    54,    55,    56,    57,    -1,    59,    -1,
+      61,    62,    63,    -1,    65,    66,    67,    -1,    -1,    70,
+      -1,    72,    73,    -1,    75,    -1,    77,    78,    -1,    80,
+      81,    82,    -1,    84,    85,    86,    87,    88,    -1,    90,
+      -1,    92,    93,    -1,    95,    96,    97,    98,    99,   100,
+     101,   102,   103,   104,   105,   106,   107,   108,   109,   110,
+     111,   112,   113,   114,   115,   116,   117,   118,   119,    -1,
+     121,   122,    -1,    -1,   125,   126,   127,    22,   129,   130,
+      -1,    -1,    27,    28,    -1,    30,    31,    32,    33,    -1,
+      -1,    36,    -1,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    -1,    53,    54,
+      55,    56,    57,    -1,    59,    -1,    61,    62,    63,    -1,
+      65,    66,    67,    -1,    -1,    70,    -1,    72,    73,    -1,
+      75,    -1,    77,    78,    -1,    80,    81,    82,    -1,    84,
+      85,    86,    87,    88,    -1,    90,    -1,    92,    93,    -1,
+      95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
+     105,   106,   107,   108,   109,   110,   111,   112,   113,   114,
+     115,   116,   117,   118,   119,    -1,   121,   122,    -1,    -1,
+     125,   126,   127,    -1,   129,   130,    22,    23,    24,    25,
+      -1,    -1,    -1,    -1,    -1,    -1,    32,    -1,    34,    -1,
+      36,    37,    -1,    39,    -1,    -1,    -1,    43,    -1,    -1,
+      -1,    47,    -1,    -1,    -1,    -1,    52,    -1,    -1,    -1,
+      56,    -1,    58,    59,    60,    -1,    -1,    -1,    64,    65,
+      66,    -1,    -1,    -1,    -1,    -1,    72,    -1,    74,    75,
+      -1,    -1,    78,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      86,    -1,    -1,    -1,    -1,    91,    92,    -1,    -1,    95,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,   104,    -1,
+     106,   107,    -1,    -1,   110,    22,    23,    24,    25,    -1,
+     116,    -1,    -1,    -1,    -1,    32,    -1,    34,    -1,    36,
+      37,    -1,    39,    -1,    -1,    -1,    43,    -1,    -1,    -1,
+      47,    -1,    -1,    -1,    -1,    52,    -1,    -1,    -1,    56,
+      -1,    58,    59,    60,    -1,    -1,    -1,    64,    65,    66,
+      -1,    -1,    -1,    -1,    -1,    72,    -1,    74,    75,    -1,
+      -1,    78,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    86,
+      -1,    -1,    -1,    -1,    91,    92,    -1,    -1,    95,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,   104,    -1,   106,
+     107,    -1,    -1,   110,    22,    23,    24,    25,    -1,   116,
+      -1,    -1,    -1,    -1,    32,    -1,    34,    -1,    36,    37,
+      -1,    39,    -1,    -1,    -1,    43,    -1,    -1,    -1,    47,
+      -1,    -1,    -1,    -1,    52,    -1,    -1,    -1,    56,    -1,
+      -1,    -1,    60,    -1,    -1,    63,    64,    65,    66,    -1,
+      -1,    -1,    -1,    -1,    72,    -1,    74,    75,    -1,    -1,
+      78,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    86,    -1,
+      -1,    -1,    -1,    91,    92,    -1,    -1,    95,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,   104,    -1,   106,   107,
+      -1,    -1,   110,    22,    23,    24,    25,    -1,   116,    -1,
+      -1,    -1,    -1,    32,    -1,    34,    -1,    36,    37,    -1,
+      39,    -1,    -1,    -1,    43,    -1,    -1,    -1,    47,    -1,
+      -1,    -1,    -1,    52,    -1,    -1,    -1,    56,    -1,    -1,
+      -1,    60,    -1,    -1,    -1,    64,    65,    66,    -1,    -1,
+      -1,    -1,    -1,    72,    -1,    74,    75,    -1,    -1,    78,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    86,    -1,    -1,
+      -1,    -1,    91,    92,    -1,    -1,    95,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,   104,    -1,   106,   107,    -1,
+      -1,   110,    22,    23,    24,    25,    -1,   116,    -1,    -1,
+      -1,    -1,    32,    -1,    34,    -1,    36,    37,    -1,    39,
+      -1,    -1,    -1,    43,    -1,    -1,    -1,    47,    -1,    -1,
+      -1,    -1,    52,    -1,    -1,    -1,    56,    -1,    -1,    -1,
+      60,    -1,    -1,    -1,    64,    65,    66,    -1,    -1,    -1,
+      -1,    -1,    72,    -1,    74,    75,    -1,    -1,    78,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    86,    -1,    -1,    -1,
+      -1,    91,    92,    -1,    -1,    95,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,   104,    -1,   106,   107,    -1,    -1,
+     110,    22,    23,    24,    25,    -1,   116,    -1,    -1,    -1,
+      -1,    32,    -1,    34,    -1,    36,    37,    -1,    39,    -1,
+      -1,    -1,    43,    -1,    -1,    -1,    47,    -1,    -1,    -1,
+      -1,    52,    -1,    -1,    -1,    56,    -1,    -1,    -1,    60,
+      -1,    -1,    -1,    64,    65,    66,    -1,    -1,    -1,    -1,
+      -1,    72,    -1,    74,    75,    -1,    -1,    78,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    86,    -1,    -1,    -1,    -1,
+      91,    92,    -1,    -1,    95,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,   104,    -1,   106,   107,    -1,    -1,   110,
+      -1,    -1,    -1,    -1,    -1,   116
+};
+
+/* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
+   symbol of state STATE-NUM.  */
+static const yytype_uint8 yystos[] =
+{
+       0,   141,   142,     0,    25,   133,   143,   146,   147,   224,
+      22,    24,    27,    28,    30,    31,    32,    33,    36,    38,
+      39,    40,    41,    42,    43,    44,    45,    46,    47,    48,
+      49,    50,    51,    53,    54,    55,    56,    57,    59,    61,
+      62,    63,    65,    66,    67,    70,    72,    73,    75,    77,
+      78,    80,    81,    82,    84,    85,    86,    87,    88,    90,
+      92,    93,    95,    96,    97,    98,    99,   100,   101,   102,
+     103,   104,   105,   106,   107,   108,   109,   110,   111,   112,
+     113,   114,   115,   116,   117,   118,   119,   121,   122,   125,
+     126,   127,   129,   130,   228,   229,    93,   101,   129,   134,
+     145,    34,    52,   148,    26,    57,    22,   144,   229,    62,
+     126,   127,   168,    22,    25,    52,   149,   150,   151,   160,
+     229,    22,    23,    24,    25,    32,    36,    37,    39,    43,
+      47,    56,    63,    64,    65,    66,    72,    74,    75,    78,
+      86,    91,    92,    95,   104,   106,   107,   110,   116,   146,
+     169,   170,   171,   172,   173,   179,   180,   183,   188,   189,
+     190,   193,   195,   196,   197,   198,   199,   201,   202,   203,
+     204,   205,   207,   208,   209,   210,   212,   214,   225,   228,
+     150,    28,    44,    88,   115,   153,   161,   228,   184,    22,
+      23,    24,   213,    30,   211,   215,   206,    48,   119,   174,
+     222,   206,   134,   213,   220,   211,   134,    15,   138,   139,
+     167,   226,   228,    60,    68,    69,    83,   132,    26,    68,
+     115,    49,   162,    26,   131,   185,   186,   134,    38,    88,
+     134,   131,   216,   217,   213,    55,   168,   213,   134,   221,
+     220,   131,   134,   227,   226,    22,    23,    24,   191,   192,
+     192,   168,   200,   223,    22,    23,   159,   229,   152,    40,
+     163,   222,    58,   186,   187,    38,   218,   219,   228,   217,
+      79,    22,    23,   175,   176,   178,   179,   181,   134,   220,
+     200,    76,   117,   194,    60,   200,   134,   135,   155,    22,
+      23,   229,    89,   164,   168,   168,    60,    94,   123,   134,
+     137,   167,    58,    59,   182,    11,    76,    83,   156,   157,
+     160,    68,    80,   158,    91,    53,   134,   165,   166,   167,
+      37,   219,   168,   176,   177,   168,   222,    60,    31,   226,
+     136,   137,   162,   154,   134,   168,    74,   223,   134,   157,
+     134,   200
+};
+
+#define yyerrok		(yyerrstatus = 0)
+#define yyclearin	(yychar = YYEMPTY)
+#define YYEMPTY		(-2)
+#define YYEOF		0
+
+#define YYACCEPT	goto yyacceptlab
+#define YYABORT		goto yyabortlab
+#define YYERROR		goto yyerrorlab
+
+
+/* Like YYERROR except do call yyerror.  This remains here temporarily
+   to ease the transition to the new meaning of YYERROR, for GCC.
+   Once GCC version 2 has supplanted version 1, this can go.  */
+
+#define YYFAIL		goto yyerrlab
 
 #define YYRECOVERING()  (!!yyerrstatus)
 
-#define YYBACKUP(Token, Value)                                    \
-  do                                                              \
-    if (yychar == YYEMPTY)                                        \
-      {                                                           \
-        yychar = (Token);                                         \
-        yylval = (Value);                                         \
-        YYPOPSTACK (yylen);                                       \
-        yystate = *yyssp;                                         \
-        goto yybackup;                                            \
-      }                                                           \
-    else                                                          \
-      {                                                           \
-        yyerror (YY_("syntax error: cannot back up")); \
-        YYERROR;                                                  \
-      }                                                           \
-  while (0)
+#define YYBACKUP(Token, Value)					\
+do								\
+  if (yychar == YYEMPTY && yylen == 1)				\
+    {								\
+      yychar = (Token);						\
+      yylval = (Value);						\
+      yytoken = YYTRANSLATE (yychar);				\
+      YYPOPSTACK (1);						\
+      goto yybackup;						\
+    }								\
+  else								\
+    {								\
+      yyerror (YY_("syntax error: cannot back up")); \
+      YYERROR;							\
+    }								\
+while (YYID (0))
 
-/* Error token number */
-#define YYTERROR        1
-#define YYERRCODE       256
+
+#define YYTERROR	1
+#define YYERRCODE	256
 
 
 /* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
    If N is 0, then set CURRENT to the empty location which ends
    the previous symbol: RHS[0] (always defined).  */
 
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 #ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-    do                                                                  \
-      if (N)                                                            \
-        {                                                               \
-          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
-          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
-          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
-          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
-        }                                                               \
-      else                                                              \
-        {                                                               \
-          (Current).first_line   = (Current).last_line   =              \
-            YYRHSLOC (Rhs, 0).last_line;                                \
-          (Current).first_column = (Current).last_column =              \
-            YYRHSLOC (Rhs, 0).last_column;                              \
-        }                                                               \
-    while (0)
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (YYID (N))                                                    \
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	}								\
+      else								\
+	{								\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	}								\
+    while (YYID (0))
 #endif
 
-#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 
+/* YY_LOCATION_PRINT -- Print the location on the stream.
+   This macro was not mandated originally: define only if we know
+   we won't break user code: when these are the locations we know.  */
+
+#ifndef YY_LOCATION_PRINT
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+#  define YY_LOCATION_PRINT(File, Loc)			\
+     fprintf (File, "%d.%d-%d.%d",			\
+	      (Loc).first_line, (Loc).first_column,	\
+	      (Loc).last_line,  (Loc).last_column)
+# else
+#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
+# endif
+#endif
+
+
+/* YYLEX -- calling `yylex' with the right arguments.  */
+
+#ifdef YYLEX_PARAM
+# define YYLEX yylex (YYLEX_PARAM)
+#else
+# define YYLEX yylex ()
+#endif
 
 /* Enable debugging if requested.  */
 #if YYDEBUG
@@ -1421,103 +1713,85 @@ static const yytype_uint8 yyr2[] =
 #  define YYFPRINTF fprintf
 # endif
 
-# define YYDPRINTF(Args)                        \
-do {                                            \
-  if (yydebug)                                  \
-    YYFPRINTF Args;                             \
-} while (0)
+# define YYDPRINTF(Args)			\
+do {						\
+  if (yydebug)					\
+    YYFPRINTF Args;				\
+} while (YYID (0))
+
+# define YY_SYMBOL_PRINT(Title, Type, Value, Location)			  \
+do {									  \
+  if (yydebug)								  \
+    {									  \
+      YYFPRINTF (stderr, "%s ", Title);					  \
+      yy_symbol_print (stderr,						  \
+		  Type, Value, Location); \
+      YYFPRINTF (stderr, "\n");						  \
+    }									  \
+} while (YYID (0))
 
 
-/* YY_LOCATION_PRINT -- Print the location on the stream.
-   This macro was not mandated originally: define only if we know
-   we won't break user code: when these are the locations we know.  */
+/*--------------------------------.
+| Print this symbol on YYOUTPUT.  |
+`--------------------------------*/
 
-#ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
-
-/* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
-
-YY_ATTRIBUTE_UNUSED
-static int
-yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
-{
-  int res = 0;
-  int end_col = 0 != yylocp->last_column ? yylocp->last_column - 1 : 0;
-  if (0 <= yylocp->first_line)
-    {
-      res += YYFPRINTF (yyo, "%d", yylocp->first_line);
-      if (0 <= yylocp->first_column)
-        res += YYFPRINTF (yyo, ".%d", yylocp->first_column);
-    }
-  if (0 <= yylocp->last_line)
-    {
-      if (yylocp->first_line < yylocp->last_line)
-        {
-          res += YYFPRINTF (yyo, "-%d", yylocp->last_line);
-          if (0 <= end_col)
-            res += YYFPRINTF (yyo, ".%d", end_col);
-        }
-      else if (0 <= end_col && yylocp->first_column < end_col)
-        res += YYFPRINTF (yyo, "-%d", end_col);
-    }
-  return res;
- }
-
-#  define YY_LOCATION_PRINT(File, Loc)          \
-  yy_location_print_ (File, &(Loc))
-
-# else
-#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)
-# endif
-#endif
-
-
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)                    \
-do {                                                                      \
-  if (yydebug)                                                            \
-    {                                                                     \
-      YYFPRINTF (stderr, "%s ", Title);                                   \
-      yy_symbol_print (stderr,                                            \
-                  Type, Value, Location); \
-      YYFPRINTF (stderr, "\n");                                           \
-    }                                                                     \
-} while (0)
-
-
-/*-----------------------------------.
-| Print this symbol's value on YYO.  |
-`-----------------------------------*/
-
+/*ARGSUSED*/
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+#else
+static void
+yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
+    FILE *yyoutput;
+    int yytype;
+    YYSTYPE const * const yyvaluep;
+    YYLTYPE const * const yylocationp;
+#endif
 {
-  FILE *yyoutput = yyo;
-  YYUSE (yyoutput);
-  YYUSE (yylocationp);
   if (!yyvaluep)
     return;
+  YYUSE (yylocationp);
 # ifdef YYPRINT
   if (yytype < YYNTOKENS)
-    YYPRINT (yyo, yytoknum[yytype], *yyvaluep);
+    YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
+# else
+  YYUSE (yyoutput);
 # endif
-  YYUSE (yytype);
+  switch (yytype)
+    {
+      default:
+	break;
+    }
 }
 
 
-/*---------------------------.
-| Print this symbol on YYO.  |
-`---------------------------*/
+/*--------------------------------.
+| Print this symbol on YYOUTPUT.  |
+`--------------------------------*/
 
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+#else
+static void
+yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp)
+    FILE *yyoutput;
+    int yytype;
+    YYSTYPE const * const yyvaluep;
+    YYLTYPE const * const yylocationp;
+#endif
 {
-  YYFPRINTF (yyo, "%s %s (",
-             yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
+  if (yytype < YYNTOKENS)
+    YYFPRINTF (yyoutput, "token %s (", yytname[yytype]);
+  else
+    YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
 
-  YY_LOCATION_PRINT (yyo, *yylocationp);
-  YYFPRINTF (yyo, ": ");
-  yy_symbol_value_print (yyo, yytype, yyvaluep, yylocationp);
-  YYFPRINTF (yyo, ")");
+  YY_LOCATION_PRINT (yyoutput, *yylocationp);
+  YYFPRINTF (yyoutput, ": ");
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp);
+  YYFPRINTF (yyoutput, ")");
 }
 
 /*------------------------------------------------------------------.
@@ -1525,54 +1799,67 @@ yy_symbol_print (FILE *yyo, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE 
 | TOP (included).                                                   |
 `------------------------------------------------------------------*/
 
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static void
-yy_stack_print (yytype_int16 *yybottom, yytype_int16 *yytop)
+yy_stack_print (yytype_int16 *bottom, yytype_int16 *top)
+#else
+static void
+yy_stack_print (bottom, top)
+    yytype_int16 *bottom;
+    yytype_int16 *top;
+#endif
 {
   YYFPRINTF (stderr, "Stack now");
-  for (; yybottom <= yytop; yybottom++)
-    {
-      int yybot = *yybottom;
-      YYFPRINTF (stderr, " %d", yybot);
-    }
+  for (; bottom <= top; ++bottom)
+    YYFPRINTF (stderr, " %d", *bottom);
   YYFPRINTF (stderr, "\n");
 }
 
-# define YY_STACK_PRINT(Bottom, Top)                            \
-do {                                                            \
-  if (yydebug)                                                  \
-    yy_stack_print ((Bottom), (Top));                           \
-} while (0)
+# define YY_STACK_PRINT(Bottom, Top)				\
+do {								\
+  if (yydebug)							\
+    yy_stack_print ((Bottom), (Top));				\
+} while (YYID (0))
 
 
 /*------------------------------------------------.
 | Report that the YYRULE is going to be reduced.  |
 `------------------------------------------------*/
 
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule)
+yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule)
+#else
+static void
+yy_reduce_print (yyvsp, yylsp, yyrule)
+    YYSTYPE *yyvsp;
+    YYLTYPE *yylsp;
+    int yyrule;
+#endif
 {
-  unsigned long yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
   int yyi;
+  unsigned long int yylno = yyrline[yyrule];
   YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
-             yyrule - 1, yylno);
+	     yyrule - 1, yylno);
   /* The symbols being reduced.  */
   for (yyi = 0; yyi < yynrhs; yyi++)
     {
-      YYFPRINTF (stderr, "   $%d = ", yyi + 1);
-      yy_symbol_print (stderr,
-                       yystos[yyssp[yyi + 1 - yynrhs]],
-                       &yyvsp[(yyi + 1) - (yynrhs)]
-                       , &(yylsp[(yyi + 1) - (yynrhs)])                       );
-      YYFPRINTF (stderr, "\n");
+      fprintf (stderr, "   $%d = ", yyi + 1);
+      yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
+		       &(yyvsp[(yyi + 1) - (yynrhs)])
+		       , &(yylsp[(yyi + 1) - (yynrhs)])		       );
+      fprintf (stderr, "\n");
     }
 }
 
-# define YY_REDUCE_PRINT(Rule)          \
-do {                                    \
-  if (yydebug)                          \
-    yy_reduce_print (yyssp, yyvsp, yylsp, Rule); \
-} while (0)
+# define YY_REDUCE_PRINT(Rule)		\
+do {					\
+  if (yydebug)				\
+    yy_reduce_print (yyvsp, yylsp, Rule); \
+} while (YYID (0))
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
@@ -1586,7 +1873,7 @@ int yydebug;
 
 
 /* YYINITDEPTH -- initial size of the parser's stacks.  */
-#ifndef YYINITDEPTH
+#ifndef	YYINITDEPTH
 # define YYINITDEPTH 200
 #endif
 
@@ -1601,6 +1888,7 @@ int yydebug;
 # define YYMAXDEPTH 10000
 #endif
 
+
 
 #if YYERROR_VERBOSE
 
@@ -1609,8 +1897,15 @@ int yydebug;
 #   define yystrlen strlen
 #  else
 /* Return the length of YYSTR.  */
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static YYSIZE_T
 yystrlen (const char *yystr)
+#else
+static YYSIZE_T
+yystrlen (yystr)
+    const char *yystr;
+#endif
 {
   YYSIZE_T yylen;
   for (yylen = 0; yystr[yylen]; yylen++)
@@ -1626,8 +1921,16 @@ yystrlen (const char *yystr)
 #  else
 /* Copy YYSRC to YYDEST, returning the address of the terminating '\0' in
    YYDEST.  */
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static char *
 yystpcpy (char *yydest, const char *yysrc)
+#else
+static char *
+yystpcpy (yydest, yysrc)
+    char *yydest;
+    const char *yysrc;
+#endif
 {
   char *yyd = yydest;
   const char *yys = yysrc;
@@ -1657,214 +1960,213 @@ yytnamerr (char *yyres, const char *yystr)
       char const *yyp = yystr;
 
       for (;;)
-        switch (*++yyp)
-          {
-          case '\'':
-          case ',':
-            goto do_not_strip_quotes;
+	switch (*++yyp)
+	  {
+	  case '\'':
+	  case ',':
+	    goto do_not_strip_quotes;
 
-          case '\\':
-            if (*++yyp != '\\')
-              goto do_not_strip_quotes;
-            else
-              goto append;
+	  case '\\':
+	    if (*++yyp != '\\')
+	      goto do_not_strip_quotes;
+	    /* Fall through.  */
+	  default:
+	    if (yyres)
+	      yyres[yyn] = *yyp;
+	    yyn++;
+	    break;
 
-          append:
-          default:
-            if (yyres)
-              yyres[yyn] = *yyp;
-            yyn++;
-            break;
-
-          case '"':
-            if (yyres)
-              yyres[yyn] = '\0';
-            return yyn;
-          }
+	  case '"':
+	    if (yyres)
+	      yyres[yyn] = '\0';
+	    return yyn;
+	  }
     do_not_strip_quotes: ;
     }
 
   if (! yyres)
     return yystrlen (yystr);
 
-  return (YYSIZE_T) (yystpcpy (yyres, yystr) - yyres);
+  return yystpcpy (yyres, yystr) - yyres;
 }
 # endif
 
-/* Copy into *YYMSG, which is of size *YYMSG_ALLOC, an error message
-   about the unexpected token YYTOKEN for the state stack whose top is
-   YYSSP.
-
-   Return 0 if *YYMSG was successfully written.  Return 1 if *YYMSG is
-   not large enough to hold the message.  In that case, also set
-   *YYMSG_ALLOC to the required number of bytes.  Return 2 if the
-   required number of bytes is too large to store.  */
-static int
-yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
-                yytype_int16 *yyssp, int yytoken)
+/* Copy into YYRESULT an error message about the unexpected token
+   YYCHAR while in state YYSTATE.  Return the number of bytes copied,
+   including the terminating null byte.  If YYRESULT is null, do not
+   copy anything; just return the number of bytes that would be
+   copied.  As a special case, return 0 if an ordinary "syntax error"
+   message will do.  Return YYSIZE_MAXIMUM if overflow occurs during
+   size calculation.  */
+static YYSIZE_T
+yysyntax_error (char *yyresult, int yystate, int yychar)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
-  YYSIZE_T yysize = yysize0;
-  enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
-  /* Internationalized format string. */
-  const char *yyformat = YY_NULLPTR;
-  /* Arguments of yyformat. */
-  char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
-  /* Number of reported tokens (one for the "unexpected", one per
-     "expected"). */
-  int yycount = 0;
+  int yyn = yypact[yystate];
 
-  /* There are many possibilities here to consider:
-     - If this state is a consistent state with a default action, then
-       the only way this function was invoked is if the default action
-       is an error action.  In that case, don't check for expected
-       tokens because there are none.
-     - The only way there can be no lookahead present (in yychar) is if
-       this state is a consistent state with a default action.  Thus,
-       detecting the absence of a lookahead is sufficient to determine
-       that there is no unexpected or expected token to report.  In that
-       case, just report a simple "syntax error".
-     - Don't assume there isn't a lookahead just because this state is a
-       consistent state with a default action.  There might have been a
-       previous inconsistent state, consistent state with a non-default
-       action, or user semantic action that manipulated yychar.
-     - Of course, the expected token list depends on states to have
-       correct lookahead information, and it depends on the parser not
-       to perform extra reductions after fetching a lookahead from the
-       scanner and before detecting a syntax error.  Thus, state merging
-       (from LALR or IELR) and default reductions corrupt the expected
-       token list.  However, the list is correct for canonical LR with
-       one exception: it will still contain any token that will not be
-       accepted due to an error action in a later state.
-  */
-  if (yytoken != YYEMPTY)
+  if (! (YYPACT_NINF < yyn && yyn <= YYLAST))
+    return 0;
+  else
     {
-      int yyn = yypact[*yyssp];
-      yyarg[yycount++] = yytname[yytoken];
-      if (!yypact_value_is_default (yyn))
-        {
-          /* Start YYX at -YYN if negative to avoid negative indexes in
-             YYCHECK.  In other words, skip the first -YYN actions for
-             this state because they are default actions.  */
-          int yyxbegin = yyn < 0 ? -yyn : 0;
-          /* Stay within bounds of both yycheck and yytname.  */
-          int yychecklim = YYLAST - yyn + 1;
-          int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
-          int yyx;
+      int yytype = YYTRANSLATE (yychar);
+      YYSIZE_T yysize0 = yytnamerr (0, yytname[yytype]);
+      YYSIZE_T yysize = yysize0;
+      YYSIZE_T yysize1;
+      int yysize_overflow = 0;
+      enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
+      char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
+      int yyx;
 
-          for (yyx = yyxbegin; yyx < yyxend; ++yyx)
-            if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR
-                && !yytable_value_is_error (yytable[yyx + yyn]))
-              {
-                if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
-                  {
-                    yycount = 1;
-                    yysize = yysize0;
-                    break;
-                  }
-                yyarg[yycount++] = yytname[yyx];
-                {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
-                  if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
-                    yysize = yysize1;
-                  else
-                    return 2;
-                }
-              }
-        }
-    }
+# if 0
+      /* This is so xgettext sees the translatable formats that are
+	 constructed on the fly.  */
+      YY_("syntax error, unexpected %s");
+      YY_("syntax error, unexpected %s, expecting %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s or %s");
+      YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s");
+# endif
+      char *yyfmt;
+      char const *yyf;
+      static char const yyunexpected[] = "syntax error, unexpected %s";
+      static char const yyexpecting[] = ", expecting %s";
+      static char const yyor[] = " or %s";
+      char yyformat[sizeof yyunexpected
+		    + sizeof yyexpecting - 1
+		    + ((YYERROR_VERBOSE_ARGS_MAXIMUM - 2)
+		       * (sizeof yyor - 1))];
+      char const *yyprefix = yyexpecting;
 
-  switch (yycount)
-    {
-# define YYCASE_(N, S)                      \
-      case N:                               \
-        yyformat = S;                       \
-      break
-    default: /* Avoid compiler warnings. */
-      YYCASE_(0, YY_("syntax error"));
-      YYCASE_(1, YY_("syntax error, unexpected %s"));
-      YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
-      YYCASE_(3, YY_("syntax error, unexpected %s, expecting %s or %s"));
-      YYCASE_(4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
-      YYCASE_(5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
-# undef YYCASE_
-    }
+      /* Start YYX at -YYN if negative to avoid negative indexes in
+	 YYCHECK.  */
+      int yyxbegin = yyn < 0 ? -yyn : 0;
 
-  {
-    YYSIZE_T yysize1 = yysize + yystrlen (yyformat);
-    if (yysize <= yysize1 && yysize1 <= YYSTACK_ALLOC_MAXIMUM)
+      /* Stay within bounds of both yycheck and yytname.  */
+      int yychecklim = YYLAST - yyn + 1;
+      int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
+      int yycount = 1;
+
+      yyarg[0] = yytname[yytype];
+      yyfmt = yystpcpy (yyformat, yyunexpected);
+
+      for (yyx = yyxbegin; yyx < yyxend; ++yyx)
+	if (yycheck[yyx + yyn] == yyx && yyx != YYTERROR)
+	  {
+	    if (yycount == YYERROR_VERBOSE_ARGS_MAXIMUM)
+	      {
+		yycount = 1;
+		yysize = yysize0;
+		yyformat[sizeof yyunexpected - 1] = '\0';
+		break;
+	      }
+	    yyarg[yycount++] = yytname[yyx];
+	    yysize1 = yysize + yytnamerr (0, yytname[yyx]);
+	    yysize_overflow |= (yysize1 < yysize);
+	    yysize = yysize1;
+	    yyfmt = yystpcpy (yyfmt, yyprefix);
+	    yyprefix = yyor;
+	  }
+
+      yyf = YY_(yyformat);
+      yysize1 = yysize + yystrlen (yyf);
+      yysize_overflow |= (yysize1 < yysize);
       yysize = yysize1;
-    else
-      return 2;
-  }
 
-  if (*yymsg_alloc < yysize)
-    {
-      *yymsg_alloc = 2 * yysize;
-      if (! (yysize <= *yymsg_alloc
-             && *yymsg_alloc <= YYSTACK_ALLOC_MAXIMUM))
-        *yymsg_alloc = YYSTACK_ALLOC_MAXIMUM;
-      return 1;
+      if (yysize_overflow)
+	return YYSIZE_MAXIMUM;
+
+      if (yyresult)
+	{
+	  /* Avoid sprintf, as that infringes on the user's name space.
+	     Don't have undefined behavior even if the translation
+	     produced a string with the wrong number of "%s"s.  */
+	  char *yyp = yyresult;
+	  int yyi = 0;
+	  while ((*yyp = *yyf) != '\0')
+	    {
+	      if (*yyp == '%' && yyf[1] == 's' && yyi < yycount)
+		{
+		  yyp += yytnamerr (yyp, yyarg[yyi++]);
+		  yyf += 2;
+		}
+	      else
+		{
+		  yyp++;
+		  yyf++;
+		}
+	    }
+	}
+      return yysize;
     }
-
-  /* Avoid sprintf, as that infringes on the user's name space.
-     Don't have undefined behavior even if the translation
-     produced a string with the wrong number of "%s"s.  */
-  {
-    char *yyp = *yymsg;
-    int yyi = 0;
-    while ((*yyp = *yyformat) != '\0')
-      if (*yyp == '%' && yyformat[1] == 's' && yyi < yycount)
-        {
-          yyp += yytnamerr (yyp, yyarg[yyi++]);
-          yyformat += 2;
-        }
-      else
-        {
-          yyp++;
-          yyformat++;
-        }
-  }
-  return 0;
 }
 #endif /* YYERROR_VERBOSE */
+
 
 /*-----------------------------------------------.
 | Release the memory associated to this symbol.  |
 `-----------------------------------------------*/
 
+/*ARGSUSED*/
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 static void
 yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp)
+#else
+static void
+yydestruct (yymsg, yytype, yyvaluep, yylocationp)
+    const char *yymsg;
+    int yytype;
+    YYSTYPE *yyvaluep;
+    YYLTYPE *yylocationp;
+#endif
 {
   YYUSE (yyvaluep);
   YYUSE (yylocationp);
+
   if (!yymsg)
     yymsg = "Deleting";
   YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  YYUSE (yytype);
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
+  switch (yytype)
+    {
+
+      default:
+	break;
+    }
 }
+
+
+/* Prevent warnings from -Wmissing-prototypes.  */
+
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 
 
-
-/* The lookahead symbol.  */
+/* The look-ahead symbol.  */
 __thread int yychar;
 
 
-/* The semantic value of the lookahead symbol.  */
+/* The semantic value of the look-ahead symbol.  */
 __thread YYSTYPE yylval;
 
-/* Location data for the lookahead symbol.  */
-__thread YYLTYPE yylloc
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
-  = { 1, 1, 1, 1 }
-# endif
-;
+
 /* Number of syntax errors so far.  */
 __thread int yynerrs;
+
+/* Location data for the look-ahead symbol.  */
+__thread YYLTYPE yylloc;
+
 
 
 
@@ -1872,50 +2174,36 @@ __thread int yynerrs;
 | yyparse.  |
 `----------*/
 
+#ifdef YYPARSE_PARAM
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
+int
+yyparse (void *YYPARSE_PARAM)
+#else
+int
+yyparse (YYPARSE_PARAM)
+    void *YYPARSE_PARAM;
+#endif
+#else /* ! YYPARSE_PARAM */
+#if (defined __STDC__ || defined __C99__FUNC__ \
+     || defined __cplusplus || defined _MSC_VER)
 int
 yyparse (void)
+#else
+int
+yyparse ()
+
+#endif
+#endif
 {
-    int yystate;
-    /* Number of tokens to shift before error messages enabled.  */
-    int yyerrstatus;
-
-    /* The stacks and their tools:
-       'yyss': related to states.
-       'yyvs': related to semantic values.
-       'yyls': related to locations.
-
-       Refer to the stacks through separate pointers, to allow yyoverflow
-       to reallocate them elsewhere.  */
-
-    /* The state stack.  */
-    yytype_int16 yyssa[YYINITDEPTH];
-    yytype_int16 *yyss;
-    yytype_int16 *yyssp;
-
-    /* The semantic value stack.  */
-    YYSTYPE yyvsa[YYINITDEPTH];
-    YYSTYPE *yyvs;
-    YYSTYPE *yyvsp;
-
-    /* The location stack.  */
-    YYLTYPE yylsa[YYINITDEPTH];
-    YYLTYPE *yyls;
-    YYLTYPE *yylsp;
-
-    /* The locations where the error started and ended.  */
-    YYLTYPE yyerror_range[3];
-
-    YYSIZE_T yystacksize;
-
+  
+  int yystate;
   int yyn;
   int yyresult;
-  /* Lookahead token as an internal (translated) token number.  */
+  /* Number of tokens to shift before error messages enabled.  */
+  int yyerrstatus;
+  /* Look-ahead token as an internal (translated) token number.  */
   int yytoken = 0;
-  /* The variables used to return semantic value and location from the
-     action routines.  */
-  YYSTYPE yyval;
-  YYLTYPE yyloc;
-
 #if YYERROR_VERBOSE
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
@@ -1923,134 +2211,167 @@ yyparse (void)
   YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
 #endif
 
+  /* Three stacks and their tools:
+     `yyss': related to states,
+     `yyvs': related to semantic values,
+     `yyls': related to locations.
+
+     Refer to the stacks thru separate pointers, to allow yyoverflow
+     to reallocate them elsewhere.  */
+
+  /* The state stack.  */
+  yytype_int16 yyssa[YYINITDEPTH];
+  yytype_int16 *yyss = yyssa;
+  yytype_int16 *yyssp;
+
+  /* The semantic value stack.  */
+  YYSTYPE yyvsa[YYINITDEPTH];
+  YYSTYPE *yyvs = yyvsa;
+  YYSTYPE *yyvsp;
+
+  /* The location stack.  */
+  YYLTYPE yylsa[YYINITDEPTH];
+  YYLTYPE *yyls = yylsa;
+  YYLTYPE *yylsp;
+  /* The locations where the error started and ended.  */
+  YYLTYPE yyerror_range[2];
+
 #define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N), yylsp -= (N))
+
+  YYSIZE_T yystacksize = YYINITDEPTH;
+
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+  YYLTYPE yyloc;
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
   int yylen = 0;
-
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;
-  yylsp = yyls = yylsa;
-  yystacksize = YYINITDEPTH;
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
   yystate = 0;
   yyerrstatus = 0;
   yynerrs = 0;
-  yychar = YYEMPTY; /* Cause a token to be read.  */
-  yylsp[0] = yylloc;
+  yychar = YYEMPTY;		/* Cause a token to be read.  */
+
+  /* Initialize stack pointers.
+     Waste one element of value and location stack
+     so that they stay on the same level as the state stack.
+     The wasted elements are never initialized.  */
+
+  yyssp = yyss;
+  yyvsp = yyvs;
+  yylsp = yyls;
+#if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+  /* Initialize the default location before parsing starts.  */
+  yylloc.first_line   = yylloc.last_line   = 1;
+  yylloc.first_column = yylloc.last_column = 0;
+#endif
+
   goto yysetstate;
 
-
 /*------------------------------------------------------------.
-| yynewstate -- push a new state, which is found in yystate.  |
+| yynewstate -- Push a new state, which is found in yystate.  |
 `------------------------------------------------------------*/
-yynewstate:
+ yynewstate:
   /* In all cases, when you get here, the value and location stacks
      have just been pushed.  So pushing a state here evens the stacks.  */
   yyssp++;
 
-
-/*--------------------------------------------------------------------.
-| yynewstate -- set current state (the top of the stack) to yystate.  |
-`--------------------------------------------------------------------*/
-yysetstate:
-  *yyssp = (yytype_int16) yystate;
+ yysetstate:
+  *yyssp = yystate;
 
   if (yyss + yystacksize - 1 <= yyssp)
-#if !defined yyoverflow && !defined YYSTACK_RELOCATE
-    goto yyexhaustedlab;
-#else
     {
       /* Get the current used size of the three stacks, in elements.  */
-      YYSIZE_T yysize = (YYSIZE_T) (yyssp - yyss + 1);
+      YYSIZE_T yysize = yyssp - yyss + 1;
 
-# if defined yyoverflow
+#ifdef yyoverflow
       {
-        /* Give user a chance to reallocate the stack.  Use copies of
-           these so that the &'s don't force the real ones into
-           memory.  */
-        YYSTYPE *yyvs1 = yyvs;
-        yytype_int16 *yyss1 = yyss;
-        YYLTYPE *yyls1 = yyls;
+	/* Give user a chance to reallocate the stack.  Use copies of
+	   these so that the &'s don't force the real ones into
+	   memory.  */
+	YYSTYPE *yyvs1 = yyvs;
+	yytype_int16 *yyss1 = yyss;
+	YYLTYPE *yyls1 = yyls;
 
-        /* Each stack pointer address is followed by the size of the
-           data in use in that stack, in bytes.  This used to be a
-           conditional around just the two extra args, but that might
-           be undefined if yyoverflow is a macro.  */
-        yyoverflow (YY_("memory exhausted"),
-                    &yyss1, yysize * sizeof (*yyssp),
-                    &yyvs1, yysize * sizeof (*yyvsp),
-                    &yyls1, yysize * sizeof (*yylsp),
-                    &yystacksize);
-        yyss = yyss1;
-        yyvs = yyvs1;
-        yyls = yyls1;
+	/* Each stack pointer address is followed by the size of the
+	   data in use in that stack, in bytes.  This used to be a
+	   conditional around just the two extra args, but that might
+	   be undefined if yyoverflow is a macro.  */
+	yyoverflow (YY_("memory exhausted"),
+		    &yyss1, yysize * sizeof (*yyssp),
+		    &yyvs1, yysize * sizeof (*yyvsp),
+		    &yyls1, yysize * sizeof (*yylsp),
+		    &yystacksize);
+	yyls = yyls1;
+	yyss = yyss1;
+	yyvs = yyvs1;
       }
-# else /* defined YYSTACK_RELOCATE */
+#else /* no yyoverflow */
+# ifndef YYSTACK_RELOCATE
+      goto yyexhaustedlab;
+# else
       /* Extend the stack our own way.  */
       if (YYMAXDEPTH <= yystacksize)
-        goto yyexhaustedlab;
+	goto yyexhaustedlab;
       yystacksize *= 2;
       if (YYMAXDEPTH < yystacksize)
-        yystacksize = YYMAXDEPTH;
+	yystacksize = YYMAXDEPTH;
 
       {
-        yytype_int16 *yyss1 = yyss;
-        union yyalloc *yyptr =
-          (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
-        if (! yyptr)
-          goto yyexhaustedlab;
-        YYSTACK_RELOCATE (yyss_alloc, yyss);
-        YYSTACK_RELOCATE (yyvs_alloc, yyvs);
-        YYSTACK_RELOCATE (yyls_alloc, yyls);
-# undef YYSTACK_RELOCATE
-        if (yyss1 != yyssa)
-          YYSTACK_FREE (yyss1);
+	yytype_int16 *yyss1 = yyss;
+	union yyalloc *yyptr =
+	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
+	if (! yyptr)
+	  goto yyexhaustedlab;
+	YYSTACK_RELOCATE (yyss);
+	YYSTACK_RELOCATE (yyvs);
+	YYSTACK_RELOCATE (yyls);
+#  undef YYSTACK_RELOCATE
+	if (yyss1 != yyssa)
+	  YYSTACK_FREE (yyss1);
       }
 # endif
+#endif /* no yyoverflow */
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
       yylsp = yyls + yysize - 1;
 
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
-                  (unsigned long) yystacksize));
+		  (unsigned long int) yystacksize));
 
       if (yyss + yystacksize - 1 <= yyssp)
-        YYABORT;
+	YYABORT;
     }
-#endif /* !defined yyoverflow && !defined YYSTACK_RELOCATE */
 
   YYDPRINTF ((stderr, "Entering state %d\n", yystate));
 
-  if (yystate == YYFINAL)
-    YYACCEPT;
-
   goto yybackup;
-
 
 /*-----------.
 | yybackup.  |
 `-----------*/
 yybackup:
-  /* Do appropriate processing given the current state.  Read a
-     lookahead token if we need one and don't already have one.  */
 
-  /* First try to decide what to do without reference to lookahead token.  */
+  /* Do appropriate processing given the current state.  Read a
+     look-ahead token if we need one and don't already have one.  */
+
+  /* First try to decide what to do without reference to look-ahead token.  */
   yyn = yypact[yystate];
-  if (yypact_value_is_default (yyn))
+  if (yyn == YYPACT_NINF)
     goto yydefault;
 
-  /* Not known => get a lookahead token if don't already have one.  */
+  /* Not known => get a look-ahead token if don't already have one.  */
 
-  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid look-ahead symbol.  */
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
-      yychar = yylex ();
+      yychar = YYLEX;
     }
 
   if (yychar <= YYEOF)
@@ -2072,27 +2393,29 @@ yybackup:
   yyn = yytable[yyn];
   if (yyn <= 0)
     {
-      if (yytable_value_is_error (yyn))
-        goto yyerrlab;
+      if (yyn == 0 || yyn == YYTABLE_NINF)
+	goto yyerrlab;
       yyn = -yyn;
       goto yyreduce;
     }
+
+  if (yyn == YYFINAL)
+    YYACCEPT;
 
   /* Count tokens shifted since error; after three, turn off error
      status.  */
   if (yyerrstatus)
     yyerrstatus--;
 
-  /* Shift the lookahead token.  */
+  /* Shift the look-ahead token.  */
   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
 
-  /* Discard the shifted token.  */
-  yychar = YYEMPTY;
+  /* Discard the shifted token unless it is eof.  */
+  if (yychar != YYEOF)
+    yychar = YYEMPTY;
 
   yystate = yyn;
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
   *++yylsp = yylloc;
   goto yynewstate;
 
@@ -2108,14 +2431,14 @@ yydefault:
 
 
 /*-----------------------------.
-| yyreduce -- do a reduction.  |
+| yyreduce -- Do a reduction.  |
 `-----------------------------*/
 yyreduce:
   /* yyn is the number of a rule to reduce with.  */
   yylen = yyr2[yyn];
 
   /* If YYLEN is nonzero, implement the default value of the action:
-     '$$ = $1'.
+     `$$ = $1'.
 
      Otherwise, the following line sets YYVAL to garbage.
      This behavior is undocumented and Bison
@@ -2124,140 +2447,128 @@ yyreduce:
      GCC warning that YYVAL may be used uninitialized.  */
   yyval = yyvsp[1-yylen];
 
-  /* Default location. */
+  /* Default location.  */
   YYLLOC_DEFAULT (yyloc, (yylsp - yylen), yylen);
-  yyerror_range[1] = yyloc;
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
         case 2:
-#line 354 "pl_gram.y" /* yacc.c:1652  */
+#line 365 "pl_gram.y"
     {
-						plpgsql_parse_result = (PLpgSQL_stmt_block *) (yyvsp[-1].stmt);
-					}
-#line 2087 "pl_gram.c" /* yacc.c:1652  */
+						plpgsql_parse_result = (PLpgSQL_stmt_block *) (yyvsp[(2) - (3)].stmt);
+					;}
     break;
 
   case 5:
-#line 364 "pl_gram.y" /* yacc.c:1652  */
+#line 375 "pl_gram.y"
     {
 						plpgsql_DumpExecTree = true;
-					}
-#line 2095 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 6:
-#line 368 "pl_gram.y" /* yacc.c:1652  */
+#line 379 "pl_gram.y"
     {
-						if (strcmp((yyvsp[0].str), "on") == 0)
+						if (strcmp((yyvsp[(3) - (3)].str), "on") == 0)
 							plpgsql_curr_compile->print_strict_params = true;
-						else if (strcmp((yyvsp[0].str), "off") == 0)
+						else if (strcmp((yyvsp[(3) - (3)].str), "off") == 0)
 							plpgsql_curr_compile->print_strict_params = false;
 						else
-							elog(ERROR, "unrecognized print_strict_params option %s", (yyvsp[0].str));
-					}
-#line 2108 "pl_gram.c" /* yacc.c:1652  */
+							elog(ERROR, "unrecognized print_strict_params option %s", (yyvsp[(3) - (3)].str));
+					;}
     break;
 
   case 7:
-#line 377 "pl_gram.y" /* yacc.c:1652  */
+#line 388 "pl_gram.y"
     {
 						plpgsql_curr_compile->resolve_option = PLPGSQL_RESOLVE_ERROR;
-					}
-#line 2116 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 8:
-#line 381 "pl_gram.y" /* yacc.c:1652  */
+#line 392 "pl_gram.y"
     {
 						plpgsql_curr_compile->resolve_option = PLPGSQL_RESOLVE_VARIABLE;
-					}
-#line 2124 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 9:
-#line 385 "pl_gram.y" /* yacc.c:1652  */
+#line 396 "pl_gram.y"
     {
 						plpgsql_curr_compile->resolve_option = PLPGSQL_RESOLVE_COLUMN;
-					}
-#line 2132 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 10:
-#line 391 "pl_gram.y" /* yacc.c:1652  */
+#line 402 "pl_gram.y"
     {
-					(yyval.str) = (yyvsp[0].word).ident;
-				}
-#line 2140 "pl_gram.c" /* yacc.c:1652  */
+					(yyval.str) = (yyvsp[(1) - (1)].word).ident;
+				;}
     break;
 
   case 11:
-#line 395 "pl_gram.y" /* yacc.c:1652  */
+#line 406 "pl_gram.y"
     {
-					(yyval.str) = pstrdup((yyvsp[0].keyword));
-				}
-#line 2148 "pl_gram.c" /* yacc.c:1652  */
+					(yyval.str) = pstrdup((yyvsp[(1) - (1)].keyword));
+				;}
     break;
 
   case 14:
-#line 404 "pl_gram.y" /* yacc.c:1652  */
+#line 415 "pl_gram.y"
     {
 						PLpgSQL_stmt_block *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_block));
 
 						new->cmd_type	= PLPGSQL_STMT_BLOCK;
-						new->lineno		= plpgsql_location_to_lineno((yylsp[-4]));
-						new->label		= (yyvsp[-5].declhdr).label;
-						new->n_initvars = (yyvsp[-5].declhdr).n_initvars;
-						new->initvarnos = (yyvsp[-5].declhdr).initvarnos;
-						new->body		= (yyvsp[-3].list);
-						new->exceptions	= (yyvsp[-2].exception_block);
+						new->lineno		= plpgsql_location_to_lineno((yylsp[(2) - (6)]));
+						new->stmtid		= ++plpgsql_curr_compile->nstatements;
+						new->label		= (yyvsp[(1) - (6)].declhdr).label;
+						new->n_initvars = (yyvsp[(1) - (6)].declhdr).n_initvars;
+						new->initvarnos = (yyvsp[(1) - (6)].declhdr).initvarnos;
+						new->body		= (yyvsp[(3) - (6)].list);
+						new->exceptions	= (yyvsp[(4) - (6)].exception_block);
 
-						check_labels((yyvsp[-5].declhdr).label, (yyvsp[0].str), (yylsp[0]));
+						check_labels((yyvsp[(1) - (6)].declhdr).label, (yyvsp[(6) - (6)].str), (yylsp[(6) - (6)]));
 						plpgsql_ns_pop();
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 2171 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 15:
-#line 426 "pl_gram.y" /* yacc.c:1652  */
+#line 438 "pl_gram.y"
     {
 						/* done with decls, so resume identifier lookup */
 						plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_NORMAL;
-						(yyval.declhdr).label	  = (yyvsp[0].str);
+						(yyval.declhdr).label	  = (yyvsp[(1) - (1)].str);
 						(yyval.declhdr).n_initvars = 0;
 						(yyval.declhdr).initvarnos = NULL;
-					}
-#line 2183 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 16:
-#line 434 "pl_gram.y" /* yacc.c:1652  */
+#line 446 "pl_gram.y"
     {
 						plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_NORMAL;
-						(yyval.declhdr).label	  = (yyvsp[-1].str);
+						(yyval.declhdr).label	  = (yyvsp[(1) - (2)].str);
 						(yyval.declhdr).n_initvars = 0;
 						(yyval.declhdr).initvarnos = NULL;
-					}
-#line 2194 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 17:
-#line 441 "pl_gram.y" /* yacc.c:1652  */
+#line 453 "pl_gram.y"
     {
 						plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_NORMAL;
-						(yyval.declhdr).label	  = (yyvsp[-2].str);
+						(yyval.declhdr).label	  = (yyvsp[(1) - (3)].str);
 						/* Remember variables declared in decl_stmts */
 						(yyval.declhdr).n_initvars = plpgsql_add_initdatums(&((yyval.declhdr).initvarnos));
-					}
-#line 2205 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 18:
-#line 450 "pl_gram.y" /* yacc.c:1652  */
+#line 462 "pl_gram.y"
     {
 						/* Forget any variables created before block */
 						plpgsql_add_initdatums(NULL);
@@ -2266,20 +2577,18 @@ yyreduce:
 						 * we process the decl_stmts
 						 */
 						plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_DECLARE;
-					}
-#line 2219 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 22:
-#line 467 "pl_gram.y" /* yacc.c:1652  */
+#line 479 "pl_gram.y"
     {
 						/* We allow useless extra DECLAREs */
-					}
-#line 2227 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 23:
-#line 471 "pl_gram.y" /* yacc.c:1652  */
+#line 483 "pl_gram.y"
     {
 						/*
 						 * Throw a helpful error if user tries to put block
@@ -2288,13 +2597,12 @@ yyreduce:
 						ereport(ERROR,
 								(errcode(ERRCODE_SYNTAX_ERROR),
 								 errmsg("block label must be placed before DECLARE, not after"),
-								 parser_errposition((yylsp[-2]))));
-					}
-#line 2242 "pl_gram.c" /* yacc.c:1652  */
+								 parser_errposition((yylsp[(1) - (3)]))));
+					;}
     break;
 
   case 24:
-#line 484 "pl_gram.y" /* yacc.c:1652  */
+#line 496 "pl_gram.y"
     {
 						PLpgSQL_variable	*var;
 
@@ -2304,71 +2612,51 @@ yyreduce:
 						 * a freshly built struct not shared with other
 						 * variables.
 						 */
-						if (OidIsValid((yyvsp[-2].oid)))
+						if (OidIsValid((yyvsp[(4) - (6)].oid)))
 						{
-							if (!OidIsValid((yyvsp[-3].dtype)->collation))
+							if (!OidIsValid((yyvsp[(3) - (6)].dtype)->collation))
 								ereport(ERROR,
 										(errcode(ERRCODE_DATATYPE_MISMATCH),
 										 errmsg("collations are not supported by type %s",
-												format_type_be((yyvsp[-3].dtype)->typoid)),
-										 parser_errposition((yylsp[-2]))));
-							(yyvsp[-3].dtype)->collation = (yyvsp[-2].oid);
+												format_type_be((yyvsp[(3) - (6)].dtype)->typoid)),
+										 parser_errposition((yylsp[(4) - (6)]))));
+							(yyvsp[(3) - (6)].dtype)->collation = (yyvsp[(4) - (6)].oid);
 						}
 
-						var = plpgsql_build_variable((yyvsp[-5].varname).name, (yyvsp[-5].varname).lineno,
-													 (yyvsp[-3].dtype), true);
-						if ((yyvsp[-4].boolean))
-						{
-							if (var->dtype == PLPGSQL_DTYPE_VAR)
-								((PLpgSQL_var *) var)->isconst = (yyvsp[-4].boolean);
-							else
-								ereport(ERROR,
-										(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-										 errmsg("row or record variable cannot be CONSTANT"),
-										 parser_errposition((yylsp[-4]))));
-						}
-						if ((yyvsp[-1].boolean))
-						{
-							if (var->dtype == PLPGSQL_DTYPE_VAR)
-								((PLpgSQL_var *) var)->notnull = (yyvsp[-1].boolean);
-							else
-								ereport(ERROR,
-										(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-										 errmsg("row or record variable cannot be NOT NULL"),
-										 parser_errposition((yylsp[-2]))));
+						var = plpgsql_build_variable((yyvsp[(1) - (6)].varname).name, (yyvsp[(1) - (6)].varname).lineno,
+													 (yyvsp[(3) - (6)].dtype), true);
+						var->isconst = (yyvsp[(2) - (6)].boolean);
+						var->notnull = (yyvsp[(5) - (6)].boolean);
+						var->default_val = (yyvsp[(6) - (6)].expr);
 
-						}
-						if ((yyvsp[0].expr) != NULL)
-						{
-							if (var->dtype == PLPGSQL_DTYPE_VAR)
-								((PLpgSQL_var *) var)->default_val = (yyvsp[0].expr);
-							else
-								ereport(ERROR,
-										(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-										 errmsg("default value for row or record variable is not supported"),
-										 parser_errposition((yylsp[-1]))));
-						}
-					}
-#line 2301 "pl_gram.c" /* yacc.c:1652  */
+						/*
+						 * The combination of NOT NULL without an initializer
+						 * can't work, so let's reject it at compile time.
+						 */
+						if (var->notnull && var->default_val == NULL)
+							ereport(ERROR,
+									(errcode(ERRCODE_NULL_VALUE_NOT_ALLOWED),
+									 errmsg("variable \"%s\" must have a default value, since it's declared NOT NULL",
+											var->refname),
+									 parser_errposition((yylsp[(5) - (6)]))));
+					;}
     break;
 
   case 25:
-#line 539 "pl_gram.y" /* yacc.c:1652  */
+#line 534 "pl_gram.y"
     {
-						plpgsql_ns_additem((yyvsp[-1].nsitem)->itemtype,
-										   (yyvsp[-1].nsitem)->itemno, (yyvsp[-4].varname).name);
-					}
-#line 2310 "pl_gram.c" /* yacc.c:1652  */
+						plpgsql_ns_additem((yyvsp[(4) - (5)].nsitem)->itemtype,
+										   (yyvsp[(4) - (5)].nsitem)->itemno, (yyvsp[(1) - (5)].varname).name);
+					;}
     break;
 
   case 26:
-#line 544 "pl_gram.y" /* yacc.c:1652  */
-    { plpgsql_ns_push((yyvsp[-2].varname).name, PLPGSQL_LABEL_OTHER); }
-#line 2316 "pl_gram.c" /* yacc.c:1652  */
+#line 539 "pl_gram.y"
+    { plpgsql_ns_push((yyvsp[(1) - (3)].varname).name, PLPGSQL_LABEL_OTHER); ;}
     break;
 
   case 27:
-#line 546 "pl_gram.y" /* yacc.c:1652  */
+#line 541 "pl_gram.y"
     {
 						PLpgSQL_var *new;
 						PLpgSQL_expr *curname_def;
@@ -2380,15 +2668,15 @@ yyreduce:
 						plpgsql_ns_pop();
 
 						new = (PLpgSQL_var *)
-							plpgsql_build_variable((yyvsp[-6].varname).name, (yyvsp[-6].varname).lineno,
+							plpgsql_build_variable((yyvsp[(1) - (7)].varname).name, (yyvsp[(1) - (7)].varname).lineno,
 												   plpgsql_build_datatype(REFCURSOROID,
 																		  -1,
-																		  InvalidOid),
+																		  InvalidOid,
+																		  NULL),
 												   true);
 
 						curname_def = palloc0(sizeof(PLpgSQL_expr));
 
-						curname_def->dtype = PLPGSQL_DTYPE_EXPR;
 						strcpy(buf, "SELECT ");
 						cp1 = new->refname;
 						cp2 = buf + strlen(buf);
@@ -2409,58 +2697,52 @@ yyreduce:
 						curname_def->query = pstrdup(buf);
 						new->default_val = curname_def;
 
-						new->cursor_explicit_expr = (yyvsp[0].expr);
-						if ((yyvsp[-2].datum) == NULL)
+						new->cursor_explicit_expr = (yyvsp[(7) - (7)].expr);
+						if ((yyvsp[(5) - (7)].datum) == NULL)
 							new->cursor_explicit_argrow = -1;
 						else
-							new->cursor_explicit_argrow = (yyvsp[-2].datum)->dno;
-						new->cursor_options = CURSOR_OPT_FAST_PLAN | (yyvsp[-5].ival);
-					}
-#line 2368 "pl_gram.c" /* yacc.c:1652  */
+							new->cursor_explicit_argrow = (yyvsp[(5) - (7)].datum)->dno;
+						new->cursor_options = CURSOR_OPT_FAST_PLAN | (yyvsp[(2) - (7)].ival);
+					;}
     break;
 
   case 28:
-#line 596 "pl_gram.y" /* yacc.c:1652  */
+#line 591 "pl_gram.y"
     {
 						(yyval.ival) = 0;
-					}
-#line 2376 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 29:
-#line 600 "pl_gram.y" /* yacc.c:1652  */
+#line 595 "pl_gram.y"
     {
 						(yyval.ival) = CURSOR_OPT_NO_SCROLL;
-					}
-#line 2384 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 30:
-#line 604 "pl_gram.y" /* yacc.c:1652  */
+#line 599 "pl_gram.y"
     {
 						(yyval.ival) = CURSOR_OPT_SCROLL;
-					}
-#line 2392 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 31:
-#line 610 "pl_gram.y" /* yacc.c:1652  */
+#line 605 "pl_gram.y"
     {
 						(yyval.expr) = read_sql_stmt("");
-					}
-#line 2400 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 32:
-#line 616 "pl_gram.y" /* yacc.c:1652  */
+#line 611 "pl_gram.y"
     {
 						(yyval.datum) = NULL;
-					}
-#line 2408 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 33:
-#line 620 "pl_gram.y" /* yacc.c:1652  */
+#line 615 "pl_gram.y"
     {
 						PLpgSQL_row *new;
 						int i;
@@ -2468,108 +2750,104 @@ yyreduce:
 
 						new = palloc0(sizeof(PLpgSQL_row));
 						new->dtype = PLPGSQL_DTYPE_ROW;
-						new->lineno = plpgsql_location_to_lineno((yylsp[-2]));
+						new->refname = "(unnamed row)";
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
 						new->rowtupdesc = NULL;
-						new->nfields = list_length((yyvsp[-1].list));
+						new->nfields = list_length((yyvsp[(2) - (3)].list));
 						new->fieldnames = palloc(new->nfields * sizeof(char *));
 						new->varnos = palloc(new->nfields * sizeof(int));
 
 						i = 0;
-						foreach (l, (yyvsp[-1].list))
+						foreach (l, (yyvsp[(2) - (3)].list))
 						{
 							PLpgSQL_variable *arg = (PLpgSQL_variable *) lfirst(l);
+							Assert(!arg->isconst);
 							new->fieldnames[i] = arg->refname;
 							new->varnos[i] = arg->dno;
 							i++;
 						}
-						list_free((yyvsp[-1].list));
+						list_free((yyvsp[(2) - (3)].list));
 
 						plpgsql_adddatum((PLpgSQL_datum *) new);
 						(yyval.datum) = (PLpgSQL_datum *) new;
-					}
-#line 2439 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 34:
-#line 649 "pl_gram.y" /* yacc.c:1652  */
+#line 646 "pl_gram.y"
     {
-						(yyval.list) = list_make1((yyvsp[0].datum));
-					}
-#line 2447 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = list_make1((yyvsp[(1) - (1)].datum));
+					;}
     break;
 
   case 35:
-#line 653 "pl_gram.y" /* yacc.c:1652  */
+#line 650 "pl_gram.y"
     {
-						(yyval.list) = lappend((yyvsp[-2].list), (yyvsp[0].datum));
-					}
-#line 2455 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = lappend((yyvsp[(1) - (3)].list), (yyvsp[(3) - (3)].datum));
+					;}
     break;
 
   case 36:
-#line 659 "pl_gram.y" /* yacc.c:1652  */
+#line 656 "pl_gram.y"
     {
 						(yyval.datum) = (PLpgSQL_datum *)
-							plpgsql_build_variable((yyvsp[-1].varname).name, (yyvsp[-1].varname).lineno,
-												   (yyvsp[0].dtype), true);
-					}
-#line 2465 "pl_gram.c" /* yacc.c:1652  */
+							plpgsql_build_variable((yyvsp[(1) - (2)].varname).name, (yyvsp[(1) - (2)].varname).lineno,
+												   (yyvsp[(2) - (2)].dtype), true);
+					;}
     break;
 
   case 39:
-#line 670 "pl_gram.y" /* yacc.c:1652  */
+#line 667 "pl_gram.y"
     {
 						PLpgSQL_nsitem *nsi;
 
 						nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-												(yyvsp[0].word).ident, NULL, NULL,
+												(yyvsp[(1) - (1)].word).ident, NULL, NULL,
 												NULL);
 						if (nsi == NULL)
 							ereport(ERROR,
 									(errcode(ERRCODE_UNDEFINED_OBJECT),
 									 errmsg("variable \"%s\" does not exist",
-											(yyvsp[0].word).ident),
-									 parser_errposition((yylsp[0]))));
+											(yyvsp[(1) - (1)].word).ident),
+									 parser_errposition((yylsp[(1) - (1)]))));
 						(yyval.nsitem) = nsi;
-					}
-#line 2484 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 40:
-#line 685 "pl_gram.y" /* yacc.c:1652  */
+#line 682 "pl_gram.y"
     {
 						PLpgSQL_nsitem *nsi;
 
 						nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-												(yyvsp[0].keyword), NULL, NULL,
+												(yyvsp[(1) - (1)].keyword), NULL, NULL,
 												NULL);
 						if (nsi == NULL)
 							ereport(ERROR,
 									(errcode(ERRCODE_UNDEFINED_OBJECT),
 									 errmsg("variable \"%s\" does not exist",
-											(yyvsp[0].keyword)),
-									 parser_errposition((yylsp[0]))));
+											(yyvsp[(1) - (1)].keyword)),
+									 parser_errposition((yylsp[(1) - (1)]))));
 						(yyval.nsitem) = nsi;
-					}
-#line 2503 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 41:
-#line 700 "pl_gram.y" /* yacc.c:1652  */
+#line 697 "pl_gram.y"
     {
 						PLpgSQL_nsitem *nsi;
 
-						if (list_length((yyvsp[0].cword).idents) == 2)
+						if (list_length((yyvsp[(1) - (1)].cword).idents) == 2)
 							nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-													strVal(linitial((yyvsp[0].cword).idents)),
-													strVal(lsecond((yyvsp[0].cword).idents)),
+													strVal(linitial((yyvsp[(1) - (1)].cword).idents)),
+													strVal(lsecond((yyvsp[(1) - (1)].cword).idents)),
 													NULL,
 													NULL);
-						else if (list_length((yyvsp[0].cword).idents) == 3)
+						else if (list_length((yyvsp[(1) - (1)].cword).idents) == 3)
 							nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-													strVal(linitial((yyvsp[0].cword).idents)),
-													strVal(lsecond((yyvsp[0].cword).idents)),
-													strVal(lthird((yyvsp[0].cword).idents)),
+													strVal(linitial((yyvsp[(1) - (1)].cword).idents)),
+													strVal(lsecond((yyvsp[(1) - (1)].cword).idents)),
+													strVal(lthird((yyvsp[(1) - (1)].cword).idents)),
 													NULL);
 						else
 							nsi = NULL;
@@ -2577,24 +2855,23 @@ yyreduce:
 							ereport(ERROR,
 									(errcode(ERRCODE_UNDEFINED_OBJECT),
 									 errmsg("variable \"%s\" does not exist",
-											NameListToString((yyvsp[0].cword).idents)),
-									 parser_errposition((yylsp[0]))));
+											NameListToString((yyvsp[(1) - (1)].cword).idents)),
+									 parser_errposition((yylsp[(1) - (1)]))));
 						(yyval.nsitem) = nsi;
-					}
-#line 2533 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 42:
-#line 728 "pl_gram.y" /* yacc.c:1652  */
+#line 725 "pl_gram.y"
     {
-						(yyval.varname).name = (yyvsp[0].word).ident;
-						(yyval.varname).lineno = plpgsql_location_to_lineno((yylsp[0]));
+						(yyval.varname).name = (yyvsp[(1) - (1)].word).ident;
+						(yyval.varname).lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
 						/*
 						 * Check to make sure name isn't already declared
 						 * in the current block.
 						 */
 						if (plpgsql_ns_lookup(plpgsql_ns_top(), true,
-											  (yyvsp[0].word).ident, NULL, NULL,
+											  (yyvsp[(1) - (1)].word).ident, NULL, NULL,
 											  NULL) != NULL)
 							yyerror("duplicate declaration");
 
@@ -2603,30 +2880,29 @@ yyreduce:
 						{
 							PLpgSQL_nsitem *nsi;
 							nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-													(yyvsp[0].word).ident, NULL, NULL, NULL);
+													(yyvsp[(1) - (1)].word).ident, NULL, NULL, NULL);
 							if (nsi != NULL)
 								ereport(plpgsql_curr_compile->extra_errors & PLPGSQL_XCHECK_SHADOWVAR ? ERROR : WARNING,
 										(errcode(ERRCODE_DUPLICATE_ALIAS),
 										 errmsg("variable \"%s\" shadows a previously defined variable",
-												(yyvsp[0].word).ident),
-										 parser_errposition((yylsp[0]))));
+												(yyvsp[(1) - (1)].word).ident),
+										 parser_errposition((yylsp[(1) - (1)]))));
 						}
 
-					}
-#line 2565 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 43:
-#line 756 "pl_gram.y" /* yacc.c:1652  */
+#line 753 "pl_gram.y"
     {
-						(yyval.varname).name = pstrdup((yyvsp[0].keyword));
-						(yyval.varname).lineno = plpgsql_location_to_lineno((yylsp[0]));
+						(yyval.varname).name = pstrdup((yyvsp[(1) - (1)].keyword));
+						(yyval.varname).lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
 						/*
 						 * Check to make sure name isn't already declared
 						 * in the current block.
 						 */
 						if (plpgsql_ns_lookup(plpgsql_ns_top(), true,
-											  (yyvsp[0].keyword), NULL, NULL,
+											  (yyvsp[(1) - (1)].keyword), NULL, NULL,
 											  NULL) != NULL)
 							yyerror("duplicate declaration");
 
@@ -2635,33 +2911,30 @@ yyreduce:
 						{
 							PLpgSQL_nsitem *nsi;
 							nsi = plpgsql_ns_lookup(plpgsql_ns_top(), false,
-													(yyvsp[0].keyword), NULL, NULL, NULL);
+													(yyvsp[(1) - (1)].keyword), NULL, NULL, NULL);
 							if (nsi != NULL)
 								ereport(plpgsql_curr_compile->extra_errors & PLPGSQL_XCHECK_SHADOWVAR ? ERROR : WARNING,
 										(errcode(ERRCODE_DUPLICATE_ALIAS),
 										 errmsg("variable \"%s\" shadows a previously defined variable",
-												(yyvsp[0].keyword)),
-										 parser_errposition((yylsp[0]))));
+												(yyvsp[(1) - (1)].keyword)),
+										 parser_errposition((yylsp[(1) - (1)]))));
 						}
 
-					}
-#line 2597 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 44:
-#line 786 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.boolean) = false; }
-#line 2603 "pl_gram.c" /* yacc.c:1652  */
+#line 783 "pl_gram.y"
+    { (yyval.boolean) = false; ;}
     break;
 
   case 45:
-#line 788 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.boolean) = true; }
-#line 2609 "pl_gram.c" /* yacc.c:1652  */
+#line 785 "pl_gram.y"
+    { (yyval.boolean) = true; ;}
     break;
 
   case 46:
-#line 792 "pl_gram.y" /* yacc.c:1652  */
+#line 789 "pl_gram.y"
     {
 						/*
 						 * If there's a lookahead token, read_datatype
@@ -2669,254 +2942,278 @@ yyreduce:
 						 */
 						(yyval.dtype) = read_datatype(yychar);
 						yyclearin;
-					}
-#line 2622 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 47:
-#line 803 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.oid) = InvalidOid; }
-#line 2628 "pl_gram.c" /* yacc.c:1652  */
+#line 800 "pl_gram.y"
+    { (yyval.oid) = InvalidOid; ;}
     break;
 
   case 48:
-#line 805 "pl_gram.y" /* yacc.c:1652  */
+#line 802 "pl_gram.y"
     {
-						(yyval.oid) = get_collation_oid(list_make1(makeString((yyvsp[0].word).ident)),
+						(yyval.oid) = get_collation_oid(list_make1(makeString((yyvsp[(2) - (2)].word).ident)),
 											   false);
-					}
-#line 2637 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 49:
-#line 810 "pl_gram.y" /* yacc.c:1652  */
+#line 807 "pl_gram.y"
     {
-						(yyval.oid) = get_collation_oid(list_make1(makeString(pstrdup((yyvsp[0].keyword)))),
+						(yyval.oid) = get_collation_oid(list_make1(makeString(pstrdup((yyvsp[(2) - (2)].keyword)))),
 											   false);
-					}
-#line 2646 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 50:
-#line 815 "pl_gram.y" /* yacc.c:1652  */
+#line 812 "pl_gram.y"
     {
-						(yyval.oid) = get_collation_oid((yyvsp[0].cword).idents, false);
-					}
-#line 2654 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.oid) = get_collation_oid((yyvsp[(2) - (2)].cword).idents, false);
+					;}
     break;
 
   case 51:
-#line 821 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.boolean) = false; }
-#line 2660 "pl_gram.c" /* yacc.c:1652  */
+#line 818 "pl_gram.y"
+    { (yyval.boolean) = false; ;}
     break;
 
   case 52:
-#line 823 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.boolean) = true; }
-#line 2666 "pl_gram.c" /* yacc.c:1652  */
+#line 820 "pl_gram.y"
+    { (yyval.boolean) = true; ;}
     break;
 
   case 53:
-#line 827 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = NULL; }
-#line 2672 "pl_gram.c" /* yacc.c:1652  */
+#line 824 "pl_gram.y"
+    { (yyval.expr) = NULL; ;}
     break;
 
   case 54:
-#line 829 "pl_gram.y" /* yacc.c:1652  */
+#line 826 "pl_gram.y"
     {
 						(yyval.expr) = read_sql_expression(';', ";");
-					}
-#line 2680 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
   case 59:
-#line 848 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.list) = NIL; }
-#line 2686 "pl_gram.c" /* yacc.c:1652  */
+#line 845 "pl_gram.y"
+    { (yyval.list) = NIL; ;}
     break;
 
   case 60:
-#line 850 "pl_gram.y" /* yacc.c:1652  */
+#line 847 "pl_gram.y"
     {
 						/* don't bother linking null statements into list */
-						if ((yyvsp[0].stmt) == NULL)
-							(yyval.list) = (yyvsp[-1].list);
+						if ((yyvsp[(2) - (2)].stmt) == NULL)
+							(yyval.list) = (yyvsp[(1) - (2)].list);
 						else
-							(yyval.list) = lappend((yyvsp[-1].list), (yyvsp[0].stmt));
-					}
-#line 2698 "pl_gram.c" /* yacc.c:1652  */
+							(yyval.list) = lappend((yyvsp[(1) - (2)].list), (yyvsp[(2) - (2)].stmt));
+					;}
     break;
 
   case 61:
-#line 860 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[-1].stmt); }
-#line 2704 "pl_gram.c" /* yacc.c:1652  */
+#line 857 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (2)].stmt); ;}
     break;
 
   case 62:
-#line 862 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2710 "pl_gram.c" /* yacc.c:1652  */
+#line 859 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 63:
-#line 864 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2716 "pl_gram.c" /* yacc.c:1652  */
+#line 861 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 64:
-#line 866 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2722 "pl_gram.c" /* yacc.c:1652  */
+#line 863 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 65:
-#line 868 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2728 "pl_gram.c" /* yacc.c:1652  */
+#line 865 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 66:
-#line 870 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2734 "pl_gram.c" /* yacc.c:1652  */
+#line 867 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 67:
-#line 872 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2740 "pl_gram.c" /* yacc.c:1652  */
+#line 869 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 68:
-#line 874 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2746 "pl_gram.c" /* yacc.c:1652  */
+#line 871 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 69:
-#line 876 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2752 "pl_gram.c" /* yacc.c:1652  */
+#line 873 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 70:
-#line 878 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2758 "pl_gram.c" /* yacc.c:1652  */
+#line 875 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 71:
-#line 880 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2764 "pl_gram.c" /* yacc.c:1652  */
+#line 877 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 72:
-#line 882 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2770 "pl_gram.c" /* yacc.c:1652  */
+#line 879 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 73:
-#line 884 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2776 "pl_gram.c" /* yacc.c:1652  */
+#line 881 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 74:
-#line 886 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2782 "pl_gram.c" /* yacc.c:1652  */
+#line 883 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 75:
-#line 888 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2788 "pl_gram.c" /* yacc.c:1652  */
+#line 885 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 76:
-#line 890 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2794 "pl_gram.c" /* yacc.c:1652  */
+#line 887 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 77:
-#line 892 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2800 "pl_gram.c" /* yacc.c:1652  */
+#line 889 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 78:
-#line 894 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2806 "pl_gram.c" /* yacc.c:1652  */
+#line 891 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 79:
-#line 896 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2812 "pl_gram.c" /* yacc.c:1652  */
+#line 893 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 80:
-#line 898 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2818 "pl_gram.c" /* yacc.c:1652  */
+#line 895 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 81:
-#line 900 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.stmt) = (yyvsp[0].stmt); }
-#line 2824 "pl_gram.c" /* yacc.c:1652  */
+#line 897 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
     break;
 
   case 82:
-#line 904 "pl_gram.y" /* yacc.c:1652  */
+#line 899 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
+    break;
+
+  case 83:
+#line 901 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
+    break;
+
+  case 84:
+#line 903 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
+    break;
+
+  case 85:
+#line 905 "pl_gram.y"
+    { (yyval.stmt) = (yyvsp[(1) - (1)].stmt); ;}
+    break;
+
+  case 86:
+#line 909 "pl_gram.y"
     {
 						PLpgSQL_stmt_perform *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_perform));
 						new->cmd_type = PLPGSQL_STMT_PERFORM;
-						new->lineno   = plpgsql_location_to_lineno((yylsp[-1]));
-						new->expr  = (yyvsp[0].expr);
+						new->lineno   = plpgsql_location_to_lineno((yylsp[(1) - (2)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->expr  = (yyvsp[(2) - (2)].expr);
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 2839 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 83:
-#line 917 "pl_gram.y" /* yacc.c:1652  */
+  case 87:
+#line 923 "pl_gram.y"
+    {
+						PLpgSQL_stmt_call *new;
+
+						new = palloc0(sizeof(PLpgSQL_stmt_call));
+						new->cmd_type = PLPGSQL_STMT_CALL;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->expr = read_sql_stmt("CALL ");
+						new->is_call = true;
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+
+					;}
+    break;
+
+  case 88:
+#line 937 "pl_gram.y"
+    {
+						/* use the same structures as for CALL, for simplicity */
+						PLpgSQL_stmt_call *new;
+
+						new = palloc0(sizeof(PLpgSQL_stmt_call));
+						new->cmd_type = PLPGSQL_STMT_CALL;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->expr = read_sql_stmt("DO ");
+						new->is_call = false;
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+
+					;}
+    break;
+
+  case 89:
+#line 954 "pl_gram.y"
     {
 						PLpgSQL_stmt_assign *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_assign));
 						new->cmd_type = PLPGSQL_STMT_ASSIGN;
-						new->lineno   = plpgsql_location_to_lineno((yylsp[-2]));
-						new->varno = (yyvsp[-2].datum)->dno;
-						new->expr  = (yyvsp[0].expr);
+						new->lineno   = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->varno = (yyvsp[(1) - (3)].datum)->dno;
+						new->expr  = (yyvsp[(3) - (3)].expr);
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 2855 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 84:
-#line 931 "pl_gram.y" /* yacc.c:1652  */
+  case 90:
+#line 969 "pl_gram.y"
     {
 						PLpgSQL_stmt_getdiag	 *new;
 						ListCell		*lc;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_getdiag));
 						new->cmd_type = PLPGSQL_STMT_GETDIAG;
-						new->lineno   = plpgsql_location_to_lineno((yylsp[-4]));
-						new->is_stacked = (yyvsp[-3].boolean);
-						new->diag_items = (yyvsp[-1].list);
+						new->lineno   = plpgsql_location_to_lineno((yylsp[(1) - (5)]));
+						new->stmtid	  = ++plpgsql_curr_compile->nstatements;
+						new->is_stacked = (yyvsp[(2) - (5)].boolean);
+						new->diag_items = (yyvsp[(4) - (5)].list);
 
 						/*
 						 * Check information items are valid for area option.
@@ -2929,13 +3226,12 @@ yyreduce:
 							{
 								/* these fields are disallowed in stacked case */
 								case PLPGSQL_GETDIAG_ROW_COUNT:
-								case PLPGSQL_GETDIAG_RESULT_OID:
 									if (new->is_stacked)
 										ereport(ERROR,
 												(errcode(ERRCODE_SYNTAX_ERROR),
 												 errmsg("diagnostics item %s is not allowed in GET STACKED DIAGNOSTICS",
 														plpgsql_getdiag_kindname(ditem->kind)),
-												 parser_errposition((yylsp[-4]))));
+												 parser_errposition((yylsp[(1) - (5)]))));
 									break;
 								/* these fields are disallowed in current case */
 								case PLPGSQL_GETDIAG_ERROR_CONTEXT:
@@ -2953,7 +3249,7 @@ yyreduce:
 												(errcode(ERRCODE_SYNTAX_ERROR),
 												 errmsg("diagnostics item %s is not allowed in GET CURRENT DIAGNOSTICS",
 														plpgsql_getdiag_kindname(ditem->kind)),
-												 parser_errposition((yylsp[-4]))));
+												 parser_errposition((yylsp[(1) - (5)]))));
 									break;
 								/* these fields are allowed in either case */
 								case PLPGSQL_GETDIAG_CONTEXT:
@@ -2966,75 +3262,65 @@ yyreduce:
 						}
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 2919 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 85:
-#line 993 "pl_gram.y" /* yacc.c:1652  */
+  case 91:
+#line 1031 "pl_gram.y"
     {
 						(yyval.boolean) = false;
-					}
-#line 2927 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 86:
-#line 997 "pl_gram.y" /* yacc.c:1652  */
+  case 92:
+#line 1035 "pl_gram.y"
     {
 						(yyval.boolean) = false;
-					}
-#line 2935 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 87:
-#line 1001 "pl_gram.y" /* yacc.c:1652  */
+  case 93:
+#line 1039 "pl_gram.y"
     {
 						(yyval.boolean) = true;
-					}
-#line 2943 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 88:
-#line 1007 "pl_gram.y" /* yacc.c:1652  */
+  case 94:
+#line 1045 "pl_gram.y"
     {
-						(yyval.list) = lappend((yyvsp[-2].list), (yyvsp[0].diagitem));
-					}
-#line 2951 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = lappend((yyvsp[(1) - (3)].list), (yyvsp[(3) - (3)].diagitem));
+					;}
     break;
 
-  case 89:
-#line 1011 "pl_gram.y" /* yacc.c:1652  */
+  case 95:
+#line 1049 "pl_gram.y"
     {
-						(yyval.list) = list_make1((yyvsp[0].diagitem));
-					}
-#line 2959 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = list_make1((yyvsp[(1) - (1)].diagitem));
+					;}
     break;
 
-  case 90:
-#line 1017 "pl_gram.y" /* yacc.c:1652  */
+  case 96:
+#line 1055 "pl_gram.y"
     {
 						PLpgSQL_diag_item *new;
 
 						new = palloc(sizeof(PLpgSQL_diag_item));
-						new->target = (yyvsp[-2].datum)->dno;
-						new->kind = (yyvsp[0].ival);
+						new->target = (yyvsp[(1) - (3)].datum)->dno;
+						new->kind = (yyvsp[(3) - (3)].ival);
 
 						(yyval.diagitem) = new;
-					}
-#line 2973 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 91:
-#line 1029 "pl_gram.y" /* yacc.c:1652  */
+  case 97:
+#line 1067 "pl_gram.y"
     {
 						int	tok = yylex();
 
 						if (tok_is_keyword(tok, &yylval,
 										   K_ROW_COUNT, "row_count"))
 							(yyval.ival) = PLPGSQL_GETDIAG_ROW_COUNT;
-						else if (tok_is_keyword(tok, &yylval,
-												K_RESULT_OID, "result_oid"))
-							(yyval.ival) = PLPGSQL_GETDIAG_RESULT_OID;
 						else if (tok_is_keyword(tok, &yylval,
 												K_PG_CONTEXT, "pg_context"))
 							(yyval.ival) = PLPGSQL_GETDIAG_CONTEXT;
@@ -3070,138 +3356,127 @@ yyreduce:
 							(yyval.ival) = PLPGSQL_GETDIAG_RETURNED_SQLSTATE;
 						else
 							yyerror("unrecognized GET DIAGNOSTICS item");
-					}
-#line 3023 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 92:
-#line 1077 "pl_gram.y" /* yacc.c:1652  */
+  case 98:
+#line 1112 "pl_gram.y"
     {
-						if ((yyvsp[0].datum)->dtype == PLPGSQL_DTYPE_ROW ||
-							(yyvsp[0].datum)->dtype == PLPGSQL_DTYPE_REC)
+						if ((yyvsp[(1) - (1)].datum)->dtype == PLPGSQL_DTYPE_ROW ||
+							(yyvsp[(1) - (1)].datum)->dtype == PLPGSQL_DTYPE_REC)
 							ereport(ERROR,
 									(errcode(ERRCODE_SYNTAX_ERROR),
 									 errmsg("\"%s\" is not a scalar variable",
-											((PLpgSQL_variable *) (yyvsp[0].datum))->refname),
-									 parser_errposition((yylsp[0]))));
-						(yyval.datum) = (yyvsp[0].datum);
-					}
-#line 3038 "pl_gram.c" /* yacc.c:1652  */
+											((PLpgSQL_variable *) (yyvsp[(1) - (1)].datum))->refname),
+									 parser_errposition((yylsp[(1) - (1)]))));
+						(yyval.datum) = (yyvsp[(1) - (1)].datum);
+					;}
     break;
 
-  case 93:
-#line 1088 "pl_gram.y" /* yacc.c:1652  */
+  case 99:
+#line 1123 "pl_gram.y"
     {
 						/* just to give a better message than "syntax error" */
-						word_is_not_variable(&((yyvsp[0].word)), (yylsp[0]));
-					}
-#line 3047 "pl_gram.c" /* yacc.c:1652  */
+						word_is_not_variable(&((yyvsp[(1) - (1)].word)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 94:
-#line 1093 "pl_gram.y" /* yacc.c:1652  */
+  case 100:
+#line 1128 "pl_gram.y"
     {
 						/* just to give a better message than "syntax error" */
-						cword_is_not_variable(&((yyvsp[0].cword)), (yylsp[0]));
-					}
-#line 3056 "pl_gram.c" /* yacc.c:1652  */
+						cword_is_not_variable(&((yyvsp[(1) - (1)].cword)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 95:
-#line 1101 "pl_gram.y" /* yacc.c:1652  */
+  case 101:
+#line 1136 "pl_gram.y"
     {
-						check_assignable((yyvsp[0].wdatum).datum, (yylsp[0]));
-						(yyval.datum) = (yyvsp[0].wdatum).datum;
-					}
-#line 3065 "pl_gram.c" /* yacc.c:1652  */
+						check_assignable((yyvsp[(1) - (1)].wdatum).datum, (yylsp[(1) - (1)]));
+						(yyval.datum) = (yyvsp[(1) - (1)].wdatum).datum;
+					;}
     break;
 
-  case 96:
-#line 1106 "pl_gram.y" /* yacc.c:1652  */
+  case 102:
+#line 1141 "pl_gram.y"
     {
 						PLpgSQL_arrayelem	*new;
 
 						new = palloc0(sizeof(PLpgSQL_arrayelem));
 						new->dtype		= PLPGSQL_DTYPE_ARRAYELEM;
-						new->subscript	= (yyvsp[0].expr);
-						new->arrayparentno = (yyvsp[-2].datum)->dno;
+						new->subscript	= (yyvsp[(3) - (3)].expr);
+						new->arrayparentno = (yyvsp[(1) - (3)].datum)->dno;
 						/* initialize cached type data to "not valid" */
 						new->parenttypoid = InvalidOid;
 
 						plpgsql_adddatum((PLpgSQL_datum *) new);
 
 						(yyval.datum) = (PLpgSQL_datum *) new;
-					}
-#line 3084 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 97:
-#line 1123 "pl_gram.y" /* yacc.c:1652  */
+  case 103:
+#line 1158 "pl_gram.y"
     {
 						PLpgSQL_stmt_if *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_if));
 						new->cmd_type	= PLPGSQL_STMT_IF;
-						new->lineno		= plpgsql_location_to_lineno((yylsp[-7]));
-						new->cond		= (yyvsp[-6].expr);
-						new->then_body	= (yyvsp[-5].list);
-						new->elsif_list = (yyvsp[-4].list);
-						new->else_body  = (yyvsp[-3].list);
+						new->lineno		= plpgsql_location_to_lineno((yylsp[(1) - (8)]));
+						new->stmtid		= ++plpgsql_curr_compile->nstatements;
+						new->cond		= (yyvsp[(2) - (8)].expr);
+						new->then_body	= (yyvsp[(3) - (8)].list);
+						new->elsif_list = (yyvsp[(4) - (8)].list);
+						new->else_body  = (yyvsp[(5) - (8)].list);
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 3102 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 98:
-#line 1139 "pl_gram.y" /* yacc.c:1652  */
+  case 104:
+#line 1175 "pl_gram.y"
     {
 						(yyval.list) = NIL;
-					}
-#line 3110 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 99:
-#line 1143 "pl_gram.y" /* yacc.c:1652  */
+  case 105:
+#line 1179 "pl_gram.y"
     {
 						PLpgSQL_if_elsif *new;
 
 						new = palloc0(sizeof(PLpgSQL_if_elsif));
-						new->lineno = plpgsql_location_to_lineno((yylsp[-2]));
-						new->cond   = (yyvsp[-1].expr);
-						new->stmts  = (yyvsp[0].list);
+						new->lineno = plpgsql_location_to_lineno((yylsp[(2) - (4)]));
+						new->cond   = (yyvsp[(3) - (4)].expr);
+						new->stmts  = (yyvsp[(4) - (4)].list);
 
-						(yyval.list) = lappend((yyvsp[-3].list), new);
-					}
-#line 3125 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = lappend((yyvsp[(1) - (4)].list), new);
+					;}
     break;
 
-  case 100:
-#line 1156 "pl_gram.y" /* yacc.c:1652  */
+  case 106:
+#line 1192 "pl_gram.y"
     {
 						(yyval.list) = NIL;
-					}
-#line 3133 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 101:
-#line 1160 "pl_gram.y" /* yacc.c:1652  */
+  case 107:
+#line 1196 "pl_gram.y"
     {
-						(yyval.list) = (yyvsp[0].list);
-					}
-#line 3141 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = (yyvsp[(2) - (2)].list);
+					;}
     break;
 
-  case 102:
-#line 1166 "pl_gram.y" /* yacc.c:1652  */
+  case 108:
+#line 1202 "pl_gram.y"
     {
-						(yyval.stmt) = make_case((yylsp[-6]), (yyvsp[-5].expr), (yyvsp[-4].list), (yyvsp[-3].list));
-					}
-#line 3149 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.stmt) = make_case((yylsp[(1) - (7)]), (yyvsp[(2) - (7)].expr), (yyvsp[(3) - (7)].list), (yyvsp[(4) - (7)].list));
+					;}
     break;
 
-  case 103:
-#line 1172 "pl_gram.y" /* yacc.c:1652  */
+  case 109:
+#line 1208 "pl_gram.y"
     {
 						PLpgSQL_expr *expr = NULL;
 						int	tok = yylex();
@@ -3213,49 +3488,44 @@ yyreduce:
 						}
 						plpgsql_push_back_token(K_WHEN);
 						(yyval.expr) = expr;
-					}
-#line 3166 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 104:
-#line 1187 "pl_gram.y" /* yacc.c:1652  */
+  case 110:
+#line 1223 "pl_gram.y"
     {
-						(yyval.list) = lappend((yyvsp[-1].list), (yyvsp[0].casewhen));
-					}
-#line 3174 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = lappend((yyvsp[(1) - (2)].list), (yyvsp[(2) - (2)].casewhen));
+					;}
     break;
 
-  case 105:
-#line 1191 "pl_gram.y" /* yacc.c:1652  */
+  case 111:
+#line 1227 "pl_gram.y"
     {
-						(yyval.list) = list_make1((yyvsp[0].casewhen));
-					}
-#line 3182 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.list) = list_make1((yyvsp[(1) - (1)].casewhen));
+					;}
     break;
 
-  case 106:
-#line 1197 "pl_gram.y" /* yacc.c:1652  */
+  case 112:
+#line 1233 "pl_gram.y"
     {
 						PLpgSQL_case_when *new = palloc(sizeof(PLpgSQL_case_when));
 
-						new->lineno	= plpgsql_location_to_lineno((yylsp[-2]));
-						new->expr	= (yyvsp[-1].expr);
-						new->stmts	= (yyvsp[0].list);
+						new->lineno	= plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->expr	= (yyvsp[(2) - (3)].expr);
+						new->stmts	= (yyvsp[(3) - (3)].list);
 						(yyval.casewhen) = new;
-					}
-#line 3195 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 107:
-#line 1208 "pl_gram.y" /* yacc.c:1652  */
+  case 113:
+#line 1244 "pl_gram.y"
     {
 						(yyval.list) = NIL;
-					}
-#line 3203 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 108:
-#line 1212 "pl_gram.y" /* yacc.c:1652  */
+  case 114:
+#line 1248 "pl_gram.y"
     {
 						/*
 						 * proc_sect could return an empty list, but we
@@ -3263,91 +3533,89 @@ yyreduce:
 						 * Simplest fix is to return a list with one NULL
 						 * pointer, which make_case() must take care of.
 						 */
-						if ((yyvsp[0].list) != NIL)
-							(yyval.list) = (yyvsp[0].list);
+						if ((yyvsp[(2) - (2)].list) != NIL)
+							(yyval.list) = (yyvsp[(2) - (2)].list);
 						else
 							(yyval.list) = list_make1(NULL);
-					}
-#line 3220 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 109:
-#line 1227 "pl_gram.y" /* yacc.c:1652  */
+  case 115:
+#line 1263 "pl_gram.y"
     {
 						PLpgSQL_stmt_loop *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_loop));
 						new->cmd_type = PLPGSQL_STMT_LOOP;
-						new->lineno   = plpgsql_location_to_lineno((yylsp[-1]));
-						new->label	  = (yyvsp[-2].str);
-						new->body	  = (yyvsp[0].loop_body).stmts;
+						new->lineno   = plpgsql_location_to_lineno((yylsp[(2) - (3)]));
+						new->stmtid   = ++plpgsql_curr_compile->nstatements;
+						new->label	  = (yyvsp[(1) - (3)].str);
+						new->body	  = (yyvsp[(3) - (3)].loop_body).stmts;
 
-						check_labels((yyvsp[-2].str), (yyvsp[0].loop_body).end_label, (yyvsp[0].loop_body).end_label_location);
+						check_labels((yyvsp[(1) - (3)].str), (yyvsp[(3) - (3)].loop_body).end_label, (yyvsp[(3) - (3)].loop_body).end_label_location);
 						plpgsql_ns_pop();
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 3239 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 110:
-#line 1244 "pl_gram.y" /* yacc.c:1652  */
+  case 116:
+#line 1281 "pl_gram.y"
     {
 						PLpgSQL_stmt_while *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_while));
 						new->cmd_type = PLPGSQL_STMT_WHILE;
-						new->lineno   = plpgsql_location_to_lineno((yylsp[-2]));
-						new->label	  = (yyvsp[-3].str);
-						new->cond	  = (yyvsp[-1].expr);
-						new->body	  = (yyvsp[0].loop_body).stmts;
+						new->lineno   = plpgsql_location_to_lineno((yylsp[(2) - (4)]));
+						new->stmtid	  = ++plpgsql_curr_compile->nstatements;
+						new->label	  = (yyvsp[(1) - (4)].str);
+						new->cond	  = (yyvsp[(3) - (4)].expr);
+						new->body	  = (yyvsp[(4) - (4)].loop_body).stmts;
 
-						check_labels((yyvsp[-3].str), (yyvsp[0].loop_body).end_label, (yyvsp[0].loop_body).end_label_location);
+						check_labels((yyvsp[(1) - (4)].str), (yyvsp[(4) - (4)].loop_body).end_label, (yyvsp[(4) - (4)].loop_body).end_label_location);
 						plpgsql_ns_pop();
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 3259 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 111:
-#line 1262 "pl_gram.y" /* yacc.c:1652  */
+  case 117:
+#line 1300 "pl_gram.y"
     {
 						/* This runs after we've scanned the loop body */
-						if ((yyvsp[-1].stmt)->cmd_type == PLPGSQL_STMT_FORI)
+						if ((yyvsp[(3) - (4)].stmt)->cmd_type == PLPGSQL_STMT_FORI)
 						{
 							PLpgSQL_stmt_fori		*new;
 
-							new = (PLpgSQL_stmt_fori *) (yyvsp[-1].stmt);
-							new->lineno   = plpgsql_location_to_lineno((yylsp[-2]));
-							new->label	  = (yyvsp[-3].str);
-							new->body	  = (yyvsp[0].loop_body).stmts;
+							new = (PLpgSQL_stmt_fori *) (yyvsp[(3) - (4)].stmt);
+							new->lineno   = plpgsql_location_to_lineno((yylsp[(2) - (4)]));
+							new->label	  = (yyvsp[(1) - (4)].str);
+							new->body	  = (yyvsp[(4) - (4)].loop_body).stmts;
 							(yyval.stmt) = (PLpgSQL_stmt *) new;
 						}
 						else
 						{
 							PLpgSQL_stmt_forq		*new;
 
-							Assert((yyvsp[-1].stmt)->cmd_type == PLPGSQL_STMT_FORS ||
-								   (yyvsp[-1].stmt)->cmd_type == PLPGSQL_STMT_FORC ||
-								   (yyvsp[-1].stmt)->cmd_type == PLPGSQL_STMT_DYNFORS);
+							Assert((yyvsp[(3) - (4)].stmt)->cmd_type == PLPGSQL_STMT_FORS ||
+								   (yyvsp[(3) - (4)].stmt)->cmd_type == PLPGSQL_STMT_FORC ||
+								   (yyvsp[(3) - (4)].stmt)->cmd_type == PLPGSQL_STMT_DYNFORS);
 							/* forq is the common supertype of all three */
-							new = (PLpgSQL_stmt_forq *) (yyvsp[-1].stmt);
-							new->lineno   = plpgsql_location_to_lineno((yylsp[-2]));
-							new->label	  = (yyvsp[-3].str);
-							new->body	  = (yyvsp[0].loop_body).stmts;
+							new = (PLpgSQL_stmt_forq *) (yyvsp[(3) - (4)].stmt);
+							new->lineno   = plpgsql_location_to_lineno((yylsp[(2) - (4)]));
+							new->label	  = (yyvsp[(1) - (4)].str);
+							new->body	  = (yyvsp[(4) - (4)].loop_body).stmts;
 							(yyval.stmt) = (PLpgSQL_stmt *) new;
 						}
 
-						check_labels((yyvsp[-3].str), (yyvsp[0].loop_body).end_label, (yyvsp[0].loop_body).end_label_location);
+						check_labels((yyvsp[(1) - (4)].str), (yyvsp[(4) - (4)].loop_body).end_label, (yyvsp[(4) - (4)].loop_body).end_label_location);
 						/* close namespace started in opt_loop_label */
 						plpgsql_ns_pop();
-					}
-#line 3295 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 112:
-#line 1296 "pl_gram.y" /* yacc.c:1652  */
+  case 118:
+#line 1334 "pl_gram.y"
     {
 						int			tok = yylex();
 						int			tokloc = yylloc;
@@ -3365,29 +3633,26 @@ yyreduce:
 
 							new = palloc0(sizeof(PLpgSQL_stmt_dynfors));
 							new->cmd_type = PLPGSQL_STMT_DYNFORS;
-							if ((yyvsp[-1].forvariable).rec)
+							new->stmtid	  = ++plpgsql_curr_compile->nstatements;
+							if ((yyvsp[(1) - (2)].forvariable).row)
 							{
-								new->rec = (yyvsp[-1].forvariable).rec;
-								check_assignable((PLpgSQL_datum *) new->rec, (yylsp[-1]));
+								new->var = (PLpgSQL_variable *) (yyvsp[(1) - (2)].forvariable).row;
+								check_assignable((yyvsp[(1) - (2)].forvariable).row, (yylsp[(1) - (2)]));
 							}
-							else if ((yyvsp[-1].forvariable).row)
-							{
-								new->row = (yyvsp[-1].forvariable).row;
-								check_assignable((PLpgSQL_datum *) new->row, (yylsp[-1]));
-							}
-							else if ((yyvsp[-1].forvariable).scalar)
+							else if ((yyvsp[(1) - (2)].forvariable).scalar)
 							{
 								/* convert single scalar to list */
-								new->row = make_scalar_list1((yyvsp[-1].forvariable).name, (yyvsp[-1].forvariable).scalar,
-															 (yyvsp[-1].forvariable).lineno, (yylsp[-1]));
-								/* no need for check_assignable */
+								new->var = (PLpgSQL_variable *)
+									make_scalar_list1((yyvsp[(1) - (2)].forvariable).name, (yyvsp[(1) - (2)].forvariable).scalar,
+													  (yyvsp[(1) - (2)].forvariable).lineno, (yylsp[(1) - (2)]));
+								/* make_scalar_list1 did check_assignable */
 							}
 							else
 							{
 								ereport(ERROR,
 										(errcode(ERRCODE_DATATYPE_MISMATCH),
-										 errmsg("loop variable of loop over rows must be a record or row variable or list of scalar variables"),
-										 parser_errposition((yylsp[-1]))));
+										 errmsg("loop variable of loop over rows must be a record variable or list of scalar variables"),
+										 parser_errposition((yylsp[(1) - (2)]))));
 							}
 							new->query = expr;
 
@@ -3414,14 +3679,15 @@ yyreduce:
 
 							new = (PLpgSQL_stmt_forc *) palloc0(sizeof(PLpgSQL_stmt_forc));
 							new->cmd_type = PLPGSQL_STMT_FORC;
+							new->stmtid = ++plpgsql_curr_compile->nstatements;
 							new->curvar = cursor->dno;
 
 							/* Should have had a single variable name */
-							if ((yyvsp[-1].forvariable).scalar && (yyvsp[-1].forvariable).row)
+							if ((yyvsp[(1) - (2)].forvariable).scalar && (yyvsp[(1) - (2)].forvariable).row)
 								ereport(ERROR,
 										(errcode(ERRCODE_SYNTAX_ERROR),
 										 errmsg("cursor FOR loop must have only one target variable"),
-										 parser_errposition((yylsp[-1]))));
+										 parser_errposition((yylsp[(1) - (2)]))));
 
 							/* can't use an unbound cursor this way */
 							if (cursor->cursor_explicit_expr == NULL)
@@ -3436,9 +3702,12 @@ yyreduce:
 															 "LOOP");
 
 							/* create loop's private RECORD variable */
-							new->rec = plpgsql_build_record((yyvsp[-1].forvariable).name,
-															(yyvsp[-1].forvariable).lineno,
-															true);
+							new->var = (PLpgSQL_variable *)
+								plpgsql_build_record((yyvsp[(1) - (2)].forvariable).name,
+													 (yyvsp[(1) - (2)].forvariable).lineno,
+													 NULL,
+													 RECORDOID,
+													 true);
 
 							(yyval.stmt) = (PLpgSQL_stmt *) new;
 						}
@@ -3508,23 +3777,25 @@ yyreduce:
 									expr_by = NULL;
 
 								/* Should have had a single variable name */
-								if ((yyvsp[-1].forvariable).scalar && (yyvsp[-1].forvariable).row)
+								if ((yyvsp[(1) - (2)].forvariable).scalar && (yyvsp[(1) - (2)].forvariable).row)
 									ereport(ERROR,
 											(errcode(ERRCODE_SYNTAX_ERROR),
 											 errmsg("integer FOR loop must have only one target variable"),
-											 parser_errposition((yylsp[-1]))));
+											 parser_errposition((yylsp[(1) - (2)]))));
 
 								/* create loop's private variable */
 								fvar = (PLpgSQL_var *)
-									plpgsql_build_variable((yyvsp[-1].forvariable).name,
-														   (yyvsp[-1].forvariable).lineno,
+									plpgsql_build_variable((yyvsp[(1) - (2)].forvariable).name,
+														   (yyvsp[(1) - (2)].forvariable).lineno,
 														   plpgsql_build_datatype(INT4OID,
 																				  -1,
-																				  InvalidOid),
+																				  InvalidOid,
+																				  NULL),
 														   true);
 
 								new = palloc0(sizeof(PLpgSQL_stmt_fori));
 								new->cmd_type = PLPGSQL_STMT_FORI;
+								new->stmtid	  = ++plpgsql_curr_compile->nstatements;
 								new->var	  = fvar;
 								new->reverse  = reverse;
 								new->lower	  = expr1;
@@ -3559,201 +3830,181 @@ yyreduce:
 
 								new = palloc0(sizeof(PLpgSQL_stmt_fors));
 								new->cmd_type = PLPGSQL_STMT_FORS;
-								if ((yyvsp[-1].forvariable).rec)
+								new->stmtid = ++plpgsql_curr_compile->nstatements;
+								if ((yyvsp[(1) - (2)].forvariable).row)
 								{
-									new->rec = (yyvsp[-1].forvariable).rec;
-									check_assignable((PLpgSQL_datum *) new->rec, (yylsp[-1]));
+									new->var = (PLpgSQL_variable *) (yyvsp[(1) - (2)].forvariable).row;
+									check_assignable((yyvsp[(1) - (2)].forvariable).row, (yylsp[(1) - (2)]));
 								}
-								else if ((yyvsp[-1].forvariable).row)
-								{
-									new->row = (yyvsp[-1].forvariable).row;
-									check_assignable((PLpgSQL_datum *) new->row, (yylsp[-1]));
-								}
-								else if ((yyvsp[-1].forvariable).scalar)
+								else if ((yyvsp[(1) - (2)].forvariable).scalar)
 								{
 									/* convert single scalar to list */
-									new->row = make_scalar_list1((yyvsp[-1].forvariable).name, (yyvsp[-1].forvariable).scalar,
-																 (yyvsp[-1].forvariable).lineno, (yylsp[-1]));
-									/* no need for check_assignable */
+									new->var = (PLpgSQL_variable *)
+										make_scalar_list1((yyvsp[(1) - (2)].forvariable).name, (yyvsp[(1) - (2)].forvariable).scalar,
+														  (yyvsp[(1) - (2)].forvariable).lineno, (yylsp[(1) - (2)]));
+									/* make_scalar_list1 did check_assignable */
 								}
 								else
 								{
 									ereport(ERROR,
 											(errcode(ERRCODE_SYNTAX_ERROR),
-											 errmsg("loop variable of loop over rows must be a record or row variable or list of scalar variables"),
-											 parser_errposition((yylsp[-1]))));
+											 errmsg("loop variable of loop over rows must be a record variable or list of scalar variables"),
+											 parser_errposition((yylsp[(1) - (2)]))));
 								}
 
 								new->query = expr1;
 								(yyval.stmt) = (PLpgSQL_stmt *) new;
 							}
 						}
-					}
-#line 3541 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 113:
-#line 1558 "pl_gram.y" /* yacc.c:1652  */
+  case 119:
+#line 1596 "pl_gram.y"
     {
-						(yyval.forvariable).name = NameOfDatum(&((yyvsp[0].wdatum)));
-						(yyval.forvariable).lineno = plpgsql_location_to_lineno((yylsp[0]));
-						if ((yyvsp[0].wdatum).datum->dtype == PLPGSQL_DTYPE_ROW)
+						(yyval.forvariable).name = NameOfDatum(&((yyvsp[(1) - (1)].wdatum)));
+						(yyval.forvariable).lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						if ((yyvsp[(1) - (1)].wdatum).datum->dtype == PLPGSQL_DTYPE_ROW ||
+							(yyvsp[(1) - (1)].wdatum).datum->dtype == PLPGSQL_DTYPE_REC)
 						{
 							(yyval.forvariable).scalar = NULL;
-							(yyval.forvariable).rec = NULL;
-							(yyval.forvariable).row = (PLpgSQL_row *) (yyvsp[0].wdatum).datum;
-						}
-						else if ((yyvsp[0].wdatum).datum->dtype == PLPGSQL_DTYPE_REC)
-						{
-							(yyval.forvariable).scalar = NULL;
-							(yyval.forvariable).rec = (PLpgSQL_rec *) (yyvsp[0].wdatum).datum;
-							(yyval.forvariable).row = NULL;
+							(yyval.forvariable).row = (yyvsp[(1) - (1)].wdatum).datum;
 						}
 						else
 						{
 							int			tok;
 
-							(yyval.forvariable).scalar = (yyvsp[0].wdatum).datum;
-							(yyval.forvariable).rec = NULL;
+							(yyval.forvariable).scalar = (yyvsp[(1) - (1)].wdatum).datum;
 							(yyval.forvariable).row = NULL;
 							/* check for comma-separated list */
 							tok = yylex();
 							plpgsql_push_back_token(tok);
 							if (tok == ',')
-								(yyval.forvariable).row = read_into_scalar_list((yyval.forvariable).name,
-															   (yyval.forvariable).scalar,
-															   (yylsp[0]));
+								(yyval.forvariable).row = (PLpgSQL_datum *)
+									read_into_scalar_list((yyval.forvariable).name,
+														  (yyval.forvariable).scalar,
+														  (yylsp[(1) - (1)]));
 						}
-					}
-#line 3577 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 114:
-#line 1590 "pl_gram.y" /* yacc.c:1652  */
+  case 120:
+#line 1622 "pl_gram.y"
     {
 						int			tok;
 
-						(yyval.forvariable).name = (yyvsp[0].word).ident;
-						(yyval.forvariable).lineno = plpgsql_location_to_lineno((yylsp[0]));
+						(yyval.forvariable).name = (yyvsp[(1) - (1)].word).ident;
+						(yyval.forvariable).lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
 						(yyval.forvariable).scalar = NULL;
-						(yyval.forvariable).rec = NULL;
 						(yyval.forvariable).row = NULL;
 						/* check for comma-separated list */
 						tok = yylex();
 						plpgsql_push_back_token(tok);
 						if (tok == ',')
-							word_is_not_variable(&((yyvsp[0].word)), (yylsp[0]));
-					}
-#line 3596 "pl_gram.c" /* yacc.c:1652  */
+							word_is_not_variable(&((yyvsp[(1) - (1)].word)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 115:
-#line 1605 "pl_gram.y" /* yacc.c:1652  */
+  case 121:
+#line 1636 "pl_gram.y"
     {
 						/* just to give a better message than "syntax error" */
-						cword_is_not_variable(&((yyvsp[0].cword)), (yylsp[0]));
-					}
-#line 3605 "pl_gram.c" /* yacc.c:1652  */
+						cword_is_not_variable(&((yyvsp[(1) - (1)].cword)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 116:
-#line 1612 "pl_gram.y" /* yacc.c:1652  */
+  case 122:
+#line 1643 "pl_gram.y"
     {
 						PLpgSQL_stmt_foreach_a *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_foreach_a));
 						new->cmd_type = PLPGSQL_STMT_FOREACH_A;
-						new->lineno = plpgsql_location_to_lineno((yylsp[-6]));
-						new->label = (yyvsp[-7].str);
-						new->slice = (yyvsp[-4].ival);
-						new->expr = (yyvsp[-1].expr);
-						new->body = (yyvsp[0].loop_body).stmts;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(2) - (8)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->label = (yyvsp[(1) - (8)].str);
+						new->slice = (yyvsp[(4) - (8)].ival);
+						new->expr = (yyvsp[(7) - (8)].expr);
+						new->body = (yyvsp[(8) - (8)].loop_body).stmts;
 
-						if ((yyvsp[-5].forvariable).rec)
+						if ((yyvsp[(3) - (8)].forvariable).row)
 						{
-							new->varno = (yyvsp[-5].forvariable).rec->dno;
-							check_assignable((PLpgSQL_datum *) (yyvsp[-5].forvariable).rec, (yylsp[-5]));
+							new->varno = (yyvsp[(3) - (8)].forvariable).row->dno;
+							check_assignable((yyvsp[(3) - (8)].forvariable).row, (yylsp[(3) - (8)]));
 						}
-						else if ((yyvsp[-5].forvariable).row)
+						else if ((yyvsp[(3) - (8)].forvariable).scalar)
 						{
-							new->varno = (yyvsp[-5].forvariable).row->dno;
-							check_assignable((PLpgSQL_datum *) (yyvsp[-5].forvariable).row, (yylsp[-5]));
-						}
-						else if ((yyvsp[-5].forvariable).scalar)
-						{
-							new->varno = (yyvsp[-5].forvariable).scalar->dno;
-							check_assignable((yyvsp[-5].forvariable).scalar, (yylsp[-5]));
+							new->varno = (yyvsp[(3) - (8)].forvariable).scalar->dno;
+							check_assignable((yyvsp[(3) - (8)].forvariable).scalar, (yylsp[(3) - (8)]));
 						}
 						else
 						{
 							ereport(ERROR,
 									(errcode(ERRCODE_SYNTAX_ERROR),
 									 errmsg("loop variable of FOREACH must be a known variable or list of variables"),
-											 parser_errposition((yylsp[-5]))));
+											 parser_errposition((yylsp[(3) - (8)]))));
 						}
 
-						check_labels((yyvsp[-7].str), (yyvsp[0].loop_body).end_label, (yyvsp[0].loop_body).end_label_location);
+						check_labels((yyvsp[(1) - (8)].str), (yyvsp[(8) - (8)].loop_body).end_label, (yyvsp[(8) - (8)].loop_body).end_label_location);
 						plpgsql_ns_pop();
 
 						(yyval.stmt) = (PLpgSQL_stmt *) new;
-					}
-#line 3649 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 117:
-#line 1654 "pl_gram.y" /* yacc.c:1652  */
+  case 123:
+#line 1681 "pl_gram.y"
     {
 						(yyval.ival) = 0;
-					}
-#line 3657 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 118:
-#line 1658 "pl_gram.y" /* yacc.c:1652  */
+  case 124:
+#line 1685 "pl_gram.y"
     {
-						(yyval.ival) = (yyvsp[0].ival);
-					}
-#line 3665 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.ival) = (yyvsp[(2) - (2)].ival);
+					;}
     break;
 
-  case 119:
-#line 1664 "pl_gram.y" /* yacc.c:1652  */
+  case 125:
+#line 1691 "pl_gram.y"
     {
 						PLpgSQL_stmt_exit *new;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_exit));
 						new->cmd_type = PLPGSQL_STMT_EXIT;
-						new->is_exit  = (yyvsp[-2].boolean);
-						new->lineno	  = plpgsql_location_to_lineno((yylsp[-2]));
-						new->label	  = (yyvsp[-1].str);
-						new->cond	  = (yyvsp[0].expr);
+						new->stmtid	  = ++plpgsql_curr_compile->nstatements;
+						new->is_exit  = (yyvsp[(1) - (3)].boolean);
+						new->lineno	  = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->label	  = (yyvsp[(2) - (3)].str);
+						new->cond	  = (yyvsp[(3) - (3)].expr);
 
-						if ((yyvsp[-1].str))
+						if ((yyvsp[(2) - (3)].str))
 						{
 							/* We have a label, so verify it exists */
 							PLpgSQL_nsitem *label;
 
-							label = plpgsql_ns_lookup_label(plpgsql_ns_top(), (yyvsp[-1].str));
+							label = plpgsql_ns_lookup_label(plpgsql_ns_top(), (yyvsp[(2) - (3)].str));
 							if (label == NULL)
 								ereport(ERROR,
 										(errcode(ERRCODE_SYNTAX_ERROR),
 										 errmsg("there is no label \"%s\" "
 												"attached to any block or loop enclosing this statement",
-												(yyvsp[-1].str)),
-										 parser_errposition((yylsp[-1]))));
+												(yyvsp[(2) - (3)].str)),
+										 parser_errposition((yylsp[(2) - (3)]))));
 							/* CONTINUE only allows loop labels */
 							if (label->itemno != PLPGSQL_LABEL_LOOP && !new->is_exit)
 								ereport(ERROR,
 										(errcode(ERRCODE_SYNTAX_ERROR),
 										 errmsg("block label \"%s\" cannot be used in CONTINUE",
-												(yyvsp[-1].str)),
-										 parser_errposition((yylsp[-1]))));
+												(yyvsp[(2) - (3)].str)),
+										 parser_errposition((yylsp[(2) - (3)]))));
 						}
 						else
 						{
 							/*
 							 * No label, so make sure there is some loop (an
-							 * unlabelled EXIT does not match a block, so this
+							 * unlabeled EXIT does not match a block, so this
 							 * is the same test for both EXIT and CONTINUE)
 							 */
 							if (plpgsql_ns_find_nearest_loop(plpgsql_ns_top()) == NULL)
@@ -3762,32 +4013,29 @@ yyreduce:
 										 new->is_exit ?
 										 errmsg("EXIT cannot be used outside a loop, unless it has a label") :
 										 errmsg("CONTINUE cannot be used outside a loop"),
-										 parser_errposition((yylsp[-2]))));
+										 parser_errposition((yylsp[(1) - (3)]))));
 						}
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 3719 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 120:
-#line 1716 "pl_gram.y" /* yacc.c:1652  */
+  case 126:
+#line 1744 "pl_gram.y"
     {
 						(yyval.boolean) = true;
-					}
-#line 3727 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 121:
-#line 1720 "pl_gram.y" /* yacc.c:1652  */
+  case 127:
+#line 1748 "pl_gram.y"
     {
 						(yyval.boolean) = false;
-					}
-#line 3735 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 122:
-#line 1726 "pl_gram.y" /* yacc.c:1652  */
+  case 128:
+#line 1754 "pl_gram.y"
     {
 						int	tok;
 
@@ -3798,24 +4046,23 @@ yyreduce:
 						if (tok_is_keyword(tok, &yylval,
 										   K_NEXT, "next"))
 						{
-							(yyval.stmt) = make_return_next_stmt((yylsp[0]));
+							(yyval.stmt) = make_return_next_stmt((yylsp[(1) - (1)]));
 						}
 						else if (tok_is_keyword(tok, &yylval,
 												K_QUERY, "query"))
 						{
-							(yyval.stmt) = make_return_query_stmt((yylsp[0]));
+							(yyval.stmt) = make_return_query_stmt((yylsp[(1) - (1)]));
 						}
 						else
 						{
 							plpgsql_push_back_token(tok);
-							(yyval.stmt) = make_return_stmt((yylsp[0]));
+							(yyval.stmt) = make_return_stmt((yylsp[(1) - (1)]));
 						}
-					}
-#line 3763 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 123:
-#line 1752 "pl_gram.y" /* yacc.c:1652  */
+  case 129:
+#line 1780 "pl_gram.y"
     {
 						PLpgSQL_stmt_raise		*new;
 						int	tok;
@@ -3823,7 +4070,8 @@ yyreduce:
 						new = palloc(sizeof(PLpgSQL_stmt_raise));
 
 						new->cmd_type	= PLPGSQL_STMT_RAISE;
-						new->lineno		= plpgsql_location_to_lineno((yylsp[0]));
+						new->lineno		= plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid		= ++plpgsql_curr_compile->nstatements;
 						new->elog_level = ERROR;	/* default */
 						new->condname	= NULL;
 						new->message	= NULL;
@@ -3956,12 +4204,11 @@ yyreduce:
 						check_raise_parameters(new);
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 3909 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 124:
-#line 1896 "pl_gram.y" /* yacc.c:1652  */
+  case 130:
+#line 1925 "pl_gram.y"
     {
 						PLpgSQL_stmt_assert		*new;
 						int	tok;
@@ -3969,7 +4216,8 @@ yyreduce:
 						new = palloc(sizeof(PLpgSQL_stmt_assert));
 
 						new->cmd_type	= PLPGSQL_STMT_ASSERT;
-						new->lineno		= plpgsql_location_to_lineno((yylsp[0]));
+						new->lineno		= plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid		= ++plpgsql_curr_compile->nstatements;
 
 						new->cond = read_sql_expression2(',', ';',
 														 ", or ;",
@@ -3981,66 +4229,60 @@ yyreduce:
 							new->message = NULL;
 
 						(yyval.stmt) = (PLpgSQL_stmt *) new;
-					}
-#line 3934 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 125:
-#line 1919 "pl_gram.y" /* yacc.c:1652  */
+  case 131:
+#line 1949 "pl_gram.y"
     {
-						(yyval.loop_body).stmts = (yyvsp[-4].list);
-						(yyval.loop_body).end_label = (yyvsp[-1].str);
-						(yyval.loop_body).end_label_location = (yylsp[-1]);
-					}
-#line 3944 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.loop_body).stmts = (yyvsp[(1) - (5)].list);
+						(yyval.loop_body).end_label = (yyvsp[(4) - (5)].str);
+						(yyval.loop_body).end_label_location = (yylsp[(4) - (5)]);
+					;}
     break;
 
-  case 126:
-#line 1937 "pl_gram.y" /* yacc.c:1652  */
+  case 132:
+#line 1967 "pl_gram.y"
     {
-						(yyval.stmt) = make_execsql_stmt(K_IMPORT, (yylsp[0]));
-					}
-#line 3952 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.stmt) = make_execsql_stmt(K_IMPORT, (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 127:
-#line 1941 "pl_gram.y" /* yacc.c:1652  */
+  case 133:
+#line 1971 "pl_gram.y"
     {
-						(yyval.stmt) = make_execsql_stmt(K_INSERT, (yylsp[0]));
-					}
-#line 3960 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.stmt) = make_execsql_stmt(K_INSERT, (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 128:
-#line 1945 "pl_gram.y" /* yacc.c:1652  */
+  case 134:
+#line 1975 "pl_gram.y"
     {
 						int			tok;
 
 						tok = yylex();
 						plpgsql_push_back_token(tok);
 						if (tok == '=' || tok == COLON_EQUALS || tok == '[')
-							word_is_not_variable(&((yyvsp[0].word)), (yylsp[0]));
-						(yyval.stmt) = make_execsql_stmt(T_WORD, (yylsp[0]));
-					}
-#line 3974 "pl_gram.c" /* yacc.c:1652  */
+							word_is_not_variable(&((yyvsp[(1) - (1)].word)), (yylsp[(1) - (1)]));
+						(yyval.stmt) = make_execsql_stmt(T_WORD, (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 129:
-#line 1955 "pl_gram.y" /* yacc.c:1652  */
+  case 135:
+#line 1985 "pl_gram.y"
     {
 						int			tok;
 
 						tok = yylex();
 						plpgsql_push_back_token(tok);
 						if (tok == '=' || tok == COLON_EQUALS || tok == '[')
-							cword_is_not_variable(&((yyvsp[0].cword)), (yylsp[0]));
-						(yyval.stmt) = make_execsql_stmt(T_CWORD, (yylsp[0]));
-					}
-#line 3988 "pl_gram.c" /* yacc.c:1652  */
+							cword_is_not_variable(&((yyvsp[(1) - (1)].cword)), (yylsp[(1) - (1)]));
+						(yyval.stmt) = make_execsql_stmt(T_CWORD, (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 130:
-#line 1967 "pl_gram.y" /* yacc.c:1652  */
+  case 136:
+#line 1997 "pl_gram.y"
     {
 						PLpgSQL_stmt_dynexecute *new;
 						PLpgSQL_expr *expr;
@@ -4054,12 +4296,12 @@ yyreduce:
 
 						new = palloc(sizeof(PLpgSQL_stmt_dynexecute));
 						new->cmd_type = PLPGSQL_STMT_DYNEXECUTE;
-						new->lineno = plpgsql_location_to_lineno((yylsp[0]));
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
 						new->query = expr;
 						new->into = false;
 						new->strict = false;
-						new->rec = NULL;
-						new->row = NULL;
+						new->target = NULL;
 						new->params = NIL;
 
 						/*
@@ -4076,7 +4318,7 @@ yyreduce:
 								if (new->into)			/* multiple INTO */
 									yyerror("syntax error");
 								new->into = true;
-								read_into_target(&new->rec, &new->row, &new->strict);
+								read_into_target(&new->target, &new->strict);
 								endtoken = yylex();
 							}
 							else if (endtoken == K_USING)
@@ -4100,23 +4342,23 @@ yyreduce:
 						}
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 4053 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 131:
-#line 2031 "pl_gram.y" /* yacc.c:1652  */
+  case 137:
+#line 2061 "pl_gram.y"
     {
 						PLpgSQL_stmt_open *new;
 						int				  tok;
 
 						new = palloc0(sizeof(PLpgSQL_stmt_open));
 						new->cmd_type = PLPGSQL_STMT_OPEN;
-						new->lineno = plpgsql_location_to_lineno((yylsp[-1]));
-						new->curvar = (yyvsp[0].var)->dno;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (2)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->curvar = (yyvsp[(2) - (2)].var)->dno;
 						new->cursor_options = CURSOR_OPT_FAST_PLAN;
 
-						if ((yyvsp[0].var)->cursor_explicit_expr == NULL)
+						if ((yyvsp[(2) - (2)].var)->cursor_explicit_expr == NULL)
 						{
 							/* be nice if we could use opt_scrollable here */
 							tok = yylex();
@@ -4175,23 +4417,21 @@ yyreduce:
 						else
 						{
 							/* predefined cursor query, so read args */
-							new->argquery = read_cursor_args((yyvsp[0].var), ';', ";");
+							new->argquery = read_cursor_args((yyvsp[(2) - (2)].var), ';', ";");
 						}
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 4132 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 132:
-#line 2108 "pl_gram.y" /* yacc.c:1652  */
+  case 138:
+#line 2139 "pl_gram.y"
     {
-						PLpgSQL_stmt_fetch *fetch = (yyvsp[-2].fetch);
-						PLpgSQL_rec	   *rec;
-						PLpgSQL_row	   *row;
+						PLpgSQL_stmt_fetch *fetch = (yyvsp[(2) - (4)].fetch);
+						PLpgSQL_variable *target;
 
 						/* We have already parsed everything through the INTO keyword */
-						read_into_target(&rec, &row, NULL);
+						read_into_target(&target, NULL);
 
 						if (yylex() != ';')
 							yyerror("syntax error");
@@ -4204,117 +4444,184 @@ yyreduce:
 							ereport(ERROR,
 									(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
 									 errmsg("FETCH statement cannot return multiple rows"),
-									 parser_errposition((yylsp[-3]))));
+									 parser_errposition((yylsp[(1) - (4)]))));
 
-						fetch->lineno = plpgsql_location_to_lineno((yylsp[-3]));
-						fetch->rec		= rec;
-						fetch->row		= row;
-						fetch->curvar	= (yyvsp[-1].var)->dno;
+						fetch->lineno = plpgsql_location_to_lineno((yylsp[(1) - (4)]));
+						fetch->target	= target;
+						fetch->curvar	= (yyvsp[(3) - (4)].var)->dno;
 						fetch->is_move	= false;
 
 						(yyval.stmt) = (PLpgSQL_stmt *)fetch;
-					}
-#line 4166 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 133:
-#line 2140 "pl_gram.y" /* yacc.c:1652  */
+  case 139:
+#line 2169 "pl_gram.y"
     {
-						PLpgSQL_stmt_fetch *fetch = (yyvsp[-2].fetch);
+						PLpgSQL_stmt_fetch *fetch = (yyvsp[(2) - (4)].fetch);
 
-						fetch->lineno = plpgsql_location_to_lineno((yylsp[-3]));
-						fetch->curvar	= (yyvsp[-1].var)->dno;
+						fetch->lineno = plpgsql_location_to_lineno((yylsp[(1) - (4)]));
+						fetch->curvar	= (yyvsp[(3) - (4)].var)->dno;
 						fetch->is_move	= true;
 
 						(yyval.stmt) = (PLpgSQL_stmt *)fetch;
-					}
-#line 4180 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 134:
-#line 2152 "pl_gram.y" /* yacc.c:1652  */
+  case 140:
+#line 2181 "pl_gram.y"
     {
 						(yyval.fetch) = read_fetch_direction();
-					}
-#line 4188 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 135:
-#line 2158 "pl_gram.y" /* yacc.c:1652  */
+  case 141:
+#line 2187 "pl_gram.y"
     {
 						PLpgSQL_stmt_close *new;
 
 						new = palloc(sizeof(PLpgSQL_stmt_close));
 						new->cmd_type = PLPGSQL_STMT_CLOSE;
-						new->lineno = plpgsql_location_to_lineno((yylsp[-2]));
-						new->curvar = (yyvsp[-1].var)->dno;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->curvar = (yyvsp[(2) - (3)].var)->dno;
 
 						(yyval.stmt) = (PLpgSQL_stmt *)new;
-					}
-#line 4203 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 136:
-#line 2171 "pl_gram.y" /* yacc.c:1652  */
+  case 142:
+#line 2201 "pl_gram.y"
     {
 						/* We do not bother building a node for NULL */
 						(yyval.stmt) = NULL;
-					}
-#line 4212 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 137:
-#line 2178 "pl_gram.y" /* yacc.c:1652  */
+  case 143:
+#line 2208 "pl_gram.y"
+    {
+						PLpgSQL_stmt_commit *new;
+
+						new = palloc(sizeof(PLpgSQL_stmt_commit));
+						new->cmd_type = PLPGSQL_STMT_COMMIT;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->chain = (yyvsp[(2) - (3)].ival);
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+					;}
+    break;
+
+  case 144:
+#line 2222 "pl_gram.y"
+    {
+						PLpgSQL_stmt_rollback *new;
+
+						new = palloc(sizeof(PLpgSQL_stmt_rollback));
+						new->cmd_type = PLPGSQL_STMT_ROLLBACK;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (3)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->chain = (yyvsp[(2) - (3)].ival);
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+					;}
+    break;
+
+  case 145:
+#line 2236 "pl_gram.y"
+    { (yyval.ival) = true; ;}
+    break;
+
+  case 146:
+#line 2237 "pl_gram.y"
+    { (yyval.ival) = false; ;}
+    break;
+
+  case 147:
+#line 2238 "pl_gram.y"
+    { (yyval.ival) = false; ;}
+    break;
+
+  case 148:
+#line 2242 "pl_gram.y"
+    {
+						PLpgSQL_stmt_set *new;
+
+						new = palloc0(sizeof(PLpgSQL_stmt_set));
+						new->cmd_type = PLPGSQL_STMT_SET;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+
+						new->expr = read_sql_stmt("SET ");
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+					;}
+    break;
+
+  case 149:
+#line 2255 "pl_gram.y"
+    {
+						PLpgSQL_stmt_set *new;
+
+						new = palloc0(sizeof(PLpgSQL_stmt_set));
+						new->cmd_type = PLPGSQL_STMT_SET;
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
+						new->stmtid = ++plpgsql_curr_compile->nstatements;
+						new->expr = read_sql_stmt("RESET ");
+
+						(yyval.stmt) = (PLpgSQL_stmt *)new;
+					;}
+    break;
+
+  case 150:
+#line 2270 "pl_gram.y"
     {
 						/*
 						 * In principle we should support a cursor_variable
 						 * that is an array element, but for now we don't, so
 						 * just throw an error if next token is '['.
 						 */
-						if ((yyvsp[0].wdatum).datum->dtype != PLPGSQL_DTYPE_VAR ||
+						if ((yyvsp[(1) - (1)].wdatum).datum->dtype != PLPGSQL_DTYPE_VAR ||
 							plpgsql_peek() == '[')
 							ereport(ERROR,
 									(errcode(ERRCODE_DATATYPE_MISMATCH),
 									 errmsg("cursor variable must be a simple variable"),
-									 parser_errposition((yylsp[0]))));
+									 parser_errposition((yylsp[(1) - (1)]))));
 
-						if (((PLpgSQL_var *) (yyvsp[0].wdatum).datum)->datatype->typoid != REFCURSOROID)
+						if (((PLpgSQL_var *) (yyvsp[(1) - (1)].wdatum).datum)->datatype->typoid != REFCURSOROID)
 							ereport(ERROR,
 									(errcode(ERRCODE_DATATYPE_MISMATCH),
 									 errmsg("variable \"%s\" must be of type cursor or refcursor",
-											((PLpgSQL_var *) (yyvsp[0].wdatum).datum)->refname),
-									 parser_errposition((yylsp[0]))));
-						(yyval.var) = (PLpgSQL_var *) (yyvsp[0].wdatum).datum;
-					}
-#line 4238 "pl_gram.c" /* yacc.c:1652  */
+											((PLpgSQL_var *) (yyvsp[(1) - (1)].wdatum).datum)->refname),
+									 parser_errposition((yylsp[(1) - (1)]))));
+						(yyval.var) = (PLpgSQL_var *) (yyvsp[(1) - (1)].wdatum).datum;
+					;}
     break;
 
-  case 138:
-#line 2200 "pl_gram.y" /* yacc.c:1652  */
+  case 151:
+#line 2292 "pl_gram.y"
     {
 						/* just to give a better message than "syntax error" */
-						word_is_not_variable(&((yyvsp[0].word)), (yylsp[0]));
-					}
-#line 4247 "pl_gram.c" /* yacc.c:1652  */
+						word_is_not_variable(&((yyvsp[(1) - (1)].word)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 139:
-#line 2205 "pl_gram.y" /* yacc.c:1652  */
+  case 152:
+#line 2297 "pl_gram.y"
     {
 						/* just to give a better message than "syntax error" */
-						cword_is_not_variable(&((yyvsp[0].cword)), (yylsp[0]));
-					}
-#line 4256 "pl_gram.c" /* yacc.c:1652  */
+						cword_is_not_variable(&((yyvsp[(1) - (1)].cword)), (yylsp[(1) - (1)]));
+					;}
     break;
 
-  case 140:
-#line 2212 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.exception_block) = NULL; }
-#line 4262 "pl_gram.c" /* yacc.c:1652  */
+  case 153:
+#line 2304 "pl_gram.y"
+    { (yyval.exception_block) = NULL; ;}
     break;
 
-  case 141:
-#line 2214 "pl_gram.y" /* yacc.c:1652  */
+  case 154:
+#line 2306 "pl_gram.y"
     {
 						/*
 						 * We use a mid-rule action to add these
@@ -4323,100 +4630,95 @@ yyreduce:
 						 * scope of the names extends to the end of the
 						 * current block.
 						 */
-						int			lineno = plpgsql_location_to_lineno((yylsp[0]));
+						int			lineno = plpgsql_location_to_lineno((yylsp[(1) - (1)]));
 						PLpgSQL_exception_block *new = palloc(sizeof(PLpgSQL_exception_block));
 						PLpgSQL_variable *var;
 
 						var = plpgsql_build_variable("sqlstate", lineno,
 													 plpgsql_build_datatype(TEXTOID,
 																			-1,
-																			plpgsql_curr_compile->fn_input_collation),
+																			plpgsql_curr_compile->fn_input_collation,
+																			NULL),
 													 true);
-						((PLpgSQL_var *) var)->isconst = true;
+						var->isconst = true;
 						new->sqlstate_varno = var->dno;
 
 						var = plpgsql_build_variable("sqlerrm", lineno,
 													 plpgsql_build_datatype(TEXTOID,
 																			-1,
-																			plpgsql_curr_compile->fn_input_collation),
+																			plpgsql_curr_compile->fn_input_collation,
+																			NULL),
 													 true);
-						((PLpgSQL_var *) var)->isconst = true;
+						var->isconst = true;
 						new->sqlerrm_varno = var->dno;
 
 						(yyval.exception_block) = new;
-					}
-#line 4297 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 142:
-#line 2245 "pl_gram.y" /* yacc.c:1652  */
+  case 155:
+#line 2339 "pl_gram.y"
     {
-						PLpgSQL_exception_block *new = (yyvsp[-1].exception_block);
-						new->exc_list = (yyvsp[0].list);
+						PLpgSQL_exception_block *new = (yyvsp[(2) - (3)].exception_block);
+						new->exc_list = (yyvsp[(3) - (3)].list);
 
 						(yyval.exception_block) = new;
-					}
-#line 4308 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 143:
-#line 2254 "pl_gram.y" /* yacc.c:1652  */
+  case 156:
+#line 2348 "pl_gram.y"
     {
-							(yyval.list) = lappend((yyvsp[-1].list), (yyvsp[0].exception));
-						}
-#line 4316 "pl_gram.c" /* yacc.c:1652  */
+							(yyval.list) = lappend((yyvsp[(1) - (2)].list), (yyvsp[(2) - (2)].exception));
+						;}
     break;
 
-  case 144:
-#line 2258 "pl_gram.y" /* yacc.c:1652  */
+  case 157:
+#line 2352 "pl_gram.y"
     {
-							(yyval.list) = list_make1((yyvsp[0].exception));
-						}
-#line 4324 "pl_gram.c" /* yacc.c:1652  */
+							(yyval.list) = list_make1((yyvsp[(1) - (1)].exception));
+						;}
     break;
 
-  case 145:
-#line 2264 "pl_gram.y" /* yacc.c:1652  */
+  case 158:
+#line 2358 "pl_gram.y"
     {
 						PLpgSQL_exception *new;
 
 						new = palloc0(sizeof(PLpgSQL_exception));
-						new->lineno = plpgsql_location_to_lineno((yylsp[-3]));
-						new->conditions = (yyvsp[-2].condition);
-						new->action = (yyvsp[0].list);
+						new->lineno = plpgsql_location_to_lineno((yylsp[(1) - (4)]));
+						new->conditions = (yyvsp[(2) - (4)].condition);
+						new->action = (yyvsp[(4) - (4)].list);
 
 						(yyval.exception) = new;
-					}
-#line 4339 "pl_gram.c" /* yacc.c:1652  */
+					;}
     break;
 
-  case 146:
-#line 2277 "pl_gram.y" /* yacc.c:1652  */
+  case 159:
+#line 2371 "pl_gram.y"
     {
 							PLpgSQL_condition	*old;
 
-							for (old = (yyvsp[-2].condition); old->next != NULL; old = old->next)
+							for (old = (yyvsp[(1) - (3)].condition); old->next != NULL; old = old->next)
 								/* skip */ ;
-							old->next = (yyvsp[0].condition);
-							(yyval.condition) = (yyvsp[-2].condition);
-						}
-#line 4352 "pl_gram.c" /* yacc.c:1652  */
+							old->next = (yyvsp[(3) - (3)].condition);
+							(yyval.condition) = (yyvsp[(1) - (3)].condition);
+						;}
     break;
 
-  case 147:
-#line 2286 "pl_gram.y" /* yacc.c:1652  */
+  case 160:
+#line 2380 "pl_gram.y"
     {
-							(yyval.condition) = (yyvsp[0].condition);
-						}
-#line 4360 "pl_gram.c" /* yacc.c:1652  */
+							(yyval.condition) = (yyvsp[(1) - (1)].condition);
+						;}
     break;
 
-  case 148:
-#line 2292 "pl_gram.y" /* yacc.c:1652  */
+  case 161:
+#line 2386 "pl_gram.y"
     {
-							if (strcmp((yyvsp[0].str), "sqlstate") != 0)
+							if (strcmp((yyvsp[(1) - (1)].str), "sqlstate") != 0)
 							{
-								(yyval.condition) = plpgsql_parse_err_condition((yyvsp[0].str));
+								(yyval.condition) = plpgsql_parse_err_condition((yyvsp[(1) - (1)].str));
 							}
 							else
 							{
@@ -4445,140 +4747,114 @@ yyreduce:
 
 								(yyval.condition) = new;
 							}
-						}
-#line 4398 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 149:
-#line 2328 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = read_sql_expression(';', ";"); }
-#line 4404 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 150:
-#line 2332 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = read_sql_expression(']', "]"); }
-#line 4410 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 151:
-#line 2336 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = read_sql_expression(K_THEN, "THEN"); }
-#line 4416 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 152:
-#line 2340 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = read_sql_expression(K_LOOP, "LOOP"); }
-#line 4422 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 153:
-#line 2344 "pl_gram.y" /* yacc.c:1652  */
-    {
-						plpgsql_ns_push(NULL, PLPGSQL_LABEL_BLOCK);
-						(yyval.str) = NULL;
-					}
-#line 4431 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 154:
-#line 2349 "pl_gram.y" /* yacc.c:1652  */
-    {
-						plpgsql_ns_push((yyvsp[-1].str), PLPGSQL_LABEL_BLOCK);
-						(yyval.str) = (yyvsp[-1].str);
-					}
-#line 4440 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 155:
-#line 2356 "pl_gram.y" /* yacc.c:1652  */
-    {
-						plpgsql_ns_push(NULL, PLPGSQL_LABEL_LOOP);
-						(yyval.str) = NULL;
-					}
-#line 4449 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 156:
-#line 2361 "pl_gram.y" /* yacc.c:1652  */
-    {
-						plpgsql_ns_push((yyvsp[-1].str), PLPGSQL_LABEL_LOOP);
-						(yyval.str) = (yyvsp[-1].str);
-					}
-#line 4458 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 157:
-#line 2368 "pl_gram.y" /* yacc.c:1652  */
-    {
-						(yyval.str) = NULL;
-					}
-#line 4466 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 158:
-#line 2372 "pl_gram.y" /* yacc.c:1652  */
-    {
-						/* label validity will be checked by outer production */
-						(yyval.str) = (yyvsp[0].str);
-					}
-#line 4475 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 159:
-#line 2379 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = NULL; }
-#line 4481 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 160:
-#line 2381 "pl_gram.y" /* yacc.c:1652  */
-    { (yyval.expr) = (yyvsp[0].expr); }
-#line 4487 "pl_gram.c" /* yacc.c:1652  */
-    break;
-
-  case 161:
-#line 2388 "pl_gram.y" /* yacc.c:1652  */
-    {
-						(yyval.str) = (yyvsp[0].word).ident;
-					}
-#line 4495 "pl_gram.c" /* yacc.c:1652  */
+						;}
     break;
 
   case 162:
-#line 2392 "pl_gram.y" /* yacc.c:1652  */
-    {
-						(yyval.str) = pstrdup((yyvsp[0].keyword));
-					}
-#line 4503 "pl_gram.c" /* yacc.c:1652  */
+#line 2422 "pl_gram.y"
+    { (yyval.expr) = read_sql_expression(';', ";"); ;}
     break;
 
   case 163:
-#line 2396 "pl_gram.y" /* yacc.c:1652  */
+#line 2426 "pl_gram.y"
+    { (yyval.expr) = read_sql_expression(']', "]"); ;}
+    break;
+
+  case 164:
+#line 2430 "pl_gram.y"
+    { (yyval.expr) = read_sql_expression(K_THEN, "THEN"); ;}
+    break;
+
+  case 165:
+#line 2434 "pl_gram.y"
+    { (yyval.expr) = read_sql_expression(K_LOOP, "LOOP"); ;}
+    break;
+
+  case 166:
+#line 2438 "pl_gram.y"
     {
-						if ((yyvsp[0].wdatum).ident == NULL) /* composite name not OK */
+						plpgsql_ns_push(NULL, PLPGSQL_LABEL_BLOCK);
+						(yyval.str) = NULL;
+					;}
+    break;
+
+  case 167:
+#line 2443 "pl_gram.y"
+    {
+						plpgsql_ns_push((yyvsp[(2) - (3)].str), PLPGSQL_LABEL_BLOCK);
+						(yyval.str) = (yyvsp[(2) - (3)].str);
+					;}
+    break;
+
+  case 168:
+#line 2450 "pl_gram.y"
+    {
+						plpgsql_ns_push(NULL, PLPGSQL_LABEL_LOOP);
+						(yyval.str) = NULL;
+					;}
+    break;
+
+  case 169:
+#line 2455 "pl_gram.y"
+    {
+						plpgsql_ns_push((yyvsp[(2) - (3)].str), PLPGSQL_LABEL_LOOP);
+						(yyval.str) = (yyvsp[(2) - (3)].str);
+					;}
+    break;
+
+  case 170:
+#line 2462 "pl_gram.y"
+    {
+						(yyval.str) = NULL;
+					;}
+    break;
+
+  case 171:
+#line 2466 "pl_gram.y"
+    {
+						/* label validity will be checked by outer production */
+						(yyval.str) = (yyvsp[(1) - (1)].str);
+					;}
+    break;
+
+  case 172:
+#line 2473 "pl_gram.y"
+    { (yyval.expr) = NULL; ;}
+    break;
+
+  case 173:
+#line 2475 "pl_gram.y"
+    { (yyval.expr) = (yyvsp[(2) - (2)].expr); ;}
+    break;
+
+  case 174:
+#line 2482 "pl_gram.y"
+    {
+						(yyval.str) = (yyvsp[(1) - (1)].word).ident;
+					;}
+    break;
+
+  case 175:
+#line 2486 "pl_gram.y"
+    {
+						(yyval.str) = pstrdup((yyvsp[(1) - (1)].keyword));
+					;}
+    break;
+
+  case 176:
+#line 2490 "pl_gram.y"
+    {
+						if ((yyvsp[(1) - (1)].wdatum).ident == NULL) /* composite name not OK */
 							yyerror("syntax error");
-						(yyval.str) = (yyvsp[0].wdatum).ident;
-					}
-#line 4513 "pl_gram.c" /* yacc.c:1652  */
+						(yyval.str) = (yyvsp[(1) - (1)].wdatum).ident;
+					;}
     break;
 
 
-#line 4517 "pl_gram.c" /* yacc.c:1652  */
+/* Line 1267 of yacc.c.  */
+#line 4803 "pl_gram.c"
       default: break;
     }
-  /* User semantic actions sometimes alter yychar, and that requires
-     that yytoken be updated with the new translation.  We take the
-     approach of translating immediately before every use of yytoken.
-     One alternative is translating here after every semantic action,
-     but that translation would be missed if the semantic action invokes
-     YYABORT, YYACCEPT, or YYERROR immediately after altering yychar or
-     if it invokes YYBACKUP.  In the case of YYABORT or YYACCEPT, an
-     incorrect destructor might then be invoked immediately.  In the
-     case of YYERROR or YYBACKUP, subsequent parser actions might lead
-     to an incorrect destructor call or verbose syntax error message
-     before the lookahead is translated.  */
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
 
   YYPOPSTACK (yylen);
@@ -4588,28 +4864,25 @@ yyreduce:
   *++yyvsp = yyval;
   *++yylsp = yyloc;
 
-  /* Now 'shift' the result of the reduction.  Determine what state
+  /* Now `shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
      number reduced by.  */
-  {
-    const int yylhs = yyr1[yyn] - YYNTOKENS;
-    const int yyi = yypgoto[yylhs] + *yyssp;
-    yystate = (0 <= yyi && yyi <= YYLAST && yycheck[yyi] == *yyssp
-               ? yytable[yyi]
-               : yydefgoto[yylhs]);
-  }
+
+  yyn = yyr1[yyn];
+
+  yystate = yypgoto[yyn - YYNTOKENS] + *yyssp;
+  if (0 <= yystate && yystate <= YYLAST && yycheck[yystate] == *yyssp)
+    yystate = yytable[yystate];
+  else
+    yystate = yydefgoto[yyn - YYNTOKENS];
 
   goto yynewstate;
 
 
-/*--------------------------------------.
-| yyerrlab -- here on detecting error.  |
-`--------------------------------------*/
+/*------------------------------------.
+| yyerrlab -- here on detecting error |
+`------------------------------------*/
 yyerrlab:
-  /* Make sure we have latest lookahead translation.  See comments at
-     user semantic actions for why this is necessary.  */
-  yytoken = yychar == YYEMPTY ? YYEMPTY : YYTRANSLATE (yychar);
-
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
@@ -4617,61 +4890,62 @@ yyerrlab:
 #if ! YYERROR_VERBOSE
       yyerror (YY_("syntax error"));
 #else
-# define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
-                                        yyssp, yytoken)
       {
-        char const *yymsgp = YY_("syntax error");
-        int yysyntax_error_status;
-        yysyntax_error_status = YYSYNTAX_ERROR;
-        if (yysyntax_error_status == 0)
-          yymsgp = yymsg;
-        else if (yysyntax_error_status == 1)
-          {
-            if (yymsg != yymsgbuf)
-              YYSTACK_FREE (yymsg);
-            yymsg = (char *) YYSTACK_ALLOC (yymsg_alloc);
-            if (!yymsg)
-              {
-                yymsg = yymsgbuf;
-                yymsg_alloc = sizeof yymsgbuf;
-                yysyntax_error_status = 2;
-              }
-            else
-              {
-                yysyntax_error_status = YYSYNTAX_ERROR;
-                yymsgp = yymsg;
-              }
-          }
-        yyerror (yymsgp);
-        if (yysyntax_error_status == 2)
-          goto yyexhaustedlab;
+	YYSIZE_T yysize = yysyntax_error (0, yystate, yychar);
+	if (yymsg_alloc < yysize && yymsg_alloc < YYSTACK_ALLOC_MAXIMUM)
+	  {
+	    YYSIZE_T yyalloc = 2 * yysize;
+	    if (! (yysize <= yyalloc && yyalloc <= YYSTACK_ALLOC_MAXIMUM))
+	      yyalloc = YYSTACK_ALLOC_MAXIMUM;
+	    if (yymsg != yymsgbuf)
+	      YYSTACK_FREE (yymsg);
+	    yymsg = (char *) YYSTACK_ALLOC (yyalloc);
+	    if (yymsg)
+	      yymsg_alloc = yyalloc;
+	    else
+	      {
+		yymsg = yymsgbuf;
+		yymsg_alloc = sizeof yymsgbuf;
+	      }
+	  }
+
+	if (0 < yysize && yysize <= yymsg_alloc)
+	  {
+	    (void) yysyntax_error (yymsg, yystate, yychar);
+	    yyerror (yymsg);
+	  }
+	else
+	  {
+	    yyerror (YY_("syntax error"));
+	    if (yysize != 0)
+	      goto yyexhaustedlab;
+	  }
       }
-# undef YYSYNTAX_ERROR
 #endif
     }
 
-  yyerror_range[1] = yylloc;
+  yyerror_range[0] = yylloc;
 
   if (yyerrstatus == 3)
     {
-      /* If just tried and failed to reuse lookahead token after an
-         error, discard it.  */
+      /* If just tried and failed to reuse look-ahead token after an
+	 error, discard it.  */
 
       if (yychar <= YYEOF)
-        {
-          /* Return failure if at end of input.  */
-          if (yychar == YYEOF)
-            YYABORT;
-        }
+	{
+	  /* Return failure if at end of input.  */
+	  if (yychar == YYEOF)
+	    YYABORT;
+	}
       else
-        {
-          yydestruct ("Error: discarding",
-                      yytoken, &yylval, &yylloc);
-          yychar = YYEMPTY;
-        }
+	{
+	  yydestruct ("Error: discarding",
+		      yytoken, &yylval, &yylloc);
+	  yychar = YYEMPTY;
+	}
     }
 
-  /* Else will try to reuse lookahead token after shifting the error
+  /* Else will try to reuse look-ahead token after shifting the error
      token.  */
   goto yyerrlab1;
 
@@ -4680,12 +4954,15 @@ yyerrlab:
 | yyerrorlab -- error raised explicitly by YYERROR.  |
 `---------------------------------------------------*/
 yyerrorlab:
-  /* Pacify compilers when the user code never invokes YYERROR and the
-     label yyerrorlab therefore never appears in user code.  */
-  if (0)
-    YYERROR;
 
-  /* Do not reclaim the symbols of the rule whose action triggered
+  /* Pacify compilers like GCC when the user code never invokes
+     YYERROR and the label yyerrorlab therefore never appears in user
+     code.  */
+  if (/*CONSTCOND*/ 0)
+     goto yyerrorlab;
+
+  yyerror_range[0] = yylsp[1-yylen];
+  /* Do not reclaim the symbols of the rule which action triggered
      this YYERROR.  */
   YYPOPSTACK (yylen);
   yylen = 0;
@@ -4698,42 +4975,43 @@ yyerrorlab:
 | yyerrlab1 -- common code for both syntax error and YYERROR.  |
 `-------------------------------------------------------------*/
 yyerrlab1:
-  yyerrstatus = 3;      /* Each real token shifted decrements this.  */
+  yyerrstatus = 3;	/* Each real token shifted decrements this.  */
 
   for (;;)
     {
       yyn = yypact[yystate];
-      if (!yypact_value_is_default (yyn))
-        {
-          yyn += YYTERROR;
-          if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYTERROR)
-            {
-              yyn = yytable[yyn];
-              if (0 < yyn)
-                break;
-            }
-        }
+      if (yyn != YYPACT_NINF)
+	{
+	  yyn += YYTERROR;
+	  if (0 <= yyn && yyn <= YYLAST && yycheck[yyn] == YYTERROR)
+	    {
+	      yyn = yytable[yyn];
+	      if (0 < yyn)
+		break;
+	    }
+	}
 
       /* Pop the current state because it cannot handle the error token.  */
       if (yyssp == yyss)
-        YYABORT;
+	YYABORT;
 
-      yyerror_range[1] = *yylsp;
+      yyerror_range[0] = *yylsp;
       yydestruct ("Error: popping",
-                  yystos[yystate], yyvsp, yylsp);
+		  yystos[yystate], yyvsp, yylsp);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
     }
 
-  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
-  *++yyvsp = yylval;
-  YY_IGNORE_MAYBE_UNINITIALIZED_END
+  if (yyn == YYFINAL)
+    YYACCEPT;
 
-  yyerror_range[2] = yylloc;
+  *++yyvsp = yylval;
+
+  yyerror_range[1] = yylloc;
   /* Using YYLLOC is tempting, but would change the location of
-     the lookahead.  YYLOC is available though.  */
-  YYLLOC_DEFAULT (yyloc, yyerror_range, 2);
+     the look-ahead.  YYLOC is available though.  */
+  YYLLOC_DEFAULT (yyloc, (yyerror_range - 1), 2);
   *++yylsp = yyloc;
 
   /* Shift the error token.  */
@@ -4750,7 +5028,6 @@ yyacceptlab:
   yyresult = 0;
   goto yyreturn;
 
-
 /*-----------------------------------.
 | yyabortlab -- YYABORT comes here.  |
 `-----------------------------------*/
@@ -4758,8 +5035,7 @@ yyabortlab:
   yyresult = 1;
   goto yyreturn;
 
-
-#if !defined yyoverflow || YYERROR_VERBOSE
+#ifndef yyoverflow
 /*-------------------------------------------------.
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
@@ -4769,27 +5045,18 @@ yyexhaustedlab:
   /* Fall through.  */
 #endif
 
-
-/*-----------------------------------------------------.
-| yyreturn -- parsing is finished, return the result.  |
-`-----------------------------------------------------*/
 yyreturn:
-  if (yychar != YYEMPTY)
-    {
-      /* Make sure we have latest lookahead translation.  See comments at
-         user semantic actions for why this is necessary.  */
-      yytoken = YYTRANSLATE (yychar);
-      yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval, &yylloc);
-    }
-  /* Do not reclaim the symbols of the rule whose action triggered
+  if (yychar != YYEOF && yychar != YYEMPTY)
+     yydestruct ("Cleanup: discarding lookahead",
+		 yytoken, &yylval, &yylloc);
+  /* Do not reclaim the symbols of the rule which action triggered
      this YYABORT or YYACCEPT.  */
   YYPOPSTACK (yylen);
   YY_STACK_PRINT (yyss, yyssp);
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  yystos[*yyssp], yyvsp, yylsp);
+		  yystos[*yyssp], yyvsp, yylsp);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -4800,9 +5067,12 @@ yyreturn:
   if (yymsg != yymsgbuf)
     YYSTACK_FREE (yymsg);
 #endif
-  return yyresult;
+  /* Make sure YYID is used.  */
+  return YYID (yyresult);
 }
-#line 2481 "pl_gram.y" /* yacc.c:1918  */
+
+
+#line 2582 "pl_gram.y"
 
 
 /*
@@ -5010,7 +5280,6 @@ read_sql_construct(int until,
 	}
 
 	expr = palloc0(sizeof(PLpgSQL_expr));
-	expr->dtype			= PLPGSQL_DTYPE_EXPR;
 	expr->query			= pstrdup(ds.data);
 	expr->plan			= NULL;
 	expr->paramnos		= NULL;
@@ -5167,8 +5436,7 @@ make_execsql_stmt(int firsttoken, int location)
 	IdentifierLookup	save_IdentifierLookup;
 	PLpgSQL_stmt_execsql *execsql;
 	PLpgSQL_expr		*expr;
-	PLpgSQL_row			*row = NULL;
-	PLpgSQL_rec			*rec = NULL;
+	PLpgSQL_variable	*target = NULL;
 	int					tok;
 	int					prev_tok;
 	bool				have_into = false;
@@ -5232,7 +5500,7 @@ make_execsql_stmt(int firsttoken, int location)
 			have_into = true;
 			into_start_loc = yylloc;
 			plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_NORMAL;
-			read_into_target(&rec, &row, &have_strict);
+			read_into_target(&target, &have_strict);
 			plpgsql_IdentifierLookup = IDENTIFIER_LOOKUP_EXPR;
 		}
 	}
@@ -5258,7 +5526,6 @@ make_execsql_stmt(int firsttoken, int location)
 		ds.data[--ds.len] = '\0';
 
 	expr = palloc0(sizeof(PLpgSQL_expr));
-	expr->dtype			= PLPGSQL_DTYPE_EXPR;
 	expr->query			= pstrdup(ds.data);
 	expr->plan			= NULL;
 	expr->paramnos		= NULL;
@@ -5271,11 +5538,11 @@ make_execsql_stmt(int firsttoken, int location)
 	execsql = palloc(sizeof(PLpgSQL_stmt_execsql));
 	execsql->cmd_type = PLPGSQL_STMT_EXECSQL;
 	execsql->lineno  = plpgsql_location_to_lineno(location);
+	execsql->stmtid  = ++plpgsql_curr_compile->nstatements;
 	execsql->sqlstmt = expr;
 	execsql->into	 = have_into;
 	execsql->strict	 = have_strict;
-	execsql->rec	 = rec;
-	execsql->row	 = row;
+	execsql->target	 = target;
 
 	return (PLpgSQL_stmt *) execsql;
 }
@@ -5297,6 +5564,7 @@ read_fetch_direction(void)
 	 */
 	fetch = (PLpgSQL_stmt_fetch *) palloc0(sizeof(PLpgSQL_stmt_fetch));
 	fetch->cmd_type = PLPGSQL_STMT_FETCH;
+	fetch->stmtid	= ++plpgsql_curr_compile->nstatements;
 	/* set direction defaults: */
 	fetch->direction = FETCH_FORWARD;
 	fetch->how_many  = 1;
@@ -5483,6 +5751,7 @@ make_return_next_stmt(int location)
 	new = palloc0(sizeof(PLpgSQL_stmt_return_next));
 	new->cmd_type	= PLPGSQL_STMT_RETURN_NEXT;
 	new->lineno		= plpgsql_location_to_lineno(location);
+	new->stmtid		= ++plpgsql_curr_compile->nstatements;
 	new->expr		= NULL;
 	new->retvarno	= -1;
 
@@ -5505,6 +5774,7 @@ make_return_next_stmt(int location)
 
 		if (tok == T_DATUM && plpgsql_peek() == ';' &&
 			(yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_VAR ||
+			 yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_PROMISE ||
 			 yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_ROW ||
 			 yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_REC))
 		{
@@ -5545,6 +5815,7 @@ make_return_query_stmt(int location)
 	new = palloc0(sizeof(PLpgSQL_stmt_return_query));
 	new->cmd_type = PLPGSQL_STMT_RETURN_QUERY;
 	new->lineno = plpgsql_location_to_lineno(location);
+	new->stmtid = ++plpgsql_curr_compile->nstatements;
 
 	/* check for RETURN QUERY EXECUTE */
 	if ((tok = yylex()) != K_EXECUTE)
@@ -5592,24 +5863,27 @@ check_assignable(PLpgSQL_datum *datum, int location)
 	switch (datum->dtype)
 	{
 		case PLPGSQL_DTYPE_VAR:
-			if (((PLpgSQL_var *) datum)->isconst)
+		case PLPGSQL_DTYPE_PROMISE:
+		case PLPGSQL_DTYPE_REC:
+			if (((PLpgSQL_variable *) datum)->isconst)
 				ereport(ERROR,
 						(errcode(ERRCODE_ERROR_IN_ASSIGNMENT),
-						 errmsg("\"%s\" is declared CONSTANT",
-								((PLpgSQL_var *) datum)->refname),
+						 errmsg("variable \"%s\" is declared CONSTANT",
+								((PLpgSQL_variable *) datum)->refname),
 						 parser_errposition(location)));
 			break;
 		case PLPGSQL_DTYPE_ROW:
-			/* always assignable? */
-			break;
-		case PLPGSQL_DTYPE_REC:
-			/* always assignable?  What about NEW/OLD? */
+			/* always assignable; member vars were checked at compile time */
 			break;
 		case PLPGSQL_DTYPE_RECFIELD:
-			/* always assignable? */
+			/* assignable if parent record is */
+			check_assignable(plpgsql_Datums[((PLpgSQL_recfield *) datum)->recparentno],
+							 location);
 			break;
 		case PLPGSQL_DTYPE_ARRAYELEM:
-			/* always assignable? */
+			/* assignable if parent array is */
+			check_assignable(plpgsql_Datums[((PLpgSQL_arrayelem *) datum)->arrayparentno],
+							 location);
 			break;
 		default:
 			elog(ERROR, "unrecognized dtype: %d", datum->dtype);
@@ -5622,13 +5896,12 @@ check_assignable(PLpgSQL_datum *datum, int location)
  * INTO keyword.
  */
 static void
-read_into_target(PLpgSQL_rec **rec, PLpgSQL_row **row, bool *strict)
+read_into_target(PLpgSQL_variable **target, bool *strict)
 {
 	int			tok;
 
 	/* Set default results */
-	*rec = NULL;
-	*row = NULL;
+	*target = NULL;
 	if (strict)
 		*strict = false;
 
@@ -5649,34 +5922,24 @@ read_into_target(PLpgSQL_rec **rec, PLpgSQL_row **row, bool *strict)
 	switch (tok)
 	{
 		case T_DATUM:
-			if (yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_ROW)
+			if (yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_ROW ||
+				yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_REC)
 			{
 				check_assignable(yylval.wdatum.datum, yylloc);
-				*row = (PLpgSQL_row *) yylval.wdatum.datum;
+				*target = (PLpgSQL_variable *) yylval.wdatum.datum;
 
 				if ((tok = yylex()) == ',')
 					ereport(ERROR,
 							(errcode(ERRCODE_SYNTAX_ERROR),
-							 errmsg("record or row variable cannot be part of multiple-item INTO list"),
-							 parser_errposition(yylloc)));
-				plpgsql_push_back_token(tok);
-			}
-			else if (yylval.wdatum.datum->dtype == PLPGSQL_DTYPE_REC)
-			{
-				check_assignable(yylval.wdatum.datum, yylloc);
-				*rec = (PLpgSQL_rec *) yylval.wdatum.datum;
-
-				if ((tok = yylex()) == ',')
-					ereport(ERROR,
-							(errcode(ERRCODE_SYNTAX_ERROR),
-							 errmsg("record or row variable cannot be part of multiple-item INTO list"),
+							 errmsg("record variable cannot be part of multiple-item INTO list"),
 							 parser_errposition(yylloc)));
 				plpgsql_push_back_token(tok);
 			}
 			else
 			{
-				*row = read_into_scalar_list(NameOfDatum(&(yylval.wdatum)),
-											 yylval.wdatum.datum, yylloc);
+				*target = (PLpgSQL_variable *)
+					read_into_scalar_list(NameOfDatum(&(yylval.wdatum)),
+										  yylval.wdatum.datum, yylloc);
 			}
 			break;
 
@@ -5745,9 +6008,9 @@ read_into_scalar_list(char *initial_name,
 	 */
 	plpgsql_push_back_token(tok);
 
-	row = palloc(sizeof(PLpgSQL_row));
+	row = palloc0(sizeof(PLpgSQL_row));
 	row->dtype = PLPGSQL_DTYPE_ROW;
-	row->refname = pstrdup("*internal*");
+	row->refname = "(unnamed row)";
 	row->lineno = plpgsql_location_to_lineno(initial_location);
 	row->rowtupdesc = NULL;
 	row->nfields = nfields;
@@ -5780,9 +6043,9 @@ make_scalar_list1(char *initial_name,
 
 	check_assignable(initial_datum, location);
 
-	row = palloc(sizeof(PLpgSQL_row));
+	row = palloc0(sizeof(PLpgSQL_row));
 	row->dtype = PLPGSQL_DTYPE_ROW;
-	row->refname = pstrdup("*internal*");
+	row->refname = "(unnamed row)";
 	row->lineno = lineno;
 	row->rowtupdesc = NULL;
 	row->nfields = 1;
@@ -5871,7 +6134,7 @@ plpgsql_sql_error_callback(void *arg)
 			internalerrposition(myerrpos + errpos - cbarg->leaderlen - 1);
 	}
 
-	/* In any case, flush errposition --- we want internalerrpos only */
+	/* In any case, flush errposition --- we want internalerrposition only */
 	errposition(0);
 }
 
@@ -5898,7 +6161,7 @@ check_labels(const char *start_label, const char *end_label, int end_location)
 		if (!start_label)
 			ereport(ERROR,
 					(errcode(ERRCODE_SYNTAX_ERROR),
-					 errmsg("end label \"%s\" specified for unlabelled block",
+					 errmsg("end label \"%s\" specified for unlabeled block",
 							end_label),
 					 parser_errposition(end_location)));
 
@@ -6074,7 +6337,6 @@ read_cursor_args(PLpgSQL_var *cursor, int until, const char *expected)
 	appendStringInfoChar(&ds, ';');
 
 	expr = palloc0(sizeof(PLpgSQL_expr));
-	expr->dtype			= PLPGSQL_DTYPE_EXPR;
 	expr->query			= pstrdup(ds.data);
 	expr->plan			= NULL;
 	expr->paramnos		= NULL;
@@ -6200,6 +6462,7 @@ make_case(int location, PLpgSQL_expr *t_expr,
 	new = palloc(sizeof(PLpgSQL_stmt_case));
 	new->cmd_type = PLPGSQL_STMT_CASE;
 	new->lineno = plpgsql_location_to_lineno(location);
+	new->stmtid = ++plpgsql_curr_compile->nstatements;
 	new->t_expr = t_expr;
 	new->t_varno = 0;
 	new->case_when_list = case_when_list;
@@ -6236,7 +6499,8 @@ make_case(int location, PLpgSQL_expr *t_expr,
 			plpgsql_build_variable(varname, new->lineno,
 								   plpgsql_build_datatype(INT4OID,
 														  -1,
-														  InvalidOid),
+														  InvalidOid,
+														  NULL),
 								   true);
 		new->t_varno = t_var->dno;
 
@@ -6266,3 +6530,4 @@ make_case(int location, PLpgSQL_expr *t_expr,
 
 	return (PLpgSQL_stmt *) new;
 }
+

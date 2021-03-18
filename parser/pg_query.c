@@ -37,9 +37,10 @@ void pg_query_free_top_memory_context(MemoryContext context)
 	 */
 	Assert(TopMemoryContext == CurrentMemoryContext);
 
-	AssertArg(MemoryContextIsValid(context));
-
 	MemoryContextDeleteChildren(context);
+
+	/* Clean up the aset.c freelist, to leave no unused context behind */
+	AllocSetDeleteFreeList(context);
 
 	context->methods->delete_context(context);
 

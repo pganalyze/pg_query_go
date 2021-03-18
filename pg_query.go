@@ -1,39 +1,40 @@
 package pg_query
 
 import (
-	"encoding/json"
-	"runtime/debug"
+	proto "github.com/golang/protobuf/proto"
 
-	"github.com/lfittl/pg_query_go/parser"
+	"github.com/pganalyze/pg_query_go/parser"
 )
 
-// ParseToJSON - Parses the given SQL statement into an AST (JSON format)
+// ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)
 func ParseToJSON(input string) (result string, err error) {
 	return parser.ParseToJSON(input)
 }
 
-// Parse the given SQL statement into an AST (native Go structs)
-func Parse(input string) (tree ParsetreeList, err error) {
-	jsonTree, err := ParseToJSON(input)
+// Parse the given SQL statement into a parse tree (Go struct format)
+func Parse(input string) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParseToProtobuf(input)
 	if err != nil {
 		return
 	}
 
-	// JSON unmarshalling can panic in edge cases we don't support yet. This is
-	// still a *bug that needs to be fixed*, but this way the caller can expect an
-	// error to be returned always, instead of a panic
-	defer func() {
-		if r := recover(); r != nil {
-			debug.PrintStack()
-			err = r.(error)
-		}
-	}()
-
-	err = json.Unmarshal([]byte(jsonTree), &tree)
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
 	return
 }
 
-// ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into an AST (JSON format)
+// Deparses a given Go parse tree into a SQL statement
+func Deparse(tree *ParseResult) (output string, err error) {
+	protobufTree, err := proto.Marshal(tree)
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseFromProtobuf(protobufTree)
+	return
+}
+
+// ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)
 }
@@ -43,7 +44,7 @@ func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)
 }
 
-// FastFingerprint - Fingerprint the passed SQL statement using the C extension
-func FastFingerprint(input string) (result string, err error) {
-	return parser.FastFingerprint(input)
+// FastFingerprint - Fingerprint the passed SQL statement
+func Fingerprint(input string) (result string, err error) {
+	return parser.Fingerprint(input)
 }

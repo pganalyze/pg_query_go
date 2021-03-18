@@ -36,7 +36,7 @@
  * to look like NO SCROLL cursors.
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/utils/portal.h
@@ -48,6 +48,7 @@
 
 #include "datatype/timestamp.h"
 #include "executor/execdesc.h"
+#include "tcop/cmdtag.h"
 #include "utils/plancache.h"
 #include "utils/resowner.h"
 
@@ -116,7 +117,7 @@ typedef struct PortalData
 	/* Bookkeeping data */
 	const char *name;			/* portal's name */
 	const char *prepStmtName;	/* source prepared statement (NULL if none) */
-	MemoryContext heap;			/* subsidiary memory for portal */
+	MemoryContext portalContext;	/* subsidiary memory for portal */
 	ResourceOwner resowner;		/* resources owned by portal */
 	void		(*cleanup) (Portal portal); /* cleanup hook */
 
@@ -132,7 +133,8 @@ typedef struct PortalData
 
 	/* The query or queries the portal will execute */
 	const char *sourceText;		/* text of query (as of 8.4, never NULL) */
-	const char *commandTag;		/* command tag for original query */
+	CommandTag	commandTag;		/* command tag for original query */
+	QueryCompletion qc;			/* command completion data for executed query */
 	List	   *stmts;			/* list of PlannedStmts */
 	CachedPlan *cplan;			/* CachedPlan, if stmts are from one */
 
@@ -147,6 +149,8 @@ typedef struct PortalData
 	/* Status data */
 	PortalStatus status;		/* see above */
 	bool		portalPinned;	/* a pinned portal can't be dropped */
+	bool		autoHeld;		/* was automatically converted from pinned to
+								 * held (see HoldPinnedPortals()) */
 
 	/* If not NULL, Executor is active; call ExecutorEnd eventually: */
 	QueryDesc  *queryDesc;		/* info needed for executor invocation */
@@ -198,25 +202,20 @@ typedef struct PortalData
  */
 #define PortalIsValid(p) PointerIsValid(p)
 
-/*
- * Access macros for Portal ... use these in preference to field access.
- */
-#define PortalGetQueryDesc(portal)	((portal)->queryDesc)
-#define PortalGetHeapMemory(portal) ((portal)->heap)
-
 
 /* Prototypes for functions in utils/mmgr/portalmem.c */
 extern void EnablePortalManager(void);
 extern bool PreCommit_Portals(bool isPrepare);
 extern void AtAbort_Portals(void);
 extern void AtCleanup_Portals(void);
+extern void PortalErrorCleanup(void);
 extern void AtSubCommit_Portals(SubTransactionId mySubid,
-					SubTransactionId parentSubid,
-					ResourceOwner parentXactOwner);
+								SubTransactionId parentSubid,
+								ResourceOwner parentXactOwner);
 extern void AtSubAbort_Portals(SubTransactionId mySubid,
-				   SubTransactionId parentSubid,
-				   ResourceOwner myXactOwner,
-				   ResourceOwner parentXactOwner);
+							   SubTransactionId parentSubid,
+							   ResourceOwner myXactOwner,
+							   ResourceOwner parentXactOwner);
 extern void AtSubCleanup_Portals(SubTransactionId mySubid);
 extern Portal CreatePortal(const char *name, bool allowDup, bool dupSilent);
 extern Portal CreateNewPortal(void);
@@ -228,14 +227,15 @@ extern void MarkPortalFailed(Portal portal);
 extern void PortalDrop(Portal portal, bool isTopCommit);
 extern Portal GetPortalByName(const char *name);
 extern void PortalDefineQuery(Portal portal,
-				  const char *prepStmtName,
-				  const char *sourceText,
-				  const char *commandTag,
-				  List *stmts,
-				  CachedPlan *cplan);
+							  const char *prepStmtName,
+							  const char *sourceText,
+							  CommandTag commandTag,
+							  List *stmts,
+							  CachedPlan *cplan);
 extern PlannedStmt *PortalGetPrimaryStmt(Portal portal);
 extern void PortalCreateHoldStore(Portal portal);
 extern void PortalHashTableDeleteAll(void);
 extern bool ThereAreNoReadyPortals(void);
+extern void HoldPinnedPortals(void);
 
 #endif							/* PORTAL_H */

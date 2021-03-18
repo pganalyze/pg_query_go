@@ -16,7 +16,7 @@
  * postgres.c
  *	  POSTGRES C Backend Interface
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -55,18 +55,23 @@
 #include "catalog/pg_type.h"
 #include "commands/async.h"
 #include "commands/prepare.h"
+#include "executor/spi.h"
+#include "jit/jit.h"
 #include "libpq/libpq.h"
 #include "libpq/pqformat.h"
 #include "libpq/pqsignal.h"
+#include "mb/pg_wchar.h"
+#include "mb/stringinfo_mb.h"
 #include "miscadmin.h"
 #include "nodes/print.h"
-#include "optimizer/planner.h"
-#include "pgstat.h"
-#include "pg_trace.h"
+#include "optimizer/optimizer.h"
 #include "parser/analyze.h"
 #include "parser/parser.h"
 #include "pg_getopt.h"
+#include "pg_trace.h"
+#include "pgstat.h"
 #include "postmaster/autovacuum.h"
+#include "postmaster/interrupt.h"
 #include "postmaster/postmaster.h"
 #include "replication/logicallauncher.h"
 #include "replication/logicalworker.h"
@@ -88,8 +93,6 @@
 #include "utils/snapmgr.h"
 #include "utils/timeout.h"
 #include "utils/timestamp.h"
-#include "mb/pg_wchar.h"
-
 
 /* ----------------
  *		global variables
@@ -178,6 +181,10 @@ char	   *register_stack_base_ptr = NULL;
 
 
 
+/* reused buffer to pass to SendRowDescriptionMessage() */
+
+
+
 /* ----------------------------------------------------------------
  *		decls for routines only used in this file
  * ----------------------------------------------------------------
@@ -200,6 +207,8 @@ static bool IsTransactionExitStmtList(List *pstmts);
 static bool IsTransactionStmtList(List *pstmts);
 static void drop_unnamed_stmt(void);
 static void log_disconnections(int code, Datum arg);
+static void enable_statement_timeout(void);
+static void disable_statement_timeout(void);
 
 
 /* ----------------------------------------------------------------
@@ -310,6 +319,8 @@ static void log_disconnections(int code, Datum arg);
  */
 #ifdef COPY_PARSE_PLAN_TREES
 #endif
+#ifdef WRITE_READ_PARSE_PLAN_TREES
+#endif
 
 
 /*
@@ -317,6 +328,10 @@ static void log_disconnections(int code, Datum arg);
  * This is a thin wrapper around planner() and takes the same parameters.
  */
 #ifdef COPY_PARSE_PLAN_TREES
+#ifdef NOT_USED
+#endif
+#endif
+#ifdef WRITE_READ_PARSE_PLAN_TREES
 #ifdef NOT_USED
 #endif
 #endif
@@ -372,6 +387,8 @@ static void log_disconnections(int code, Datum arg);
 /*
  * check_log_duration
  *		Determine whether current command's duration should be logged
+ *		We also check if this statement in this transaction must be logged
+ *		(regardless of its duration).
  *
  * Returns:
  *		0 if no logging is needed
@@ -381,7 +398,7 @@ static void log_disconnections(int code, Datum arg);
  * If logging is needed, the duration in msec is formatted into msec_str[],
  * which must be a 32-byte buffer.
  *
- * was_logged should be TRUE if caller already logged query details (this
+ * was_logged should be true if caller already logged query details (this
  * essentially prevents 2 from being returned).
  */
 
@@ -398,6 +415,8 @@ static void log_disconnections(int code, Datum arg);
  * errdetail_params
  *
  * Add an errdetail() line showing bind-parameter data, if available.
+ * Note that this is only used for statement logging, so it is controlled
+ * by log_parameter_max_length not log_parameter_max_length_on_error.
  */
 
 
@@ -465,7 +484,7 @@ static void log_disconnections(int code, Datum arg);
  */
 
 /*
- * quickdie() occurs when signalled SIGQUIT by the postmaster.
+ * quickdie() occurs when signaled SIGQUIT by the postmaster.
  *
  * Some backend has bought the farm,
  * so we need to stop what we're doing and exit.
@@ -485,15 +504,6 @@ static void log_disconnections(int code, Datum arg);
 
 
 /* signal handler for floating point exception */
-
-
-/*
- * SIGHUP: set flag to re-read config file at next convenient time.
- *
- * Sets the ConfigReloadPending flag, which should be checked at convenient
- * places inside main loops. (Better than doing the reading in the signal
- * handler, ey?)
- */
 
 
 /*
@@ -741,9 +751,26 @@ stack_is_too_deep(void)
 
 
 #if defined(HAVE_GETRUSAGE)
+#if defined(__darwin__)
+#else
+#endif
 #endif							/* HAVE_GETRUSAGE */
 
 /*
  * on_proc_exit handler to log end of session
+ */
+
+
+/*
+ * Start statement timeout timer, if enabled.
+ *
+ * If there's already a timeout running, don't restart the timer.  That
+ * enables compromises between accuracy of timeouts and cost of starting a
+ * timeout.
+ */
+
+
+/*
+ * Disable statement timeout, if active.
  */
 
