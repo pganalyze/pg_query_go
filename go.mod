@@ -1,4 +1,4 @@
-module github.com/lfittl/pg_query_go
+module github.com/pganalyze/pg_query_go
 
 go 1.14
 
