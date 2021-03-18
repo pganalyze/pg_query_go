@@ -3,7 +3,7 @@ package pg_query
 import (
 	proto "github.com/golang/protobuf/proto"
 
-	"github.com/lfittl/pg_query_go/parser"
+	"github.com/pganalyze/pg_query_go/parser"
 )
 
 // ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)

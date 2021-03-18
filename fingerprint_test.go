@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	pg_query "github.com/lfittl/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go"
 )
 
 type fingerprintTest struct {

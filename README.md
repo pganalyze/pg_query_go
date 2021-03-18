@@ -1,6 +1,6 @@
-# pg_query_go [![Build Status](https://travis-ci.org/lfittl/pg_query_go.svg)](https://travis-ci.org/lfittl/pg_query_go) [![GoDoc](https://godoc.org/github.com/lfittl/pg_query_go?status.svg)](https://godoc.org/github.com/lfittl/pg_query_go)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go)
 
-Go version of https://github.com/lfittl/pg_query
+Go version of https://github.com/pganalyze/pg_query
 
 This Go library and its cgo extension use the actual PostgreSQL server source to parse SQL queries and return the internal PostgreSQL parse tree.
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/lfittl/pg_query_go
+go get github.com/pganalyze/pg_query_go
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -43,7 +43,7 @@ package main
 
 import (
   "fmt"
-  "github.com/lfittl/pg_query_go"
+  "github.com/pganalyze/pg_query_go"
 )
 
 func main() {
@@ -71,7 +71,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/lfittl/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go"
 )
 
 func main() {
@@ -97,7 +97,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/lfittl/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go"
 )
 
 func main() {
@@ -133,7 +133,7 @@ package main
 
 import (
   "fmt"
-  "github.com/lfittl/pg_query_go"
+  "github.com/pganalyze/pg_query_go"
 )
 
 func main() {
