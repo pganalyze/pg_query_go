@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/kr/pretty"
-	"github.com/lfittl/pg_query_go"
-	nodes "github.com/lfittl/pg_query_go/nodes"
-	util "github.com/lfittl/pg_query_go/util"
+	"github.com/pganalyze/pg_query_go"
+	nodes "github.com/pganalyze/pg_query_go/nodes"
+	util "github.com/pganalyze/pg_query_go/util"
 )
 
 var parseTests = []struct {
