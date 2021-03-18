@@ -71,7 +71,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {
@@ -97,7 +97,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {
@@ -133,7 +133,7 @@ package main
 
 import (
   "fmt"
-  "github.com/pganalyze/pg_query_go"
+  "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {

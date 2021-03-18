@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	pg_query "github.com/pganalyze/pg_query_go"
+	pg_query "github.com/pganalyze/pg_query_go/v2"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
