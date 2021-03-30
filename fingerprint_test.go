@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"testing"
 
 	pg_query "github.com/pganalyze/pg_query_go/v2"
@@ -38,6 +39,17 @@ func TestFingerprint(t *testing.T) {
 
 		if string(fingerprint) != test.ExpectedHash {
 			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, fingerprint)
+		}
+
+		fingerprintInt, err := pg_query.FingerprintToUInt64(test.Input)
+		if err != nil {
+			t.Errorf("FingerprintToUInt64(%s)\nparse error %s\n\n", test.Input, err)
+		}
+
+		expectedInt, _ := strconv.ParseUint(test.ExpectedHash, 16, 64)
+
+		if fingerprintInt != expectedInt {
+			t.Errorf("FingerprintToUInt64(%s)\nexpected %d\nactual %d\n\n", test.Input, expectedInt, fingerprintInt)
 		}
 	}
 
