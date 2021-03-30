@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+* Update to libpg_query 13-2.0.2
+  - Fix ARM builds: Avoid dependency on cpuid.h header
+  - Simplify deparser of TableLikeClause
+  - Fix asprintf warnings by ensuring _GNU_SOURCE is set early enough
+
+
 ## 2.0.0      2021-03-18
 
 * Update libpg_query to 13-2.0.0
