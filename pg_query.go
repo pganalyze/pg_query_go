@@ -53,3 +53,8 @@ func Fingerprint(input string) (result string, err error) {
 func FingerprintToUInt64(input string) (result uint64, err error) {
 	return parser.FingerprintToUInt64(input)
 }
+
+// HashXXH3_64 - Helper method to run XXH3 hash function (64-bit variant) on the given bytes, with the specified seed
+func HashXXH3_64(input []byte, seed uint64) (result uint64) {
+	return parser.HashXXH3_64(input, seed)
+}
