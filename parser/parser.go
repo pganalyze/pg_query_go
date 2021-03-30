@@ -124,8 +124,28 @@ func Normalize(input string) (result string, err error) {
 	return
 }
 
-// Fingerprint - Fingerprint the passed SQL statement using the C extension
-func Fingerprint(input string) (result string, err error) {
+// FingerprintToUInt64 - Fingerprint the passed SQL statement using the C extension and returns result as uint64
+func FingerprintToUInt64(input string) (result uint64, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_fingerprint(inputC)
+	defer C.pg_query_free_fingerprint_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
+		return
+	}
+
+	// https://github.com/golang/go/issues/29878
+	result = *(*uint64)(unsafe.Pointer(&resultC.fingerprint))
+
+	return
+}
+
+// FingerprintToHexStr - Fingerprint the passed SQL statement using the C extension and returns result as hex string
+func FingerprintToHexStr(input string) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 

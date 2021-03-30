@@ -44,7 +44,12 @@ func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)
 }
 
-// FastFingerprint - Fingerprint the passed SQL statement
+// Fingerprint - Fingerprint the passed SQL statement to a hex string
 func Fingerprint(input string) (result string, err error) {
-	return parser.Fingerprint(input)
+	return parser.FingerprintToHexStr(input)
+}
+
+// FingerprintToUInt64 - Fingerprint the passed SQL statement to a uint64
+func FingerprintToUInt64(input string) (result uint64, err error) {
+	return parser.FingerprintToUInt64(input)
 }
