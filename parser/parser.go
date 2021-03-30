@@ -4,6 +4,7 @@ package parser
 #cgo CFLAGS: -Iinclude -g -fstack-protector
 #cgo LDFLAGS:
 #include "pg_query.h"
+#include "xxhash.h"
 #include <stdlib.h>
 
 // Avoid complexities dealing with C structs in Go
@@ -12,6 +13,11 @@ PgQueryDeparseResult pg_query_deparse_protobuf_direct_args(void* data, unsigned 
 	p.data = (char *) data;
 	p.len = len;
 	return pg_query_deparse_protobuf(p);
+}
+
+// Avoid inconsistent type behaviour in xxhash library
+uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
+	return XXH3_64bits_withSeed(data, len, seed);
 }
 */
 import "C"
@@ -159,6 +165,19 @@ func FingerprintToHexStr(input string) (result string, err error) {
 	}
 
 	result = C.GoString(resultC.fingerprint_str)
+
+	return
+}
+
+// HashXXH3_64 - Helper method to run XXH3 hash function (64-bit variant) on the given bytes, with the specified seed
+func HashXXH3_64(input []byte, seed uint64) (result uint64) {
+	inputC := C.CBytes(input)
+	defer C.free(inputC)
+
+	res := C.pg_query_hash_xxh3_64(inputC, C.size_t(len(input)), C.size_t(seed))
+
+	// https://github.com/golang/go/issues/29878
+	result = *(*uint64)(unsafe.Pointer(&res))
 
 	return
 }

@@ -55,3 +55,35 @@ func TestFingerprint(t *testing.T) {
 
 	fmt.Printf("\n")
 }
+
+var hashTests = []struct {
+	input    string
+	seed     uint64
+	expected uint64
+}{
+	{
+		"TEST",
+		0,
+		11717748491247689214,
+	},
+	{
+		"TEST",
+		42,
+		10412276358662179996,
+	},
+	{
+		"Something else",
+		0,
+		14679351602596009561,
+	},
+}
+
+func TestHashXXH3_64(t *testing.T) {
+	for _, test := range hashTests {
+		actual := pg_query.HashXXH3_64([]byte(test.input), test.seed)
+
+		if actual != test.expected {
+			t.Errorf("HashXXH3_64(%s)\nexpected %d\nactual %d\n\n", test.input, test.expected, actual)
+		}
+	}
+}
