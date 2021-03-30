@@ -2,10 +2,24 @@
 
 ## Unreleased
 
+* ...
+
+
+## 2.0.1      2021-03-30
+
 * Update to libpg_query 13-2.0.2
   - Fix ARM builds: Avoid dependency on cpuid.h header
   - Simplify deparser of TableLikeClause
   - Fix asprintf warnings by ensuring _GNU_SOURCE is set early enough
+* Add FingerprintToUInt64 method for callers that prefer to handle uint64s
+  - This prevents a caller from having to do a hex string to uint64 conversion
+    by simply returning the uint64 version of the fingerprint instead, which
+    is already always provided by libpg_query.
+* Add HashXXH3_64 helper method for generating XXH3 64-bit hash values
+  - This can be useful when trying to fit other values into a data structure
+    sized for the fingerprint, such as when encountering a parsing error
+    during fingerprinting, and wanting to encode that fact uniquely into
+    the fingerprint value.
 
 
 ## 2.0.0      2021-03-18
