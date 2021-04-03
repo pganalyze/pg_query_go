@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* ...
+* Update to libpg_query 13-2.0.3
+  - Normalize: Fix handling of two subsequent DefElem elements
+* Parser CFLAGS: Build with -std=gnu99 to ensure CentOS compatibility
 
 
 ## 2.0.1      2021-03-30
