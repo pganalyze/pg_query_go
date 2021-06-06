@@ -51,6 +51,25 @@ func ParseToJSON(input string) (result string, err error) {
 	return
 }
 
+// Scans the given SQL statement into a protobuf ScanResult
+func ScanToProtobuf(input string) (result []byte, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_scan(inputC)
+	defer C.pg_query_free_scan_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
+		return
+	}
+
+	result = []byte(C.GoStringN(resultC.pbuf.data, C.int(resultC.pbuf.len)))
+
+	return
+}
+
 // ParseToProtobuf - Parses the given SQL statement into a parse tree (Protobuf format)
 func ParseToProtobuf(input string) (result []byte, err error) {
 	inputC := C.CString(input)
