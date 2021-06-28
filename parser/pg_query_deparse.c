@@ -2247,6 +2247,12 @@ static void deparseRangeVar(StringInfo str, RangeVar *range_var, DeparseNodeCont
 	if (!range_var->inh && context != DEPARSE_NODE_CONTEXT_CREATE_TYPE && context != DEPARSE_NODE_CONTEXT_ALTER_TYPE)
 		appendStringInfoString(str, "ONLY ");
 
+	if (range_var->catalogname != NULL)
+	{
+		appendStringInfoString(str, quote_identifier(range_var->catalogname));
+		appendStringInfoChar(str, '.');
+	}
+
 	if (range_var->schemaname != NULL)
 	{
 		appendStringInfoString(str, quote_identifier(range_var->schemaname));
@@ -6678,9 +6684,11 @@ static void deparseCopyStmt(StringInfo str, CopyStmt *copy_stmt)
 				else
 					Assert(false);
 			}
-			else if (strcmp(def_elem->defname, "freeze") == 0 && intVal(def_elem->arg) == 1)
+			else if (strcmp(def_elem->defname, "freeze") == 0 && (def_elem->arg == NULL || intVal(def_elem->arg) == 1))
 			{
-				appendStringInfoString(str, "FREEZE 1");
+				appendStringInfoString(str, "FREEZE");
+				if (def_elem->arg != NULL && intVal(def_elem->arg) == 1)
+					appendStringInfoString(str, " 1");
 			}
 			else if (strcmp(def_elem->defname, "delimiter") == 0)
 			{
@@ -6692,9 +6700,11 @@ static void deparseCopyStmt(StringInfo str, CopyStmt *copy_stmt)
 				appendStringInfoString(str, "NULL ");
 				deparseStringLiteral(str, strVal(def_elem->arg));
 			}
-			else if (strcmp(def_elem->defname, "header") == 0 && intVal(def_elem->arg) == 1)
+			else if (strcmp(def_elem->defname, "header") == 0 && (def_elem->arg == NULL || intVal(def_elem->arg) == 1))
 			{
-				appendStringInfoString(str, "HEADER 1");
+				appendStringInfoString(str, "HEADER");
+				if (def_elem->arg != NULL && intVal(def_elem->arg) == 1)
+					appendStringInfoString(str, " 1");
 			}
 			else if (strcmp(def_elem->defname, "quote") == 0)
 			{
