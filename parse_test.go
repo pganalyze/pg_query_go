@@ -673,3 +673,18 @@ func TestParsePlPgSQL(t *testing.T) {
 		}
 	}
 }
+
+func TestScan(t *testing.T) {
+	smokeTest := func(input string) {
+		_, err := pg_query.Scan(input)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	for _, testCase := range parseTests {
+		smokeTest(testCase.input)
+	}
+	for _, testCase := range parsePlPgSQLTests {
+		smokeTest(testCase.input)
+	}
+}

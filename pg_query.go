@@ -6,6 +6,16 @@ import (
 	"github.com/pganalyze/pg_query_go/v2/parser"
 )
 
+func Scan(input string) (result *ScanResult, err error) {
+	protobufScan, err := parser.ScanToProtobuf(input)
+	if err != nil {
+		return
+	}
+	result = &ScanResult{}
+	err = proto.Unmarshal(protobufScan, result)
+	return
+}
+
 // ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)
 func ParseToJSON(input string) (result string, err error) {
 	return parser.ParseToJSON(input)
