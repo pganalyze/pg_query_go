@@ -5,6 +5,12 @@
 * ...
 
 
+## 2.0.4      2021-06-29
+
+* Update libpg_query to 13-2.0.6 ([#47](https://github.com/pganalyze/pg_query_go/pull/47))
+  - Normalize: Don't touch "ORDER BY 1" expressions, keep original text
+
+
 ## 2.0.3      2021-06-28
 
 * Update libpg_query to 13-2.0.5 ([#45](https://github.com/pganalyze/pg_query_go/pull/45))
