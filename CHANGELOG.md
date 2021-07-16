@@ -2,10 +2,14 @@
 
 ## Unreleased
 
+* ...
+
+
+## 2.0.5      2021-07-16
+
 * Update libpg_query to 13-2.0.7 ([#49](https://github.com/pganalyze/pg_query_go/pull/49))
   - Normalize: Don't modify constants in TypeName typmods/arrayBounds fields
   - Don't fail builds on systems that have strchrnul support (FreeBSD)
-
 
 
 ## 2.0.4      2021-06-29
