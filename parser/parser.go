@@ -24,6 +24,7 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -128,6 +129,49 @@ func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	result = C.GoString(resultC.plpgsql_funcs)
 
 	return
+}
+
+// WIP: splitting a string into separate statements using the lexer, a.k.a the scanner.
+// See pg_query_split_with_scanner in pg_query_split.c
+func SplitWithScanner(input string) (result []string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+	resultC := C.pg_query_split_with_scanner(inputC)
+	defer C.pg_query_free_split_result(resultC)
+
+	if resultC.error != nil {
+		err = errors.New(C.GoString(resultC.error.message))
+		return
+	}
+
+	result = make([]string, resultC.n_stmts)
+	// UNSAFE
+	// see https://fasterthanli.me/articles/whats-in-the-box for an adjacent
+	// exploration. See also https://github.com/SKalt/pg_query_wrapper/blob/master/src/lib.rs#L302
+	nStmts := int(resultC.n_stmts)
+	if nStmts == 0 {
+		return
+	}
+	start := unsafe.Pointer(*resultC.stmts) // get the pointer to the start of the to array of pointers to `PgQuerySplitStmt`s
+	// stmt := (*C.PgQuerySplitStmt)(start)             // cast the C pointer as a pointer to a SplitStm so Go knows how to interpret it
+	offsetSize := unsafe.Sizeof(*resultC.stmts)
+	// ??? ^ I've tried unsafe.Sizeof(start), unsafe.Sizeof(resultC.stmts) / uintptr(nStmts),
+	// and guesses at the size of the pointer in whatever units the pointer is measured in
+	// (1,8,16,32,64,128?).  I'm still only able to dereference the first split statement,
+	// with all others being either {0, 0} or gibberish.
+	fmt.Printf("%d\n", offsetSize)
+
+	for i := 0; i < nStmts; i++ {
+		offset := uintptr(i) * offsetSize
+		ptr := unsafe.Pointer(uintptr(start) + offset)
+		stmt := *(*C.PgQuerySplitStmt)(ptr)
+		fmt.Printf(
+			"%d/%d\t%+v\t%+v\t%+v\t%+v\n",
+			i, nStmts, start, offset, ptr, stmt,
+		)
+		// result[i] = input[int(stmt.stmt_location):int(stmt.stmt_len)]
+	}
+	return result, err
 }
 
 // Normalize the passed SQL statement to replace constant values with ? characters

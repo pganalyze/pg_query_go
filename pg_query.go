@@ -33,6 +33,10 @@ func Parse(input string) (tree *ParseResult, err error) {
 	return
 }
 
+func SplitWithScanner(input string) (statements []string, err error) {
+	return parser.SplitWithScanner(input)
+}
+
 // Deparses a given Go parse tree into a SQL statement
 func Deparse(tree *ParseResult) (output string, err error) {
 	protobufTree, err := proto.Marshal(tree)
