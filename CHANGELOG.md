@@ -5,6 +5,16 @@
 * ...
 
 
+## 2.1.0      2021-10-12
+
+* Update libpg_query to 13-2.1.0 ([#53](https://github.com/pganalyze/pg_query_go/pull/53))
+  - Normalize: add funcname error object
+  - Normalize: Match GROUP BY against target list and re-use param refs
+  - PL/pgSQL: Setup namespace items for parameters, support RECORD types
+    - This significantly improves parsing for PL/pgSQL functions, to the
+      extent that most functions should now parse successfully
+
+
 ## 2.0.5      2021-07-16
 
 * Update libpg_query to 13-2.0.7 ([#49](https://github.com/pganalyze/pg_query_go/pull/49))
