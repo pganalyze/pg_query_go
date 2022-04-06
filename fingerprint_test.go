@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lfittl/pg_query_go"
-	nodes "github.com/lfittl/pg_query_go/nodes"
+	"github.com/pganalyze/pg_query_go"
+	nodes "github.com/pganalyze/pg_query_go/nodes"
 )
 
 type fingerprintTest struct {

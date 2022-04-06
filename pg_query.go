@@ -3,7 +3,7 @@ package pg_query
 import (
 	"encoding/json"
 
-	"github.com/lfittl/pg_query_go/parser"
+	"github.com/pganalyze/pg_query_go/parser"
 )
 
 // ParseToJSON - Parses the given SQL statement into an AST (JSON format)

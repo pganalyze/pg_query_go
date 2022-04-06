@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	nodes "github.com/lfittl/pg_query_go/nodes"
+	nodes "github.com/pganalyze/pg_query_go/nodes"
 )
 
 type ParsetreeList struct {

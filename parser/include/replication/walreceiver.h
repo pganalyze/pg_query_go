@@ -121,9 +121,10 @@ typedef struct
 
 	/*
 	 * force walreceiver reply?  This doesn't need to be locked; memory
-	 * barriers for ordering are sufficient.
+	 * barriers for ordering are sufficient.  But we do need atomic fetch and
+	 * store semantics, so use sig_atomic_t.
 	 */
-	bool		force_reply;
+	sig_atomic_t force_reply;	/* used as a bool */
 
 	/*
 	 * Latch used by startup process to wake up walreceiver after telling it
@@ -284,6 +285,7 @@ walrcv_clear_result(WalRcvExecResult *walres)
 
 /* prototypes for functions in walreceiver.c */
 extern void WalReceiverMain(void) pg_attribute_noreturn();
+extern void ProcessWalRcvInterrupts(void);
 
 /* prototypes for functions in walreceiverfuncs.c */
 extern Size WalRcvShmemSize(void);

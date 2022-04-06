@@ -295,6 +295,7 @@ static void RecordConstLocation(pgssConstLocations *jstate, int location)
 static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 {
 	bool result;
+	MemoryContext normalize_context = CurrentMemoryContext;
 
 	if (node == NULL) return false;
 
@@ -343,8 +344,9 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 	}
 	PG_CATCH();
 	{
-		FlushErrorState();
+		MemoryContextSwitchTo(normalize_context);
 		result = false;
+		FlushErrorState();
 	}
 	PG_END_TRY();
 
@@ -356,7 +358,7 @@ PgQueryNormalizeResult pg_query_normalize(const char* input)
 	MemoryContext ctx = NULL;
 	PgQueryNormalizeResult result = {0};
 
-	ctx = pg_query_enter_memory_context("pg_query_normalize");
+	ctx = pg_query_enter_memory_context();
 
 	PG_TRY();
 	{

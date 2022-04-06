@@ -4,4 +4,4 @@ go:
   - 1.12.x
   - master
 
-go_import_path: github.com/lfittl/pg_query_go
+go_import_path: github.com/pganalyze/pg_query_go

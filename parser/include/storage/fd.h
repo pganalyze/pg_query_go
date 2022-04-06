@@ -52,7 +52,8 @@ typedef int File;
 
 
 /* GUC parameter */
-extern int	max_files_per_process;
+extern PGDLLIMPORT int max_files_per_process;
+extern PGDLLIMPORT bool data_sync_retry;
 
 /*
  * This is private to fd.c, but exported for save/restore_backend_variables()
@@ -91,6 +92,8 @@ extern int	ClosePipeStream(FILE *file);
 /* Operations to allow use of the <dirent.h> library routines */
 extern DIR *AllocateDir(const char *dirname);
 extern struct dirent *ReadDir(DIR *dir, const char *dirname);
+extern struct dirent *ReadDirExtended(DIR *dir, const char *dirname,
+				int elevel);
 extern int	FreeDir(DIR *dir);
 
 /* Operations to allow use of a plain kernel FD, with automatic cleanup */
@@ -122,6 +125,7 @@ extern int	durable_rename(const char *oldfile, const char *newfile, int loglevel
 extern int	durable_unlink(const char *fname, int loglevel);
 extern int	durable_link_or_rename(const char *oldfile, const char *newfile, int loglevel);
 extern void SyncDataDirectory(void);
+extern int data_sync_elevel(int elevel);
 
 /* Filename components for OpenTemporaryFile */
 #define PG_TEMP_FILES_DIR "pgsql_tmp"
