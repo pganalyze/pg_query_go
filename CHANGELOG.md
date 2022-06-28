@@ -5,6 +5,22 @@
 * ...
 
 
+## 2.1.2      2022-06-28
+
+* Update libpg_query to 13-2.1.2 ([#58](https://github.com/pganalyze/pg_query_go/pull/58))
+  - Add support for analyzing PL/pgSQL code inside DO blocks [#142](https://github.com/pganalyze/libpg_query/pull/142)
+  - Fix memory leak in pg_query_fingerprint error handling [#141](https://github.com/pganalyze/libpg_query/pull/141)
+  - PL/pgSQL parser:
+    - Add support for Assert [#135](https://github.com/pganalyze/libpg_query/pull/135)
+    - Add support for SET, COMMIT, ROLLBACK and CALL [#130](https://github.com/pganalyze/libpg_query/pull/130)
+  - Add support for parsing more operators that include a `?` character (special cased to support old pg_stat_statements query texts)
+    - ltree extension [#136](https://github.com/pganalyze/libpg_query/pull/136)
+    - promscale extension [#133](https://github.com/pganalyze/libpg_query/pull/133)
+  - Deparser improvements
+    - Prefix errors with "deparse", and remove some asserts [#131](https://github.com/pganalyze/libpg_query/pull/131)
+    - Fix potential segfault when passing invalid protobuf (RawStmt without Stmt) [#128](https://github.com/pganalyze/libpg_query/pull/128)
+
+
 ## 2.1.0      2021-10-12
 
 * Update libpg_query to 13-2.1.0 ([#53](https://github.com/pganalyze/pg_query_go/pull/53))
