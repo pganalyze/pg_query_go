@@ -4,6 +4,19 @@
 
 * ...
 
+## 2.2.0     2022-11-02
+
+* Update to libpg_query 13-2.2.0 ([#64](https://github.com/pganalyze/pg_query_go/pull/64))
+  - Fingerprinting version 3.1
+    - Fixes issue with "SELECT DISTINCT" having the same fingerprint as "SELECT"
+      (fingerprints for "SELECT DISTINCT" will change with this revision)
+    - Group additional DDL statements together that otherwise generate a lot of
+      unique fingerprints (ListenStmt, UnlistenStmt, NotifyStmt, CreateFunctionStmt,
+      FunctionParameter and DoStmt)
+  - Update to Postgres 13.8 patch release
+  - Backport Xcode 14.1 build fix from upcoming 13.9 release
+  - Normalize additional DDL statements
+
 
 ## 2.1.2      2022-06-28
 
