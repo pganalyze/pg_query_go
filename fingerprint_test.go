@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
+	"strconv"
 	"testing"
 
-	"github.com/pganalyze/pg_query_go"
-	nodes "github.com/pganalyze/pg_query_go/nodes"
+	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
 type fingerprintTest struct {
@@ -33,25 +32,58 @@ func TestFingerprint(t *testing.T) {
 	for _, test := range fingerprintTests {
 		fmt.Printf(".")
 
-		actualTree, err := pg_query.Parse(test.Input)
+		fingerprint, err := pg_query.Fingerprint(test.Input)
 		if err != nil {
 			t.Errorf("Fingerprint(%s)\nparse error %s\n\n", test.Input, err)
 		}
 
-		ctx := nodes.NewFingerprintSubContext()
-		for _, node := range actualTree.Statements {
-			node.Fingerprint(ctx, nil, "")
-		}
-		if !reflect.DeepEqual(ctx.Sum(), test.ExpectedParts) {
-			t.Errorf("Fingerprint(%s)\nexpected parts %#v\nactual parts %#v\n\n", test.Input, test.ExpectedParts, ctx.Sum())
+		if string(fingerprint) != test.ExpectedHash {
+			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, fingerprint)
 		}
 
-		actual := actualTree.Fingerprint()
+		fingerprintInt, err := pg_query.FingerprintToUInt64(test.Input)
+		if err != nil {
+			t.Errorf("FingerprintToUInt64(%s)\nparse error %s\n\n", test.Input, err)
+		}
 
-		if string(actual) != test.ExpectedHash {
-			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, actual)
+		expectedInt, _ := strconv.ParseUint(test.ExpectedHash, 16, 64)
+
+		if fingerprintInt != expectedInt {
+			t.Errorf("FingerprintToUInt64(%s)\nexpected %d\nactual %d\n\n", test.Input, expectedInt, fingerprintInt)
 		}
 	}
 
 	fmt.Printf("\n")
+}
+
+var hashTests = []struct {
+	input    string
+	seed     uint64
+	expected uint64
+}{
+	{
+		"TEST",
+		0,
+		11717748491247689214,
+	},
+	{
+		"TEST",
+		42,
+		10412276358662179996,
+	},
+	{
+		"Something else",
+		0,
+		14679351602596009561,
+	},
+}
+
+func TestHashXXH3_64(t *testing.T) {
+	for _, test := range hashTests {
+		actual := pg_query.HashXXH3_64([]byte(test.input), test.seed)
+
+		if actual != test.expected {
+			t.Errorf("HashXXH3_64(%s)\nexpected %d\nactual %d\n\n", test.input, test.expected, actual)
+		}
+	}
 }

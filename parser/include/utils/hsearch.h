@@ -4,7 +4,7 @@
  *	  exported definitions for utils/hash/dynahash.c; see notes therein
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/utils/hsearch.h
@@ -118,19 +118,23 @@ typedef struct
 
 /*
  * prototypes for functions in dynahash.c
+ *
+ * Note: It is deprecated for callers of hash_create to explicitly specify
+ * string_hash, tag_hash, uint32_hash, or oid_hash.  Just set HASH_BLOBS or
+ * not.  Use HASH_FUNCTION only when you want something other than those.
  */
 extern HTAB *hash_create(const char *tabname, long nelem,
-			HASHCTL *info, int flags);
+						 HASHCTL *info, int flags);
 extern void hash_destroy(HTAB *hashp);
 extern void hash_stats(const char *where, HTAB *hashp);
 extern void *hash_search(HTAB *hashp, const void *keyPtr, HASHACTION action,
-			bool *foundPtr);
+						 bool *foundPtr);
 extern uint32 get_hash_value(HTAB *hashp, const void *keyPtr);
 extern void *hash_search_with_hash_value(HTAB *hashp, const void *keyPtr,
-							uint32 hashvalue, HASHACTION action,
-							bool *foundPtr);
+										 uint32 hashvalue, HASHACTION action,
+										 bool *foundPtr);
 extern bool hash_update_hash_key(HTAB *hashp, void *existingEntry,
-					 const void *newKeyPtr);
+								 const void *newKeyPtr);
 extern long hash_get_num_entries(HTAB *hashp);
 extern void hash_seq_init(HASH_SEQ_STATUS *status, HTAB *hashp);
 extern void *hash_seq_search(HASH_SEQ_STATUS *status);
@@ -141,20 +145,5 @@ extern long hash_select_dirsize(long num_entries);
 extern Size hash_get_shared_size(HASHCTL *info, int flags);
 extern void AtEOXact_HashTables(bool isCommit);
 extern void AtEOSubXact_HashTables(bool isCommit, int nestDepth);
-
-/*
- * prototypes for functions in hashfn.c
- *
- * Note: It is deprecated for callers of hash_create to explicitly specify
- * string_hash, tag_hash, uint32_hash, or oid_hash.  Just set HASH_BLOBS or
- * not.  Use HASH_FUNCTION only when you want something other than those.
- */
-extern uint32 string_hash(const void *key, Size keysize);
-extern uint32 tag_hash(const void *key, Size keysize);
-extern uint32 uint32_hash(const void *key, Size keysize);
-extern uint32 bitmap_hash(const void *key, Size keysize);
-extern int	bitmap_match(const void *key1, const void *key2, Size keysize);
-
-#define oid_hash uint32_hash	/* Remove me eventually */
 
 #endif							/* HSEARCH_H */

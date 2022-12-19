@@ -15,6 +15,7 @@
  * - core_yy_load_buffer_state
  * - yy_fatal_error
  * - fprintf_to_ereport
+ * - ScanKeywordTokens
  * - core_yylex
  * - core_yy_create_buffer
  * - core_yy_init_buffer
@@ -23,17 +24,13 @@
  * - yy_start_state_list
  * - yy_transition
  * - addlitchar
- * - litbufdup
  * - addlit
- * - litbuf_udeescape
- * - hexval
- * - check_unicode_value
- * - check_uescapechar
+ * - litbufdup
  * - check_escape_warning
- * - is_utf16_surrogate_first
- * - is_utf16_surrogate_second
  * - addunicode
- * - surrogate_pair_to_codepoint
+ * - setup_scanner_errposition_callback
+ * - scb_error_callback
+ * - cancel_scanner_errposition_callback
  * - check_string_escape_warning
  * - unescape_single_char
  * - process_integer_literal
@@ -46,8 +43,7 @@
  *--------------------------------------------------------------------
  */
 
-#line 2 "scan.c"
-#line 2 "scan.l"
+#line 1 "scan.c"
 /*-------------------------------------------------------------------------
  *
  * scan.l
@@ -55,14 +51,15 @@
  *
  * NOTE NOTE NOTE:
  *
- * The rules in this file must be kept in sync with src/fe_utils/psqlscan.l!
+ * The rules in this file must be kept in sync with src/fe_utils/psqlscan.l
+ * and src/interfaces/ecpg/preproc/pgc.l!
  *
  * The rules are designed so that the scanner never has to backtrack,
  * in the sense that there is always a rule that can match the input
  * consumed so far (the rule action may internally throw back some input
  * with yyless(), however).  As explained in the flex manual, this makes
- * for a useful speed increase --- about a third faster than a plain -CF
- * lexer, in simple testing.  The extra complexity is mostly in the rules
+ * for a useful speed increase --- several percent faster when measuring
+ * raw parsing (Flex + Bison).  The extra complexity is mostly in the rules
  * for handling float numbers and continued string literals.  If you change
  * the lexical rules, verify that you haven't broken the no-backtrack
  * property by running flex with the "-b" option and checking that the
@@ -70,7 +67,7 @@
  * Postgres 9.2, this check is made automatically by the Makefile.)
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * IDENTIFICATION
@@ -83,14 +80,13 @@
 #include <ctype.h>
 #include <unistd.h>
 
+#include "common/string.h"
 #include "parser/gramparse.h"
 #include "parser/parser.h"		/* only needed for GUC variables */
 #include "parser/scansup.h"
 #include "mb/pg_wchar.h"
 
-
-
-#line 46 "scan.c"
+#line 44 "scan.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -98,10 +94,244 @@
 
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
-#define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 35
+#define YY_FLEX_MINOR_VERSION 6
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
+#endif
+
+#ifdef yy_create_buffer
+#define core_yy_create_buffer_ALREADY_DEFINED
+#else
+#define yy_create_buffer core_yy_create_buffer
+#endif
+
+#ifdef yy_delete_buffer
+#define core_yy_delete_buffer_ALREADY_DEFINED
+#else
+#define yy_delete_buffer core_yy_delete_buffer
+#endif
+
+#ifdef yy_scan_buffer
+#define core_yy_scan_buffer_ALREADY_DEFINED
+#else
+#define yy_scan_buffer core_yy_scan_buffer
+#endif
+
+#ifdef yy_scan_string
+#define core_yy_scan_string_ALREADY_DEFINED
+#else
+#define yy_scan_string core_yy_scan_string
+#endif
+
+#ifdef yy_scan_bytes
+#define core_yy_scan_bytes_ALREADY_DEFINED
+#else
+#define yy_scan_bytes core_yy_scan_bytes
+#endif
+
+#ifdef yy_init_buffer
+#define core_yy_init_buffer_ALREADY_DEFINED
+#else
+#define yy_init_buffer core_yy_init_buffer
+#endif
+
+#ifdef yy_flush_buffer
+#define core_yy_flush_buffer_ALREADY_DEFINED
+#else
+#define yy_flush_buffer core_yy_flush_buffer
+#endif
+
+#ifdef yy_load_buffer_state
+#define core_yy_load_buffer_state_ALREADY_DEFINED
+#else
+#define yy_load_buffer_state core_yy_load_buffer_state
+#endif
+
+#ifdef yy_switch_to_buffer
+#define core_yy_switch_to_buffer_ALREADY_DEFINED
+#else
+#define yy_switch_to_buffer core_yy_switch_to_buffer
+#endif
+
+#ifdef yypush_buffer_state
+#define core_yypush_buffer_state_ALREADY_DEFINED
+#else
+#define yypush_buffer_state core_yypush_buffer_state
+#endif
+
+#ifdef yypop_buffer_state
+#define core_yypop_buffer_state_ALREADY_DEFINED
+#else
+#define yypop_buffer_state core_yypop_buffer_state
+#endif
+
+#ifdef yyensure_buffer_stack
+#define core_yyensure_buffer_stack_ALREADY_DEFINED
+#else
+#define yyensure_buffer_stack core_yyensure_buffer_stack
+#endif
+
+#ifdef yylex
+#define core_yylex_ALREADY_DEFINED
+#else
+#define yylex core_yylex
+#endif
+
+#ifdef yyrestart
+#define core_yyrestart_ALREADY_DEFINED
+#else
+#define yyrestart core_yyrestart
+#endif
+
+#ifdef yylex_init
+#define core_yylex_init_ALREADY_DEFINED
+#else
+#define yylex_init core_yylex_init
+#endif
+
+#ifdef yylex_init_extra
+#define core_yylex_init_extra_ALREADY_DEFINED
+#else
+#define yylex_init_extra core_yylex_init_extra
+#endif
+
+#ifdef yylex_destroy
+#define core_yylex_destroy_ALREADY_DEFINED
+#else
+#define yylex_destroy core_yylex_destroy
+#endif
+
+#ifdef yyget_debug
+#define core_yyget_debug_ALREADY_DEFINED
+#else
+#define yyget_debug core_yyget_debug
+#endif
+
+#ifdef yyset_debug
+#define core_yyset_debug_ALREADY_DEFINED
+#else
+#define yyset_debug core_yyset_debug
+#endif
+
+#ifdef yyget_extra
+#define core_yyget_extra_ALREADY_DEFINED
+#else
+#define yyget_extra core_yyget_extra
+#endif
+
+#ifdef yyset_extra
+#define core_yyset_extra_ALREADY_DEFINED
+#else
+#define yyset_extra core_yyset_extra
+#endif
+
+#ifdef yyget_in
+#define core_yyget_in_ALREADY_DEFINED
+#else
+#define yyget_in core_yyget_in
+#endif
+
+#ifdef yyset_in
+#define core_yyset_in_ALREADY_DEFINED
+#else
+#define yyset_in core_yyset_in
+#endif
+
+#ifdef yyget_out
+#define core_yyget_out_ALREADY_DEFINED
+#else
+#define yyget_out core_yyget_out
+#endif
+
+#ifdef yyset_out
+#define core_yyset_out_ALREADY_DEFINED
+#else
+#define yyset_out core_yyset_out
+#endif
+
+#ifdef yyget_leng
+#define core_yyget_leng_ALREADY_DEFINED
+#else
+#define yyget_leng core_yyget_leng
+#endif
+
+#ifdef yyget_text
+#define core_yyget_text_ALREADY_DEFINED
+#else
+#define yyget_text core_yyget_text
+#endif
+
+#ifdef yyget_lineno
+#define core_yyget_lineno_ALREADY_DEFINED
+#else
+#define yyget_lineno core_yyget_lineno
+#endif
+
+#ifdef yyset_lineno
+#define core_yyset_lineno_ALREADY_DEFINED
+#else
+#define yyset_lineno core_yyset_lineno
+#endif
+
+#ifdef yyget_column
+#define core_yyget_column_ALREADY_DEFINED
+#else
+#define yyget_column core_yyget_column
+#endif
+
+#ifdef yyset_column
+#define core_yyset_column_ALREADY_DEFINED
+#else
+#define yyset_column core_yyset_column
+#endif
+
+#ifdef yywrap
+#define core_yywrap_ALREADY_DEFINED
+#else
+#define yywrap core_yywrap
+#endif
+
+#ifdef yyget_lval
+#define core_yyget_lval_ALREADY_DEFINED
+#else
+#define yyget_lval core_yyget_lval
+#endif
+
+#ifdef yyset_lval
+#define core_yyset_lval_ALREADY_DEFINED
+#else
+#define yyset_lval core_yyset_lval
+#endif
+
+#ifdef yyget_lloc
+#define core_yyget_lloc_ALREADY_DEFINED
+#else
+#define yyget_lloc core_yyget_lloc
+#endif
+
+#ifdef yyset_lloc
+#define core_yyset_lloc_ALREADY_DEFINED
+#else
+#define yyset_lloc core_yyset_lloc
+#endif
+
+#ifdef yyalloc
+#define core_yyalloc_ALREADY_DEFINED
+#else
+#define yyalloc core_yyalloc
+#endif
+
+#ifdef yyrealloc
+#define core_yyrealloc_ALREADY_DEFINED
+#else
+#define yyrealloc core_yyrealloc
+#endif
+
+#ifdef yyfree
+#define core_yyfree_ALREADY_DEFINED
+#else
+#define yyfree core_yyfree
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -145,7 +375,6 @@ typedef int flex_int32_t;
 typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
-#endif /* ! C99 */
 
 /* Limits of integral types. */
 #ifndef INT8_MIN
@@ -176,38 +405,32 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
+#endif /* ! C99 */
+
 #endif /* ! FLEXINT_H */
 
-#ifdef __cplusplus
+/* begin standard C++ headers. */
 
-/* The "const" storage-class-modifier is valid. */
-#define YY_USE_CONST
-
-#else	/* ! __cplusplus */
-
-/* C99 requires __STDC__ to be defined as 1. */
-#if defined (__STDC__)
-
-#define YY_USE_CONST
-
-#endif	/* defined (__STDC__) */
-#endif	/* ! __cplusplus */
-
-#ifdef YY_USE_CONST
+/* TODO: this is always defined, so inline it */
 #define yyconst const
+
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define yynoreturn __attribute__((__noreturn__))
 #else
-#define yyconst
+#define yynoreturn
 #endif
 
 /* Returned upon end-of-file. */
 #define YY_NULL 0
 
-/* Promotes a possibly negative, possibly signed char to an unsigned
- * integer for use as an array index.  If the signed char is negative,
- * we want to instead treat it as an 8-bit unsigned char, hence the
- * double cast.
+/* Promotes a possibly negative, possibly signed char to an
+ *   integer in range [0..255] for use as an array index.
  */
-#define YY_SC_TO_UI(c) ((unsigned int) (unsigned char) c)
+#define YY_SC_TO_UI(c) ((YY_CHAR) (c))
 
 /* An opaque pointer. */
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -231,25 +454,29 @@ typedef void* yyscan_t;
  * definition of BEGIN.
  */
 #define BEGIN yyg->yy_start = 1 + 2 *
-
 /* Translate the current start state into a value that can be later handed
  * to BEGIN to return to the state.  The YYSTATE alias is for lex
  * compatibility.
  */
 #define YY_START ((yyg->yy_start - 1) / 2)
 #define YYSTATE YY_START
-
 /* Action number for EOF rule of a given start state. */
 #define YY_STATE_EOF(state) (YY_END_OF_BUFFER + state + 1)
-
 /* Special action meaning "start processing a new file". */
-#define YY_NEW_FILE core_yyrestart(yyin ,yyscanner )
-
+#define YY_NEW_FILE yyrestart( yyin , yyscanner )
 #define YY_END_OF_BUFFER_CHAR 0
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -269,8 +496,9 @@ typedef size_t yy_size_t;
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
-
+    
     #define YY_LESS_LINENO(n)
+    #define YY_LINENO_REWIND_TO(ptr)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -285,7 +513,6 @@ typedef size_t yy_size_t;
 		YY_DO_BEFORE_ACTION; /* set up yytext again */ \
 		} \
 	while ( 0 )
-
 #define unput(c) yyunput( c, yyg->yytext_ptr , yyscanner )
 
 #ifndef YY_STRUCT_YY_BUFFER_STATE
@@ -300,7 +527,7 @@ struct yy_buffer_state
 	/* Size of input buffer in bytes, not including room for EOB
 	 * characters.
 	 */
-	yy_size_t yy_buf_size;
+	int yy_buf_size;
 
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
@@ -328,7 +555,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-    
+
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -345,7 +572,7 @@ struct yy_buffer_state
 	 * possible backing-up.
 	 *
 	 * When we actually see the EOF, we change the status to "new"
-	 * (via core_yyrestart()), so that the user can continue scanning by
+	 * (via yyrestart()), so that the user can continue scanning by
 	 * just pointing yyin at a new input file.
 	 */
 #define YY_BUFFER_EOF_PENDING 2
@@ -362,73 +589,67 @@ struct yy_buffer_state
 #define YY_CURRENT_BUFFER ( yyg->yy_buffer_stack \
                           ? yyg->yy_buffer_stack[yyg->yy_buffer_stack_top] \
                           : NULL)
-
 /* Same as previous macro, but useful when we know that the buffer stack is not
  * NULL or when we need an lvalue. For internal use only.
  */
 #define YY_CURRENT_BUFFER_LVALUE yyg->yy_buffer_stack[yyg->yy_buffer_stack_top]
 
-void core_yyrestart (FILE *input_file ,yyscan_t yyscanner );
-void core_yy_switch_to_buffer (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-YY_BUFFER_STATE core_yy_create_buffer (FILE *file,int size ,yyscan_t yyscanner );
-void core_yy_delete_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void core_yy_flush_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void core_yypush_buffer_state (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-void core_yypop_buffer_state (yyscan_t yyscanner );
+void yyrestart ( FILE *input_file , yyscan_t yyscanner );
+void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_create_buffer ( FILE *file, int size , yyscan_t yyscanner );
+void yy_delete_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yy_flush_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yypush_buffer_state ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+void yypop_buffer_state ( yyscan_t yyscanner );
 
-static void core_yyensure_buffer_stack (yyscan_t yyscanner );
-static void core_yy_load_buffer_state (yyscan_t yyscanner );
-static void core_yy_init_buffer (YY_BUFFER_STATE b,FILE *file ,yyscan_t yyscanner );
+static void yyensure_buffer_stack ( yyscan_t yyscanner );
+static void yy_load_buffer_state ( yyscan_t yyscanner );
+static void yy_init_buffer ( YY_BUFFER_STATE b, FILE *file , yyscan_t yyscanner );
+#define YY_FLUSH_BUFFER yy_flush_buffer( YY_CURRENT_BUFFER , yyscanner)
 
-#define YY_FLUSH_BUFFER core_yy_flush_buffer(YY_CURRENT_BUFFER ,yyscanner)
+YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_string ( const char *yy_str , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_bytes ( const char *bytes, yy_size_t len , yyscan_t yyscanner );
 
-YY_BUFFER_STATE core_yy_scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
-YY_BUFFER_STATE core_yy_scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
-YY_BUFFER_STATE core_yy_scan_bytes (yyconst char *bytes,yy_size_t len ,yyscan_t yyscanner );
+void *yyalloc ( yy_size_t , yyscan_t yyscanner );
+void *yyrealloc ( void *, yy_size_t , yyscan_t yyscanner );
+void yyfree ( void * , yyscan_t yyscanner );
 
-void *core_yyalloc (yy_size_t ,yyscan_t yyscanner );
-void *core_yyrealloc (void *,yy_size_t ,yyscan_t yyscanner );
-void core_yyfree (void * ,yyscan_t yyscanner );
-
-#define yy_new_buffer core_yy_create_buffer
-
+#define yy_new_buffer yy_create_buffer
 #define yy_set_interactive(is_interactive) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){ \
-        core_yyensure_buffer_stack (yyscanner); \
+        yyensure_buffer_stack (yyscanner); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            core_yy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner); \
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_is_interactive = is_interactive; \
 	}
-
 #define yy_set_bol(at_bol) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){\
-        core_yyensure_buffer_stack (yyscanner); \
+        yyensure_buffer_stack (yyscanner); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            core_yy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner); \
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_at_bol = at_bol; \
 	}
-
 #define YY_AT_BOL() (YY_CURRENT_BUFFER_LVALUE->yy_at_bol)
 
 /* Begin user sect3 */
 
-#define core_yywrap(n) 1
+#define core_yywrap(yyscanner) (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
+typedef flex_uint8_t YY_CHAR;
 
-typedef unsigned char YY_CHAR;
-
-typedef yyconst struct yy_trans_info *yy_state_type;
+typedef const struct yy_trans_info *yy_state_type;
 
 #define yytext_ptr yytext_r
 
-static yy_state_type yy_get_previous_state (yyscan_t yyscanner );
-static yy_state_type yy_try_NUL_trans (yy_state_type current_state  ,yyscan_t yyscanner);
-static int yy_get_next_buffer (yyscan_t yyscanner );
-static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
+static yy_state_type yy_get_previous_state ( yyscan_t yyscanner );
+static yy_state_type yy_try_NUL_trans ( yy_state_type current_state  , yyscan_t yyscanner);
+static int yy_get_next_buffer ( yyscan_t yyscanner );
+static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 
 /* Done after the current pattern has been matched and before the
  * corresponding action - sets up yytext.
@@ -439,3011 +660,2798 @@ static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-
-#define YY_NUM_RULES 80
-#define YY_END_OF_BUFFER 81
+#define YY_NUM_RULES 66
+#define YY_END_OF_BUFFER 67
 struct yy_trans_info
 	{
-	flex_int32_t yy_verify;
-	flex_int32_t yy_nxt;
+	flex_int16_t yy_verify;
+	flex_int16_t yy_nxt;
 	};
-static yyconst struct yy_trans_info yy_transition[37005] =
+static const struct yy_trans_info yy_transition[17678] =
     {
- {   0,   0 }, {   0,36749 }, {   0,   0 }, {   0,36747 }, {   1,6708 },
- {   2,6708 }, {   3,6708 }, {   4,6708 }, {   5,6708 }, {   6,6708 },
- {   7,6708 }, {   8,6708 }, {   9,6710 }, {  10,6715 }, {  11,6708 },
- {  12,6710 }, {  13,6710 }, {  14,6708 }, {  15,6708 }, {  16,6708 },
- {  17,6708 }, {  18,6708 }, {  19,6708 }, {  20,6708 }, {  21,6708 },
- {  22,6708 }, {  23,6708 }, {  24,6708 }, {  25,6708 }, {  26,6708 },
- {  27,6708 }, {  28,6708 }, {  29,6708 }, {  30,6708 }, {  31,6708 },
- {  32,6710 }, {  33,6717 }, {  34,6712 }, {  35,6757 }, {  36,6823 },
- {  37,7080 }, {  38,6757 }, {  39,6730 }, {  40,6732 }, {  41,6732 },
- {  42,7080 }, {  43,7080 }, {  44,6732 }, {  45,7091 }, {  46,7110 },
-
- {  47,7181 }, {  48,7183 }, {  49,7183 }, {  50,7183 }, {  51,7183 },
- {  52,7183 }, {  53,7183 }, {  54,7183 }, {  55,7183 }, {  56,7183 },
- {  57,7183 }, {  58,6735 }, {  59,6732 }, {  60,7248 }, {  61,7259 },
- {  62,7326 }, {  63,7080 }, {  64,6757 }, {  65,7358 }, {  66,7615 },
- {  67,7358 }, {  68,7358 }, {  69,7872 }, {  70,7358 }, {  71,7358 },
- {  72,7358 }, {  73,7358 }, {  74,7358 }, {  75,7358 }, {  76,7358 },
- {  77,7358 }, {  78,8129 }, {  79,7358 }, {  80,7358 }, {  81,7358 },
- {  82,7358 }, {  83,7358 }, {  84,7358 }, {  85,8386 }, {  86,7358 },
- {  87,7358 }, {  88,8643 }, {  89,7358 }, {  90,7358 }, {  91,6732 },
- {  92,6708 }, {  93,6732 }, {  94,7080 }, {  95,7358 }, {  96,6757 },
-
- {  97,7358 }, {  98,7615 }, {  99,7358 }, { 100,7358 }, { 101,7872 },
- { 102,7358 }, { 103,7358 }, { 104,7358 }, { 105,7358 }, { 106,7358 },
- { 107,7358 }, { 108,7358 }, { 109,7358 }, { 110,8129 }, { 111,7358 },
- { 112,7358 }, { 113,7358 }, { 114,7358 }, { 115,7358 }, { 116,7358 },
- { 117,8386 }, { 118,7358 }, { 119,7358 }, { 120,8643 }, { 121,7358 },
- { 122,7358 }, { 123,6708 }, { 124,6757 }, { 125,6708 }, { 126,6757 },
- { 127,6708 }, { 128,7358 }, { 129,7358 }, { 130,7358 }, { 131,7358 },
- { 132,7358 }, { 133,7358 }, { 134,7358 }, { 135,7358 }, { 136,7358 },
- { 137,7358 }, { 138,7358 }, { 139,7358 }, { 140,7358 }, { 141,7358 },
- { 142,7358 }, { 143,7358 }, { 144,7358 }, { 145,7358 }, { 146,7358 },
-
- { 147,7358 }, { 148,7358 }, { 149,7358 }, { 150,7358 }, { 151,7358 },
- { 152,7358 }, { 153,7358 }, { 154,7358 }, { 155,7358 }, { 156,7358 },
- { 157,7358 }, { 158,7358 }, { 159,7358 }, { 160,7358 }, { 161,7358 },
- { 162,7358 }, { 163,7358 }, { 164,7358 }, { 165,7358 }, { 166,7358 },
- { 167,7358 }, { 168,7358 }, { 169,7358 }, { 170,7358 }, { 171,7358 },
- { 172,7358 }, { 173,7358 }, { 174,7358 }, { 175,7358 }, { 176,7358 },
- { 177,7358 }, { 178,7358 }, { 179,7358 }, { 180,7358 }, { 181,7358 },
- { 182,7358 }, { 183,7358 }, { 184,7358 }, { 185,7358 }, { 186,7358 },
- { 187,7358 }, { 188,7358 }, { 189,7358 }, { 190,7358 }, { 191,7358 },
- { 192,7358 }, { 193,7358 }, { 194,7358 }, { 195,7358 }, { 196,7358 },
-
- { 197,7358 }, { 198,7358 }, { 199,7358 }, { 200,7358 }, { 201,7358 },
- { 202,7358 }, { 203,7358 }, { 204,7358 }, { 205,7358 }, { 206,7358 },
- { 207,7358 }, { 208,7358 }, { 209,7358 }, { 210,7358 }, { 211,7358 },
- { 212,7358 }, { 213,7358 }, { 214,7358 }, { 215,7358 }, { 216,7358 },
- { 217,7358 }, { 218,7358 }, { 219,7358 }, { 220,7358 }, { 221,7358 },
- { 222,7358 }, { 223,7358 }, { 224,7358 }, { 225,7358 }, { 226,7358 },
- { 227,7358 }, { 228,7358 }, { 229,7358 }, { 230,7358 }, { 231,7358 },
- { 232,7358 }, { 233,7358 }, { 234,7358 }, { 235,7358 }, { 236,7358 },
- { 237,7358 }, { 238,7358 }, { 239,7358 }, { 240,7358 }, { 241,7358 },
- { 242,7358 }, { 243,7358 }, { 244,7358 }, { 245,7358 }, { 246,7358 },
-
- { 247,7358 }, { 248,7358 }, { 249,7358 }, { 250,7358 }, { 251,7358 },
- { 252,7358 }, { 253,7358 }, { 254,7358 }, { 255,7358 }, { 256,6708 },
- {   0,   0 }, {   0,36489 }, {   1,6450 }, {   2,6450 }, {   3,6450 },
- {   4,6450 }, {   5,6450 }, {   6,6450 }, {   7,6450 }, {   8,6450 },
- {   9,6452 }, {  10,6457 }, {  11,6450 }, {  12,6452 }, {  13,6452 },
- {  14,6450 }, {  15,6450 }, {  16,6450 }, {  17,6450 }, {  18,6450 },
- {  19,6450 }, {  20,6450 }, {  21,6450 }, {  22,6450 }, {  23,6450 },
- {  24,6450 }, {  25,6450 }, {  26,6450 }, {  27,6450 }, {  28,6450 },
- {  29,6450 }, {  30,6450 }, {  31,6450 }, {  32,6452 }, {  33,6459 },
- {  34,6454 }, {  35,6499 }, {  36,6565 }, {  37,6822 }, {  38,6499 },
-
- {  39,6472 }, {  40,6474 }, {  41,6474 }, {  42,6822 }, {  43,6822 },
- {  44,6474 }, {  45,6833 }, {  46,6852 }, {  47,6923 }, {  48,6925 },
- {  49,6925 }, {  50,6925 }, {  51,6925 }, {  52,6925 }, {  53,6925 },
- {  54,6925 }, {  55,6925 }, {  56,6925 }, {  57,6925 }, {  58,6477 },
- {  59,6474 }, {  60,6990 }, {  61,7001 }, {  62,7068 }, {  63,6822 },
- {  64,6499 }, {  65,7100 }, {  66,7357 }, {  67,7100 }, {  68,7100 },
- {  69,7614 }, {  70,7100 }, {  71,7100 }, {  72,7100 }, {  73,7100 },
- {  74,7100 }, {  75,7100 }, {  76,7100 }, {  77,7100 }, {  78,7871 },
- {  79,7100 }, {  80,7100 }, {  81,7100 }, {  82,7100 }, {  83,7100 },
- {  84,7100 }, {  85,8128 }, {  86,7100 }, {  87,7100 }, {  88,8385 },
-
- {  89,7100 }, {  90,7100 }, {  91,6474 }, {  92,6450 }, {  93,6474 },
- {  94,6822 }, {  95,7100 }, {  96,6499 }, {  97,7100 }, {  98,7357 },
- {  99,7100 }, { 100,7100 }, { 101,7614 }, { 102,7100 }, { 103,7100 },
- { 104,7100 }, { 105,7100 }, { 106,7100 }, { 107,7100 }, { 108,7100 },
- { 109,7100 }, { 110,7871 }, { 111,7100 }, { 112,7100 }, { 113,7100 },
- { 114,7100 }, { 115,7100 }, { 116,7100 }, { 117,8128 }, { 118,7100 },
- { 119,7100 }, { 120,8385 }, { 121,7100 }, { 122,7100 }, { 123,6450 },
- { 124,6499 }, { 125,6450 }, { 126,6499 }, { 127,6450 }, { 128,7100 },
- { 129,7100 }, { 130,7100 }, { 131,7100 }, { 132,7100 }, { 133,7100 },
- { 134,7100 }, { 135,7100 }, { 136,7100 }, { 137,7100 }, { 138,7100 },
-
- { 139,7100 }, { 140,7100 }, { 141,7100 }, { 142,7100 }, { 143,7100 },
- { 144,7100 }, { 145,7100 }, { 146,7100 }, { 147,7100 }, { 148,7100 },
- { 149,7100 }, { 150,7100 }, { 151,7100 }, { 152,7100 }, { 153,7100 },
- { 154,7100 }, { 155,7100 }, { 156,7100 }, { 157,7100 }, { 158,7100 },
- { 159,7100 }, { 160,7100 }, { 161,7100 }, { 162,7100 }, { 163,7100 },
- { 164,7100 }, { 165,7100 }, { 166,7100 }, { 167,7100 }, { 168,7100 },
- { 169,7100 }, { 170,7100 }, { 171,7100 }, { 172,7100 }, { 173,7100 },
- { 174,7100 }, { 175,7100 }, { 176,7100 }, { 177,7100 }, { 178,7100 },
- { 179,7100 }, { 180,7100 }, { 181,7100 }, { 182,7100 }, { 183,7100 },
- { 184,7100 }, { 185,7100 }, { 186,7100 }, { 187,7100 }, { 188,7100 },
-
- { 189,7100 }, { 190,7100 }, { 191,7100 }, { 192,7100 }, { 193,7100 },
- { 194,7100 }, { 195,7100 }, { 196,7100 }, { 197,7100 }, { 198,7100 },
- { 199,7100 }, { 200,7100 }, { 201,7100 }, { 202,7100 }, { 203,7100 },
- { 204,7100 }, { 205,7100 }, { 206,7100 }, { 207,7100 }, { 208,7100 },
- { 209,7100 }, { 210,7100 }, { 211,7100 }, { 212,7100 }, { 213,7100 },
- { 214,7100 }, { 215,7100 }, { 216,7100 }, { 217,7100 }, { 218,7100 },
- { 219,7100 }, { 220,7100 }, { 221,7100 }, { 222,7100 }, { 223,7100 },
- { 224,7100 }, { 225,7100 }, { 226,7100 }, { 227,7100 }, { 228,7100 },
- { 229,7100 }, { 230,7100 }, { 231,7100 }, { 232,7100 }, { 233,7100 },
- { 234,7100 }, { 235,7100 }, { 236,7100 }, { 237,7100 }, { 238,7100 },
-
- { 239,7100 }, { 240,7100 }, { 241,7100 }, { 242,7100 }, { 243,7100 },
- { 244,7100 }, { 245,7100 }, { 246,7100 }, { 247,7100 }, { 248,7100 },
- { 249,7100 }, { 250,7100 }, { 251,7100 }, { 252,7100 }, { 253,7100 },
- { 254,7100 }, { 255,7100 }, { 256,6450 }, {   0,  12 }, {   0,36231 },
- {   1,8384 }, {   2,8384 }, {   3,8384 }, {   4,8384 }, {   5,8384 },
- {   6,8384 }, {   7,8384 }, {   8,8384 }, {   9,8384 }, {  10,8384 },
- {  11,8384 }, {  12,8384 }, {  13,8384 }, {  14,8384 }, {  15,8384 },
- {  16,8384 }, {  17,8384 }, {  18,8384 }, {  19,8384 }, {  20,8384 },
- {  21,8384 }, {  22,8384 }, {  23,8384 }, {  24,8384 }, {  25,8384 },
- {  26,8384 }, {  27,8384 }, {  28,8384 }, {  29,8384 }, {  30,8384 },
-
- {  31,8384 }, {  32,8384 }, {  33,8384 }, {  34,8384 }, {  35,8384 },
- {  36,8384 }, {  37,8384 }, {  38,8384 }, {  39,8642 }, {  40,8384 },
- {  41,8384 }, {  42,8384 }, {  43,8384 }, {  44,8384 }, {  45,8384 },
- {  46,8384 }, {  47,8384 }, {  48,8384 }, {  49,8384 }, {  50,8384 },
- {  51,8384 }, {  52,8384 }, {  53,8384 }, {  54,8384 }, {  55,8384 },
- {  56,8384 }, {  57,8384 }, {  58,8384 }, {  59,8384 }, {  60,8384 },
- {  61,8384 }, {  62,8384 }, {  63,8384 }, {  64,8384 }, {  65,8384 },
- {  66,8384 }, {  67,8384 }, {  68,8384 }, {  69,8384 }, {  70,8384 },
- {  71,8384 }, {  72,8384 }, {  73,8384 }, {  74,8384 }, {  75,8384 },
- {  76,8384 }, {  77,8384 }, {  78,8384 }, {  79,8384 }, {  80,8384 },
-
- {  81,8384 }, {  82,8384 }, {  83,8384 }, {  84,8384 }, {  85,8384 },
- {  86,8384 }, {  87,8384 }, {  88,8384 }, {  89,8384 }, {  90,8384 },
- {  91,8384 }, {  92,8384 }, {  93,8384 }, {  94,8384 }, {  95,8384 },
- {  96,8384 }, {  97,8384 }, {  98,8384 }, {  99,8384 }, { 100,8384 },
- { 101,8384 }, { 102,8384 }, { 103,8384 }, { 104,8384 }, { 105,8384 },
- { 106,8384 }, { 107,8384 }, { 108,8384 }, { 109,8384 }, { 110,8384 },
- { 111,8384 }, { 112,8384 }, { 113,8384 }, { 114,8384 }, { 115,8384 },
- { 116,8384 }, { 117,8384 }, { 118,8384 }, { 119,8384 }, { 120,8384 },
- { 121,8384 }, { 122,8384 }, { 123,8384 }, { 124,8384 }, { 125,8384 },
- { 126,8384 }, { 127,8384 }, { 128,8384 }, { 129,8384 }, { 130,8384 },
-
- { 131,8384 }, { 132,8384 }, { 133,8384 }, { 134,8384 }, { 135,8384 },
- { 136,8384 }, { 137,8384 }, { 138,8384 }, { 139,8384 }, { 140,8384 },
- { 141,8384 }, { 142,8384 }, { 143,8384 }, { 144,8384 }, { 145,8384 },
- { 146,8384 }, { 147,8384 }, { 148,8384 }, { 149,8384 }, { 150,8384 },
- { 151,8384 }, { 152,8384 }, { 153,8384 }, { 154,8384 }, { 155,8384 },
- { 156,8384 }, { 157,8384 }, { 158,8384 }, { 159,8384 }, { 160,8384 },
- { 161,8384 }, { 162,8384 }, { 163,8384 }, { 164,8384 }, { 165,8384 },
- { 166,8384 }, { 167,8384 }, { 168,8384 }, { 169,8384 }, { 170,8384 },
- { 171,8384 }, { 172,8384 }, { 173,8384 }, { 174,8384 }, { 175,8384 },
- { 176,8384 }, { 177,8384 }, { 178,8384 }, { 179,8384 }, { 180,8384 },
-
- { 181,8384 }, { 182,8384 }, { 183,8384 }, { 184,8384 }, { 185,8384 },
- { 186,8384 }, { 187,8384 }, { 188,8384 }, { 189,8384 }, { 190,8384 },
- { 191,8384 }, { 192,8384 }, { 193,8384 }, { 194,8384 }, { 195,8384 },
- { 196,8384 }, { 197,8384 }, { 198,8384 }, { 199,8384 }, { 200,8384 },
- { 201,8384 }, { 202,8384 }, { 203,8384 }, { 204,8384 }, { 205,8384 },
- { 206,8384 }, { 207,8384 }, { 208,8384 }, { 209,8384 }, { 210,8384 },
- { 211,8384 }, { 212,8384 }, { 213,8384 }, { 214,8384 }, { 215,8384 },
- { 216,8384 }, { 217,8384 }, { 218,8384 }, { 219,8384 }, { 220,8384 },
- { 221,8384 }, { 222,8384 }, { 223,8384 }, { 224,8384 }, { 225,8384 },
- { 226,8384 }, { 227,8384 }, { 228,8384 }, { 229,8384 }, { 230,8384 },
-
- { 231,8384 }, { 232,8384 }, { 233,8384 }, { 234,8384 }, { 235,8384 },
- { 236,8384 }, { 237,8384 }, { 238,8384 }, { 239,8384 }, { 240,8384 },
- { 241,8384 }, { 242,8384 }, { 243,8384 }, { 244,8384 }, { 245,8384 },
- { 246,8384 }, { 247,8384 }, { 248,8384 }, { 249,8384 }, { 250,8384 },
- { 251,8384 }, { 252,8384 }, { 253,8384 }, { 254,8384 }, { 255,8384 },
- { 256,8384 }, {   0,  12 }, {   0,35973 }, {   1,8126 }, {   2,8126 },
- {   3,8126 }, {   4,8126 }, {   5,8126 }, {   6,8126 }, {   7,8126 },
- {   8,8126 }, {   9,8126 }, {  10,8126 }, {  11,8126 }, {  12,8126 },
- {  13,8126 }, {  14,8126 }, {  15,8126 }, {  16,8126 }, {  17,8126 },
- {  18,8126 }, {  19,8126 }, {  20,8126 }, {  21,8126 }, {  22,8126 },
-
- {  23,8126 }, {  24,8126 }, {  25,8126 }, {  26,8126 }, {  27,8126 },
- {  28,8126 }, {  29,8126 }, {  30,8126 }, {  31,8126 }, {  32,8126 },
- {  33,8126 }, {  34,8126 }, {  35,8126 }, {  36,8126 }, {  37,8126 },
- {  38,8126 }, {  39,8384 }, {  40,8126 }, {  41,8126 }, {  42,8126 },
- {  43,8126 }, {  44,8126 }, {  45,8126 }, {  46,8126 }, {  47,8126 },
- {  48,8126 }, {  49,8126 }, {  50,8126 }, {  51,8126 }, {  52,8126 },
- {  53,8126 }, {  54,8126 }, {  55,8126 }, {  56,8126 }, {  57,8126 },
- {  58,8126 }, {  59,8126 }, {  60,8126 }, {  61,8126 }, {  62,8126 },
- {  63,8126 }, {  64,8126 }, {  65,8126 }, {  66,8126 }, {  67,8126 },
- {  68,8126 }, {  69,8126 }, {  70,8126 }, {  71,8126 }, {  72,8126 },
-
- {  73,8126 }, {  74,8126 }, {  75,8126 }, {  76,8126 }, {  77,8126 },
- {  78,8126 }, {  79,8126 }, {  80,8126 }, {  81,8126 }, {  82,8126 },
- {  83,8126 }, {  84,8126 }, {  85,8126 }, {  86,8126 }, {  87,8126 },
- {  88,8126 }, {  89,8126 }, {  90,8126 }, {  91,8126 }, {  92,8126 },
- {  93,8126 }, {  94,8126 }, {  95,8126 }, {  96,8126 }, {  97,8126 },
- {  98,8126 }, {  99,8126 }, { 100,8126 }, { 101,8126 }, { 102,8126 },
- { 103,8126 }, { 104,8126 }, { 105,8126 }, { 106,8126 }, { 107,8126 },
- { 108,8126 }, { 109,8126 }, { 110,8126 }, { 111,8126 }, { 112,8126 },
- { 113,8126 }, { 114,8126 }, { 115,8126 }, { 116,8126 }, { 117,8126 },
- { 118,8126 }, { 119,8126 }, { 120,8126 }, { 121,8126 }, { 122,8126 },
-
- { 123,8126 }, { 124,8126 }, { 125,8126 }, { 126,8126 }, { 127,8126 },
- { 128,8126 }, { 129,8126 }, { 130,8126 }, { 131,8126 }, { 132,8126 },
- { 133,8126 }, { 134,8126 }, { 135,8126 }, { 136,8126 }, { 137,8126 },
- { 138,8126 }, { 139,8126 }, { 140,8126 }, { 141,8126 }, { 142,8126 },
- { 143,8126 }, { 144,8126 }, { 145,8126 }, { 146,8126 }, { 147,8126 },
- { 148,8126 }, { 149,8126 }, { 150,8126 }, { 151,8126 }, { 152,8126 },
- { 153,8126 }, { 154,8126 }, { 155,8126 }, { 156,8126 }, { 157,8126 },
- { 158,8126 }, { 159,8126 }, { 160,8126 }, { 161,8126 }, { 162,8126 },
- { 163,8126 }, { 164,8126 }, { 165,8126 }, { 166,8126 }, { 167,8126 },
- { 168,8126 }, { 169,8126 }, { 170,8126 }, { 171,8126 }, { 172,8126 },
-
- { 173,8126 }, { 174,8126 }, { 175,8126 }, { 176,8126 }, { 177,8126 },
- { 178,8126 }, { 179,8126 }, { 180,8126 }, { 181,8126 }, { 182,8126 },
- { 183,8126 }, { 184,8126 }, { 185,8126 }, { 186,8126 }, { 187,8126 },
- { 188,8126 }, { 189,8126 }, { 190,8126 }, { 191,8126 }, { 192,8126 },
- { 193,8126 }, { 194,8126 }, { 195,8126 }, { 196,8126 }, { 197,8126 },
- { 198,8126 }, { 199,8126 }, { 200,8126 }, { 201,8126 }, { 202,8126 },
- { 203,8126 }, { 204,8126 }, { 205,8126 }, { 206,8126 }, { 207,8126 },
- { 208,8126 }, { 209,8126 }, { 210,8126 }, { 211,8126 }, { 212,8126 },
- { 213,8126 }, { 214,8126 }, { 215,8126 }, { 216,8126 }, { 217,8126 },
- { 218,8126 }, { 219,8126 }, { 220,8126 }, { 221,8126 }, { 222,8126 },
-
- { 223,8126 }, { 224,8126 }, { 225,8126 }, { 226,8126 }, { 227,8126 },
- { 228,8126 }, { 229,8126 }, { 230,8126 }, { 231,8126 }, { 232,8126 },
- { 233,8126 }, { 234,8126 }, { 235,8126 }, { 236,8126 }, { 237,8126 },
- { 238,8126 }, { 239,8126 }, { 240,8126 }, { 241,8126 }, { 242,8126 },
- { 243,8126 }, { 244,8126 }, { 245,8126 }, { 246,8126 }, { 247,8126 },
- { 248,8126 }, { 249,8126 }, { 250,8126 }, { 251,8126 }, { 252,8126 },
- { 253,8126 }, { 254,8126 }, { 255,8126 }, { 256,8126 }, {   0,   0 },
- {   0,35715 }, {   1,8173 }, {   2,8173 }, {   3,8173 }, {   4,8173 },
- {   5,8173 }, {   6,8173 }, {   7,8173 }, {   8,8173 }, {   9,8173 },
- {  10,8173 }, {  11,8173 }, {  12,8173 }, {  13,8173 }, {  14,8173 },
-
- {  15,8173 }, {  16,8173 }, {  17,8173 }, {  18,8173 }, {  19,8173 },
- {  20,8173 }, {  21,8173 }, {  22,8173 }, {  23,8173 }, {  24,8173 },
- {  25,8173 }, {  26,8173 }, {  27,8173 }, {  28,8173 }, {  29,8173 },
- {  30,8173 }, {  31,8173 }, {  32,8173 }, {  33,8431 }, {  34,8173 },
- {  35,8431 }, {  36,8173 }, {  37,8431 }, {  38,8431 }, {  39,8173 },
- {  40,8173 }, {  41,8173 }, {  42,5708 }, {  43,8431 }, {  44,8173 },
- {  45,8431 }, {  46,8173 }, {  47,5712 }, {  48,8173 }, {  49,8173 },
- {  50,8173 }, {  51,8173 }, {  52,8173 }, {  53,8173 }, {  54,8173 },
- {  55,8173 }, {  56,8173 }, {  57,8173 }, {  58,8173 }, {  59,8173 },
- {  60,8431 }, {  61,8431 }, {  62,8431 }, {  63,8431 }, {  64,8431 },
-
- {  65,8173 }, {  66,8173 }, {  67,8173 }, {  68,8173 }, {  69,8173 },
- {  70,8173 }, {  71,8173 }, {  72,8173 }, {  73,8173 }, {  74,8173 },
- {  75,8173 }, {  76,8173 }, {  77,8173 }, {  78,8173 }, {  79,8173 },
- {  80,8173 }, {  81,8173 }, {  82,8173 }, {  83,8173 }, {  84,8173 },
- {  85,8173 }, {  86,8173 }, {  87,8173 }, {  88,8173 }, {  89,8173 },
- {  90,8173 }, {  91,8173 }, {  92,8173 }, {  93,8173 }, {  94,8431 },
- {  95,8173 }, {  96,8431 }, {  97,8173 }, {  98,8173 }, {  99,8173 },
- { 100,8173 }, { 101,8173 }, { 102,8173 }, { 103,8173 }, { 104,8173 },
- { 105,8173 }, { 106,8173 }, { 107,8173 }, { 108,8173 }, { 109,8173 },
- { 110,8173 }, { 111,8173 }, { 112,8173 }, { 113,8173 }, { 114,8173 },
-
- { 115,8173 }, { 116,8173 }, { 117,8173 }, { 118,8173 }, { 119,8173 },
- { 120,8173 }, { 121,8173 }, { 122,8173 }, { 123,8173 }, { 124,8431 },
- { 125,8173 }, { 126,8431 }, { 127,8173 }, { 128,8173 }, { 129,8173 },
- { 130,8173 }, { 131,8173 }, { 132,8173 }, { 133,8173 }, { 134,8173 },
- { 135,8173 }, { 136,8173 }, { 137,8173 }, { 138,8173 }, { 139,8173 },
- { 140,8173 }, { 141,8173 }, { 142,8173 }, { 143,8173 }, { 144,8173 },
- { 145,8173 }, { 146,8173 }, { 147,8173 }, { 148,8173 }, { 149,8173 },
- { 150,8173 }, { 151,8173 }, { 152,8173 }, { 153,8173 }, { 154,8173 },
- { 155,8173 }, { 156,8173 }, { 157,8173 }, { 158,8173 }, { 159,8173 },
- { 160,8173 }, { 161,8173 }, { 162,8173 }, { 163,8173 }, { 164,8173 },
-
- { 165,8173 }, { 166,8173 }, { 167,8173 }, { 168,8173 }, { 169,8173 },
- { 170,8173 }, { 171,8173 }, { 172,8173 }, { 173,8173 }, { 174,8173 },
- { 175,8173 }, { 176,8173 }, { 177,8173 }, { 178,8173 }, { 179,8173 },
- { 180,8173 }, { 181,8173 }, { 182,8173 }, { 183,8173 }, { 184,8173 },
- { 185,8173 }, { 186,8173 }, { 187,8173 }, { 188,8173 }, { 189,8173 },
- { 190,8173 }, { 191,8173 }, { 192,8173 }, { 193,8173 }, { 194,8173 },
- { 195,8173 }, { 196,8173 }, { 197,8173 }, { 198,8173 }, { 199,8173 },
- { 200,8173 }, { 201,8173 }, { 202,8173 }, { 203,8173 }, { 204,8173 },
- { 205,8173 }, { 206,8173 }, { 207,8173 }, { 208,8173 }, { 209,8173 },
- { 210,8173 }, { 211,8173 }, { 212,8173 }, { 213,8173 }, { 214,8173 },
-
- { 215,8173 }, { 216,8173 }, { 217,8173 }, { 218,8173 }, { 219,8173 },
- { 220,8173 }, { 221,8173 }, { 222,8173 }, { 223,8173 }, { 224,8173 },
- { 225,8173 }, { 226,8173 }, { 227,8173 }, { 228,8173 }, { 229,8173 },
- { 230,8173 }, { 231,8173 }, { 232,8173 }, { 233,8173 }, { 234,8173 },
- { 235,8173 }, { 236,8173 }, { 237,8173 }, { 238,8173 }, { 239,8173 },
- { 240,8173 }, { 241,8173 }, { 242,8173 }, { 243,8173 }, { 244,8173 },
- { 245,8173 }, { 246,8173 }, { 247,8173 }, { 248,8173 }, { 249,8173 },
- { 250,8173 }, { 251,8173 }, { 252,8173 }, { 253,8173 }, { 254,8173 },
- { 255,8173 }, { 256,8173 }, {   0,   0 }, {   0,35457 }, {   1,7915 },
- {   2,7915 }, {   3,7915 }, {   4,7915 }, {   5,7915 }, {   6,7915 },
-
- {   7,7915 }, {   8,7915 }, {   9,7915 }, {  10,7915 }, {  11,7915 },
- {  12,7915 }, {  13,7915 }, {  14,7915 }, {  15,7915 }, {  16,7915 },
- {  17,7915 }, {  18,7915 }, {  19,7915 }, {  20,7915 }, {  21,7915 },
- {  22,7915 }, {  23,7915 }, {  24,7915 }, {  25,7915 }, {  26,7915 },
- {  27,7915 }, {  28,7915 }, {  29,7915 }, {  30,7915 }, {  31,7915 },
- {  32,7915 }, {  33,8173 }, {  34,7915 }, {  35,8173 }, {  36,7915 },
- {  37,8173 }, {  38,8173 }, {  39,7915 }, {  40,7915 }, {  41,7915 },
- {  42,5450 }, {  43,8173 }, {  44,7915 }, {  45,8173 }, {  46,7915 },
- {  47,5454 }, {  48,7915 }, {  49,7915 }, {  50,7915 }, {  51,7915 },
- {  52,7915 }, {  53,7915 }, {  54,7915 }, {  55,7915 }, {  56,7915 },
-
- {  57,7915 }, {  58,7915 }, {  59,7915 }, {  60,8173 }, {  61,8173 },
- {  62,8173 }, {  63,8173 }, {  64,8173 }, {  65,7915 }, {  66,7915 },
- {  67,7915 }, {  68,7915 }, {  69,7915 }, {  70,7915 }, {  71,7915 },
- {  72,7915 }, {  73,7915 }, {  74,7915 }, {  75,7915 }, {  76,7915 },
- {  77,7915 }, {  78,7915 }, {  79,7915 }, {  80,7915 }, {  81,7915 },
- {  82,7915 }, {  83,7915 }, {  84,7915 }, {  85,7915 }, {  86,7915 },
- {  87,7915 }, {  88,7915 }, {  89,7915 }, {  90,7915 }, {  91,7915 },
- {  92,7915 }, {  93,7915 }, {  94,8173 }, {  95,7915 }, {  96,8173 },
- {  97,7915 }, {  98,7915 }, {  99,7915 }, { 100,7915 }, { 101,7915 },
- { 102,7915 }, { 103,7915 }, { 104,7915 }, { 105,7915 }, { 106,7915 },
-
- { 107,7915 }, { 108,7915 }, { 109,7915 }, { 110,7915 }, { 111,7915 },
- { 112,7915 }, { 113,7915 }, { 114,7915 }, { 115,7915 }, { 116,7915 },
- { 117,7915 }, { 118,7915 }, { 119,7915 }, { 120,7915 }, { 121,7915 },
- { 122,7915 }, { 123,7915 }, { 124,8173 }, { 125,7915 }, { 126,8173 },
- { 127,7915 }, { 128,7915 }, { 129,7915 }, { 130,7915 }, { 131,7915 },
- { 132,7915 }, { 133,7915 }, { 134,7915 }, { 135,7915 }, { 136,7915 },
- { 137,7915 }, { 138,7915 }, { 139,7915 }, { 140,7915 }, { 141,7915 },
- { 142,7915 }, { 143,7915 }, { 144,7915 }, { 145,7915 }, { 146,7915 },
- { 147,7915 }, { 148,7915 }, { 149,7915 }, { 150,7915 }, { 151,7915 },
- { 152,7915 }, { 153,7915 }, { 154,7915 }, { 155,7915 }, { 156,7915 },
-
- { 157,7915 }, { 158,7915 }, { 159,7915 }, { 160,7915 }, { 161,7915 },
- { 162,7915 }, { 163,7915 }, { 164,7915 }, { 165,7915 }, { 166,7915 },
- { 167,7915 }, { 168,7915 }, { 169,7915 }, { 170,7915 }, { 171,7915 },
- { 172,7915 }, { 173,7915 }, { 174,7915 }, { 175,7915 }, { 176,7915 },
- { 177,7915 }, { 178,7915 }, { 179,7915 }, { 180,7915 }, { 181,7915 },
- { 182,7915 }, { 183,7915 }, { 184,7915 }, { 185,7915 }, { 186,7915 },
- { 187,7915 }, { 188,7915 }, { 189,7915 }, { 190,7915 }, { 191,7915 },
- { 192,7915 }, { 193,7915 }, { 194,7915 }, { 195,7915 }, { 196,7915 },
- { 197,7915 }, { 198,7915 }, { 199,7915 }, { 200,7915 }, { 201,7915 },
- { 202,7915 }, { 203,7915 }, { 204,7915 }, { 205,7915 }, { 206,7915 },
-
- { 207,7915 }, { 208,7915 }, { 209,7915 }, { 210,7915 }, { 211,7915 },
- { 212,7915 }, { 213,7915 }, { 214,7915 }, { 215,7915 }, { 216,7915 },
- { 217,7915 }, { 218,7915 }, { 219,7915 }, { 220,7915 }, { 221,7915 },
- { 222,7915 }, { 223,7915 }, { 224,7915 }, { 225,7915 }, { 226,7915 },
- { 227,7915 }, { 228,7915 }, { 229,7915 }, { 230,7915 }, { 231,7915 },
- { 232,7915 }, { 233,7915 }, { 234,7915 }, { 235,7915 }, { 236,7915 },
- { 237,7915 }, { 238,7915 }, { 239,7915 }, { 240,7915 }, { 241,7915 },
- { 242,7915 }, { 243,7915 }, { 244,7915 }, { 245,7915 }, { 246,7915 },
- { 247,7915 }, { 248,7915 }, { 249,7915 }, { 250,7915 }, { 251,7915 },
- { 252,7915 }, { 253,7915 }, { 254,7915 }, { 255,7915 }, { 256,7915 },
-
- {   0,   0 }, {   0,35199 }, {   1,8173 }, {   2,8173 }, {   3,8173 },
- {   4,8173 }, {   5,8173 }, {   6,8173 }, {   7,8173 }, {   8,8173 },
- {   9,8173 }, {  10,8173 }, {  11,8173 }, {  12,8173 }, {  13,8173 },
- {  14,8173 }, {  15,8173 }, {  16,8173 }, {  17,8173 }, {  18,8173 },
- {  19,8173 }, {  20,8173 }, {  21,8173 }, {  22,8173 }, {  23,8173 },
- {  24,8173 }, {  25,8173 }, {  26,8173 }, {  27,8173 }, {  28,8173 },
- {  29,8173 }, {  30,8173 }, {  31,8173 }, {  32,8173 }, {  33,8173 },
- {  34,5201 }, {  35,8173 }, {  36,8173 }, {  37,8173 }, {  38,8173 },
- {  39,8173 }, {  40,8173 }, {  41,8173 }, {  42,8173 }, {  43,8173 },
- {  44,8173 }, {  45,8173 }, {  46,8173 }, {  47,8173 }, {  48,8173 },
-
- {  49,8173 }, {  50,8173 }, {  51,8173 }, {  52,8173 }, {  53,8173 },
- {  54,8173 }, {  55,8173 }, {  56,8173 }, {  57,8173 }, {  58,8173 },
- {  59,8173 }, {  60,8173 }, {  61,8173 }, {  62,8173 }, {  63,8173 },
- {  64,8173 }, {  65,8173 }, {  66,8173 }, {  67,8173 }, {  68,8173 },
- {  69,8173 }, {  70,8173 }, {  71,8173 }, {  72,8173 }, {  73,8173 },
- {  74,8173 }, {  75,8173 }, {  76,8173 }, {  77,8173 }, {  78,8173 },
- {  79,8173 }, {  80,8173 }, {  81,8173 }, {  82,8173 }, {  83,8173 },
- {  84,8173 }, {  85,8173 }, {  86,8173 }, {  87,8173 }, {  88,8173 },
- {  89,8173 }, {  90,8173 }, {  91,8173 }, {  92,8173 }, {  93,8173 },
- {  94,8173 }, {  95,8173 }, {  96,8173 }, {  97,8173 }, {  98,8173 },
-
- {  99,8173 }, { 100,8173 }, { 101,8173 }, { 102,8173 }, { 103,8173 },
- { 104,8173 }, { 105,8173 }, { 106,8173 }, { 107,8173 }, { 108,8173 },
- { 109,8173 }, { 110,8173 }, { 111,8173 }, { 112,8173 }, { 113,8173 },
- { 114,8173 }, { 115,8173 }, { 116,8173 }, { 117,8173 }, { 118,8173 },
- { 119,8173 }, { 120,8173 }, { 121,8173 }, { 122,8173 }, { 123,8173 },
- { 124,8173 }, { 125,8173 }, { 126,8173 }, { 127,8173 }, { 128,8173 },
- { 129,8173 }, { 130,8173 }, { 131,8173 }, { 132,8173 }, { 133,8173 },
- { 134,8173 }, { 135,8173 }, { 136,8173 }, { 137,8173 }, { 138,8173 },
- { 139,8173 }, { 140,8173 }, { 141,8173 }, { 142,8173 }, { 143,8173 },
- { 144,8173 }, { 145,8173 }, { 146,8173 }, { 147,8173 }, { 148,8173 },
-
- { 149,8173 }, { 150,8173 }, { 151,8173 }, { 152,8173 }, { 153,8173 },
- { 154,8173 }, { 155,8173 }, { 156,8173 }, { 157,8173 }, { 158,8173 },
- { 159,8173 }, { 160,8173 }, { 161,8173 }, { 162,8173 }, { 163,8173 },
- { 164,8173 }, { 165,8173 }, { 166,8173 }, { 167,8173 }, { 168,8173 },
- { 169,8173 }, { 170,8173 }, { 171,8173 }, { 172,8173 }, { 173,8173 },
- { 174,8173 }, { 175,8173 }, { 176,8173 }, { 177,8173 }, { 178,8173 },
- { 179,8173 }, { 180,8173 }, { 181,8173 }, { 182,8173 }, { 183,8173 },
- { 184,8173 }, { 185,8173 }, { 186,8173 }, { 187,8173 }, { 188,8173 },
- { 189,8173 }, { 190,8173 }, { 191,8173 }, { 192,8173 }, { 193,8173 },
- { 194,8173 }, { 195,8173 }, { 196,8173 }, { 197,8173 }, { 198,8173 },
-
- { 199,8173 }, { 200,8173 }, { 201,8173 }, { 202,8173 }, { 203,8173 },
- { 204,8173 }, { 205,8173 }, { 206,8173 }, { 207,8173 }, { 208,8173 },
- { 209,8173 }, { 210,8173 }, { 211,8173 }, { 212,8173 }, { 213,8173 },
- { 214,8173 }, { 215,8173 }, { 216,8173 }, { 217,8173 }, { 218,8173 },
- { 219,8173 }, { 220,8173 }, { 221,8173 }, { 222,8173 }, { 223,8173 },
- { 224,8173 }, { 225,8173 }, { 226,8173 }, { 227,8173 }, { 228,8173 },
- { 229,8173 }, { 230,8173 }, { 231,8173 }, { 232,8173 }, { 233,8173 },
- { 234,8173 }, { 235,8173 }, { 236,8173 }, { 237,8173 }, { 238,8173 },
- { 239,8173 }, { 240,8173 }, { 241,8173 }, { 242,8173 }, { 243,8173 },
- { 244,8173 }, { 245,8173 }, { 246,8173 }, { 247,8173 }, { 248,8173 },
-
- { 249,8173 }, { 250,8173 }, { 251,8173 }, { 252,8173 }, { 253,8173 },
- { 254,8173 }, { 255,8173 }, { 256,8173 }, {   0,   0 }, {   0,34941 },
- {   1,7915 }, {   2,7915 }, {   3,7915 }, {   4,7915 }, {   5,7915 },
- {   6,7915 }, {   7,7915 }, {   8,7915 }, {   9,7915 }, {  10,7915 },
- {  11,7915 }, {  12,7915 }, {  13,7915 }, {  14,7915 }, {  15,7915 },
- {  16,7915 }, {  17,7915 }, {  18,7915 }, {  19,7915 }, {  20,7915 },
- {  21,7915 }, {  22,7915 }, {  23,7915 }, {  24,7915 }, {  25,7915 },
- {  26,7915 }, {  27,7915 }, {  28,7915 }, {  29,7915 }, {  30,7915 },
- {  31,7915 }, {  32,7915 }, {  33,7915 }, {  34,4943 }, {  35,7915 },
- {  36,7915 }, {  37,7915 }, {  38,7915 }, {  39,7915 }, {  40,7915 },
-
- {  41,7915 }, {  42,7915 }, {  43,7915 }, {  44,7915 }, {  45,7915 },
- {  46,7915 }, {  47,7915 }, {  48,7915 }, {  49,7915 }, {  50,7915 },
- {  51,7915 }, {  52,7915 }, {  53,7915 }, {  54,7915 }, {  55,7915 },
- {  56,7915 }, {  57,7915 }, {  58,7915 }, {  59,7915 }, {  60,7915 },
- {  61,7915 }, {  62,7915 }, {  63,7915 }, {  64,7915 }, {  65,7915 },
- {  66,7915 }, {  67,7915 }, {  68,7915 }, {  69,7915 }, {  70,7915 },
- {  71,7915 }, {  72,7915 }, {  73,7915 }, {  74,7915 }, {  75,7915 },
- {  76,7915 }, {  77,7915 }, {  78,7915 }, {  79,7915 }, {  80,7915 },
- {  81,7915 }, {  82,7915 }, {  83,7915 }, {  84,7915 }, {  85,7915 },
- {  86,7915 }, {  87,7915 }, {  88,7915 }, {  89,7915 }, {  90,7915 },
-
- {  91,7915 }, {  92,7915 }, {  93,7915 }, {  94,7915 }, {  95,7915 },
- {  96,7915 }, {  97,7915 }, {  98,7915 }, {  99,7915 }, { 100,7915 },
- { 101,7915 }, { 102,7915 }, { 103,7915 }, { 104,7915 }, { 105,7915 },
- { 106,7915 }, { 107,7915 }, { 108,7915 }, { 109,7915 }, { 110,7915 },
- { 111,7915 }, { 112,7915 }, { 113,7915 }, { 114,7915 }, { 115,7915 },
- { 116,7915 }, { 117,7915 }, { 118,7915 }, { 119,7915 }, { 120,7915 },
- { 121,7915 }, { 122,7915 }, { 123,7915 }, { 124,7915 }, { 125,7915 },
- { 126,7915 }, { 127,7915 }, { 128,7915 }, { 129,7915 }, { 130,7915 },
- { 131,7915 }, { 132,7915 }, { 133,7915 }, { 134,7915 }, { 135,7915 },
- { 136,7915 }, { 137,7915 }, { 138,7915 }, { 139,7915 }, { 140,7915 },
-
- { 141,7915 }, { 142,7915 }, { 143,7915 }, { 144,7915 }, { 145,7915 },
- { 146,7915 }, { 147,7915 }, { 148,7915 }, { 149,7915 }, { 150,7915 },
- { 151,7915 }, { 152,7915 }, { 153,7915 }, { 154,7915 }, { 155,7915 },
- { 156,7915 }, { 157,7915 }, { 158,7915 }, { 159,7915 }, { 160,7915 },
- { 161,7915 }, { 162,7915 }, { 163,7915 }, { 164,7915 }, { 165,7915 },
- { 166,7915 }, { 167,7915 }, { 168,7915 }, { 169,7915 }, { 170,7915 },
- { 171,7915 }, { 172,7915 }, { 173,7915 }, { 174,7915 }, { 175,7915 },
- { 176,7915 }, { 177,7915 }, { 178,7915 }, { 179,7915 }, { 180,7915 },
- { 181,7915 }, { 182,7915 }, { 183,7915 }, { 184,7915 }, { 185,7915 },
- { 186,7915 }, { 187,7915 }, { 188,7915 }, { 189,7915 }, { 190,7915 },
-
- { 191,7915 }, { 192,7915 }, { 193,7915 }, { 194,7915 }, { 195,7915 },
- { 196,7915 }, { 197,7915 }, { 198,7915 }, { 199,7915 }, { 200,7915 },
- { 201,7915 }, { 202,7915 }, { 203,7915 }, { 204,7915 }, { 205,7915 },
- { 206,7915 }, { 207,7915 }, { 208,7915 }, { 209,7915 }, { 210,7915 },
- { 211,7915 }, { 212,7915 }, { 213,7915 }, { 214,7915 }, { 215,7915 },
- { 216,7915 }, { 217,7915 }, { 218,7915 }, { 219,7915 }, { 220,7915 },
- { 221,7915 }, { 222,7915 }, { 223,7915 }, { 224,7915 }, { 225,7915 },
- { 226,7915 }, { 227,7915 }, { 228,7915 }, { 229,7915 }, { 230,7915 },
- { 231,7915 }, { 232,7915 }, { 233,7915 }, { 234,7915 }, { 235,7915 },
- { 236,7915 }, { 237,7915 }, { 238,7915 }, { 239,7915 }, { 240,7915 },
-
- { 241,7915 }, { 242,7915 }, { 243,7915 }, { 244,7915 }, { 245,7915 },
- { 246,7915 }, { 247,7915 }, { 248,7915 }, { 249,7915 }, { 250,7915 },
- { 251,7915 }, { 252,7915 }, { 253,7915 }, { 254,7915 }, { 255,7915 },
- { 256,7915 }, {   0,  11 }, {   0,34683 }, {   1,7915 }, {   2,7915 },
- {   3,7915 }, {   4,7915 }, {   5,7915 }, {   6,7915 }, {   7,7915 },
- {   8,7915 }, {   9,7915 }, {  10,7915 }, {  11,7915 }, {  12,7915 },
- {  13,7915 }, {  14,7915 }, {  15,7915 }, {  16,7915 }, {  17,7915 },
- {  18,7915 }, {  19,7915 }, {  20,7915 }, {  21,7915 }, {  22,7915 },
- {  23,7915 }, {  24,7915 }, {  25,7915 }, {  26,7915 }, {  27,7915 },
- {  28,7915 }, {  29,7915 }, {  30,7915 }, {  31,7915 }, {  32,7915 },
-
- {  33,7915 }, {  34,7915 }, {  35,7915 }, {  36,7915 }, {  37,7915 },
- {  38,7915 }, {  39,8173 }, {  40,7915 }, {  41,7915 }, {  42,7915 },
- {  43,7915 }, {  44,7915 }, {  45,7915 }, {  46,7915 }, {  47,7915 },
- {  48,7915 }, {  49,7915 }, {  50,7915 }, {  51,7915 }, {  52,7915 },
- {  53,7915 }, {  54,7915 }, {  55,7915 }, {  56,7915 }, {  57,7915 },
- {  58,7915 }, {  59,7915 }, {  60,7915 }, {  61,7915 }, {  62,7915 },
- {  63,7915 }, {  64,7915 }, {  65,7915 }, {  66,7915 }, {  67,7915 },
- {  68,7915 }, {  69,7915 }, {  70,7915 }, {  71,7915 }, {  72,7915 },
- {  73,7915 }, {  74,7915 }, {  75,7915 }, {  76,7915 }, {  77,7915 },
- {  78,7915 }, {  79,7915 }, {  80,7915 }, {  81,7915 }, {  82,7915 },
-
- {  83,7915 }, {  84,7915 }, {  85,7915 }, {  86,7915 }, {  87,7915 },
- {  88,7915 }, {  89,7915 }, {  90,7915 }, {  91,7915 }, {  92,7915 },
- {  93,7915 }, {  94,7915 }, {  95,7915 }, {  96,7915 }, {  97,7915 },
- {  98,7915 }, {  99,7915 }, { 100,7915 }, { 101,7915 }, { 102,7915 },
- { 103,7915 }, { 104,7915 }, { 105,7915 }, { 106,7915 }, { 107,7915 },
- { 108,7915 }, { 109,7915 }, { 110,7915 }, { 111,7915 }, { 112,7915 },
- { 113,7915 }, { 114,7915 }, { 115,7915 }, { 116,7915 }, { 117,7915 },
- { 118,7915 }, { 119,7915 }, { 120,7915 }, { 121,7915 }, { 122,7915 },
- { 123,7915 }, { 124,7915 }, { 125,7915 }, { 126,7915 }, { 127,7915 },
- { 128,7915 }, { 129,7915 }, { 130,7915 }, { 131,7915 }, { 132,7915 },
-
- { 133,7915 }, { 134,7915 }, { 135,7915 }, { 136,7915 }, { 137,7915 },
- { 138,7915 }, { 139,7915 }, { 140,7915 }, { 141,7915 }, { 142,7915 },
- { 143,7915 }, { 144,7915 }, { 145,7915 }, { 146,7915 }, { 147,7915 },
- { 148,7915 }, { 149,7915 }, { 150,7915 }, { 151,7915 }, { 152,7915 },
- { 153,7915 }, { 154,7915 }, { 155,7915 }, { 156,7915 }, { 157,7915 },
- { 158,7915 }, { 159,7915 }, { 160,7915 }, { 161,7915 }, { 162,7915 },
- { 163,7915 }, { 164,7915 }, { 165,7915 }, { 166,7915 }, { 167,7915 },
- { 168,7915 }, { 169,7915 }, { 170,7915 }, { 171,7915 }, { 172,7915 },
- { 173,7915 }, { 174,7915 }, { 175,7915 }, { 176,7915 }, { 177,7915 },
- { 178,7915 }, { 179,7915 }, { 180,7915 }, { 181,7915 }, { 182,7915 },
-
- { 183,7915 }, { 184,7915 }, { 185,7915 }, { 186,7915 }, { 187,7915 },
- { 188,7915 }, { 189,7915 }, { 190,7915 }, { 191,7915 }, { 192,7915 },
- { 193,7915 }, { 194,7915 }, { 195,7915 }, { 196,7915 }, { 197,7915 },
- { 198,7915 }, { 199,7915 }, { 200,7915 }, { 201,7915 }, { 202,7915 },
- { 203,7915 }, { 204,7915 }, { 205,7915 }, { 206,7915 }, { 207,7915 },
- { 208,7915 }, { 209,7915 }, { 210,7915 }, { 211,7915 }, { 212,7915 },
- { 213,7915 }, { 214,7915 }, { 215,7915 }, { 216,7915 }, { 217,7915 },
- { 218,7915 }, { 219,7915 }, { 220,7915 }, { 221,7915 }, { 222,7915 },
- { 223,7915 }, { 224,7915 }, { 225,7915 }, { 226,7915 }, { 227,7915 },
- { 228,7915 }, { 229,7915 }, { 230,7915 }, { 231,7915 }, { 232,7915 },
-
- { 233,7915 }, { 234,7915 }, { 235,7915 }, { 236,7915 }, { 237,7915 },
- { 238,7915 }, { 239,7915 }, { 240,7915 }, { 241,7915 }, { 242,7915 },
- { 243,7915 }, { 244,7915 }, { 245,7915 }, { 246,7915 }, { 247,7915 },
- { 248,7915 }, { 249,7915 }, { 250,7915 }, { 251,7915 }, { 252,7915 },
- { 253,7915 }, { 254,7915 }, { 255,7915 }, { 256,7915 }, {   0,  11 },
- {   0,34425 }, {   1,7657 }, {   2,7657 }, {   3,7657 }, {   4,7657 },
- {   5,7657 }, {   6,7657 }, {   7,7657 }, {   8,7657 }, {   9,7657 },
- {  10,7657 }, {  11,7657 }, {  12,7657 }, {  13,7657 }, {  14,7657 },
- {  15,7657 }, {  16,7657 }, {  17,7657 }, {  18,7657 }, {  19,7657 },
- {  20,7657 }, {  21,7657 }, {  22,7657 }, {  23,7657 }, {  24,7657 },
-
- {  25,7657 }, {  26,7657 }, {  27,7657 }, {  28,7657 }, {  29,7657 },
- {  30,7657 }, {  31,7657 }, {  32,7657 }, {  33,7657 }, {  34,7657 },
- {  35,7657 }, {  36,7657 }, {  37,7657 }, {  38,7657 }, {  39,7915 },
- {  40,7657 }, {  41,7657 }, {  42,7657 }, {  43,7657 }, {  44,7657 },
- {  45,7657 }, {  46,7657 }, {  47,7657 }, {  48,7657 }, {  49,7657 },
- {  50,7657 }, {  51,7657 }, {  52,7657 }, {  53,7657 }, {  54,7657 },
- {  55,7657 }, {  56,7657 }, {  57,7657 }, {  58,7657 }, {  59,7657 },
- {  60,7657 }, {  61,7657 }, {  62,7657 }, {  63,7657 }, {  64,7657 },
- {  65,7657 }, {  66,7657 }, {  67,7657 }, {  68,7657 }, {  69,7657 },
- {  70,7657 }, {  71,7657 }, {  72,7657 }, {  73,7657 }, {  74,7657 },
-
- {  75,7657 }, {  76,7657 }, {  77,7657 }, {  78,7657 }, {  79,7657 },
- {  80,7657 }, {  81,7657 }, {  82,7657 }, {  83,7657 }, {  84,7657 },
- {  85,7657 }, {  86,7657 }, {  87,7657 }, {  88,7657 }, {  89,7657 },
- {  90,7657 }, {  91,7657 }, {  92,7657 }, {  93,7657 }, {  94,7657 },
- {  95,7657 }, {  96,7657 }, {  97,7657 }, {  98,7657 }, {  99,7657 },
- { 100,7657 }, { 101,7657 }, { 102,7657 }, { 103,7657 }, { 104,7657 },
- { 105,7657 }, { 106,7657 }, { 107,7657 }, { 108,7657 }, { 109,7657 },
- { 110,7657 }, { 111,7657 }, { 112,7657 }, { 113,7657 }, { 114,7657 },
- { 115,7657 }, { 116,7657 }, { 117,7657 }, { 118,7657 }, { 119,7657 },
- { 120,7657 }, { 121,7657 }, { 122,7657 }, { 123,7657 }, { 124,7657 },
-
- { 125,7657 }, { 126,7657 }, { 127,7657 }, { 128,7657 }, { 129,7657 },
- { 130,7657 }, { 131,7657 }, { 132,7657 }, { 133,7657 }, { 134,7657 },
- { 135,7657 }, { 136,7657 }, { 137,7657 }, { 138,7657 }, { 139,7657 },
- { 140,7657 }, { 141,7657 }, { 142,7657 }, { 143,7657 }, { 144,7657 },
- { 145,7657 }, { 146,7657 }, { 147,7657 }, { 148,7657 }, { 149,7657 },
- { 150,7657 }, { 151,7657 }, { 152,7657 }, { 153,7657 }, { 154,7657 },
- { 155,7657 }, { 156,7657 }, { 157,7657 }, { 158,7657 }, { 159,7657 },
- { 160,7657 }, { 161,7657 }, { 162,7657 }, { 163,7657 }, { 164,7657 },
- { 165,7657 }, { 166,7657 }, { 167,7657 }, { 168,7657 }, { 169,7657 },
- { 170,7657 }, { 171,7657 }, { 172,7657 }, { 173,7657 }, { 174,7657 },
-
- { 175,7657 }, { 176,7657 }, { 177,7657 }, { 178,7657 }, { 179,7657 },
- { 180,7657 }, { 181,7657 }, { 182,7657 }, { 183,7657 }, { 184,7657 },
- { 185,7657 }, { 186,7657 }, { 187,7657 }, { 188,7657 }, { 189,7657 },
- { 190,7657 }, { 191,7657 }, { 192,7657 }, { 193,7657 }, { 194,7657 },
- { 195,7657 }, { 196,7657 }, { 197,7657 }, { 198,7657 }, { 199,7657 },
- { 200,7657 }, { 201,7657 }, { 202,7657 }, { 203,7657 }, { 204,7657 },
- { 205,7657 }, { 206,7657 }, { 207,7657 }, { 208,7657 }, { 209,7657 },
- { 210,7657 }, { 211,7657 }, { 212,7657 }, { 213,7657 }, { 214,7657 },
- { 215,7657 }, { 216,7657 }, { 217,7657 }, { 218,7657 }, { 219,7657 },
- { 220,7657 }, { 221,7657 }, { 222,7657 }, { 223,7657 }, { 224,7657 },
-
- { 225,7657 }, { 226,7657 }, { 227,7657 }, { 228,7657 }, { 229,7657 },
- { 230,7657 }, { 231,7657 }, { 232,7657 }, { 233,7657 }, { 234,7657 },
- { 235,7657 }, { 236,7657 }, { 237,7657 }, { 238,7657 }, { 239,7657 },
- { 240,7657 }, { 241,7657 }, { 242,7657 }, { 243,7657 }, { 244,7657 },
- { 245,7657 }, { 246,7657 }, { 247,7657 }, { 248,7657 }, { 249,7657 },
- { 250,7657 }, { 251,7657 }, { 252,7657 }, { 253,7657 }, { 254,7657 },
- { 255,7657 }, { 256,7657 }, {   0,   0 }, {   0,34167 }, {   1,7704 },
- {   2,7704 }, {   3,7704 }, {   4,7704 }, {   5,7704 }, {   6,7704 },
- {   7,7704 }, {   8,7704 }, {   9,7704 }, {  10,7962 }, {  11,7704 },
- {  12,7704 }, {  13,7704 }, {  14,7704 }, {  15,7704 }, {  16,7704 },
-
- {  17,7704 }, {  18,7704 }, {  19,7704 }, {  20,7704 }, {  21,7704 },
- {  22,7704 }, {  23,7704 }, {  24,7704 }, {  25,7704 }, {  26,7704 },
- {  27,7704 }, {  28,7704 }, {  29,7704 }, {  30,7704 }, {  31,7704 },
- {  32,7704 }, {  33,7704 }, {  34,7704 }, {  35,7704 }, {  36,7704 },
- {  37,7704 }, {  38,7704 }, {  39,8220 }, {  40,7704 }, {  41,7704 },
- {  42,7704 }, {  43,7704 }, {  44,7704 }, {  45,7704 }, {  46,7704 },
- {  47,7704 }, {  48,7704 }, {  49,7704 }, {  50,7704 }, {  51,7704 },
- {  52,7704 }, {  53,7704 }, {  54,7704 }, {  55,7704 }, {  56,7704 },
- {  57,7704 }, {  58,7704 }, {  59,7704 }, {  60,7704 }, {  61,7704 },
- {  62,7704 }, {  63,7704 }, {  64,7704 }, {  65,7704 }, {  66,7704 },
-
- {  67,7704 }, {  68,7704 }, {  69,7704 }, {  70,7704 }, {  71,7704 },
- {  72,7704 }, {  73,7704 }, {  74,7704 }, {  75,7704 }, {  76,7704 },
- {  77,7704 }, {  78,7704 }, {  79,7704 }, {  80,7704 }, {  81,7704 },
- {  82,7704 }, {  83,7704 }, {  84,7704 }, {  85,7704 }, {  86,7704 },
- {  87,7704 }, {  88,7704 }, {  89,7704 }, {  90,7704 }, {  91,7704 },
- {  92,8267 }, {  93,7704 }, {  94,7704 }, {  95,7704 }, {  96,7704 },
- {  97,7704 }, {  98,7704 }, {  99,7704 }, { 100,7704 }, { 101,7704 },
- { 102,7704 }, { 103,7704 }, { 104,7704 }, { 105,7704 }, { 106,7704 },
- { 107,7704 }, { 108,7704 }, { 109,7704 }, { 110,7704 }, { 111,7704 },
- { 112,7704 }, { 113,7704 }, { 114,7704 }, { 115,7704 }, { 116,7704 },
-
- { 117,7704 }, { 118,7704 }, { 119,7704 }, { 120,7704 }, { 121,7704 },
- { 122,7704 }, { 123,7704 }, { 124,7704 }, { 125,7704 }, { 126,7704 },
- { 127,7704 }, { 128,7704 }, { 129,7704 }, { 130,7704 }, { 131,7704 },
- { 132,7704 }, { 133,7704 }, { 134,7704 }, { 135,7704 }, { 136,7704 },
- { 137,7704 }, { 138,7704 }, { 139,7704 }, { 140,7704 }, { 141,7704 },
- { 142,7704 }, { 143,7704 }, { 144,7704 }, { 145,7704 }, { 146,7704 },
- { 147,7704 }, { 148,7704 }, { 149,7704 }, { 150,7704 }, { 151,7704 },
- { 152,7704 }, { 153,7704 }, { 154,7704 }, { 155,7704 }, { 156,7704 },
- { 157,7704 }, { 158,7704 }, { 159,7704 }, { 160,7704 }, { 161,7704 },
- { 162,7704 }, { 163,7704 }, { 164,7704 }, { 165,7704 }, { 166,7704 },
-
- { 167,7704 }, { 168,7704 }, { 169,7704 }, { 170,7704 }, { 171,7704 },
- { 172,7704 }, { 173,7704 }, { 174,7704 }, { 175,7704 }, { 176,7704 },
- { 177,7704 }, { 178,7704 }, { 179,7704 }, { 180,7704 }, { 181,7704 },
- { 182,7704 }, { 183,7704 }, { 184,7704 }, { 185,7704 }, { 186,7704 },
- { 187,7704 }, { 188,7704 }, { 189,7704 }, { 190,7704 }, { 191,7704 },
- { 192,7704 }, { 193,7704 }, { 194,7704 }, { 195,7704 }, { 196,7704 },
- { 197,7704 }, { 198,7704 }, { 199,7704 }, { 200,7704 }, { 201,7704 },
- { 202,7704 }, { 203,7704 }, { 204,7704 }, { 205,7704 }, { 206,7704 },
- { 207,7704 }, { 208,7704 }, { 209,7704 }, { 210,7704 }, { 211,7704 },
- { 212,7704 }, { 213,7704 }, { 214,7704 }, { 215,7704 }, { 216,7704 },
-
- { 217,7704 }, { 218,7704 }, { 219,7704 }, { 220,7704 }, { 221,7704 },
- { 222,7704 }, { 223,7704 }, { 224,7704 }, { 225,7704 }, { 226,7704 },
- { 227,7704 }, { 228,7704 }, { 229,7704 }, { 230,7704 }, { 231,7704 },
- { 232,7704 }, { 233,7704 }, { 234,7704 }, { 235,7704 }, { 236,7704 },
- { 237,7704 }, { 238,7704 }, { 239,7704 }, { 240,7704 }, { 241,7704 },
- { 242,7704 }, { 243,7704 }, { 244,7704 }, { 245,7704 }, { 246,7704 },
- { 247,7704 }, { 248,7704 }, { 249,7704 }, { 250,7704 }, { 251,7704 },
- { 252,7704 }, { 253,7704 }, { 254,7704 }, { 255,7704 }, { 256,7704 },
- {   0,   0 }, {   0,33909 }, {   1,7446 }, {   2,7446 }, {   3,7446 },
- {   4,7446 }, {   5,7446 }, {   6,7446 }, {   7,7446 }, {   8,7446 },
-
- {   9,7446 }, {  10,7704 }, {  11,7446 }, {  12,7446 }, {  13,7446 },
- {  14,7446 }, {  15,7446 }, {  16,7446 }, {  17,7446 }, {  18,7446 },
- {  19,7446 }, {  20,7446 }, {  21,7446 }, {  22,7446 }, {  23,7446 },
- {  24,7446 }, {  25,7446 }, {  26,7446 }, {  27,7446 }, {  28,7446 },
- {  29,7446 }, {  30,7446 }, {  31,7446 }, {  32,7446 }, {  33,7446 },
- {  34,7446 }, {  35,7446 }, {  36,7446 }, {  37,7446 }, {  38,7446 },
- {  39,7962 }, {  40,7446 }, {  41,7446 }, {  42,7446 }, {  43,7446 },
- {  44,7446 }, {  45,7446 }, {  46,7446 }, {  47,7446 }, {  48,7446 },
- {  49,7446 }, {  50,7446 }, {  51,7446 }, {  52,7446 }, {  53,7446 },
- {  54,7446 }, {  55,7446 }, {  56,7446 }, {  57,7446 }, {  58,7446 },
-
- {  59,7446 }, {  60,7446 }, {  61,7446 }, {  62,7446 }, {  63,7446 },
- {  64,7446 }, {  65,7446 }, {  66,7446 }, {  67,7446 }, {  68,7446 },
- {  69,7446 }, {  70,7446 }, {  71,7446 }, {  72,7446 }, {  73,7446 },
- {  74,7446 }, {  75,7446 }, {  76,7446 }, {  77,7446 }, {  78,7446 },
- {  79,7446 }, {  80,7446 }, {  81,7446 }, {  82,7446 }, {  83,7446 },
- {  84,7446 }, {  85,7446 }, {  86,7446 }, {  87,7446 }, {  88,7446 },
- {  89,7446 }, {  90,7446 }, {  91,7446 }, {  92,8009 }, {  93,7446 },
- {  94,7446 }, {  95,7446 }, {  96,7446 }, {  97,7446 }, {  98,7446 },
- {  99,7446 }, { 100,7446 }, { 101,7446 }, { 102,7446 }, { 103,7446 },
- { 104,7446 }, { 105,7446 }, { 106,7446 }, { 107,7446 }, { 108,7446 },
-
- { 109,7446 }, { 110,7446 }, { 111,7446 }, { 112,7446 }, { 113,7446 },
- { 114,7446 }, { 115,7446 }, { 116,7446 }, { 117,7446 }, { 118,7446 },
- { 119,7446 }, { 120,7446 }, { 121,7446 }, { 122,7446 }, { 123,7446 },
- { 124,7446 }, { 125,7446 }, { 126,7446 }, { 127,7446 }, { 128,7446 },
- { 129,7446 }, { 130,7446 }, { 131,7446 }, { 132,7446 }, { 133,7446 },
- { 134,7446 }, { 135,7446 }, { 136,7446 }, { 137,7446 }, { 138,7446 },
- { 139,7446 }, { 140,7446 }, { 141,7446 }, { 142,7446 }, { 143,7446 },
- { 144,7446 }, { 145,7446 }, { 146,7446 }, { 147,7446 }, { 148,7446 },
- { 149,7446 }, { 150,7446 }, { 151,7446 }, { 152,7446 }, { 153,7446 },
- { 154,7446 }, { 155,7446 }, { 156,7446 }, { 157,7446 }, { 158,7446 },
-
- { 159,7446 }, { 160,7446 }, { 161,7446 }, { 162,7446 }, { 163,7446 },
- { 164,7446 }, { 165,7446 }, { 166,7446 }, { 167,7446 }, { 168,7446 },
- { 169,7446 }, { 170,7446 }, { 171,7446 }, { 172,7446 }, { 173,7446 },
- { 174,7446 }, { 175,7446 }, { 176,7446 }, { 177,7446 }, { 178,7446 },
- { 179,7446 }, { 180,7446 }, { 181,7446 }, { 182,7446 }, { 183,7446 },
- { 184,7446 }, { 185,7446 }, { 186,7446 }, { 187,7446 }, { 188,7446 },
- { 189,7446 }, { 190,7446 }, { 191,7446 }, { 192,7446 }, { 193,7446 },
- { 194,7446 }, { 195,7446 }, { 196,7446 }, { 197,7446 }, { 198,7446 },
- { 199,7446 }, { 200,7446 }, { 201,7446 }, { 202,7446 }, { 203,7446 },
- { 204,7446 }, { 205,7446 }, { 206,7446 }, { 207,7446 }, { 208,7446 },
-
- { 209,7446 }, { 210,7446 }, { 211,7446 }, { 212,7446 }, { 213,7446 },
- { 214,7446 }, { 215,7446 }, { 216,7446 }, { 217,7446 }, { 218,7446 },
- { 219,7446 }, { 220,7446 }, { 221,7446 }, { 222,7446 }, { 223,7446 },
- { 224,7446 }, { 225,7446 }, { 226,7446 }, { 227,7446 }, { 228,7446 },
- { 229,7446 }, { 230,7446 }, { 231,7446 }, { 232,7446 }, { 233,7446 },
- { 234,7446 }, { 235,7446 }, { 236,7446 }, { 237,7446 }, { 238,7446 },
- { 239,7446 }, { 240,7446 }, { 241,7446 }, { 242,7446 }, { 243,7446 },
- { 244,7446 }, { 245,7446 }, { 246,7446 }, { 247,7446 }, { 248,7446 },
- { 249,7446 }, { 250,7446 }, { 251,7446 }, { 252,7446 }, { 253,7446 },
- { 254,7446 }, { 255,7446 }, { 256,7446 }, {   0,   0 }, {   0,33651 },
-
- {   1,8009 }, {   2,8009 }, {   3,8009 }, {   4,8009 }, {   5,8009 },
- {   6,8009 }, {   7,8009 }, {   8,8009 }, {   9,8009 }, {  10,8009 },
- {  11,8009 }, {  12,8009 }, {  13,8009 }, {  14,8009 }, {  15,8009 },
- {  16,8009 }, {  17,8009 }, {  18,8009 }, {  19,8009 }, {  20,8009 },
- {  21,8009 }, {  22,8009 }, {  23,8009 }, {  24,8009 }, {  25,8009 },
- {  26,8009 }, {  27,8009 }, {  28,8009 }, {  29,8009 }, {  30,8009 },
- {  31,8009 }, {  32,8009 }, {  33,8009 }, {  34,8009 }, {  35,8009 },
- {  36,8009 }, {  37,8009 }, {  38,8009 }, {  39,8267 }, {  40,8009 },
- {  41,8009 }, {  42,8009 }, {  43,8009 }, {  44,8009 }, {  45,8009 },
- {  46,8009 }, {  47,8009 }, {  48,8009 }, {  49,8009 }, {  50,8009 },
-
- {  51,8009 }, {  52,8009 }, {  53,8009 }, {  54,8009 }, {  55,8009 },
- {  56,8009 }, {  57,8009 }, {  58,8009 }, {  59,8009 }, {  60,8009 },
- {  61,8009 }, {  62,8009 }, {  63,8009 }, {  64,8009 }, {  65,8009 },
- {  66,8009 }, {  67,8009 }, {  68,8009 }, {  69,8009 }, {  70,8009 },
- {  71,8009 }, {  72,8009 }, {  73,8009 }, {  74,8009 }, {  75,8009 },
- {  76,8009 }, {  77,8009 }, {  78,8009 }, {  79,8009 }, {  80,8009 },
- {  81,8009 }, {  82,8009 }, {  83,8009 }, {  84,8009 }, {  85,8009 },
- {  86,8009 }, {  87,8009 }, {  88,8009 }, {  89,8009 }, {  90,8009 },
- {  91,8009 }, {  92,8009 }, {  93,8009 }, {  94,8009 }, {  95,8009 },
- {  96,8009 }, {  97,8009 }, {  98,8009 }, {  99,8009 }, { 100,8009 },
-
- { 101,8009 }, { 102,8009 }, { 103,8009 }, { 104,8009 }, { 105,8009 },
- { 106,8009 }, { 107,8009 }, { 108,8009 }, { 109,8009 }, { 110,8009 },
- { 111,8009 }, { 112,8009 }, { 113,8009 }, { 114,8009 }, { 115,8009 },
- { 116,8009 }, { 117,8009 }, { 118,8009 }, { 119,8009 }, { 120,8009 },
- { 121,8009 }, { 122,8009 }, { 123,8009 }, { 124,8009 }, { 125,8009 },
- { 126,8009 }, { 127,8009 }, { 128,8009 }, { 129,8009 }, { 130,8009 },
- { 131,8009 }, { 132,8009 }, { 133,8009 }, { 134,8009 }, { 135,8009 },
- { 136,8009 }, { 137,8009 }, { 138,8009 }, { 139,8009 }, { 140,8009 },
- { 141,8009 }, { 142,8009 }, { 143,8009 }, { 144,8009 }, { 145,8009 },
- { 146,8009 }, { 147,8009 }, { 148,8009 }, { 149,8009 }, { 150,8009 },
-
- { 151,8009 }, { 152,8009 }, { 153,8009 }, { 154,8009 }, { 155,8009 },
- { 156,8009 }, { 157,8009 }, { 158,8009 }, { 159,8009 }, { 160,8009 },
- { 161,8009 }, { 162,8009 }, { 163,8009 }, { 164,8009 }, { 165,8009 },
- { 166,8009 }, { 167,8009 }, { 168,8009 }, { 169,8009 }, { 170,8009 },
- { 171,8009 }, { 172,8009 }, { 173,8009 }, { 174,8009 }, { 175,8009 },
- { 176,8009 }, { 177,8009 }, { 178,8009 }, { 179,8009 }, { 180,8009 },
- { 181,8009 }, { 182,8009 }, { 183,8009 }, { 184,8009 }, { 185,8009 },
- { 186,8009 }, { 187,8009 }, { 188,8009 }, { 189,8009 }, { 190,8009 },
- { 191,8009 }, { 192,8009 }, { 193,8009 }, { 194,8009 }, { 195,8009 },
- { 196,8009 }, { 197,8009 }, { 198,8009 }, { 199,8009 }, { 200,8009 },
-
- { 201,8009 }, { 202,8009 }, { 203,8009 }, { 204,8009 }, { 205,8009 },
- { 206,8009 }, { 207,8009 }, { 208,8009 }, { 209,8009 }, { 210,8009 },
- { 211,8009 }, { 212,8009 }, { 213,8009 }, { 214,8009 }, { 215,8009 },
- { 216,8009 }, { 217,8009 }, { 218,8009 }, { 219,8009 }, { 220,8009 },
- { 221,8009 }, { 222,8009 }, { 223,8009 }, { 224,8009 }, { 225,8009 },
- { 226,8009 }, { 227,8009 }, { 228,8009 }, { 229,8009 }, { 230,8009 },
- { 231,8009 }, { 232,8009 }, { 233,8009 }, { 234,8009 }, { 235,8009 },
- { 236,8009 }, { 237,8009 }, { 238,8009 }, { 239,8009 }, { 240,8009 },
- { 241,8009 }, { 242,8009 }, { 243,8009 }, { 244,8009 }, { 245,8009 },
- { 246,8009 }, { 247,8009 }, { 248,8009 }, { 249,8009 }, { 250,8009 },
-
- { 251,8009 }, { 252,8009 }, { 253,8009 }, { 254,8009 }, { 255,8009 },
- { 256,8009 }, {   0,   0 }, {   0,33393 }, {   1,7751 }, {   2,7751 },
- {   3,7751 }, {   4,7751 }, {   5,7751 }, {   6,7751 }, {   7,7751 },
- {   8,7751 }, {   9,7751 }, {  10,7751 }, {  11,7751 }, {  12,7751 },
- {  13,7751 }, {  14,7751 }, {  15,7751 }, {  16,7751 }, {  17,7751 },
- {  18,7751 }, {  19,7751 }, {  20,7751 }, {  21,7751 }, {  22,7751 },
- {  23,7751 }, {  24,7751 }, {  25,7751 }, {  26,7751 }, {  27,7751 },
- {  28,7751 }, {  29,7751 }, {  30,7751 }, {  31,7751 }, {  32,7751 },
- {  33,7751 }, {  34,7751 }, {  35,7751 }, {  36,7751 }, {  37,7751 },
- {  38,7751 }, {  39,8009 }, {  40,7751 }, {  41,7751 }, {  42,7751 },
-
- {  43,7751 }, {  44,7751 }, {  45,7751 }, {  46,7751 }, {  47,7751 },
- {  48,7751 }, {  49,7751 }, {  50,7751 }, {  51,7751 }, {  52,7751 },
- {  53,7751 }, {  54,7751 }, {  55,7751 }, {  56,7751 }, {  57,7751 },
- {  58,7751 }, {  59,7751 }, {  60,7751 }, {  61,7751 }, {  62,7751 },
- {  63,7751 }, {  64,7751 }, {  65,7751 }, {  66,7751 }, {  67,7751 },
- {  68,7751 }, {  69,7751 }, {  70,7751 }, {  71,7751 }, {  72,7751 },
- {  73,7751 }, {  74,7751 }, {  75,7751 }, {  76,7751 }, {  77,7751 },
- {  78,7751 }, {  79,7751 }, {  80,7751 }, {  81,7751 }, {  82,7751 },
- {  83,7751 }, {  84,7751 }, {  85,7751 }, {  86,7751 }, {  87,7751 },
- {  88,7751 }, {  89,7751 }, {  90,7751 }, {  91,7751 }, {  92,7751 },
-
- {  93,7751 }, {  94,7751 }, {  95,7751 }, {  96,7751 }, {  97,7751 },
- {  98,7751 }, {  99,7751 }, { 100,7751 }, { 101,7751 }, { 102,7751 },
- { 103,7751 }, { 104,7751 }, { 105,7751 }, { 106,7751 }, { 107,7751 },
- { 108,7751 }, { 109,7751 }, { 110,7751 }, { 111,7751 }, { 112,7751 },
- { 113,7751 }, { 114,7751 }, { 115,7751 }, { 116,7751 }, { 117,7751 },
- { 118,7751 }, { 119,7751 }, { 120,7751 }, { 121,7751 }, { 122,7751 },
- { 123,7751 }, { 124,7751 }, { 125,7751 }, { 126,7751 }, { 127,7751 },
- { 128,7751 }, { 129,7751 }, { 130,7751 }, { 131,7751 }, { 132,7751 },
- { 133,7751 }, { 134,7751 }, { 135,7751 }, { 136,7751 }, { 137,7751 },
- { 138,7751 }, { 139,7751 }, { 140,7751 }, { 141,7751 }, { 142,7751 },
-
- { 143,7751 }, { 144,7751 }, { 145,7751 }, { 146,7751 }, { 147,7751 },
- { 148,7751 }, { 149,7751 }, { 150,7751 }, { 151,7751 }, { 152,7751 },
- { 153,7751 }, { 154,7751 }, { 155,7751 }, { 156,7751 }, { 157,7751 },
- { 158,7751 }, { 159,7751 }, { 160,7751 }, { 161,7751 }, { 162,7751 },
- { 163,7751 }, { 164,7751 }, { 165,7751 }, { 166,7751 }, { 167,7751 },
- { 168,7751 }, { 169,7751 }, { 170,7751 }, { 171,7751 }, { 172,7751 },
- { 173,7751 }, { 174,7751 }, { 175,7751 }, { 176,7751 }, { 177,7751 },
- { 178,7751 }, { 179,7751 }, { 180,7751 }, { 181,7751 }, { 182,7751 },
- { 183,7751 }, { 184,7751 }, { 185,7751 }, { 186,7751 }, { 187,7751 },
- { 188,7751 }, { 189,7751 }, { 190,7751 }, { 191,7751 }, { 192,7751 },
-
- { 193,7751 }, { 194,7751 }, { 195,7751 }, { 196,7751 }, { 197,7751 },
- { 198,7751 }, { 199,7751 }, { 200,7751 }, { 201,7751 }, { 202,7751 },
- { 203,7751 }, { 204,7751 }, { 205,7751 }, { 206,7751 }, { 207,7751 },
- { 208,7751 }, { 209,7751 }, { 210,7751 }, { 211,7751 }, { 212,7751 },
- { 213,7751 }, { 214,7751 }, { 215,7751 }, { 216,7751 }, { 217,7751 },
- { 218,7751 }, { 219,7751 }, { 220,7751 }, { 221,7751 }, { 222,7751 },
- { 223,7751 }, { 224,7751 }, { 225,7751 }, { 226,7751 }, { 227,7751 },
- { 228,7751 }, { 229,7751 }, { 230,7751 }, { 231,7751 }, { 232,7751 },
- { 233,7751 }, { 234,7751 }, { 235,7751 }, { 236,7751 }, { 237,7751 },
- { 238,7751 }, { 239,7751 }, { 240,7751 }, { 241,7751 }, { 242,7751 },
-
- { 243,7751 }, { 244,7751 }, { 245,7751 }, { 246,7751 }, { 247,7751 },
- { 248,7751 }, { 249,7751 }, { 250,7751 }, { 251,7751 }, { 252,7751 },
- { 253,7751 }, { 254,7751 }, { 255,7751 }, { 256,7751 }, {   0,   0 },
- {   0,33135 }, {   1,7798 }, {   2,7798 }, {   3,7798 }, {   4,7798 },
- {   5,7798 }, {   6,7798 }, {   7,7798 }, {   8,7798 }, {   9,7798 },
- {  10,8056 }, {  11,7798 }, {  12,7798 }, {  13,7798 }, {  14,7798 },
- {  15,7798 }, {  16,7798 }, {  17,7798 }, {  18,7798 }, {  19,7798 },
- {  20,7798 }, {  21,7798 }, {  22,7798 }, {  23,7798 }, {  24,7798 },
- {  25,7798 }, {  26,7798 }, {  27,7798 }, {  28,7798 }, {  29,7798 },
- {  30,7798 }, {  31,7798 }, {  32,7798 }, {  33,7798 }, {  34,7798 },
-
- {  35,7798 }, {  36,8314 }, {  37,7798 }, {  38,7798 }, {  39,7798 },
- {  40,7798 }, {  41,7798 }, {  42,7798 }, {  43,7798 }, {  44,7798 },
- {  45,7798 }, {  46,7798 }, {  47,7798 }, {  48,7798 }, {  49,7798 },
- {  50,7798 }, {  51,7798 }, {  52,7798 }, {  53,7798 }, {  54,7798 },
- {  55,7798 }, {  56,7798 }, {  57,7798 }, {  58,7798 }, {  59,7798 },
- {  60,7798 }, {  61,7798 }, {  62,7798 }, {  63,7798 }, {  64,7798 },
- {  65,7798 }, {  66,7798 }, {  67,7798 }, {  68,7798 }, {  69,7798 },
- {  70,7798 }, {  71,7798 }, {  72,7798 }, {  73,7798 }, {  74,7798 },
- {  75,7798 }, {  76,7798 }, {  77,7798 }, {  78,7798 }, {  79,7798 },
- {  80,7798 }, {  81,7798 }, {  82,7798 }, {  83,7798 }, {  84,7798 },
-
- {  85,7798 }, {  86,7798 }, {  87,7798 }, {  88,7798 }, {  89,7798 },
- {  90,7798 }, {  91,7798 }, {  92,7798 }, {  93,7798 }, {  94,7798 },
- {  95,7798 }, {  96,7798 }, {  97,7798 }, {  98,7798 }, {  99,7798 },
- { 100,7798 }, { 101,7798 }, { 102,7798 }, { 103,7798 }, { 104,7798 },
- { 105,7798 }, { 106,7798 }, { 107,7798 }, { 108,7798 }, { 109,7798 },
- { 110,7798 }, { 111,7798 }, { 112,7798 }, { 113,7798 }, { 114,7798 },
- { 115,7798 }, { 116,7798 }, { 117,7798 }, { 118,7798 }, { 119,7798 },
- { 120,7798 }, { 121,7798 }, { 122,7798 }, { 123,7798 }, { 124,7798 },
- { 125,7798 }, { 126,7798 }, { 127,7798 }, { 128,7798 }, { 129,7798 },
- { 130,7798 }, { 131,7798 }, { 132,7798 }, { 133,7798 }, { 134,7798 },
-
- { 135,7798 }, { 136,7798 }, { 137,7798 }, { 138,7798 }, { 139,7798 },
- { 140,7798 }, { 141,7798 }, { 142,7798 }, { 143,7798 }, { 144,7798 },
- { 145,7798 }, { 146,7798 }, { 147,7798 }, { 148,7798 }, { 149,7798 },
- { 150,7798 }, { 151,7798 }, { 152,7798 }, { 153,7798 }, { 154,7798 },
- { 155,7798 }, { 156,7798 }, { 157,7798 }, { 158,7798 }, { 159,7798 },
- { 160,7798 }, { 161,7798 }, { 162,7798 }, { 163,7798 }, { 164,7798 },
- { 165,7798 }, { 166,7798 }, { 167,7798 }, { 168,7798 }, { 169,7798 },
- { 170,7798 }, { 171,7798 }, { 172,7798 }, { 173,7798 }, { 174,7798 },
- { 175,7798 }, { 176,7798 }, { 177,7798 }, { 178,7798 }, { 179,7798 },
- { 180,7798 }, { 181,7798 }, { 182,7798 }, { 183,7798 }, { 184,7798 },
-
- { 185,7798 }, { 186,7798 }, { 187,7798 }, { 188,7798 }, { 189,7798 },
- { 190,7798 }, { 191,7798 }, { 192,7798 }, { 193,7798 }, { 194,7798 },
- { 195,7798 }, { 196,7798 }, { 197,7798 }, { 198,7798 }, { 199,7798 },
- { 200,7798 }, { 201,7798 }, { 202,7798 }, { 203,7798 }, { 204,7798 },
- { 205,7798 }, { 206,7798 }, { 207,7798 }, { 208,7798 }, { 209,7798 },
- { 210,7798 }, { 211,7798 }, { 212,7798 }, { 213,7798 }, { 214,7798 },
- { 215,7798 }, { 216,7798 }, { 217,7798 }, { 218,7798 }, { 219,7798 },
- { 220,7798 }, { 221,7798 }, { 222,7798 }, { 223,7798 }, { 224,7798 },
- { 225,7798 }, { 226,7798 }, { 227,7798 }, { 228,7798 }, { 229,7798 },
- { 230,7798 }, { 231,7798 }, { 232,7798 }, { 233,7798 }, { 234,7798 },
-
- { 235,7798 }, { 236,7798 }, { 237,7798 }, { 238,7798 }, { 239,7798 },
- { 240,7798 }, { 241,7798 }, { 242,7798 }, { 243,7798 }, { 244,7798 },
- { 245,7798 }, { 246,7798 }, { 247,7798 }, { 248,7798 }, { 249,7798 },
- { 250,7798 }, { 251,7798 }, { 252,7798 }, { 253,7798 }, { 254,7798 },
- { 255,7798 }, { 256,7798 }, {   0,   0 }, {   0,32877 }, {   1,7540 },
- {   2,7540 }, {   3,7540 }, {   4,7540 }, {   5,7540 }, {   6,7540 },
- {   7,7540 }, {   8,7540 }, {   9,7540 }, {  10,7798 }, {  11,7540 },
- {  12,7540 }, {  13,7540 }, {  14,7540 }, {  15,7540 }, {  16,7540 },
- {  17,7540 }, {  18,7540 }, {  19,7540 }, {  20,7540 }, {  21,7540 },
- {  22,7540 }, {  23,7540 }, {  24,7540 }, {  25,7540 }, {  26,7540 },
-
- {  27,7540 }, {  28,7540 }, {  29,7540 }, {  30,7540 }, {  31,7540 },
- {  32,7540 }, {  33,7540 }, {  34,7540 }, {  35,7540 }, {  36,8056 },
- {  37,7540 }, {  38,7540 }, {  39,7540 }, {  40,7540 }, {  41,7540 },
- {  42,7540 }, {  43,7540 }, {  44,7540 }, {  45,7540 }, {  46,7540 },
- {  47,7540 }, {  48,7540 }, {  49,7540 }, {  50,7540 }, {  51,7540 },
- {  52,7540 }, {  53,7540 }, {  54,7540 }, {  55,7540 }, {  56,7540 },
- {  57,7540 }, {  58,7540 }, {  59,7540 }, {  60,7540 }, {  61,7540 },
- {  62,7540 }, {  63,7540 }, {  64,7540 }, {  65,7540 }, {  66,7540 },
- {  67,7540 }, {  68,7540 }, {  69,7540 }, {  70,7540 }, {  71,7540 },
- {  72,7540 }, {  73,7540 }, {  74,7540 }, {  75,7540 }, {  76,7540 },
-
- {  77,7540 }, {  78,7540 }, {  79,7540 }, {  80,7540 }, {  81,7540 },
- {  82,7540 }, {  83,7540 }, {  84,7540 }, {  85,7540 }, {  86,7540 },
- {  87,7540 }, {  88,7540 }, {  89,7540 }, {  90,7540 }, {  91,7540 },
- {  92,7540 }, {  93,7540 }, {  94,7540 }, {  95,7540 }, {  96,7540 },
- {  97,7540 }, {  98,7540 }, {  99,7540 }, { 100,7540 }, { 101,7540 },
- { 102,7540 }, { 103,7540 }, { 104,7540 }, { 105,7540 }, { 106,7540 },
- { 107,7540 }, { 108,7540 }, { 109,7540 }, { 110,7540 }, { 111,7540 },
- { 112,7540 }, { 113,7540 }, { 114,7540 }, { 115,7540 }, { 116,7540 },
- { 117,7540 }, { 118,7540 }, { 119,7540 }, { 120,7540 }, { 121,7540 },
- { 122,7540 }, { 123,7540 }, { 124,7540 }, { 125,7540 }, { 126,7540 },
-
- { 127,7540 }, { 128,7540 }, { 129,7540 }, { 130,7540 }, { 131,7540 },
- { 132,7540 }, { 133,7540 }, { 134,7540 }, { 135,7540 }, { 136,7540 },
- { 137,7540 }, { 138,7540 }, { 139,7540 }, { 140,7540 }, { 141,7540 },
- { 142,7540 }, { 143,7540 }, { 144,7540 }, { 145,7540 }, { 146,7540 },
- { 147,7540 }, { 148,7540 }, { 149,7540 }, { 150,7540 }, { 151,7540 },
- { 152,7540 }, { 153,7540 }, { 154,7540 }, { 155,7540 }, { 156,7540 },
- { 157,7540 }, { 158,7540 }, { 159,7540 }, { 160,7540 }, { 161,7540 },
- { 162,7540 }, { 163,7540 }, { 164,7540 }, { 165,7540 }, { 166,7540 },
- { 167,7540 }, { 168,7540 }, { 169,7540 }, { 170,7540 }, { 171,7540 },
- { 172,7540 }, { 173,7540 }, { 174,7540 }, { 175,7540 }, { 176,7540 },
-
- { 177,7540 }, { 178,7540 }, { 179,7540 }, { 180,7540 }, { 181,7540 },
- { 182,7540 }, { 183,7540 }, { 184,7540 }, { 185,7540 }, { 186,7540 },
- { 187,7540 }, { 188,7540 }, { 189,7540 }, { 190,7540 }, { 191,7540 },
- { 192,7540 }, { 193,7540 }, { 194,7540 }, { 195,7540 }, { 196,7540 },
- { 197,7540 }, { 198,7540 }, { 199,7540 }, { 200,7540 }, { 201,7540 },
- { 202,7540 }, { 203,7540 }, { 204,7540 }, { 205,7540 }, { 206,7540 },
- { 207,7540 }, { 208,7540 }, { 209,7540 }, { 210,7540 }, { 211,7540 },
- { 212,7540 }, { 213,7540 }, { 214,7540 }, { 215,7540 }, { 216,7540 },
- { 217,7540 }, { 218,7540 }, { 219,7540 }, { 220,7540 }, { 221,7540 },
- { 222,7540 }, { 223,7540 }, { 224,7540 }, { 225,7540 }, { 226,7540 },
-
- { 227,7540 }, { 228,7540 }, { 229,7540 }, { 230,7540 }, { 231,7540 },
- { 232,7540 }, { 233,7540 }, { 234,7540 }, { 235,7540 }, { 236,7540 },
- { 237,7540 }, { 238,7540 }, { 239,7540 }, { 240,7540 }, { 241,7540 },
- { 242,7540 }, { 243,7540 }, { 244,7540 }, { 245,7540 }, { 246,7540 },
- { 247,7540 }, { 248,7540 }, { 249,7540 }, { 250,7540 }, { 251,7540 },
- { 252,7540 }, { 253,7540 }, { 254,7540 }, { 255,7540 }, { 256,7540 },
- {   0,   0 }, {   0,32619 }, {   1,5593 }, {   2,5593 }, {   3,5593 },
- {   4,5593 }, {   5,5593 }, {   6,5593 }, {   7,5593 }, {   8,5593 },
- {   9,5593 }, {  10,5593 }, {  11,5593 }, {  12,5593 }, {  13,5593 },
- {  14,5593 }, {  15,5593 }, {  16,5593 }, {  17,5593 }, {  18,5593 },
-
- {  19,5593 }, {  20,5593 }, {  21,5593 }, {  22,5593 }, {  23,5593 },
- {  24,5593 }, {  25,5593 }, {  26,5593 }, {  27,5593 }, {  28,5593 },
- {  29,5593 }, {  30,5593 }, {  31,5593 }, {  32,5593 }, {  33,5593 },
- {  34,2639 }, {  35,5593 }, {  36,5593 }, {  37,5593 }, {  38,5593 },
- {  39,5593 }, {  40,5593 }, {  41,5593 }, {  42,5593 }, {  43,5593 },
- {  44,5593 }, {  45,5593 }, {  46,5593 }, {  47,5593 }, {  48,5593 },
- {  49,5593 }, {  50,5593 }, {  51,5593 }, {  52,5593 }, {  53,5593 },
- {  54,5593 }, {  55,5593 }, {  56,5593 }, {  57,5593 }, {  58,5593 },
- {  59,5593 }, {  60,5593 }, {  61,5593 }, {  62,5593 }, {  63,5593 },
- {  64,5593 }, {  65,5593 }, {  66,5593 }, {  67,5593 }, {  68,5593 },
-
- {  69,5593 }, {  70,5593 }, {  71,5593 }, {  72,5593 }, {  73,5593 },
- {  74,5593 }, {  75,5593 }, {  76,5593 }, {  77,5593 }, {  78,5593 },
- {  79,5593 }, {  80,5593 }, {  81,5593 }, {  82,5593 }, {  83,5593 },
- {  84,5593 }, {  85,5593 }, {  86,5593 }, {  87,5593 }, {  88,5593 },
- {  89,5593 }, {  90,5593 }, {  91,5593 }, {  92,5593 }, {  93,5593 },
- {  94,5593 }, {  95,5593 }, {  96,5593 }, {  97,5593 }, {  98,5593 },
- {  99,5593 }, { 100,5593 }, { 101,5593 }, { 102,5593 }, { 103,5593 },
- { 104,5593 }, { 105,5593 }, { 106,5593 }, { 107,5593 }, { 108,5593 },
- { 109,5593 }, { 110,5593 }, { 111,5593 }, { 112,5593 }, { 113,5593 },
- { 114,5593 }, { 115,5593 }, { 116,5593 }, { 117,5593 }, { 118,5593 },
-
- { 119,5593 }, { 120,5593 }, { 121,5593 }, { 122,5593 }, { 123,5593 },
- { 124,5593 }, { 125,5593 }, { 126,5593 }, { 127,5593 }, { 128,5593 },
- { 129,5593 }, { 130,5593 }, { 131,5593 }, { 132,5593 }, { 133,5593 },
- { 134,5593 }, { 135,5593 }, { 136,5593 }, { 137,5593 }, { 138,5593 },
- { 139,5593 }, { 140,5593 }, { 141,5593 }, { 142,5593 }, { 143,5593 },
- { 144,5593 }, { 145,5593 }, { 146,5593 }, { 147,5593 }, { 148,5593 },
- { 149,5593 }, { 150,5593 }, { 151,5593 }, { 152,5593 }, { 153,5593 },
- { 154,5593 }, { 155,5593 }, { 156,5593 }, { 157,5593 }, { 158,5593 },
- { 159,5593 }, { 160,5593 }, { 161,5593 }, { 162,5593 }, { 163,5593 },
- { 164,5593 }, { 165,5593 }, { 166,5593 }, { 167,5593 }, { 168,5593 },
-
- { 169,5593 }, { 170,5593 }, { 171,5593 }, { 172,5593 }, { 173,5593 },
- { 174,5593 }, { 175,5593 }, { 176,5593 }, { 177,5593 }, { 178,5593 },
- { 179,5593 }, { 180,5593 }, { 181,5593 }, { 182,5593 }, { 183,5593 },
- { 184,5593 }, { 185,5593 }, { 186,5593 }, { 187,5593 }, { 188,5593 },
- { 189,5593 }, { 190,5593 }, { 191,5593 }, { 192,5593 }, { 193,5593 },
- { 194,5593 }, { 195,5593 }, { 196,5593 }, { 197,5593 }, { 198,5593 },
- { 199,5593 }, { 200,5593 }, { 201,5593 }, { 202,5593 }, { 203,5593 },
- { 204,5593 }, { 205,5593 }, { 206,5593 }, { 207,5593 }, { 208,5593 },
- { 209,5593 }, { 210,5593 }, { 211,5593 }, { 212,5593 }, { 213,5593 },
- { 214,5593 }, { 215,5593 }, { 216,5593 }, { 217,5593 }, { 218,5593 },
-
- { 219,5593 }, { 220,5593 }, { 221,5593 }, { 222,5593 }, { 223,5593 },
- { 224,5593 }, { 225,5593 }, { 226,5593 }, { 227,5593 }, { 228,5593 },
- { 229,5593 }, { 230,5593 }, { 231,5593 }, { 232,5593 }, { 233,5593 },
- { 234,5593 }, { 235,5593 }, { 236,5593 }, { 237,5593 }, { 238,5593 },
- { 239,5593 }, { 240,5593 }, { 241,5593 }, { 242,5593 }, { 243,5593 },
- { 244,5593 }, { 245,5593 }, { 246,5593 }, { 247,5593 }, { 248,5593 },
- { 249,5593 }, { 250,5593 }, { 251,5593 }, { 252,5593 }, { 253,5593 },
- { 254,5593 }, { 255,5593 }, { 256,5593 }, {   0,   0 }, {   0,32361 },
- {   1,5335 }, {   2,5335 }, {   3,5335 }, {   4,5335 }, {   5,5335 },
- {   6,5335 }, {   7,5335 }, {   8,5335 }, {   9,5335 }, {  10,5335 },
-
- {  11,5335 }, {  12,5335 }, {  13,5335 }, {  14,5335 }, {  15,5335 },
- {  16,5335 }, {  17,5335 }, {  18,5335 }, {  19,5335 }, {  20,5335 },
- {  21,5335 }, {  22,5335 }, {  23,5335 }, {  24,5335 }, {  25,5335 },
- {  26,5335 }, {  27,5335 }, {  28,5335 }, {  29,5335 }, {  30,5335 },
- {  31,5335 }, {  32,5335 }, {  33,5335 }, {  34,2381 }, {  35,5335 },
- {  36,5335 }, {  37,5335 }, {  38,5335 }, {  39,5335 }, {  40,5335 },
- {  41,5335 }, {  42,5335 }, {  43,5335 }, {  44,5335 }, {  45,5335 },
- {  46,5335 }, {  47,5335 }, {  48,5335 }, {  49,5335 }, {  50,5335 },
- {  51,5335 }, {  52,5335 }, {  53,5335 }, {  54,5335 }, {  55,5335 },
- {  56,5335 }, {  57,5335 }, {  58,5335 }, {  59,5335 }, {  60,5335 },
-
- {  61,5335 }, {  62,5335 }, {  63,5335 }, {  64,5335 }, {  65,5335 },
- {  66,5335 }, {  67,5335 }, {  68,5335 }, {  69,5335 }, {  70,5335 },
- {  71,5335 }, {  72,5335 }, {  73,5335 }, {  74,5335 }, {  75,5335 },
- {  76,5335 }, {  77,5335 }, {  78,5335 }, {  79,5335 }, {  80,5335 },
- {  81,5335 }, {  82,5335 }, {  83,5335 }, {  84,5335 }, {  85,5335 },
- {  86,5335 }, {  87,5335 }, {  88,5335 }, {  89,5335 }, {  90,5335 },
- {  91,5335 }, {  92,5335 }, {  93,5335 }, {  94,5335 }, {  95,5335 },
- {  96,5335 }, {  97,5335 }, {  98,5335 }, {  99,5335 }, { 100,5335 },
- { 101,5335 }, { 102,5335 }, { 103,5335 }, { 104,5335 }, { 105,5335 },
- { 106,5335 }, { 107,5335 }, { 108,5335 }, { 109,5335 }, { 110,5335 },
-
- { 111,5335 }, { 112,5335 }, { 113,5335 }, { 114,5335 }, { 115,5335 },
- { 116,5335 }, { 117,5335 }, { 118,5335 }, { 119,5335 }, { 120,5335 },
- { 121,5335 }, { 122,5335 }, { 123,5335 }, { 124,5335 }, { 125,5335 },
- { 126,5335 }, { 127,5335 }, { 128,5335 }, { 129,5335 }, { 130,5335 },
- { 131,5335 }, { 132,5335 }, { 133,5335 }, { 134,5335 }, { 135,5335 },
- { 136,5335 }, { 137,5335 }, { 138,5335 }, { 139,5335 }, { 140,5335 },
- { 141,5335 }, { 142,5335 }, { 143,5335 }, { 144,5335 }, { 145,5335 },
- { 146,5335 }, { 147,5335 }, { 148,5335 }, { 149,5335 }, { 150,5335 },
- { 151,5335 }, { 152,5335 }, { 153,5335 }, { 154,5335 }, { 155,5335 },
- { 156,5335 }, { 157,5335 }, { 158,5335 }, { 159,5335 }, { 160,5335 },
-
- { 161,5335 }, { 162,5335 }, { 163,5335 }, { 164,5335 }, { 165,5335 },
- { 166,5335 }, { 167,5335 }, { 168,5335 }, { 169,5335 }, { 170,5335 },
- { 171,5335 }, { 172,5335 }, { 173,5335 }, { 174,5335 }, { 175,5335 },
- { 176,5335 }, { 177,5335 }, { 178,5335 }, { 179,5335 }, { 180,5335 },
- { 181,5335 }, { 182,5335 }, { 183,5335 }, { 184,5335 }, { 185,5335 },
- { 186,5335 }, { 187,5335 }, { 188,5335 }, { 189,5335 }, { 190,5335 },
- { 191,5335 }, { 192,5335 }, { 193,5335 }, { 194,5335 }, { 195,5335 },
- { 196,5335 }, { 197,5335 }, { 198,5335 }, { 199,5335 }, { 200,5335 },
- { 201,5335 }, { 202,5335 }, { 203,5335 }, { 204,5335 }, { 205,5335 },
- { 206,5335 }, { 207,5335 }, { 208,5335 }, { 209,5335 }, { 210,5335 },
-
- { 211,5335 }, { 212,5335 }, { 213,5335 }, { 214,5335 }, { 215,5335 },
- { 216,5335 }, { 217,5335 }, { 218,5335 }, { 219,5335 }, { 220,5335 },
- { 221,5335 }, { 222,5335 }, { 223,5335 }, { 224,5335 }, { 225,5335 },
- { 226,5335 }, { 227,5335 }, { 228,5335 }, { 229,5335 }, { 230,5335 },
- { 231,5335 }, { 232,5335 }, { 233,5335 }, { 234,5335 }, { 235,5335 },
- { 236,5335 }, { 237,5335 }, { 238,5335 }, { 239,5335 }, { 240,5335 },
- { 241,5335 }, { 242,5335 }, { 243,5335 }, { 244,5335 }, { 245,5335 },
- { 246,5335 }, { 247,5335 }, { 248,5335 }, { 249,5335 }, { 250,5335 },
- { 251,5335 }, { 252,5335 }, { 253,5335 }, { 254,5335 }, { 255,5335 },
- { 256,5335 }, {   0,  55 }, {   0,32103 }, {   1,2125 }, {   2,2125 },
-
- {   3,2125 }, {   4,2125 }, {   5,2125 }, {   6,2125 }, {   7,2125 },
- {   8,2125 }, {   9,7284 }, {  10,7289 }, {  11,2125 }, {  12,7284 },
- {  13,7284 }, {  14,2125 }, {  15,2125 }, {  16,2125 }, {  17,2125 },
- {  18,2125 }, {  19,2125 }, {  20,2125 }, {  21,2125 }, {  22,2125 },
- {  23,2125 }, {  24,2125 }, {  25,2125 }, {  26,2125 }, {  27,2125 },
- {  28,2125 }, {  29,2125 }, {  30,2125 }, {  31,2125 }, {  32,7284 },
- {  33,2125 }, {  34,2125 }, {  35,2125 }, {  36,2125 }, {  37,2125 },
- {  38,2125 }, {  39,2125 }, {  40,2125 }, {  41,2125 }, {  42,2125 },
- {  43,2125 }, {  44,2125 }, {  45,2127 }, {  46,2125 }, {  47,2125 },
- {  48,2125 }, {  49,2125 }, {  50,2125 }, {  51,2125 }, {  52,2125 },
-
- {  53,2125 }, {  54,2125 }, {  55,2125 }, {  56,2125 }, {  57,2125 },
- {  58,2125 }, {  59,2125 }, {  60,2125 }, {  61,2125 }, {  62,2125 },
- {  63,2125 }, {  64,2125 }, {  65,2125 }, {  66,2125 }, {  67,2125 },
- {  68,2125 }, {  69,2125 }, {  70,2125 }, {  71,2125 }, {  72,2125 },
- {  73,2125 }, {  74,2125 }, {  75,2125 }, {  76,2125 }, {  77,2125 },
- {  78,2125 }, {  79,2125 }, {  80,2125 }, {  81,2125 }, {  82,2125 },
- {  83,2125 }, {  84,2125 }, {  85,2141 }, {  86,2125 }, {  87,2125 },
- {  88,2125 }, {  89,2125 }, {  90,2125 }, {  91,2125 }, {  92,2125 },
- {  93,2125 }, {  94,2125 }, {  95,2125 }, {  96,2125 }, {  97,2125 },
- {  98,2125 }, {  99,2125 }, { 100,2125 }, { 101,2125 }, { 102,2125 },
-
- { 103,2125 }, { 104,2125 }, { 105,2125 }, { 106,2125 }, { 107,2125 },
- { 108,2125 }, { 109,2125 }, { 110,2125 }, { 111,2125 }, { 112,2125 },
- { 113,2125 }, { 114,2125 }, { 115,2125 }, { 116,2125 }, { 117,2141 },
- { 118,2125 }, { 119,2125 }, { 120,2125 }, { 121,2125 }, { 122,2125 },
- { 123,2125 }, { 124,2125 }, { 125,2125 }, { 126,2125 }, { 127,2125 },
- { 128,2125 }, { 129,2125 }, { 130,2125 }, { 131,2125 }, { 132,2125 },
- { 133,2125 }, { 134,2125 }, { 135,2125 }, { 136,2125 }, { 137,2125 },
- { 138,2125 }, { 139,2125 }, { 140,2125 }, { 141,2125 }, { 142,2125 },
- { 143,2125 }, { 144,2125 }, { 145,2125 }, { 146,2125 }, { 147,2125 },
- { 148,2125 }, { 149,2125 }, { 150,2125 }, { 151,2125 }, { 152,2125 },
-
- { 153,2125 }, { 154,2125 }, { 155,2125 }, { 156,2125 }, { 157,2125 },
- { 158,2125 }, { 159,2125 }, { 160,2125 }, { 161,2125 }, { 162,2125 },
- { 163,2125 }, { 164,2125 }, { 165,2125 }, { 166,2125 }, { 167,2125 },
- { 168,2125 }, { 169,2125 }, { 170,2125 }, { 171,2125 }, { 172,2125 },
- { 173,2125 }, { 174,2125 }, { 175,2125 }, { 176,2125 }, { 177,2125 },
- { 178,2125 }, { 179,2125 }, { 180,2125 }, { 181,2125 }, { 182,2125 },
- { 183,2125 }, { 184,2125 }, { 185,2125 }, { 186,2125 }, { 187,2125 },
- { 188,2125 }, { 189,2125 }, { 190,2125 }, { 191,2125 }, { 192,2125 },
- { 193,2125 }, { 194,2125 }, { 195,2125 }, { 196,2125 }, { 197,2125 },
- { 198,2125 }, { 199,2125 }, { 200,2125 }, { 201,2125 }, { 202,2125 },
-
- { 203,2125 }, { 204,2125 }, { 205,2125 }, { 206,2125 }, { 207,2125 },
- { 208,2125 }, { 209,2125 }, { 210,2125 }, { 211,2125 }, { 212,2125 },
- { 213,2125 }, { 214,2125 }, { 215,2125 }, { 216,2125 }, { 217,2125 },
- { 218,2125 }, { 219,2125 }, { 220,2125 }, { 221,2125 }, { 222,2125 },
- { 223,2125 }, { 224,2125 }, { 225,2125 }, { 226,2125 }, { 227,2125 },
- { 228,2125 }, { 229,2125 }, { 230,2125 }, { 231,2125 }, { 232,2125 },
- { 233,2125 }, { 234,2125 }, { 235,2125 }, { 236,2125 }, { 237,2125 },
- { 238,2125 }, { 239,2125 }, { 240,2125 }, { 241,2125 }, { 242,2125 },
- { 243,2125 }, { 244,2125 }, { 245,2125 }, { 246,2125 }, { 247,2125 },
- { 248,2125 }, { 249,2125 }, { 250,2125 }, { 251,2125 }, { 252,2125 },
-
- { 253,2125 }, { 254,2125 }, { 255,2125 }, { 256,2125 }, {   0,  55 },
- {   0,31845 }, {   1,1867 }, {   2,1867 }, {   3,1867 }, {   4,1867 },
- {   5,1867 }, {   6,1867 }, {   7,1867 }, {   8,1867 }, {   9,7026 },
- {  10,7031 }, {  11,1867 }, {  12,7026 }, {  13,7026 }, {  14,1867 },
- {  15,1867 }, {  16,1867 }, {  17,1867 }, {  18,1867 }, {  19,1867 },
- {  20,1867 }, {  21,1867 }, {  22,1867 }, {  23,1867 }, {  24,1867 },
- {  25,1867 }, {  26,1867 }, {  27,1867 }, {  28,1867 }, {  29,1867 },
- {  30,1867 }, {  31,1867 }, {  32,7026 }, {  33,1867 }, {  34,1867 },
- {  35,1867 }, {  36,1867 }, {  37,1867 }, {  38,1867 }, {  39,1867 },
- {  40,1867 }, {  41,1867 }, {  42,1867 }, {  43,1867 }, {  44,1867 },
-
- {  45,1869 }, {  46,1867 }, {  47,1867 }, {  48,1867 }, {  49,1867 },
- {  50,1867 }, {  51,1867 }, {  52,1867 }, {  53,1867 }, {  54,1867 },
- {  55,1867 }, {  56,1867 }, {  57,1867 }, {  58,1867 }, {  59,1867 },
- {  60,1867 }, {  61,1867 }, {  62,1867 }, {  63,1867 }, {  64,1867 },
- {  65,1867 }, {  66,1867 }, {  67,1867 }, {  68,1867 }, {  69,1867 },
- {  70,1867 }, {  71,1867 }, {  72,1867 }, {  73,1867 }, {  74,1867 },
- {  75,1867 }, {  76,1867 }, {  77,1867 }, {  78,1867 }, {  79,1867 },
- {  80,1867 }, {  81,1867 }, {  82,1867 }, {  83,1867 }, {  84,1867 },
- {  85,1883 }, {  86,1867 }, {  87,1867 }, {  88,1867 }, {  89,1867 },
- {  90,1867 }, {  91,1867 }, {  92,1867 }, {  93,1867 }, {  94,1867 },
-
- {  95,1867 }, {  96,1867 }, {  97,1867 }, {  98,1867 }, {  99,1867 },
- { 100,1867 }, { 101,1867 }, { 102,1867 }, { 103,1867 }, { 104,1867 },
- { 105,1867 }, { 106,1867 }, { 107,1867 }, { 108,1867 }, { 109,1867 },
- { 110,1867 }, { 111,1867 }, { 112,1867 }, { 113,1867 }, { 114,1867 },
- { 115,1867 }, { 116,1867 }, { 117,1883 }, { 118,1867 }, { 119,1867 },
- { 120,1867 }, { 121,1867 }, { 122,1867 }, { 123,1867 }, { 124,1867 },
- { 125,1867 }, { 126,1867 }, { 127,1867 }, { 128,1867 }, { 129,1867 },
- { 130,1867 }, { 131,1867 }, { 132,1867 }, { 133,1867 }, { 134,1867 },
- { 135,1867 }, { 136,1867 }, { 137,1867 }, { 138,1867 }, { 139,1867 },
- { 140,1867 }, { 141,1867 }, { 142,1867 }, { 143,1867 }, { 144,1867 },
-
- { 145,1867 }, { 146,1867 }, { 147,1867 }, { 148,1867 }, { 149,1867 },
- { 150,1867 }, { 151,1867 }, { 152,1867 }, { 153,1867 }, { 154,1867 },
- { 155,1867 }, { 156,1867 }, { 157,1867 }, { 158,1867 }, { 159,1867 },
- { 160,1867 }, { 161,1867 }, { 162,1867 }, { 163,1867 }, { 164,1867 },
- { 165,1867 }, { 166,1867 }, { 167,1867 }, { 168,1867 }, { 169,1867 },
- { 170,1867 }, { 171,1867 }, { 172,1867 }, { 173,1867 }, { 174,1867 },
- { 175,1867 }, { 176,1867 }, { 177,1867 }, { 178,1867 }, { 179,1867 },
- { 180,1867 }, { 181,1867 }, { 182,1867 }, { 183,1867 }, { 184,1867 },
- { 185,1867 }, { 186,1867 }, { 187,1867 }, { 188,1867 }, { 189,1867 },
- { 190,1867 }, { 191,1867 }, { 192,1867 }, { 193,1867 }, { 194,1867 },
-
- { 195,1867 }, { 196,1867 }, { 197,1867 }, { 198,1867 }, { 199,1867 },
- { 200,1867 }, { 201,1867 }, { 202,1867 }, { 203,1867 }, { 204,1867 },
- { 205,1867 }, { 206,1867 }, { 207,1867 }, { 208,1867 }, { 209,1867 },
- { 210,1867 }, { 211,1867 }, { 212,1867 }, { 213,1867 }, { 214,1867 },
- { 215,1867 }, { 216,1867 }, { 217,1867 }, { 218,1867 }, { 219,1867 },
- { 220,1867 }, { 221,1867 }, { 222,1867 }, { 223,1867 }, { 224,1867 },
- { 225,1867 }, { 226,1867 }, { 227,1867 }, { 228,1867 }, { 229,1867 },
- { 230,1867 }, { 231,1867 }, { 232,1867 }, { 233,1867 }, { 234,1867 },
- { 235,1867 }, { 236,1867 }, { 237,1867 }, { 238,1867 }, { 239,1867 },
- { 240,1867 }, { 241,1867 }, { 242,1867 }, { 243,1867 }, { 244,1867 },
-
- { 245,1867 }, { 246,1867 }, { 247,1867 }, { 248,1867 }, { 249,1867 },
- { 250,1867 }, { 251,1867 }, { 252,1867 }, { 253,1867 }, { 254,1867 },
- { 255,1867 }, { 256,1867 }, {   0,   0 }, {   0,31587 }, {   1,5945 },
- {   2,5945 }, {   3,5945 }, {   4,5945 }, {   5,5945 }, {   6,5945 },
- {   7,5945 }, {   8,5945 }, {   9,5945 }, {  10,5945 }, {  11,5945 },
- {  12,5945 }, {  13,5945 }, {  14,5945 }, {  15,5945 }, {  16,5945 },
- {  17,5945 }, {  18,5945 }, {  19,5945 }, {  20,5945 }, {  21,5945 },
- {  22,5945 }, {  23,5945 }, {  24,5945 }, {  25,5945 }, {  26,5945 },
- {  27,5945 }, {  28,5945 }, {  29,5945 }, {  30,5945 }, {  31,5945 },
- {  32,5945 }, {  33,5945 }, {  34,5945 }, {  35,5945 }, {  36,5945 },
-
- {  37,5945 }, {  38,5945 }, {  39,7023 }, {  40,5945 }, {  41,5945 },
- {  42,5945 }, {  43,5945 }, {  44,5945 }, {  45,5945 }, {  46,5945 },
- {  47,5945 }, {  48,5945 }, {  49,5945 }, {  50,5945 }, {  51,5945 },
- {  52,5945 }, {  53,5945 }, {  54,5945 }, {  55,5945 }, {  56,5945 },
- {  57,5945 }, {  58,5945 }, {  59,5945 }, {  60,5945 }, {  61,5945 },
- {  62,5945 }, {  63,5945 }, {  64,5945 }, {  65,5945 }, {  66,5945 },
- {  67,5945 }, {  68,5945 }, {  69,5945 }, {  70,5945 }, {  71,5945 },
- {  72,5945 }, {  73,5945 }, {  74,5945 }, {  75,5945 }, {  76,5945 },
- {  77,5945 }, {  78,5945 }, {  79,5945 }, {  80,5945 }, {  81,5945 },
- {  82,5945 }, {  83,5945 }, {  84,5945 }, {  85,5945 }, {  86,5945 },
-
- {  87,5945 }, {  88,5945 }, {  89,5945 }, {  90,5945 }, {  91,5945 },
- {  92,5945 }, {  93,5945 }, {  94,5945 }, {  95,5945 }, {  96,5945 },
- {  97,5945 }, {  98,5945 }, {  99,5945 }, { 100,5945 }, { 101,5945 },
- { 102,5945 }, { 103,5945 }, { 104,5945 }, { 105,5945 }, { 106,5945 },
- { 107,5945 }, { 108,5945 }, { 109,5945 }, { 110,5945 }, { 111,5945 },
- { 112,5945 }, { 113,5945 }, { 114,5945 }, { 115,5945 }, { 116,5945 },
- { 117,5945 }, { 118,5945 }, { 119,5945 }, { 120,5945 }, { 121,5945 },
- { 122,5945 }, { 123,5945 }, { 124,5945 }, { 125,5945 }, { 126,5945 },
- { 127,5945 }, { 128,5945 }, { 129,5945 }, { 130,5945 }, { 131,5945 },
- { 132,5945 }, { 133,5945 }, { 134,5945 }, { 135,5945 }, { 136,5945 },
-
- { 137,5945 }, { 138,5945 }, { 139,5945 }, { 140,5945 }, { 141,5945 },
- { 142,5945 }, { 143,5945 }, { 144,5945 }, { 145,5945 }, { 146,5945 },
- { 147,5945 }, { 148,5945 }, { 149,5945 }, { 150,5945 }, { 151,5945 },
- { 152,5945 }, { 153,5945 }, { 154,5945 }, { 155,5945 }, { 156,5945 },
- { 157,5945 }, { 158,5945 }, { 159,5945 }, { 160,5945 }, { 161,5945 },
- { 162,5945 }, { 163,5945 }, { 164,5945 }, { 165,5945 }, { 166,5945 },
- { 167,5945 }, { 168,5945 }, { 169,5945 }, { 170,5945 }, { 171,5945 },
- { 172,5945 }, { 173,5945 }, { 174,5945 }, { 175,5945 }, { 176,5945 },
- { 177,5945 }, { 178,5945 }, { 179,5945 }, { 180,5945 }, { 181,5945 },
- { 182,5945 }, { 183,5945 }, { 184,5945 }, { 185,5945 }, { 186,5945 },
-
- { 187,5945 }, { 188,5945 }, { 189,5945 }, { 190,5945 }, { 191,5945 },
- { 192,5945 }, { 193,5945 }, { 194,5945 }, { 195,5945 }, { 196,5945 },
- { 197,5945 }, { 198,5945 }, { 199,5945 }, { 200,5945 }, { 201,5945 },
- { 202,5945 }, { 203,5945 }, { 204,5945 }, { 205,5945 }, { 206,5945 },
- { 207,5945 }, { 208,5945 }, { 209,5945 }, { 210,5945 }, { 211,5945 },
- { 212,5945 }, { 213,5945 }, { 214,5945 }, { 215,5945 }, { 216,5945 },
- { 217,5945 }, { 218,5945 }, { 219,5945 }, { 220,5945 }, { 221,5945 },
- { 222,5945 }, { 223,5945 }, { 224,5945 }, { 225,5945 }, { 226,5945 },
- { 227,5945 }, { 228,5945 }, { 229,5945 }, { 230,5945 }, { 231,5945 },
- { 232,5945 }, { 233,5945 }, { 234,5945 }, { 235,5945 }, { 236,5945 },
-
- { 237,5945 }, { 238,5945 }, { 239,5945 }, { 240,5945 }, { 241,5945 },
- { 242,5945 }, { 243,5945 }, { 244,5945 }, { 245,5945 }, { 246,5945 },
- { 247,5945 }, { 248,5945 }, { 249,5945 }, { 250,5945 }, { 251,5945 },
- { 252,5945 }, { 253,5945 }, { 254,5945 }, { 255,5945 }, { 256,5945 },
- {   0,   0 }, {   0,31329 }, {   1,5687 }, {   2,5687 }, {   3,5687 },
- {   4,5687 }, {   5,5687 }, {   6,5687 }, {   7,5687 }, {   8,5687 },
- {   9,5687 }, {  10,5687 }, {  11,5687 }, {  12,5687 }, {  13,5687 },
- {  14,5687 }, {  15,5687 }, {  16,5687 }, {  17,5687 }, {  18,5687 },
- {  19,5687 }, {  20,5687 }, {  21,5687 }, {  22,5687 }, {  23,5687 },
- {  24,5687 }, {  25,5687 }, {  26,5687 }, {  27,5687 }, {  28,5687 },
-
- {  29,5687 }, {  30,5687 }, {  31,5687 }, {  32,5687 }, {  33,5687 },
- {  34,5687 }, {  35,5687 }, {  36,5687 }, {  37,5687 }, {  38,5687 },
- {  39,6765 }, {  40,5687 }, {  41,5687 }, {  42,5687 }, {  43,5687 },
- {  44,5687 }, {  45,5687 }, {  46,5687 }, {  47,5687 }, {  48,5687 },
- {  49,5687 }, {  50,5687 }, {  51,5687 }, {  52,5687 }, {  53,5687 },
- {  54,5687 }, {  55,5687 }, {  56,5687 }, {  57,5687 }, {  58,5687 },
- {  59,5687 }, {  60,5687 }, {  61,5687 }, {  62,5687 }, {  63,5687 },
- {  64,5687 }, {  65,5687 }, {  66,5687 }, {  67,5687 }, {  68,5687 },
- {  69,5687 }, {  70,5687 }, {  71,5687 }, {  72,5687 }, {  73,5687 },
- {  74,5687 }, {  75,5687 }, {  76,5687 }, {  77,5687 }, {  78,5687 },
-
- {  79,5687 }, {  80,5687 }, {  81,5687 }, {  82,5687 }, {  83,5687 },
- {  84,5687 }, {  85,5687 }, {  86,5687 }, {  87,5687 }, {  88,5687 },
- {  89,5687 }, {  90,5687 }, {  91,5687 }, {  92,5687 }, {  93,5687 },
- {  94,5687 }, {  95,5687 }, {  96,5687 }, {  97,5687 }, {  98,5687 },
- {  99,5687 }, { 100,5687 }, { 101,5687 }, { 102,5687 }, { 103,5687 },
- { 104,5687 }, { 105,5687 }, { 106,5687 }, { 107,5687 }, { 108,5687 },
- { 109,5687 }, { 110,5687 }, { 111,5687 }, { 112,5687 }, { 113,5687 },
- { 114,5687 }, { 115,5687 }, { 116,5687 }, { 117,5687 }, { 118,5687 },
- { 119,5687 }, { 120,5687 }, { 121,5687 }, { 122,5687 }, { 123,5687 },
- { 124,5687 }, { 125,5687 }, { 126,5687 }, { 127,5687 }, { 128,5687 },
-
- { 129,5687 }, { 130,5687 }, { 131,5687 }, { 132,5687 }, { 133,5687 },
- { 134,5687 }, { 135,5687 }, { 136,5687 }, { 137,5687 }, { 138,5687 },
- { 139,5687 }, { 140,5687 }, { 141,5687 }, { 142,5687 }, { 143,5687 },
- { 144,5687 }, { 145,5687 }, { 146,5687 }, { 147,5687 }, { 148,5687 },
- { 149,5687 }, { 150,5687 }, { 151,5687 }, { 152,5687 }, { 153,5687 },
- { 154,5687 }, { 155,5687 }, { 156,5687 }, { 157,5687 }, { 158,5687 },
- { 159,5687 }, { 160,5687 }, { 161,5687 }, { 162,5687 }, { 163,5687 },
- { 164,5687 }, { 165,5687 }, { 166,5687 }, { 167,5687 }, { 168,5687 },
- { 169,5687 }, { 170,5687 }, { 171,5687 }, { 172,5687 }, { 173,5687 },
- { 174,5687 }, { 175,5687 }, { 176,5687 }, { 177,5687 }, { 178,5687 },
-
- { 179,5687 }, { 180,5687 }, { 181,5687 }, { 182,5687 }, { 183,5687 },
- { 184,5687 }, { 185,5687 }, { 186,5687 }, { 187,5687 }, { 188,5687 },
- { 189,5687 }, { 190,5687 }, { 191,5687 }, { 192,5687 }, { 193,5687 },
- { 194,5687 }, { 195,5687 }, { 196,5687 }, { 197,5687 }, { 198,5687 },
- { 199,5687 }, { 200,5687 }, { 201,5687 }, { 202,5687 }, { 203,5687 },
- { 204,5687 }, { 205,5687 }, { 206,5687 }, { 207,5687 }, { 208,5687 },
- { 209,5687 }, { 210,5687 }, { 211,5687 }, { 212,5687 }, { 213,5687 },
- { 214,5687 }, { 215,5687 }, { 216,5687 }, { 217,5687 }, { 218,5687 },
- { 219,5687 }, { 220,5687 }, { 221,5687 }, { 222,5687 }, { 223,5687 },
- { 224,5687 }, { 225,5687 }, { 226,5687 }, { 227,5687 }, { 228,5687 },
-
- { 229,5687 }, { 230,5687 }, { 231,5687 }, { 232,5687 }, { 233,5687 },
- { 234,5687 }, { 235,5687 }, { 236,5687 }, { 237,5687 }, { 238,5687 },
- { 239,5687 }, { 240,5687 }, { 241,5687 }, { 242,5687 }, { 243,5687 },
- { 244,5687 }, { 245,5687 }, { 246,5687 }, { 247,5687 }, { 248,5687 },
- { 249,5687 }, { 250,5687 }, { 251,5687 }, { 252,5687 }, { 253,5687 },
- { 254,5687 }, { 255,5687 }, { 256,5687 }, {   0,  28 }, {   0,31071 },
- {   1,1113 }, {   2,1113 }, {   3,1113 }, {   4,1113 }, {   5,1113 },
- {   6,1113 }, {   7,1113 }, {   8,1113 }, {   9,6512 }, {  10,6528 },
- {  11,1113 }, {  12,6512 }, {  13,6512 }, {  14,1113 }, {  15,1113 },
- {  16,1113 }, {  17,1113 }, {  18,1113 }, {  19,1113 }, {  20,1113 },
-
- {  21,1113 }, {  22,1113 }, {  23,1113 }, {  24,1113 }, {  25,1113 },
- {  26,1113 }, {  27,1113 }, {  28,1113 }, {  29,1113 }, {  30,1113 },
- {  31,1113 }, {  32,6512 }, {  33,1113 }, {  34,1113 }, {  35,1113 },
- {  36,1113 }, {  37,1113 }, {  38,1113 }, {  39,1113 }, {  40,1113 },
- {  41,1113 }, {  42,1113 }, {  43,1113 }, {  44,1113 }, {  45,1131 },
- {  46,1113 }, {  47,1113 }, {  48,1113 }, {  49,1113 }, {  50,1113 },
- {  51,1113 }, {  52,1113 }, {  53,1113 }, {  54,1113 }, {  55,1113 },
- {  56,1113 }, {  57,1113 }, {  58,1113 }, {  59,1113 }, {  60,1113 },
- {  61,1113 }, {  62,1113 }, {  63,1113 }, {  64,1113 }, {  65,1113 },
- {  66,1113 }, {  67,1113 }, {  68,1113 }, {  69,1113 }, {  70,1113 },
-
- {  71,1113 }, {  72,1113 }, {  73,1113 }, {  74,1113 }, {  75,1113 },
- {  76,1113 }, {  77,1113 }, {  78,1113 }, {  79,1113 }, {  80,1113 },
- {  81,1113 }, {  82,1113 }, {  83,1113 }, {  84,1113 }, {  85,1139 },
- {  86,1113 }, {  87,1113 }, {  88,1113 }, {  89,1113 }, {  90,1113 },
- {  91,1113 }, {  92,1113 }, {  93,1113 }, {  94,1113 }, {  95,1113 },
- {  96,1113 }, {  97,1113 }, {  98,1113 }, {  99,1113 }, { 100,1113 },
- { 101,1113 }, { 102,1113 }, { 103,1113 }, { 104,1113 }, { 105,1113 },
- { 106,1113 }, { 107,1113 }, { 108,1113 }, { 109,1113 }, { 110,1113 },
- { 111,1113 }, { 112,1113 }, { 113,1113 }, { 114,1113 }, { 115,1113 },
- { 116,1113 }, { 117,1139 }, { 118,1113 }, { 119,1113 }, { 120,1113 },
-
- { 121,1113 }, { 122,1113 }, { 123,1113 }, { 124,1113 }, { 125,1113 },
- { 126,1113 }, { 127,1113 }, { 128,1113 }, { 129,1113 }, { 130,1113 },
- { 131,1113 }, { 132,1113 }, { 133,1113 }, { 134,1113 }, { 135,1113 },
- { 136,1113 }, { 137,1113 }, { 138,1113 }, { 139,1113 }, { 140,1113 },
- { 141,1113 }, { 142,1113 }, { 143,1113 }, { 144,1113 }, { 145,1113 },
- { 146,1113 }, { 147,1113 }, { 148,1113 }, { 149,1113 }, { 150,1113 },
- { 151,1113 }, { 152,1113 }, { 153,1113 }, { 154,1113 }, { 155,1113 },
- { 156,1113 }, { 157,1113 }, { 158,1113 }, { 159,1113 }, { 160,1113 },
- { 161,1113 }, { 162,1113 }, { 163,1113 }, { 164,1113 }, { 165,1113 },
- { 166,1113 }, { 167,1113 }, { 168,1113 }, { 169,1113 }, { 170,1113 },
-
- { 171,1113 }, { 172,1113 }, { 173,1113 }, { 174,1113 }, { 175,1113 },
- { 176,1113 }, { 177,1113 }, { 178,1113 }, { 179,1113 }, { 180,1113 },
- { 181,1113 }, { 182,1113 }, { 183,1113 }, { 184,1113 }, { 185,1113 },
- { 186,1113 }, { 187,1113 }, { 188,1113 }, { 189,1113 }, { 190,1113 },
- { 191,1113 }, { 192,1113 }, { 193,1113 }, { 194,1113 }, { 195,1113 },
- { 196,1113 }, { 197,1113 }, { 198,1113 }, { 199,1113 }, { 200,1113 },
- { 201,1113 }, { 202,1113 }, { 203,1113 }, { 204,1113 }, { 205,1113 },
- { 206,1113 }, { 207,1113 }, { 208,1113 }, { 209,1113 }, { 210,1113 },
- { 211,1113 }, { 212,1113 }, { 213,1113 }, { 214,1113 }, { 215,1113 },
- { 216,1113 }, { 217,1113 }, { 218,1113 }, { 219,1113 }, { 220,1113 },
-
- { 221,1113 }, { 222,1113 }, { 223,1113 }, { 224,1113 }, { 225,1113 },
- { 226,1113 }, { 227,1113 }, { 228,1113 }, { 229,1113 }, { 230,1113 },
- { 231,1113 }, { 232,1113 }, { 233,1113 }, { 234,1113 }, { 235,1113 },
- { 236,1113 }, { 237,1113 }, { 238,1113 }, { 239,1113 }, { 240,1113 },
- { 241,1113 }, { 242,1113 }, { 243,1113 }, { 244,1113 }, { 245,1113 },
- { 246,1113 }, { 247,1113 }, { 248,1113 }, { 249,1113 }, { 250,1113 },
- { 251,1113 }, { 252,1113 }, { 253,1113 }, { 254,1113 }, { 255,1113 },
- { 256,1113 }, {   0,  28 }, {   0,30813 }, {   1, 855 }, {   2, 855 },
- {   3, 855 }, {   4, 855 }, {   5, 855 }, {   6, 855 }, {   7, 855 },
- {   8, 855 }, {   9,6254 }, {  10,6270 }, {  11, 855 }, {  12,6254 },
-
- {  13,6254 }, {  14, 855 }, {  15, 855 }, {  16, 855 }, {  17, 855 },
- {  18, 855 }, {  19, 855 }, {  20, 855 }, {  21, 855 }, {  22, 855 },
- {  23, 855 }, {  24, 855 }, {  25, 855 }, {  26, 855 }, {  27, 855 },
- {  28, 855 }, {  29, 855 }, {  30, 855 }, {  31, 855 }, {  32,6254 },
- {  33, 855 }, {  34, 855 }, {  35, 855 }, {  36, 855 }, {  37, 855 },
- {  38, 855 }, {  39, 855 }, {  40, 855 }, {  41, 855 }, {  42, 855 },
- {  43, 855 }, {  44, 855 }, {  45, 873 }, {  46, 855 }, {  47, 855 },
- {  48, 855 }, {  49, 855 }, {  50, 855 }, {  51, 855 }, {  52, 855 },
- {  53, 855 }, {  54, 855 }, {  55, 855 }, {  56, 855 }, {  57, 855 },
- {  58, 855 }, {  59, 855 }, {  60, 855 }, {  61, 855 }, {  62, 855 },
-
- {  63, 855 }, {  64, 855 }, {  65, 855 }, {  66, 855 }, {  67, 855 },
- {  68, 855 }, {  69, 855 }, {  70, 855 }, {  71, 855 }, {  72, 855 },
- {  73, 855 }, {  74, 855 }, {  75, 855 }, {  76, 855 }, {  77, 855 },
- {  78, 855 }, {  79, 855 }, {  80, 855 }, {  81, 855 }, {  82, 855 },
- {  83, 855 }, {  84, 855 }, {  85, 881 }, {  86, 855 }, {  87, 855 },
- {  88, 855 }, {  89, 855 }, {  90, 855 }, {  91, 855 }, {  92, 855 },
- {  93, 855 }, {  94, 855 }, {  95, 855 }, {  96, 855 }, {  97, 855 },
- {  98, 855 }, {  99, 855 }, { 100, 855 }, { 101, 855 }, { 102, 855 },
- { 103, 855 }, { 104, 855 }, { 105, 855 }, { 106, 855 }, { 107, 855 },
- { 108, 855 }, { 109, 855 }, { 110, 855 }, { 111, 855 }, { 112, 855 },
-
- { 113, 855 }, { 114, 855 }, { 115, 855 }, { 116, 855 }, { 117, 881 },
- { 118, 855 }, { 119, 855 }, { 120, 855 }, { 121, 855 }, { 122, 855 },
- { 123, 855 }, { 124, 855 }, { 125, 855 }, { 126, 855 }, { 127, 855 },
- { 128, 855 }, { 129, 855 }, { 130, 855 }, { 131, 855 }, { 132, 855 },
- { 133, 855 }, { 134, 855 }, { 135, 855 }, { 136, 855 }, { 137, 855 },
- { 138, 855 }, { 139, 855 }, { 140, 855 }, { 141, 855 }, { 142, 855 },
- { 143, 855 }, { 144, 855 }, { 145, 855 }, { 146, 855 }, { 147, 855 },
- { 148, 855 }, { 149, 855 }, { 150, 855 }, { 151, 855 }, { 152, 855 },
- { 153, 855 }, { 154, 855 }, { 155, 855 }, { 156, 855 }, { 157, 855 },
- { 158, 855 }, { 159, 855 }, { 160, 855 }, { 161, 855 }, { 162, 855 },
-
- { 163, 855 }, { 164, 855 }, { 165, 855 }, { 166, 855 }, { 167, 855 },
- { 168, 855 }, { 169, 855 }, { 170, 855 }, { 171, 855 }, { 172, 855 },
- { 173, 855 }, { 174, 855 }, { 175, 855 }, { 176, 855 }, { 177, 855 },
- { 178, 855 }, { 179, 855 }, { 180, 855 }, { 181, 855 }, { 182, 855 },
- { 183, 855 }, { 184, 855 }, { 185, 855 }, { 186, 855 }, { 187, 855 },
- { 188, 855 }, { 189, 855 }, { 190, 855 }, { 191, 855 }, { 192, 855 },
- { 193, 855 }, { 194, 855 }, { 195, 855 }, { 196, 855 }, { 197, 855 },
- { 198, 855 }, { 199, 855 }, { 200, 855 }, { 201, 855 }, { 202, 855 },
- { 203, 855 }, { 204, 855 }, { 205, 855 }, { 206, 855 }, { 207, 855 },
- { 208, 855 }, { 209, 855 }, { 210, 855 }, { 211, 855 }, { 212, 855 },
-
- { 213, 855 }, { 214, 855 }, { 215, 855 }, { 216, 855 }, { 217, 855 },
- { 218, 855 }, { 219, 855 }, { 220, 855 }, { 221, 855 }, { 222, 855 },
- { 223, 855 }, { 224, 855 }, { 225, 855 }, { 226, 855 }, { 227, 855 },
- { 228, 855 }, { 229, 855 }, { 230, 855 }, { 231, 855 }, { 232, 855 },
- { 233, 855 }, { 234, 855 }, { 235, 855 }, { 236, 855 }, { 237, 855 },
- { 238, 855 }, { 239, 855 }, { 240, 855 }, { 241, 855 }, { 242, 855 },
- { 243, 855 }, { 244, 855 }, { 245, 855 }, { 246, 855 }, { 247, 855 },
- { 248, 855 }, { 249, 855 }, { 250, 855 }, { 251, 855 }, { 252, 855 },
- { 253, 855 }, { 254, 855 }, { 255, 855 }, { 256, 855 }, {   0,   0 },
- {   0,30555 }, {   1, 633 }, {   2, 633 }, {   3, 633 }, {   4, 633 },
-
- {   5, 633 }, {   6, 633 }, {   7, 633 }, {   8, 633 }, {   9, 633 },
- {  10, 635 }, {  11, 633 }, {  12, 633 }, {  13, 633 }, {  14, 633 },
- {  15, 633 }, {  16, 633 }, {  17, 633 }, {  18, 633 }, {  19, 633 },
- {  20, 633 }, {  21, 633 }, {  22, 633 }, {  23, 633 }, {  24, 633 },
- {  25, 633 }, {  26, 633 }, {  27, 633 }, {  28, 633 }, {  29, 633 },
- {  30, 633 }, {  31, 633 }, {  32, 633 }, {  33, 633 }, {  34, 633 },
- {  35, 633 }, {  36, 633 }, {  37, 633 }, {  38, 633 }, {  39, 633 },
- {  40, 633 }, {  41, 633 }, {  42, 633 }, {  43, 633 }, {  44, 633 },
- {  45, 633 }, {  46, 633 }, {  47, 633 }, {  48, 633 }, {  49, 633 },
- {  50, 633 }, {  51, 633 }, {  52, 633 }, {  53, 633 }, {  54, 633 },
-
- {  55, 633 }, {  56, 633 }, {  57, 633 }, {  58, 633 }, {  59, 633 },
- {  60, 633 }, {  61, 633 }, {  62, 633 }, {  63, 633 }, {  64, 633 },
- {  65, 633 }, {  66, 633 }, {  67, 633 }, {  68, 633 }, {  69, 633 },
- {  70, 633 }, {  71, 633 }, {  72, 633 }, {  73, 633 }, {  74, 633 },
- {  75, 633 }, {  76, 633 }, {  77, 633 }, {  78, 633 }, {  79, 633 },
- {  80, 633 }, {  81, 633 }, {  82, 633 }, {  83, 633 }, {  84, 633 },
- {  85, 633 }, {  86, 633 }, {  87, 633 }, {  88, 633 }, {  89, 633 },
- {  90, 633 }, {  91, 633 }, {  92, 637 }, {  93, 633 }, {  94, 633 },
- {  95, 633 }, {  96, 633 }, {  97, 633 }, {  98, 633 }, {  99, 633 },
- { 100, 633 }, { 101, 633 }, { 102, 633 }, { 103, 633 }, { 104, 633 },
-
- { 105, 633 }, { 106, 633 }, { 107, 633 }, { 108, 633 }, { 109, 633 },
- { 110, 633 }, { 111, 633 }, { 112, 633 }, { 113, 633 }, { 114, 633 },
- { 115, 633 }, { 116, 633 }, { 117, 633 }, { 118, 633 }, { 119, 633 },
- { 120, 633 }, { 121, 633 }, { 122, 633 }, { 123, 633 }, { 124, 633 },
- { 125, 633 }, { 126, 633 }, { 127, 633 }, { 128, 633 }, { 129, 633 },
- { 130, 633 }, { 131, 633 }, { 132, 633 }, { 133, 633 }, { 134, 633 },
- { 135, 633 }, { 136, 633 }, { 137, 633 }, { 138, 633 }, { 139, 633 },
- { 140, 633 }, { 141, 633 }, { 142, 633 }, { 143, 633 }, { 144, 633 },
- { 145, 633 }, { 146, 633 }, { 147, 633 }, { 148, 633 }, { 149, 633 },
- { 150, 633 }, { 151, 633 }, { 152, 633 }, { 153, 633 }, { 154, 633 },
-
- { 155, 633 }, { 156, 633 }, { 157, 633 }, { 158, 633 }, { 159, 633 },
- { 160, 633 }, { 161, 633 }, { 162, 633 }, { 163, 633 }, { 164, 633 },
- { 165, 633 }, { 166, 633 }, { 167, 633 }, { 168, 633 }, { 169, 633 },
- { 170, 633 }, { 171, 633 }, { 172, 633 }, { 173, 633 }, { 174, 633 },
- { 175, 633 }, { 176, 633 }, { 177, 633 }, { 178, 633 }, { 179, 633 },
- { 180, 633 }, { 181, 633 }, { 182, 633 }, { 183, 633 }, { 184, 633 },
- { 185, 633 }, { 186, 633 }, { 187, 633 }, { 188, 633 }, { 189, 633 },
- { 190, 633 }, { 191, 633 }, { 192, 633 }, { 193, 633 }, { 194, 633 },
- { 195, 633 }, { 196, 633 }, { 197, 633 }, { 198, 633 }, { 199, 633 },
- { 200, 633 }, { 201, 633 }, { 202, 633 }, { 203, 633 }, { 204, 633 },
-
- { 205, 633 }, { 206, 633 }, { 207, 633 }, { 208, 633 }, { 209, 633 },
- { 210, 633 }, { 211, 633 }, { 212, 633 }, { 213, 633 }, { 214, 633 },
- { 215, 633 }, { 216, 633 }, { 217, 633 }, { 218, 633 }, { 219, 633 },
- { 220, 633 }, { 221, 633 }, { 222, 633 }, { 223, 633 }, { 224, 633 },
- { 225, 633 }, { 226, 633 }, { 227, 633 }, { 228, 633 }, { 229, 633 },
- { 230, 633 }, { 231, 633 }, { 232, 633 }, { 233, 633 }, { 234, 633 },
- { 235, 633 }, { 236, 633 }, { 237, 633 }, { 238, 633 }, { 239, 633 },
- { 240, 633 }, { 241, 633 }, { 242, 633 }, { 243, 633 }, { 244, 633 },
- { 245, 633 }, { 246, 633 }, { 247, 633 }, { 248, 633 }, { 249, 633 },
- { 250, 633 }, { 251, 633 }, { 252, 633 }, { 253, 633 }, { 254, 633 },
-
- { 255, 633 }, { 256, 633 }, {   0,   0 }, {   0,30297 }, {   1, 375 },
- {   2, 375 }, {   3, 375 }, {   4, 375 }, {   5, 375 }, {   6, 375 },
- {   7, 375 }, {   8, 375 }, {   9, 375 }, {  10, 377 }, {  11, 375 },
- {  12, 375 }, {  13, 375 }, {  14, 375 }, {  15, 375 }, {  16, 375 },
- {  17, 375 }, {  18, 375 }, {  19, 375 }, {  20, 375 }, {  21, 375 },
- {  22, 375 }, {  23, 375 }, {  24, 375 }, {  25, 375 }, {  26, 375 },
- {  27, 375 }, {  28, 375 }, {  29, 375 }, {  30, 375 }, {  31, 375 },
- {  32, 375 }, {  33, 375 }, {  34, 375 }, {  35, 375 }, {  36, 375 },
- {  37, 375 }, {  38, 375 }, {  39, 375 }, {  40, 375 }, {  41, 375 },
- {  42, 375 }, {  43, 375 }, {  44, 375 }, {  45, 375 }, {  46, 375 },
-
- {  47, 375 }, {  48, 375 }, {  49, 375 }, {  50, 375 }, {  51, 375 },
- {  52, 375 }, {  53, 375 }, {  54, 375 }, {  55, 375 }, {  56, 375 },
- {  57, 375 }, {  58, 375 }, {  59, 375 }, {  60, 375 }, {  61, 375 },
- {  62, 375 }, {  63, 375 }, {  64, 375 }, {  65, 375 }, {  66, 375 },
- {  67, 375 }, {  68, 375 }, {  69, 375 }, {  70, 375 }, {  71, 375 },
- {  72, 375 }, {  73, 375 }, {  74, 375 }, {  75, 375 }, {  76, 375 },
- {  77, 375 }, {  78, 375 }, {  79, 375 }, {  80, 375 }, {  81, 375 },
- {  82, 375 }, {  83, 375 }, {  84, 375 }, {  85, 375 }, {  86, 375 },
- {  87, 375 }, {  88, 375 }, {  89, 375 }, {  90, 375 }, {  91, 375 },
- {  92, 379 }, {  93, 375 }, {  94, 375 }, {  95, 375 }, {  96, 375 },
-
- {  97, 375 }, {  98, 375 }, {  99, 375 }, { 100, 375 }, { 101, 375 },
- { 102, 375 }, { 103, 375 }, { 104, 375 }, { 105, 375 }, { 106, 375 },
- { 107, 375 }, { 108, 375 }, { 109, 375 }, { 110, 375 }, { 111, 375 },
- { 112, 375 }, { 113, 375 }, { 114, 375 }, { 115, 375 }, { 116, 375 },
- { 117, 375 }, { 118, 375 }, { 119, 375 }, { 120, 375 }, { 121, 375 },
- { 122, 375 }, { 123, 375 }, { 124, 375 }, { 125, 375 }, { 126, 375 },
- { 127, 375 }, { 128, 375 }, { 129, 375 }, { 130, 375 }, { 131, 375 },
- { 132, 375 }, { 133, 375 }, { 134, 375 }, { 135, 375 }, { 136, 375 },
- { 137, 375 }, { 138, 375 }, { 139, 375 }, { 140, 375 }, { 141, 375 },
- { 142, 375 }, { 143, 375 }, { 144, 375 }, { 145, 375 }, { 146, 375 },
-
- { 147, 375 }, { 148, 375 }, { 149, 375 }, { 150, 375 }, { 151, 375 },
- { 152, 375 }, { 153, 375 }, { 154, 375 }, { 155, 375 }, { 156, 375 },
- { 157, 375 }, { 158, 375 }, { 159, 375 }, { 160, 375 }, { 161, 375 },
- { 162, 375 }, { 163, 375 }, { 164, 375 }, { 165, 375 }, { 166, 375 },
- { 167, 375 }, { 168, 375 }, { 169, 375 }, { 170, 375 }, { 171, 375 },
- { 172, 375 }, { 173, 375 }, { 174, 375 }, { 175, 375 }, { 176, 375 },
- { 177, 375 }, { 178, 375 }, { 179, 375 }, { 180, 375 }, { 181, 375 },
- { 182, 375 }, { 183, 375 }, { 184, 375 }, { 185, 375 }, { 186, 375 },
- { 187, 375 }, { 188, 375 }, { 189, 375 }, { 190, 375 }, { 191, 375 },
- { 192, 375 }, { 193, 375 }, { 194, 375 }, { 195, 375 }, { 196, 375 },
-
- { 197, 375 }, { 198, 375 }, { 199, 375 }, { 200, 375 }, { 201, 375 },
- { 202, 375 }, { 203, 375 }, { 204, 375 }, { 205, 375 }, { 206, 375 },
- { 207, 375 }, { 208, 375 }, { 209, 375 }, { 210, 375 }, { 211, 375 },
- { 212, 375 }, { 213, 375 }, { 214, 375 }, { 215, 375 }, { 216, 375 },
- { 217, 375 }, { 218, 375 }, { 219, 375 }, { 220, 375 }, { 221, 375 },
- { 222, 375 }, { 223, 375 }, { 224, 375 }, { 225, 375 }, { 226, 375 },
- { 227, 375 }, { 228, 375 }, { 229, 375 }, { 230, 375 }, { 231, 375 },
- { 232, 375 }, { 233, 375 }, { 234, 375 }, { 235, 375 }, { 236, 375 },
- { 237, 375 }, { 238, 375 }, { 239, 375 }, { 240, 375 }, { 241, 375 },
- { 242, 375 }, { 243, 375 }, { 244, 375 }, { 245, 375 }, { 246, 375 },
-
- { 247, 375 }, { 248, 375 }, { 249, 375 }, { 250, 375 }, { 251, 375 },
- { 252, 375 }, { 253, 375 }, { 254, 375 }, { 255, 375 }, { 256, 375 },
- {   0,  79 }, {   0,30039 }, {   0,   1 }, {   0,30037 }, {   0,  49 },
- {   0,30035 }, {   0,   0 }, {   0,   1 }, {   0,30032 }, {   0,  70 },
- {   0,30030 }, {   0,   0 }, {   9,5515 }, {  10,5515 }, {   0,   0 },
- {  12,5515 }, {  13,5515 }, {   9,5510 }, {  10,5510 }, {   0,   0 },
- {  12,5510 }, {  13,5510 }, {   0,  19 }, {   0,30017 }, {   0,  69 },
- {   0,30015 }, {   0,   0 }, {   0,  69 }, {   0,30012 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   6 }, {   0,30007 }, {   0,   0 },
- {  32,5515 }, {   0,   6 }, {   0,30003 }, {   0,   0 }, {   0,   0 },
-
- {  32,5510 }, {   0,  51 }, {   0,29998 }, {  33,5510 }, {   0,   0 },
- {  35,5510 }, {   0,   0 }, {  37,5510 }, {  38,5510 }, {   0,  70 },
- {   0,29990 }, {   0,   0 }, {  42,5510 }, {  43,5510 }, {   0,   0 },
- {  45,5510 }, {   0,   0 }, {  47,5510 }, {   0,   0 }, {   0,  52 },
- {   0,29980 }, {   0,  54 }, {   0,29978 }, {   0,  54 }, {   0,29976 },
+ {   0,   0 }, {   0,17422 }, {   0,   0 }, {   0,17420 }, {   1,6192 },
+ {   2,6192 }, {   3,6192 }, {   4,6192 }, {   5,6192 }, {   6,6192 },
+ {   7,6192 }, {   8,6192 }, {   9,6194 }, {  10,6199 }, {  11,6192 },
+ {  12,6194 }, {  13,6194 }, {  14,6192 }, {  15,6192 }, {  16,6192 },
+ {  17,6192 }, {  18,6192 }, {  19,6192 }, {  20,6192 }, {  21,6192 },
+ {  22,6192 }, {  23,6192 }, {  24,6192 }, {  25,6192 }, {  26,6192 },
+ {  27,6192 }, {  28,6192 }, {  29,6192 }, {  30,6192 }, {  31,6192 },
+ {  32,6194 }, {  33,6201 }, {  34,6196 }, {  35,6241 }, {  36,6307 },
+ {  37,6564 }, {  38,6241 }, {  39,6214 }, {  40,6216 }, {  41,6216 },
+ {  42,6564 }, {  43,6564 }, {  44,6216 }, {  45,6575 }, {  46,6594 },
+
+ {  47,6665 }, {  48,6667 }, {  49,6667 }, {  50,6667 }, {  51,6667 },
+ {  52,6667 }, {  53,6667 }, {  54,6667 }, {  55,6667 }, {  56,6667 },
+ {  57,6667 }, {  58,6219 }, {  59,6216 }, {  60,6732 }, {  61,6743 },
+ {  62,6810 }, {  63,6564 }, {  64,6241 }, {  65,6842 }, {  66,7099 },
+ {  67,6842 }, {  68,6842 }, {  69,7356 }, {  70,6842 }, {  71,6842 },
+ {  72,6842 }, {  73,6842 }, {  74,6842 }, {  75,6842 }, {  76,6842 },
+ {  77,6842 }, {  78,7613 }, {  79,6842 }, {  80,6842 }, {  81,6842 },
+ {  82,6842 }, {  83,6842 }, {  84,6842 }, {  85,7870 }, {  86,6842 },
+ {  87,6842 }, {  88,8127 }, {  89,6842 }, {  90,6842 }, {  91,6216 },
+ {  92,6192 }, {  93,6216 }, {  94,6564 }, {  95,6842 }, {  96,6241 },
+
+ {  97,6842 }, {  98,7099 }, {  99,6842 }, { 100,6842 }, { 101,7356 },
+ { 102,6842 }, { 103,6842 }, { 104,6842 }, { 105,6842 }, { 106,6842 },
+ { 107,6842 }, { 108,6842 }, { 109,6842 }, { 110,7613 }, { 111,6842 },
+ { 112,6842 }, { 113,6842 }, { 114,6842 }, { 115,6842 }, { 116,6842 },
+ { 117,7870 }, { 118,6842 }, { 119,6842 }, { 120,8127 }, { 121,6842 },
+ { 122,6842 }, { 123,6192 }, { 124,6241 }, { 125,6192 }, { 126,6241 },
+ { 127,6192 }, { 128,6842 }, { 129,6842 }, { 130,6842 }, { 131,6842 },
+ { 132,6842 }, { 133,6842 }, { 134,6842 }, { 135,6842 }, { 136,6842 },
+ { 137,6842 }, { 138,6842 }, { 139,6842 }, { 140,6842 }, { 141,6842 },
+ { 142,6842 }, { 143,6842 }, { 144,6842 }, { 145,6842 }, { 146,6842 },
+
+ { 147,6842 }, { 148,6842 }, { 149,6842 }, { 150,6842 }, { 151,6842 },
+ { 152,6842 }, { 153,6842 }, { 154,6842 }, { 155,6842 }, { 156,6842 },
+ { 157,6842 }, { 158,6842 }, { 159,6842 }, { 160,6842 }, { 161,6842 },
+ { 162,6842 }, { 163,6842 }, { 164,6842 }, { 165,6842 }, { 166,6842 },
+ { 167,6842 }, { 168,6842 }, { 169,6842 }, { 170,6842 }, { 171,6842 },
+ { 172,6842 }, { 173,6842 }, { 174,6842 }, { 175,6842 }, { 176,6842 },
+ { 177,6842 }, { 178,6842 }, { 179,6842 }, { 180,6842 }, { 181,6842 },
+ { 182,6842 }, { 183,6842 }, { 184,6842 }, { 185,6842 }, { 186,6842 },
+ { 187,6842 }, { 188,6842 }, { 189,6842 }, { 190,6842 }, { 191,6842 },
+ { 192,6842 }, { 193,6842 }, { 194,6842 }, { 195,6842 }, { 196,6842 },
+
+ { 197,6842 }, { 198,6842 }, { 199,6842 }, { 200,6842 }, { 201,6842 },
+ { 202,6842 }, { 203,6842 }, { 204,6842 }, { 205,6842 }, { 206,6842 },
+ { 207,6842 }, { 208,6842 }, { 209,6842 }, { 210,6842 }, { 211,6842 },
+ { 212,6842 }, { 213,6842 }, { 214,6842 }, { 215,6842 }, { 216,6842 },
+ { 217,6842 }, { 218,6842 }, { 219,6842 }, { 220,6842 }, { 221,6842 },
+ { 222,6842 }, { 223,6842 }, { 224,6842 }, { 225,6842 }, { 226,6842 },
+ { 227,6842 }, { 228,6842 }, { 229,6842 }, { 230,6842 }, { 231,6842 },
+ { 232,6842 }, { 233,6842 }, { 234,6842 }, { 235,6842 }, { 236,6842 },
+ { 237,6842 }, { 238,6842 }, { 239,6842 }, { 240,6842 }, { 241,6842 },
+ { 242,6842 }, { 243,6842 }, { 244,6842 }, { 245,6842 }, { 246,6842 },
+
+ { 247,6842 }, { 248,6842 }, { 249,6842 }, { 250,6842 }, { 251,6842 },
+ { 252,6842 }, { 253,6842 }, { 254,6842 }, { 255,6842 }, { 256,6192 },
+ {   0,   0 }, {   0,17162 }, {   1,5934 }, {   2,5934 }, {   3,5934 },
+ {   4,5934 }, {   5,5934 }, {   6,5934 }, {   7,5934 }, {   8,5934 },
+ {   9,5936 }, {  10,5941 }, {  11,5934 }, {  12,5936 }, {  13,5936 },
+ {  14,5934 }, {  15,5934 }, {  16,5934 }, {  17,5934 }, {  18,5934 },
+ {  19,5934 }, {  20,5934 }, {  21,5934 }, {  22,5934 }, {  23,5934 },
+ {  24,5934 }, {  25,5934 }, {  26,5934 }, {  27,5934 }, {  28,5934 },
+ {  29,5934 }, {  30,5934 }, {  31,5934 }, {  32,5936 }, {  33,5943 },
+ {  34,5938 }, {  35,5983 }, {  36,6049 }, {  37,6306 }, {  38,5983 },
+
+ {  39,5956 }, {  40,5958 }, {  41,5958 }, {  42,6306 }, {  43,6306 },
+ {  44,5958 }, {  45,6317 }, {  46,6336 }, {  47,6407 }, {  48,6409 },
+ {  49,6409 }, {  50,6409 }, {  51,6409 }, {  52,6409 }, {  53,6409 },
+ {  54,6409 }, {  55,6409 }, {  56,6409 }, {  57,6409 }, {  58,5961 },
+ {  59,5958 }, {  60,6474 }, {  61,6485 }, {  62,6552 }, {  63,6306 },
+ {  64,5983 }, {  65,6584 }, {  66,6841 }, {  67,6584 }, {  68,6584 },
+ {  69,7098 }, {  70,6584 }, {  71,6584 }, {  72,6584 }, {  73,6584 },
+ {  74,6584 }, {  75,6584 }, {  76,6584 }, {  77,6584 }, {  78,7355 },
+ {  79,6584 }, {  80,6584 }, {  81,6584 }, {  82,6584 }, {  83,6584 },
+ {  84,6584 }, {  85,7612 }, {  86,6584 }, {  87,6584 }, {  88,7869 },
+
+ {  89,6584 }, {  90,6584 }, {  91,5958 }, {  92,5934 }, {  93,5958 },
+ {  94,6306 }, {  95,6584 }, {  96,5983 }, {  97,6584 }, {  98,6841 },
+ {  99,6584 }, { 100,6584 }, { 101,7098 }, { 102,6584 }, { 103,6584 },
+ { 104,6584 }, { 105,6584 }, { 106,6584 }, { 107,6584 }, { 108,6584 },
+ { 109,6584 }, { 110,7355 }, { 111,6584 }, { 112,6584 }, { 113,6584 },
+ { 114,6584 }, { 115,6584 }, { 116,6584 }, { 117,7612 }, { 118,6584 },
+ { 119,6584 }, { 120,7869 }, { 121,6584 }, { 122,6584 }, { 123,5934 },
+ { 124,5983 }, { 125,5934 }, { 126,5983 }, { 127,5934 }, { 128,6584 },
+ { 129,6584 }, { 130,6584 }, { 131,6584 }, { 132,6584 }, { 133,6584 },
+ { 134,6584 }, { 135,6584 }, { 136,6584 }, { 137,6584 }, { 138,6584 },
+
+ { 139,6584 }, { 140,6584 }, { 141,6584 }, { 142,6584 }, { 143,6584 },
+ { 144,6584 }, { 145,6584 }, { 146,6584 }, { 147,6584 }, { 148,6584 },
+ { 149,6584 }, { 150,6584 }, { 151,6584 }, { 152,6584 }, { 153,6584 },
+ { 154,6584 }, { 155,6584 }, { 156,6584 }, { 157,6584 }, { 158,6584 },
+ { 159,6584 }, { 160,6584 }, { 161,6584 }, { 162,6584 }, { 163,6584 },
+ { 164,6584 }, { 165,6584 }, { 166,6584 }, { 167,6584 }, { 168,6584 },
+ { 169,6584 }, { 170,6584 }, { 171,6584 }, { 172,6584 }, { 173,6584 },
+ { 174,6584 }, { 175,6584 }, { 176,6584 }, { 177,6584 }, { 178,6584 },
+ { 179,6584 }, { 180,6584 }, { 181,6584 }, { 182,6584 }, { 183,6584 },
+ { 184,6584 }, { 185,6584 }, { 186,6584 }, { 187,6584 }, { 188,6584 },
+
+ { 189,6584 }, { 190,6584 }, { 191,6584 }, { 192,6584 }, { 193,6584 },
+ { 194,6584 }, { 195,6584 }, { 196,6584 }, { 197,6584 }, { 198,6584 },
+ { 199,6584 }, { 200,6584 }, { 201,6584 }, { 202,6584 }, { 203,6584 },
+ { 204,6584 }, { 205,6584 }, { 206,6584 }, { 207,6584 }, { 208,6584 },
+ { 209,6584 }, { 210,6584 }, { 211,6584 }, { 212,6584 }, { 213,6584 },
+ { 214,6584 }, { 215,6584 }, { 216,6584 }, { 217,6584 }, { 218,6584 },
+ { 219,6584 }, { 220,6584 }, { 221,6584 }, { 222,6584 }, { 223,6584 },
+ { 224,6584 }, { 225,6584 }, { 226,6584 }, { 227,6584 }, { 228,6584 },
+ { 229,6584 }, { 230,6584 }, { 231,6584 }, { 232,6584 }, { 233,6584 },
+ { 234,6584 }, { 235,6584 }, { 236,6584 }, { 237,6584 }, { 238,6584 },
+
+ { 239,6584 }, { 240,6584 }, { 241,6584 }, { 242,6584 }, { 243,6584 },
+ { 244,6584 }, { 245,6584 }, { 246,6584 }, { 247,6584 }, { 248,6584 },
+ { 249,6584 }, { 250,6584 }, { 251,6584 }, { 252,6584 }, { 253,6584 },
+ { 254,6584 }, { 255,6584 }, { 256,5934 }, {   0,  11 }, {   0,16904 },
+ {   1,7868 }, {   2,7868 }, {   3,7868 }, {   4,7868 }, {   5,7868 },
+ {   6,7868 }, {   7,7868 }, {   8,7868 }, {   9,7868 }, {  10,7868 },
+ {  11,7868 }, {  12,7868 }, {  13,7868 }, {  14,7868 }, {  15,7868 },
+ {  16,7868 }, {  17,7868 }, {  18,7868 }, {  19,7868 }, {  20,7868 },
+ {  21,7868 }, {  22,7868 }, {  23,7868 }, {  24,7868 }, {  25,7868 },
+ {  26,7868 }, {  27,7868 }, {  28,7868 }, {  29,7868 }, {  30,7868 },
+
+ {  31,7868 }, {  32,7868 }, {  33,7868 }, {  34,7868 }, {  35,7868 },
+ {  36,7868 }, {  37,7868 }, {  38,7868 }, {  39,5705 }, {  40,7868 },
+ {  41,7868 }, {  42,7868 }, {  43,7868 }, {  44,7868 }, {  45,7868 },
+ {  46,7868 }, {  47,7868 }, {  48,7868 }, {  49,7868 }, {  50,7868 },
+ {  51,7868 }, {  52,7868 }, {  53,7868 }, {  54,7868 }, {  55,7868 },
+ {  56,7868 }, {  57,7868 }, {  58,7868 }, {  59,7868 }, {  60,7868 },
+ {  61,7868 }, {  62,7868 }, {  63,7868 }, {  64,7868 }, {  65,7868 },
+ {  66,7868 }, {  67,7868 }, {  68,7868 }, {  69,7868 }, {  70,7868 },
+ {  71,7868 }, {  72,7868 }, {  73,7868 }, {  74,7868 }, {  75,7868 },
+ {  76,7868 }, {  77,7868 }, {  78,7868 }, {  79,7868 }, {  80,7868 },
+
+ {  81,7868 }, {  82,7868 }, {  83,7868 }, {  84,7868 }, {  85,7868 },
+ {  86,7868 }, {  87,7868 }, {  88,7868 }, {  89,7868 }, {  90,7868 },
+ {  91,7868 }, {  92,7868 }, {  93,7868 }, {  94,7868 }, {  95,7868 },
+ {  96,7868 }, {  97,7868 }, {  98,7868 }, {  99,7868 }, { 100,7868 },
+ { 101,7868 }, { 102,7868 }, { 103,7868 }, { 104,7868 }, { 105,7868 },
+ { 106,7868 }, { 107,7868 }, { 108,7868 }, { 109,7868 }, { 110,7868 },
+ { 111,7868 }, { 112,7868 }, { 113,7868 }, { 114,7868 }, { 115,7868 },
+ { 116,7868 }, { 117,7868 }, { 118,7868 }, { 119,7868 }, { 120,7868 },
+ { 121,7868 }, { 122,7868 }, { 123,7868 }, { 124,7868 }, { 125,7868 },
+ { 126,7868 }, { 127,7868 }, { 128,7868 }, { 129,7868 }, { 130,7868 },
+
+ { 131,7868 }, { 132,7868 }, { 133,7868 }, { 134,7868 }, { 135,7868 },
+ { 136,7868 }, { 137,7868 }, { 138,7868 }, { 139,7868 }, { 140,7868 },
+ { 141,7868 }, { 142,7868 }, { 143,7868 }, { 144,7868 }, { 145,7868 },
+ { 146,7868 }, { 147,7868 }, { 148,7868 }, { 149,7868 }, { 150,7868 },
+ { 151,7868 }, { 152,7868 }, { 153,7868 }, { 154,7868 }, { 155,7868 },
+ { 156,7868 }, { 157,7868 }, { 158,7868 }, { 159,7868 }, { 160,7868 },
+ { 161,7868 }, { 162,7868 }, { 163,7868 }, { 164,7868 }, { 165,7868 },
+ { 166,7868 }, { 167,7868 }, { 168,7868 }, { 169,7868 }, { 170,7868 },
+ { 171,7868 }, { 172,7868 }, { 173,7868 }, { 174,7868 }, { 175,7868 },
+ { 176,7868 }, { 177,7868 }, { 178,7868 }, { 179,7868 }, { 180,7868 },
+
+ { 181,7868 }, { 182,7868 }, { 183,7868 }, { 184,7868 }, { 185,7868 },
+ { 186,7868 }, { 187,7868 }, { 188,7868 }, { 189,7868 }, { 190,7868 },
+ { 191,7868 }, { 192,7868 }, { 193,7868 }, { 194,7868 }, { 195,7868 },
+ { 196,7868 }, { 197,7868 }, { 198,7868 }, { 199,7868 }, { 200,7868 },
+ { 201,7868 }, { 202,7868 }, { 203,7868 }, { 204,7868 }, { 205,7868 },
+ { 206,7868 }, { 207,7868 }, { 208,7868 }, { 209,7868 }, { 210,7868 },
+ { 211,7868 }, { 212,7868 }, { 213,7868 }, { 214,7868 }, { 215,7868 },
+ { 216,7868 }, { 217,7868 }, { 218,7868 }, { 219,7868 }, { 220,7868 },
+ { 221,7868 }, { 222,7868 }, { 223,7868 }, { 224,7868 }, { 225,7868 },
+ { 226,7868 }, { 227,7868 }, { 228,7868 }, { 229,7868 }, { 230,7868 },
+
+ { 231,7868 }, { 232,7868 }, { 233,7868 }, { 234,7868 }, { 235,7868 },
+ { 236,7868 }, { 237,7868 }, { 238,7868 }, { 239,7868 }, { 240,7868 },
+ { 241,7868 }, { 242,7868 }, { 243,7868 }, { 244,7868 }, { 245,7868 },
+ { 246,7868 }, { 247,7868 }, { 248,7868 }, { 249,7868 }, { 250,7868 },
+ { 251,7868 }, { 252,7868 }, { 253,7868 }, { 254,7868 }, { 255,7868 },
+ { 256,7868 }, {   0,  11 }, {   0,16646 }, {   1,7610 }, {   2,7610 },
+ {   3,7610 }, {   4,7610 }, {   5,7610 }, {   6,7610 }, {   7,7610 },
+ {   8,7610 }, {   9,7610 }, {  10,7610 }, {  11,7610 }, {  12,7610 },
+ {  13,7610 }, {  14,7610 }, {  15,7610 }, {  16,7610 }, {  17,7610 },
+ {  18,7610 }, {  19,7610 }, {  20,7610 }, {  21,7610 }, {  22,7610 },
+
+ {  23,7610 }, {  24,7610 }, {  25,7610 }, {  26,7610 }, {  27,7610 },
+ {  28,7610 }, {  29,7610 }, {  30,7610 }, {  31,7610 }, {  32,7610 },
+ {  33,7610 }, {  34,7610 }, {  35,7610 }, {  36,7610 }, {  37,7610 },
+ {  38,7610 }, {  39,5447 }, {  40,7610 }, {  41,7610 }, {  42,7610 },
+ {  43,7610 }, {  44,7610 }, {  45,7610 }, {  46,7610 }, {  47,7610 },
+ {  48,7610 }, {  49,7610 }, {  50,7610 }, {  51,7610 }, {  52,7610 },
+ {  53,7610 }, {  54,7610 }, {  55,7610 }, {  56,7610 }, {  57,7610 },
+ {  58,7610 }, {  59,7610 }, {  60,7610 }, {  61,7610 }, {  62,7610 },
+ {  63,7610 }, {  64,7610 }, {  65,7610 }, {  66,7610 }, {  67,7610 },
+ {  68,7610 }, {  69,7610 }, {  70,7610 }, {  71,7610 }, {  72,7610 },
+
+ {  73,7610 }, {  74,7610 }, {  75,7610 }, {  76,7610 }, {  77,7610 },
+ {  78,7610 }, {  79,7610 }, {  80,7610 }, {  81,7610 }, {  82,7610 },
+ {  83,7610 }, {  84,7610 }, {  85,7610 }, {  86,7610 }, {  87,7610 },
+ {  88,7610 }, {  89,7610 }, {  90,7610 }, {  91,7610 }, {  92,7610 },
+ {  93,7610 }, {  94,7610 }, {  95,7610 }, {  96,7610 }, {  97,7610 },
+ {  98,7610 }, {  99,7610 }, { 100,7610 }, { 101,7610 }, { 102,7610 },
+ { 103,7610 }, { 104,7610 }, { 105,7610 }, { 106,7610 }, { 107,7610 },
+ { 108,7610 }, { 109,7610 }, { 110,7610 }, { 111,7610 }, { 112,7610 },
+ { 113,7610 }, { 114,7610 }, { 115,7610 }, { 116,7610 }, { 117,7610 },
+ { 118,7610 }, { 119,7610 }, { 120,7610 }, { 121,7610 }, { 122,7610 },
+
+ { 123,7610 }, { 124,7610 }, { 125,7610 }, { 126,7610 }, { 127,7610 },
+ { 128,7610 }, { 129,7610 }, { 130,7610 }, { 131,7610 }, { 132,7610 },
+ { 133,7610 }, { 134,7610 }, { 135,7610 }, { 136,7610 }, { 137,7610 },
+ { 138,7610 }, { 139,7610 }, { 140,7610 }, { 141,7610 }, { 142,7610 },
+ { 143,7610 }, { 144,7610 }, { 145,7610 }, { 146,7610 }, { 147,7610 },
+ { 148,7610 }, { 149,7610 }, { 150,7610 }, { 151,7610 }, { 152,7610 },
+ { 153,7610 }, { 154,7610 }, { 155,7610 }, { 156,7610 }, { 157,7610 },
+ { 158,7610 }, { 159,7610 }, { 160,7610 }, { 161,7610 }, { 162,7610 },
+ { 163,7610 }, { 164,7610 }, { 165,7610 }, { 166,7610 }, { 167,7610 },
+ { 168,7610 }, { 169,7610 }, { 170,7610 }, { 171,7610 }, { 172,7610 },
+
+ { 173,7610 }, { 174,7610 }, { 175,7610 }, { 176,7610 }, { 177,7610 },
+ { 178,7610 }, { 179,7610 }, { 180,7610 }, { 181,7610 }, { 182,7610 },
+ { 183,7610 }, { 184,7610 }, { 185,7610 }, { 186,7610 }, { 187,7610 },
+ { 188,7610 }, { 189,7610 }, { 190,7610 }, { 191,7610 }, { 192,7610 },
+ { 193,7610 }, { 194,7610 }, { 195,7610 }, { 196,7610 }, { 197,7610 },
+ { 198,7610 }, { 199,7610 }, { 200,7610 }, { 201,7610 }, { 202,7610 },
+ { 203,7610 }, { 204,7610 }, { 205,7610 }, { 206,7610 }, { 207,7610 },
+ { 208,7610 }, { 209,7610 }, { 210,7610 }, { 211,7610 }, { 212,7610 },
+ { 213,7610 }, { 214,7610 }, { 215,7610 }, { 216,7610 }, { 217,7610 },
+ { 218,7610 }, { 219,7610 }, { 220,7610 }, { 221,7610 }, { 222,7610 },
+
+ { 223,7610 }, { 224,7610 }, { 225,7610 }, { 226,7610 }, { 227,7610 },
+ { 228,7610 }, { 229,7610 }, { 230,7610 }, { 231,7610 }, { 232,7610 },
+ { 233,7610 }, { 234,7610 }, { 235,7610 }, { 236,7610 }, { 237,7610 },
+ { 238,7610 }, { 239,7610 }, { 240,7610 }, { 241,7610 }, { 242,7610 },
+ { 243,7610 }, { 244,7610 }, { 245,7610 }, { 246,7610 }, { 247,7610 },
+ { 248,7610 }, { 249,7610 }, { 250,7610 }, { 251,7610 }, { 252,7610 },
+ { 253,7610 }, { 254,7610 }, { 255,7610 }, { 256,7610 }, {   0,   0 },
+ {   0,16388 }, {   1,7610 }, {   2,7610 }, {   3,7610 }, {   4,7610 },
+ {   5,7610 }, {   6,7610 }, {   7,7610 }, {   8,7610 }, {   9,7610 },
+ {  10,7610 }, {  11,7610 }, {  12,7610 }, {  13,7610 }, {  14,7610 },
+
+ {  15,7610 }, {  16,7610 }, {  17,7610 }, {  18,7610 }, {  19,7610 },
+ {  20,7610 }, {  21,7610 }, {  22,7610 }, {  23,7610 }, {  24,7610 },
+ {  25,7610 }, {  26,7610 }, {  27,7610 }, {  28,7610 }, {  29,7610 },
+ {  30,7610 }, {  31,7610 }, {  32,7610 }, {  33,7868 }, {  34,7610 },
+ {  35,7868 }, {  36,7610 }, {  37,7868 }, {  38,7868 }, {  39,7610 },
+ {  40,7610 }, {  41,7610 }, {  42,5192 }, {  43,7868 }, {  44,7610 },
+ {  45,7868 }, {  46,7610 }, {  47,5196 }, {  48,7610 }, {  49,7610 },
+ {  50,7610 }, {  51,7610 }, {  52,7610 }, {  53,7610 }, {  54,7610 },
+ {  55,7610 }, {  56,7610 }, {  57,7610 }, {  58,7610 }, {  59,7610 },
+ {  60,7868 }, {  61,7868 }, {  62,7868 }, {  63,7868 }, {  64,7868 },
+
+ {  65,7610 }, {  66,7610 }, {  67,7610 }, {  68,7610 }, {  69,7610 },
+ {  70,7610 }, {  71,7610 }, {  72,7610 }, {  73,7610 }, {  74,7610 },
+ {  75,7610 }, {  76,7610 }, {  77,7610 }, {  78,7610 }, {  79,7610 },
+ {  80,7610 }, {  81,7610 }, {  82,7610 }, {  83,7610 }, {  84,7610 },
+ {  85,7610 }, {  86,7610 }, {  87,7610 }, {  88,7610 }, {  89,7610 },
+ {  90,7610 }, {  91,7610 }, {  92,7610 }, {  93,7610 }, {  94,7868 },
+ {  95,7610 }, {  96,7868 }, {  97,7610 }, {  98,7610 }, {  99,7610 },
+ { 100,7610 }, { 101,7610 }, { 102,7610 }, { 103,7610 }, { 104,7610 },
+ { 105,7610 }, { 106,7610 }, { 107,7610 }, { 108,7610 }, { 109,7610 },
+ { 110,7610 }, { 111,7610 }, { 112,7610 }, { 113,7610 }, { 114,7610 },
+
+ { 115,7610 }, { 116,7610 }, { 117,7610 }, { 118,7610 }, { 119,7610 },
+ { 120,7610 }, { 121,7610 }, { 122,7610 }, { 123,7610 }, { 124,7868 },
+ { 125,7610 }, { 126,7868 }, { 127,7610 }, { 128,7610 }, { 129,7610 },
+ { 130,7610 }, { 131,7610 }, { 132,7610 }, { 133,7610 }, { 134,7610 },
+ { 135,7610 }, { 136,7610 }, { 137,7610 }, { 138,7610 }, { 139,7610 },
+ { 140,7610 }, { 141,7610 }, { 142,7610 }, { 143,7610 }, { 144,7610 },
+ { 145,7610 }, { 146,7610 }, { 147,7610 }, { 148,7610 }, { 149,7610 },
+ { 150,7610 }, { 151,7610 }, { 152,7610 }, { 153,7610 }, { 154,7610 },
+ { 155,7610 }, { 156,7610 }, { 157,7610 }, { 158,7610 }, { 159,7610 },
+ { 160,7610 }, { 161,7610 }, { 162,7610 }, { 163,7610 }, { 164,7610 },
+
+ { 165,7610 }, { 166,7610 }, { 167,7610 }, { 168,7610 }, { 169,7610 },
+ { 170,7610 }, { 171,7610 }, { 172,7610 }, { 173,7610 }, { 174,7610 },
+ { 175,7610 }, { 176,7610 }, { 177,7610 }, { 178,7610 }, { 179,7610 },
+ { 180,7610 }, { 181,7610 }, { 182,7610 }, { 183,7610 }, { 184,7610 },
+ { 185,7610 }, { 186,7610 }, { 187,7610 }, { 188,7610 }, { 189,7610 },
+ { 190,7610 }, { 191,7610 }, { 192,7610 }, { 193,7610 }, { 194,7610 },
+ { 195,7610 }, { 196,7610 }, { 197,7610 }, { 198,7610 }, { 199,7610 },
+ { 200,7610 }, { 201,7610 }, { 202,7610 }, { 203,7610 }, { 204,7610 },
+ { 205,7610 }, { 206,7610 }, { 207,7610 }, { 208,7610 }, { 209,7610 },
+ { 210,7610 }, { 211,7610 }, { 212,7610 }, { 213,7610 }, { 214,7610 },
+
+ { 215,7610 }, { 216,7610 }, { 217,7610 }, { 218,7610 }, { 219,7610 },
+ { 220,7610 }, { 221,7610 }, { 222,7610 }, { 223,7610 }, { 224,7610 },
+ { 225,7610 }, { 226,7610 }, { 227,7610 }, { 228,7610 }, { 229,7610 },
+ { 230,7610 }, { 231,7610 }, { 232,7610 }, { 233,7610 }, { 234,7610 },
+ { 235,7610 }, { 236,7610 }, { 237,7610 }, { 238,7610 }, { 239,7610 },
+ { 240,7610 }, { 241,7610 }, { 242,7610 }, { 243,7610 }, { 244,7610 },
+ { 245,7610 }, { 246,7610 }, { 247,7610 }, { 248,7610 }, { 249,7610 },
+ { 250,7610 }, { 251,7610 }, { 252,7610 }, { 253,7610 }, { 254,7610 },
+ { 255,7610 }, { 256,7610 }, {   0,   0 }, {   0,16130 }, {   1,7352 },
+ {   2,7352 }, {   3,7352 }, {   4,7352 }, {   5,7352 }, {   6,7352 },
+
+ {   7,7352 }, {   8,7352 }, {   9,7352 }, {  10,7352 }, {  11,7352 },
+ {  12,7352 }, {  13,7352 }, {  14,7352 }, {  15,7352 }, {  16,7352 },
+ {  17,7352 }, {  18,7352 }, {  19,7352 }, {  20,7352 }, {  21,7352 },
+ {  22,7352 }, {  23,7352 }, {  24,7352 }, {  25,7352 }, {  26,7352 },
+ {  27,7352 }, {  28,7352 }, {  29,7352 }, {  30,7352 }, {  31,7352 },
+ {  32,7352 }, {  33,7610 }, {  34,7352 }, {  35,7610 }, {  36,7352 },
+ {  37,7610 }, {  38,7610 }, {  39,7352 }, {  40,7352 }, {  41,7352 },
+ {  42,4934 }, {  43,7610 }, {  44,7352 }, {  45,7610 }, {  46,7352 },
+ {  47,4938 }, {  48,7352 }, {  49,7352 }, {  50,7352 }, {  51,7352 },
+ {  52,7352 }, {  53,7352 }, {  54,7352 }, {  55,7352 }, {  56,7352 },
+
+ {  57,7352 }, {  58,7352 }, {  59,7352 }, {  60,7610 }, {  61,7610 },
+ {  62,7610 }, {  63,7610 }, {  64,7610 }, {  65,7352 }, {  66,7352 },
+ {  67,7352 }, {  68,7352 }, {  69,7352 }, {  70,7352 }, {  71,7352 },
+ {  72,7352 }, {  73,7352 }, {  74,7352 }, {  75,7352 }, {  76,7352 },
+ {  77,7352 }, {  78,7352 }, {  79,7352 }, {  80,7352 }, {  81,7352 },
+ {  82,7352 }, {  83,7352 }, {  84,7352 }, {  85,7352 }, {  86,7352 },
+ {  87,7352 }, {  88,7352 }, {  89,7352 }, {  90,7352 }, {  91,7352 },
+ {  92,7352 }, {  93,7352 }, {  94,7610 }, {  95,7352 }, {  96,7610 },
+ {  97,7352 }, {  98,7352 }, {  99,7352 }, { 100,7352 }, { 101,7352 },
+ { 102,7352 }, { 103,7352 }, { 104,7352 }, { 105,7352 }, { 106,7352 },
+
+ { 107,7352 }, { 108,7352 }, { 109,7352 }, { 110,7352 }, { 111,7352 },
+ { 112,7352 }, { 113,7352 }, { 114,7352 }, { 115,7352 }, { 116,7352 },
+ { 117,7352 }, { 118,7352 }, { 119,7352 }, { 120,7352 }, { 121,7352 },
+ { 122,7352 }, { 123,7352 }, { 124,7610 }, { 125,7352 }, { 126,7610 },
+ { 127,7352 }, { 128,7352 }, { 129,7352 }, { 130,7352 }, { 131,7352 },
+ { 132,7352 }, { 133,7352 }, { 134,7352 }, { 135,7352 }, { 136,7352 },
+ { 137,7352 }, { 138,7352 }, { 139,7352 }, { 140,7352 }, { 141,7352 },
+ { 142,7352 }, { 143,7352 }, { 144,7352 }, { 145,7352 }, { 146,7352 },
+ { 147,7352 }, { 148,7352 }, { 149,7352 }, { 150,7352 }, { 151,7352 },
+ { 152,7352 }, { 153,7352 }, { 154,7352 }, { 155,7352 }, { 156,7352 },
+
+ { 157,7352 }, { 158,7352 }, { 159,7352 }, { 160,7352 }, { 161,7352 },
+ { 162,7352 }, { 163,7352 }, { 164,7352 }, { 165,7352 }, { 166,7352 },
+ { 167,7352 }, { 168,7352 }, { 169,7352 }, { 170,7352 }, { 171,7352 },
+ { 172,7352 }, { 173,7352 }, { 174,7352 }, { 175,7352 }, { 176,7352 },
+ { 177,7352 }, { 178,7352 }, { 179,7352 }, { 180,7352 }, { 181,7352 },
+ { 182,7352 }, { 183,7352 }, { 184,7352 }, { 185,7352 }, { 186,7352 },
+ { 187,7352 }, { 188,7352 }, { 189,7352 }, { 190,7352 }, { 191,7352 },
+ { 192,7352 }, { 193,7352 }, { 194,7352 }, { 195,7352 }, { 196,7352 },
+ { 197,7352 }, { 198,7352 }, { 199,7352 }, { 200,7352 }, { 201,7352 },
+ { 202,7352 }, { 203,7352 }, { 204,7352 }, { 205,7352 }, { 206,7352 },
+
+ { 207,7352 }, { 208,7352 }, { 209,7352 }, { 210,7352 }, { 211,7352 },
+ { 212,7352 }, { 213,7352 }, { 214,7352 }, { 215,7352 }, { 216,7352 },
+ { 217,7352 }, { 218,7352 }, { 219,7352 }, { 220,7352 }, { 221,7352 },
+ { 222,7352 }, { 223,7352 }, { 224,7352 }, { 225,7352 }, { 226,7352 },
+ { 227,7352 }, { 228,7352 }, { 229,7352 }, { 230,7352 }, { 231,7352 },
+ { 232,7352 }, { 233,7352 }, { 234,7352 }, { 235,7352 }, { 236,7352 },
+ { 237,7352 }, { 238,7352 }, { 239,7352 }, { 240,7352 }, { 241,7352 },
+ { 242,7352 }, { 243,7352 }, { 244,7352 }, { 245,7352 }, { 246,7352 },
+ { 247,7352 }, { 248,7352 }, { 249,7352 }, { 250,7352 }, { 251,7352 },
+ { 252,7352 }, { 253,7352 }, { 254,7352 }, { 255,7352 }, { 256,7352 },
+
+ {   0,   0 }, {   0,15872 }, {   1,7610 }, {   2,7610 }, {   3,7610 },
+ {   4,7610 }, {   5,7610 }, {   6,7610 }, {   7,7610 }, {   8,7610 },
+ {   9,7610 }, {  10,7610 }, {  11,7610 }, {  12,7610 }, {  13,7610 },
+ {  14,7610 }, {  15,7610 }, {  16,7610 }, {  17,7610 }, {  18,7610 },
+ {  19,7610 }, {  20,7610 }, {  21,7610 }, {  22,7610 }, {  23,7610 },
+ {  24,7610 }, {  25,7610 }, {  26,7610 }, {  27,7610 }, {  28,7610 },
+ {  29,7610 }, {  30,7610 }, {  31,7610 }, {  32,7610 }, {  33,7610 },
+ {  34,4685 }, {  35,7610 }, {  36,7610 }, {  37,7610 }, {  38,7610 },
+ {  39,7610 }, {  40,7610 }, {  41,7610 }, {  42,7610 }, {  43,7610 },
+ {  44,7610 }, {  45,7610 }, {  46,7610 }, {  47,7610 }, {  48,7610 },
+
+ {  49,7610 }, {  50,7610 }, {  51,7610 }, {  52,7610 }, {  53,7610 },
+ {  54,7610 }, {  55,7610 }, {  56,7610 }, {  57,7610 }, {  58,7610 },
+ {  59,7610 }, {  60,7610 }, {  61,7610 }, {  62,7610 }, {  63,7610 },
+ {  64,7610 }, {  65,7610 }, {  66,7610 }, {  67,7610 }, {  68,7610 },
+ {  69,7610 }, {  70,7610 }, {  71,7610 }, {  72,7610 }, {  73,7610 },
+ {  74,7610 }, {  75,7610 }, {  76,7610 }, {  77,7610 }, {  78,7610 },
+ {  79,7610 }, {  80,7610 }, {  81,7610 }, {  82,7610 }, {  83,7610 },
+ {  84,7610 }, {  85,7610 }, {  86,7610 }, {  87,7610 }, {  88,7610 },
+ {  89,7610 }, {  90,7610 }, {  91,7610 }, {  92,7610 }, {  93,7610 },
+ {  94,7610 }, {  95,7610 }, {  96,7610 }, {  97,7610 }, {  98,7610 },
+
+ {  99,7610 }, { 100,7610 }, { 101,7610 }, { 102,7610 }, { 103,7610 },
+ { 104,7610 }, { 105,7610 }, { 106,7610 }, { 107,7610 }, { 108,7610 },
+ { 109,7610 }, { 110,7610 }, { 111,7610 }, { 112,7610 }, { 113,7610 },
+ { 114,7610 }, { 115,7610 }, { 116,7610 }, { 117,7610 }, { 118,7610 },
+ { 119,7610 }, { 120,7610 }, { 121,7610 }, { 122,7610 }, { 123,7610 },
+ { 124,7610 }, { 125,7610 }, { 126,7610 }, { 127,7610 }, { 128,7610 },
+ { 129,7610 }, { 130,7610 }, { 131,7610 }, { 132,7610 }, { 133,7610 },
+ { 134,7610 }, { 135,7610 }, { 136,7610 }, { 137,7610 }, { 138,7610 },
+ { 139,7610 }, { 140,7610 }, { 141,7610 }, { 142,7610 }, { 143,7610 },
+ { 144,7610 }, { 145,7610 }, { 146,7610 }, { 147,7610 }, { 148,7610 },
+
+ { 149,7610 }, { 150,7610 }, { 151,7610 }, { 152,7610 }, { 153,7610 },
+ { 154,7610 }, { 155,7610 }, { 156,7610 }, { 157,7610 }, { 158,7610 },
+ { 159,7610 }, { 160,7610 }, { 161,7610 }, { 162,7610 }, { 163,7610 },
+ { 164,7610 }, { 165,7610 }, { 166,7610 }, { 167,7610 }, { 168,7610 },
+ { 169,7610 }, { 170,7610 }, { 171,7610 }, { 172,7610 }, { 173,7610 },
+ { 174,7610 }, { 175,7610 }, { 176,7610 }, { 177,7610 }, { 178,7610 },
+ { 179,7610 }, { 180,7610 }, { 181,7610 }, { 182,7610 }, { 183,7610 },
+ { 184,7610 }, { 185,7610 }, { 186,7610 }, { 187,7610 }, { 188,7610 },
+ { 189,7610 }, { 190,7610 }, { 191,7610 }, { 192,7610 }, { 193,7610 },
+ { 194,7610 }, { 195,7610 }, { 196,7610 }, { 197,7610 }, { 198,7610 },
+
+ { 199,7610 }, { 200,7610 }, { 201,7610 }, { 202,7610 }, { 203,7610 },
+ { 204,7610 }, { 205,7610 }, { 206,7610 }, { 207,7610 }, { 208,7610 },
+ { 209,7610 }, { 210,7610 }, { 211,7610 }, { 212,7610 }, { 213,7610 },
+ { 214,7610 }, { 215,7610 }, { 216,7610 }, { 217,7610 }, { 218,7610 },
+ { 219,7610 }, { 220,7610 }, { 221,7610 }, { 222,7610 }, { 223,7610 },
+ { 224,7610 }, { 225,7610 }, { 226,7610 }, { 227,7610 }, { 228,7610 },
+ { 229,7610 }, { 230,7610 }, { 231,7610 }, { 232,7610 }, { 233,7610 },
+ { 234,7610 }, { 235,7610 }, { 236,7610 }, { 237,7610 }, { 238,7610 },
+ { 239,7610 }, { 240,7610 }, { 241,7610 }, { 242,7610 }, { 243,7610 },
+ { 244,7610 }, { 245,7610 }, { 246,7610 }, { 247,7610 }, { 248,7610 },
+
+ { 249,7610 }, { 250,7610 }, { 251,7610 }, { 252,7610 }, { 253,7610 },
+ { 254,7610 }, { 255,7610 }, { 256,7610 }, {   0,   0 }, {   0,15614 },
+ {   1,7352 }, {   2,7352 }, {   3,7352 }, {   4,7352 }, {   5,7352 },
+ {   6,7352 }, {   7,7352 }, {   8,7352 }, {   9,7352 }, {  10,7352 },
+ {  11,7352 }, {  12,7352 }, {  13,7352 }, {  14,7352 }, {  15,7352 },
+ {  16,7352 }, {  17,7352 }, {  18,7352 }, {  19,7352 }, {  20,7352 },
+ {  21,7352 }, {  22,7352 }, {  23,7352 }, {  24,7352 }, {  25,7352 },
+ {  26,7352 }, {  27,7352 }, {  28,7352 }, {  29,7352 }, {  30,7352 },
+ {  31,7352 }, {  32,7352 }, {  33,7352 }, {  34,4427 }, {  35,7352 },
+ {  36,7352 }, {  37,7352 }, {  38,7352 }, {  39,7352 }, {  40,7352 },
+
+ {  41,7352 }, {  42,7352 }, {  43,7352 }, {  44,7352 }, {  45,7352 },
+ {  46,7352 }, {  47,7352 }, {  48,7352 }, {  49,7352 }, {  50,7352 },
+ {  51,7352 }, {  52,7352 }, {  53,7352 }, {  54,7352 }, {  55,7352 },
+ {  56,7352 }, {  57,7352 }, {  58,7352 }, {  59,7352 }, {  60,7352 },
+ {  61,7352 }, {  62,7352 }, {  63,7352 }, {  64,7352 }, {  65,7352 },
+ {  66,7352 }, {  67,7352 }, {  68,7352 }, {  69,7352 }, {  70,7352 },
+ {  71,7352 }, {  72,7352 }, {  73,7352 }, {  74,7352 }, {  75,7352 },
+ {  76,7352 }, {  77,7352 }, {  78,7352 }, {  79,7352 }, {  80,7352 },
+ {  81,7352 }, {  82,7352 }, {  83,7352 }, {  84,7352 }, {  85,7352 },
+ {  86,7352 }, {  87,7352 }, {  88,7352 }, {  89,7352 }, {  90,7352 },
+
+ {  91,7352 }, {  92,7352 }, {  93,7352 }, {  94,7352 }, {  95,7352 },
+ {  96,7352 }, {  97,7352 }, {  98,7352 }, {  99,7352 }, { 100,7352 },
+ { 101,7352 }, { 102,7352 }, { 103,7352 }, { 104,7352 }, { 105,7352 },
+ { 106,7352 }, { 107,7352 }, { 108,7352 }, { 109,7352 }, { 110,7352 },
+ { 111,7352 }, { 112,7352 }, { 113,7352 }, { 114,7352 }, { 115,7352 },
+ { 116,7352 }, { 117,7352 }, { 118,7352 }, { 119,7352 }, { 120,7352 },
+ { 121,7352 }, { 122,7352 }, { 123,7352 }, { 124,7352 }, { 125,7352 },
+ { 126,7352 }, { 127,7352 }, { 128,7352 }, { 129,7352 }, { 130,7352 },
+ { 131,7352 }, { 132,7352 }, { 133,7352 }, { 134,7352 }, { 135,7352 },
+ { 136,7352 }, { 137,7352 }, { 138,7352 }, { 139,7352 }, { 140,7352 },
+
+ { 141,7352 }, { 142,7352 }, { 143,7352 }, { 144,7352 }, { 145,7352 },
+ { 146,7352 }, { 147,7352 }, { 148,7352 }, { 149,7352 }, { 150,7352 },
+ { 151,7352 }, { 152,7352 }, { 153,7352 }, { 154,7352 }, { 155,7352 },
+ { 156,7352 }, { 157,7352 }, { 158,7352 }, { 159,7352 }, { 160,7352 },
+ { 161,7352 }, { 162,7352 }, { 163,7352 }, { 164,7352 }, { 165,7352 },
+ { 166,7352 }, { 167,7352 }, { 168,7352 }, { 169,7352 }, { 170,7352 },
+ { 171,7352 }, { 172,7352 }, { 173,7352 }, { 174,7352 }, { 175,7352 },
+ { 176,7352 }, { 177,7352 }, { 178,7352 }, { 179,7352 }, { 180,7352 },
+ { 181,7352 }, { 182,7352 }, { 183,7352 }, { 184,7352 }, { 185,7352 },
+ { 186,7352 }, { 187,7352 }, { 188,7352 }, { 189,7352 }, { 190,7352 },
+
+ { 191,7352 }, { 192,7352 }, { 193,7352 }, { 194,7352 }, { 195,7352 },
+ { 196,7352 }, { 197,7352 }, { 198,7352 }, { 199,7352 }, { 200,7352 },
+ { 201,7352 }, { 202,7352 }, { 203,7352 }, { 204,7352 }, { 205,7352 },
+ { 206,7352 }, { 207,7352 }, { 208,7352 }, { 209,7352 }, { 210,7352 },
+ { 211,7352 }, { 212,7352 }, { 213,7352 }, { 214,7352 }, { 215,7352 },
+ { 216,7352 }, { 217,7352 }, { 218,7352 }, { 219,7352 }, { 220,7352 },
+ { 221,7352 }, { 222,7352 }, { 223,7352 }, { 224,7352 }, { 225,7352 },
+ { 226,7352 }, { 227,7352 }, { 228,7352 }, { 229,7352 }, { 230,7352 },
+ { 231,7352 }, { 232,7352 }, { 233,7352 }, { 234,7352 }, { 235,7352 },
+ { 236,7352 }, { 237,7352 }, { 238,7352 }, { 239,7352 }, { 240,7352 },
+
+ { 241,7352 }, { 242,7352 }, { 243,7352 }, { 244,7352 }, { 245,7352 },
+ { 246,7352 }, { 247,7352 }, { 248,7352 }, { 249,7352 }, { 250,7352 },
+ { 251,7352 }, { 252,7352 }, { 253,7352 }, { 254,7352 }, { 255,7352 },
+ { 256,7352 }, {   0,  10 }, {   0,15356 }, {   1,7352 }, {   2,7352 },
+ {   3,7352 }, {   4,7352 }, {   5,7352 }, {   6,7352 }, {   7,7352 },
+ {   8,7352 }, {   9,7352 }, {  10,7352 }, {  11,7352 }, {  12,7352 },
+ {  13,7352 }, {  14,7352 }, {  15,7352 }, {  16,7352 }, {  17,7352 },
+ {  18,7352 }, {  19,7352 }, {  20,7352 }, {  21,7352 }, {  22,7352 },
+ {  23,7352 }, {  24,7352 }, {  25,7352 }, {  26,7352 }, {  27,7352 },
+ {  28,7352 }, {  29,7352 }, {  30,7352 }, {  31,7352 }, {  32,7352 },
+
+ {  33,7352 }, {  34,7352 }, {  35,7352 }, {  36,7352 }, {  37,7352 },
+ {  38,7352 }, {  39,4157 }, {  40,7352 }, {  41,7352 }, {  42,7352 },
+ {  43,7352 }, {  44,7352 }, {  45,7352 }, {  46,7352 }, {  47,7352 },
+ {  48,7352 }, {  49,7352 }, {  50,7352 }, {  51,7352 }, {  52,7352 },
+ {  53,7352 }, {  54,7352 }, {  55,7352 }, {  56,7352 }, {  57,7352 },
+ {  58,7352 }, {  59,7352 }, {  60,7352 }, {  61,7352 }, {  62,7352 },
+ {  63,7352 }, {  64,7352 }, {  65,7352 }, {  66,7352 }, {  67,7352 },
+ {  68,7352 }, {  69,7352 }, {  70,7352 }, {  71,7352 }, {  72,7352 },
+ {  73,7352 }, {  74,7352 }, {  75,7352 }, {  76,7352 }, {  77,7352 },
+ {  78,7352 }, {  79,7352 }, {  80,7352 }, {  81,7352 }, {  82,7352 },
+
+ {  83,7352 }, {  84,7352 }, {  85,7352 }, {  86,7352 }, {  87,7352 },
+ {  88,7352 }, {  89,7352 }, {  90,7352 }, {  91,7352 }, {  92,7352 },
+ {  93,7352 }, {  94,7352 }, {  95,7352 }, {  96,7352 }, {  97,7352 },
+ {  98,7352 }, {  99,7352 }, { 100,7352 }, { 101,7352 }, { 102,7352 },
+ { 103,7352 }, { 104,7352 }, { 105,7352 }, { 106,7352 }, { 107,7352 },
+ { 108,7352 }, { 109,7352 }, { 110,7352 }, { 111,7352 }, { 112,7352 },
+ { 113,7352 }, { 114,7352 }, { 115,7352 }, { 116,7352 }, { 117,7352 },
+ { 118,7352 }, { 119,7352 }, { 120,7352 }, { 121,7352 }, { 122,7352 },
+ { 123,7352 }, { 124,7352 }, { 125,7352 }, { 126,7352 }, { 127,7352 },
+ { 128,7352 }, { 129,7352 }, { 130,7352 }, { 131,7352 }, { 132,7352 },
+
+ { 133,7352 }, { 134,7352 }, { 135,7352 }, { 136,7352 }, { 137,7352 },
+ { 138,7352 }, { 139,7352 }, { 140,7352 }, { 141,7352 }, { 142,7352 },
+ { 143,7352 }, { 144,7352 }, { 145,7352 }, { 146,7352 }, { 147,7352 },
+ { 148,7352 }, { 149,7352 }, { 150,7352 }, { 151,7352 }, { 152,7352 },
+ { 153,7352 }, { 154,7352 }, { 155,7352 }, { 156,7352 }, { 157,7352 },
+ { 158,7352 }, { 159,7352 }, { 160,7352 }, { 161,7352 }, { 162,7352 },
+ { 163,7352 }, { 164,7352 }, { 165,7352 }, { 166,7352 }, { 167,7352 },
+ { 168,7352 }, { 169,7352 }, { 170,7352 }, { 171,7352 }, { 172,7352 },
+ { 173,7352 }, { 174,7352 }, { 175,7352 }, { 176,7352 }, { 177,7352 },
+ { 178,7352 }, { 179,7352 }, { 180,7352 }, { 181,7352 }, { 182,7352 },
+
+ { 183,7352 }, { 184,7352 }, { 185,7352 }, { 186,7352 }, { 187,7352 },
+ { 188,7352 }, { 189,7352 }, { 190,7352 }, { 191,7352 }, { 192,7352 },
+ { 193,7352 }, { 194,7352 }, { 195,7352 }, { 196,7352 }, { 197,7352 },
+ { 198,7352 }, { 199,7352 }, { 200,7352 }, { 201,7352 }, { 202,7352 },
+ { 203,7352 }, { 204,7352 }, { 205,7352 }, { 206,7352 }, { 207,7352 },
+ { 208,7352 }, { 209,7352 }, { 210,7352 }, { 211,7352 }, { 212,7352 },
+ { 213,7352 }, { 214,7352 }, { 215,7352 }, { 216,7352 }, { 217,7352 },
+ { 218,7352 }, { 219,7352 }, { 220,7352 }, { 221,7352 }, { 222,7352 },
+ { 223,7352 }, { 224,7352 }, { 225,7352 }, { 226,7352 }, { 227,7352 },
+ { 228,7352 }, { 229,7352 }, { 230,7352 }, { 231,7352 }, { 232,7352 },
+
+ { 233,7352 }, { 234,7352 }, { 235,7352 }, { 236,7352 }, { 237,7352 },
+ { 238,7352 }, { 239,7352 }, { 240,7352 }, { 241,7352 }, { 242,7352 },
+ { 243,7352 }, { 244,7352 }, { 245,7352 }, { 246,7352 }, { 247,7352 },
+ { 248,7352 }, { 249,7352 }, { 250,7352 }, { 251,7352 }, { 252,7352 },
+ { 253,7352 }, { 254,7352 }, { 255,7352 }, { 256,7352 }, {   0,  10 },
+ {   0,15098 }, {   1,7094 }, {   2,7094 }, {   3,7094 }, {   4,7094 },
+ {   5,7094 }, {   6,7094 }, {   7,7094 }, {   8,7094 }, {   9,7094 },
+ {  10,7094 }, {  11,7094 }, {  12,7094 }, {  13,7094 }, {  14,7094 },
+ {  15,7094 }, {  16,7094 }, {  17,7094 }, {  18,7094 }, {  19,7094 },
+ {  20,7094 }, {  21,7094 }, {  22,7094 }, {  23,7094 }, {  24,7094 },
+
+ {  25,7094 }, {  26,7094 }, {  27,7094 }, {  28,7094 }, {  29,7094 },
+ {  30,7094 }, {  31,7094 }, {  32,7094 }, {  33,7094 }, {  34,7094 },
+ {  35,7094 }, {  36,7094 }, {  37,7094 }, {  38,7094 }, {  39,3899 },
+ {  40,7094 }, {  41,7094 }, {  42,7094 }, {  43,7094 }, {  44,7094 },
+ {  45,7094 }, {  46,7094 }, {  47,7094 }, {  48,7094 }, {  49,7094 },
+ {  50,7094 }, {  51,7094 }, {  52,7094 }, {  53,7094 }, {  54,7094 },
+ {  55,7094 }, {  56,7094 }, {  57,7094 }, {  58,7094 }, {  59,7094 },
+ {  60,7094 }, {  61,7094 }, {  62,7094 }, {  63,7094 }, {  64,7094 },
+ {  65,7094 }, {  66,7094 }, {  67,7094 }, {  68,7094 }, {  69,7094 },
+ {  70,7094 }, {  71,7094 }, {  72,7094 }, {  73,7094 }, {  74,7094 },
+
+ {  75,7094 }, {  76,7094 }, {  77,7094 }, {  78,7094 }, {  79,7094 },
+ {  80,7094 }, {  81,7094 }, {  82,7094 }, {  83,7094 }, {  84,7094 },
+ {  85,7094 }, {  86,7094 }, {  87,7094 }, {  88,7094 }, {  89,7094 },
+ {  90,7094 }, {  91,7094 }, {  92,7094 }, {  93,7094 }, {  94,7094 },
+ {  95,7094 }, {  96,7094 }, {  97,7094 }, {  98,7094 }, {  99,7094 },
+ { 100,7094 }, { 101,7094 }, { 102,7094 }, { 103,7094 }, { 104,7094 },
+ { 105,7094 }, { 106,7094 }, { 107,7094 }, { 108,7094 }, { 109,7094 },
+ { 110,7094 }, { 111,7094 }, { 112,7094 }, { 113,7094 }, { 114,7094 },
+ { 115,7094 }, { 116,7094 }, { 117,7094 }, { 118,7094 }, { 119,7094 },
+ { 120,7094 }, { 121,7094 }, { 122,7094 }, { 123,7094 }, { 124,7094 },
+
+ { 125,7094 }, { 126,7094 }, { 127,7094 }, { 128,7094 }, { 129,7094 },
+ { 130,7094 }, { 131,7094 }, { 132,7094 }, { 133,7094 }, { 134,7094 },
+ { 135,7094 }, { 136,7094 }, { 137,7094 }, { 138,7094 }, { 139,7094 },
+ { 140,7094 }, { 141,7094 }, { 142,7094 }, { 143,7094 }, { 144,7094 },
+ { 145,7094 }, { 146,7094 }, { 147,7094 }, { 148,7094 }, { 149,7094 },
+ { 150,7094 }, { 151,7094 }, { 152,7094 }, { 153,7094 }, { 154,7094 },
+ { 155,7094 }, { 156,7094 }, { 157,7094 }, { 158,7094 }, { 159,7094 },
+ { 160,7094 }, { 161,7094 }, { 162,7094 }, { 163,7094 }, { 164,7094 },
+ { 165,7094 }, { 166,7094 }, { 167,7094 }, { 168,7094 }, { 169,7094 },
+ { 170,7094 }, { 171,7094 }, { 172,7094 }, { 173,7094 }, { 174,7094 },
+
+ { 175,7094 }, { 176,7094 }, { 177,7094 }, { 178,7094 }, { 179,7094 },
+ { 180,7094 }, { 181,7094 }, { 182,7094 }, { 183,7094 }, { 184,7094 },
+ { 185,7094 }, { 186,7094 }, { 187,7094 }, { 188,7094 }, { 189,7094 },
+ { 190,7094 }, { 191,7094 }, { 192,7094 }, { 193,7094 }, { 194,7094 },
+ { 195,7094 }, { 196,7094 }, { 197,7094 }, { 198,7094 }, { 199,7094 },
+ { 200,7094 }, { 201,7094 }, { 202,7094 }, { 203,7094 }, { 204,7094 },
+ { 205,7094 }, { 206,7094 }, { 207,7094 }, { 208,7094 }, { 209,7094 },
+ { 210,7094 }, { 211,7094 }, { 212,7094 }, { 213,7094 }, { 214,7094 },
+ { 215,7094 }, { 216,7094 }, { 217,7094 }, { 218,7094 }, { 219,7094 },
+ { 220,7094 }, { 221,7094 }, { 222,7094 }, { 223,7094 }, { 224,7094 },
+
+ { 225,7094 }, { 226,7094 }, { 227,7094 }, { 228,7094 }, { 229,7094 },
+ { 230,7094 }, { 231,7094 }, { 232,7094 }, { 233,7094 }, { 234,7094 },
+ { 235,7094 }, { 236,7094 }, { 237,7094 }, { 238,7094 }, { 239,7094 },
+ { 240,7094 }, { 241,7094 }, { 242,7094 }, { 243,7094 }, { 244,7094 },
+ { 245,7094 }, { 246,7094 }, { 247,7094 }, { 248,7094 }, { 249,7094 },
+ { 250,7094 }, { 251,7094 }, { 252,7094 }, { 253,7094 }, { 254,7094 },
+ { 255,7094 }, { 256,7094 }, {   0,   0 }, {   0,14840 }, {   1,7094 },
+ {   2,7094 }, {   3,7094 }, {   4,7094 }, {   5,7094 }, {   6,7094 },
+ {   7,7094 }, {   8,7094 }, {   9,7094 }, {  10,7094 }, {  11,7094 },
+ {  12,7094 }, {  13,7094 }, {  14,7094 }, {  15,7094 }, {  16,7094 },
+
+ {  17,7094 }, {  18,7094 }, {  19,7094 }, {  20,7094 }, {  21,7094 },
+ {  22,7094 }, {  23,7094 }, {  24,7094 }, {  25,7094 }, {  26,7094 },
+ {  27,7094 }, {  28,7094 }, {  29,7094 }, {  30,7094 }, {  31,7094 },
+ {  32,7094 }, {  33,7094 }, {  34,7094 }, {  35,7094 }, {  36,7094 },
+ {  37,7094 }, {  38,7094 }, {  39,3670 }, {  40,7094 }, {  41,7094 },
+ {  42,7094 }, {  43,7094 }, {  44,7094 }, {  45,7094 }, {  46,7094 },
+ {  47,7094 }, {  48,7094 }, {  49,7094 }, {  50,7094 }, {  51,7094 },
+ {  52,7094 }, {  53,7094 }, {  54,7094 }, {  55,7094 }, {  56,7094 },
+ {  57,7094 }, {  58,7094 }, {  59,7094 }, {  60,7094 }, {  61,7094 },
+ {  62,7094 }, {  63,7094 }, {  64,7094 }, {  65,7094 }, {  66,7094 },
+
+ {  67,7094 }, {  68,7094 }, {  69,7094 }, {  70,7094 }, {  71,7094 },
+ {  72,7094 }, {  73,7094 }, {  74,7094 }, {  75,7094 }, {  76,7094 },
+ {  77,7094 }, {  78,7094 }, {  79,7094 }, {  80,7094 }, {  81,7094 },
+ {  82,7094 }, {  83,7094 }, {  84,7094 }, {  85,7094 }, {  86,7094 },
+ {  87,7094 }, {  88,7094 }, {  89,7094 }, {  90,7094 }, {  91,7094 },
+ {  92,7094 }, {  93,7094 }, {  94,7094 }, {  95,7094 }, {  96,7094 },
+ {  97,7094 }, {  98,7094 }, {  99,7094 }, { 100,7094 }, { 101,7094 },
+ { 102,7094 }, { 103,7094 }, { 104,7094 }, { 105,7094 }, { 106,7094 },
+ { 107,7094 }, { 108,7094 }, { 109,7094 }, { 110,7094 }, { 111,7094 },
+ { 112,7094 }, { 113,7094 }, { 114,7094 }, { 115,7094 }, { 116,7094 },
+
+ { 117,7094 }, { 118,7094 }, { 119,7094 }, { 120,7094 }, { 121,7094 },
+ { 122,7094 }, { 123,7094 }, { 124,7094 }, { 125,7094 }, { 126,7094 },
+ { 127,7094 }, { 128,7094 }, { 129,7094 }, { 130,7094 }, { 131,7094 },
+ { 132,7094 }, { 133,7094 }, { 134,7094 }, { 135,7094 }, { 136,7094 },
+ { 137,7094 }, { 138,7094 }, { 139,7094 }, { 140,7094 }, { 141,7094 },
+ { 142,7094 }, { 143,7094 }, { 144,7094 }, { 145,7094 }, { 146,7094 },
+ { 147,7094 }, { 148,7094 }, { 149,7094 }, { 150,7094 }, { 151,7094 },
+ { 152,7094 }, { 153,7094 }, { 154,7094 }, { 155,7094 }, { 156,7094 },
+ { 157,7094 }, { 158,7094 }, { 159,7094 }, { 160,7094 }, { 161,7094 },
+ { 162,7094 }, { 163,7094 }, { 164,7094 }, { 165,7094 }, { 166,7094 },
+
+ { 167,7094 }, { 168,7094 }, { 169,7094 }, { 170,7094 }, { 171,7094 },
+ { 172,7094 }, { 173,7094 }, { 174,7094 }, { 175,7094 }, { 176,7094 },
+ { 177,7094 }, { 178,7094 }, { 179,7094 }, { 180,7094 }, { 181,7094 },
+ { 182,7094 }, { 183,7094 }, { 184,7094 }, { 185,7094 }, { 186,7094 },
+ { 187,7094 }, { 188,7094 }, { 189,7094 }, { 190,7094 }, { 191,7094 },
+ { 192,7094 }, { 193,7094 }, { 194,7094 }, { 195,7094 }, { 196,7094 },
+ { 197,7094 }, { 198,7094 }, { 199,7094 }, { 200,7094 }, { 201,7094 },
+ { 202,7094 }, { 203,7094 }, { 204,7094 }, { 205,7094 }, { 206,7094 },
+ { 207,7094 }, { 208,7094 }, { 209,7094 }, { 210,7094 }, { 211,7094 },
+ { 212,7094 }, { 213,7094 }, { 214,7094 }, { 215,7094 }, { 216,7094 },
+
+ { 217,7094 }, { 218,7094 }, { 219,7094 }, { 220,7094 }, { 221,7094 },
+ { 222,7094 }, { 223,7094 }, { 224,7094 }, { 225,7094 }, { 226,7094 },
+ { 227,7094 }, { 228,7094 }, { 229,7094 }, { 230,7094 }, { 231,7094 },
+ { 232,7094 }, { 233,7094 }, { 234,7094 }, { 235,7094 }, { 236,7094 },
+ { 237,7094 }, { 238,7094 }, { 239,7094 }, { 240,7094 }, { 241,7094 },
+ { 242,7094 }, { 243,7094 }, { 244,7094 }, { 245,7094 }, { 246,7094 },
+ { 247,7094 }, { 248,7094 }, { 249,7094 }, { 250,7094 }, { 251,7094 },
+ { 252,7094 }, { 253,7094 }, { 254,7094 }, { 255,7094 }, { 256,7094 },
+ {   0,   0 }, {   0,14582 }, {   1,6836 }, {   2,6836 }, {   3,6836 },
+ {   4,6836 }, {   5,6836 }, {   6,6836 }, {   7,6836 }, {   8,6836 },
+
+ {   9,6836 }, {  10,6836 }, {  11,6836 }, {  12,6836 }, {  13,6836 },
+ {  14,6836 }, {  15,6836 }, {  16,6836 }, {  17,6836 }, {  18,6836 },
+ {  19,6836 }, {  20,6836 }, {  21,6836 }, {  22,6836 }, {  23,6836 },
+ {  24,6836 }, {  25,6836 }, {  26,6836 }, {  27,6836 }, {  28,6836 },
+ {  29,6836 }, {  30,6836 }, {  31,6836 }, {  32,6836 }, {  33,6836 },
+ {  34,6836 }, {  35,6836 }, {  36,6836 }, {  37,6836 }, {  38,6836 },
+ {  39,3412 }, {  40,6836 }, {  41,6836 }, {  42,6836 }, {  43,6836 },
+ {  44,6836 }, {  45,6836 }, {  46,6836 }, {  47,6836 }, {  48,6836 },
+ {  49,6836 }, {  50,6836 }, {  51,6836 }, {  52,6836 }, {  53,6836 },
+ {  54,6836 }, {  55,6836 }, {  56,6836 }, {  57,6836 }, {  58,6836 },
+
+ {  59,6836 }, {  60,6836 }, {  61,6836 }, {  62,6836 }, {  63,6836 },
+ {  64,6836 }, {  65,6836 }, {  66,6836 }, {  67,6836 }, {  68,6836 },
+ {  69,6836 }, {  70,6836 }, {  71,6836 }, {  72,6836 }, {  73,6836 },
+ {  74,6836 }, {  75,6836 }, {  76,6836 }, {  77,6836 }, {  78,6836 },
+ {  79,6836 }, {  80,6836 }, {  81,6836 }, {  82,6836 }, {  83,6836 },
+ {  84,6836 }, {  85,6836 }, {  86,6836 }, {  87,6836 }, {  88,6836 },
+ {  89,6836 }, {  90,6836 }, {  91,6836 }, {  92,6836 }, {  93,6836 },
+ {  94,6836 }, {  95,6836 }, {  96,6836 }, {  97,6836 }, {  98,6836 },
+ {  99,6836 }, { 100,6836 }, { 101,6836 }, { 102,6836 }, { 103,6836 },
+ { 104,6836 }, { 105,6836 }, { 106,6836 }, { 107,6836 }, { 108,6836 },
+
+ { 109,6836 }, { 110,6836 }, { 111,6836 }, { 112,6836 }, { 113,6836 },
+ { 114,6836 }, { 115,6836 }, { 116,6836 }, { 117,6836 }, { 118,6836 },
+ { 119,6836 }, { 120,6836 }, { 121,6836 }, { 122,6836 }, { 123,6836 },
+ { 124,6836 }, { 125,6836 }, { 126,6836 }, { 127,6836 }, { 128,6836 },
+ { 129,6836 }, { 130,6836 }, { 131,6836 }, { 132,6836 }, { 133,6836 },
+ { 134,6836 }, { 135,6836 }, { 136,6836 }, { 137,6836 }, { 138,6836 },
+ { 139,6836 }, { 140,6836 }, { 141,6836 }, { 142,6836 }, { 143,6836 },
+ { 144,6836 }, { 145,6836 }, { 146,6836 }, { 147,6836 }, { 148,6836 },
+ { 149,6836 }, { 150,6836 }, { 151,6836 }, { 152,6836 }, { 153,6836 },
+ { 154,6836 }, { 155,6836 }, { 156,6836 }, { 157,6836 }, { 158,6836 },
+
+ { 159,6836 }, { 160,6836 }, { 161,6836 }, { 162,6836 }, { 163,6836 },
+ { 164,6836 }, { 165,6836 }, { 166,6836 }, { 167,6836 }, { 168,6836 },
+ { 169,6836 }, { 170,6836 }, { 171,6836 }, { 172,6836 }, { 173,6836 },
+ { 174,6836 }, { 175,6836 }, { 176,6836 }, { 177,6836 }, { 178,6836 },
+ { 179,6836 }, { 180,6836 }, { 181,6836 }, { 182,6836 }, { 183,6836 },
+ { 184,6836 }, { 185,6836 }, { 186,6836 }, { 187,6836 }, { 188,6836 },
+ { 189,6836 }, { 190,6836 }, { 191,6836 }, { 192,6836 }, { 193,6836 },
+ { 194,6836 }, { 195,6836 }, { 196,6836 }, { 197,6836 }, { 198,6836 },
+ { 199,6836 }, { 200,6836 }, { 201,6836 }, { 202,6836 }, { 203,6836 },
+ { 204,6836 }, { 205,6836 }, { 206,6836 }, { 207,6836 }, { 208,6836 },
+
+ { 209,6836 }, { 210,6836 }, { 211,6836 }, { 212,6836 }, { 213,6836 },
+ { 214,6836 }, { 215,6836 }, { 216,6836 }, { 217,6836 }, { 218,6836 },
+ { 219,6836 }, { 220,6836 }, { 221,6836 }, { 222,6836 }, { 223,6836 },
+ { 224,6836 }, { 225,6836 }, { 226,6836 }, { 227,6836 }, { 228,6836 },
+ { 229,6836 }, { 230,6836 }, { 231,6836 }, { 232,6836 }, { 233,6836 },
+ { 234,6836 }, { 235,6836 }, { 236,6836 }, { 237,6836 }, { 238,6836 },
+ { 239,6836 }, { 240,6836 }, { 241,6836 }, { 242,6836 }, { 243,6836 },
+ { 244,6836 }, { 245,6836 }, { 246,6836 }, { 247,6836 }, { 248,6836 },
+ { 249,6836 }, { 250,6836 }, { 251,6836 }, { 252,6836 }, { 253,6836 },
+ { 254,6836 }, { 255,6836 }, { 256,6836 }, {   0,  19 }, {   0,14324 },
+
+ {   1,3156 }, {   2,3156 }, {   3,3156 }, {   4,3156 }, {   5,3156 },
+ {   6,3156 }, {   7,3156 }, {   8,3156 }, {   9,6836 }, {  10,6841 },
+ {  11,3156 }, {  12,6836 }, {  13,6857 }, {  14,3156 }, {  15,3156 },
+ {  16,3156 }, {  17,3156 }, {  18,3156 }, {  19,3156 }, {  20,3156 },
+ {  21,3156 }, {  22,3156 }, {  23,3156 }, {  24,3156 }, {  25,3156 },
+ {  26,3156 }, {  27,3156 }, {  28,3156 }, {  29,3156 }, {  30,3156 },
+ {  31,3156 }, {  32,6836 }, {  33,3156 }, {  34,3156 }, {  35,3156 },
+ {  36,3156 }, {  37,3156 }, {  38,3156 }, {  39,3156 }, {  40,3156 },
+ {  41,3156 }, {  42,3156 }, {  43,3156 }, {  44,3156 }, {  45,3158 },
+ {  46,3156 }, {  47,3156 }, {  48,3156 }, {  49,3156 }, {  50,3156 },
+
+ {  51,3156 }, {  52,3156 }, {  53,3156 }, {  54,3156 }, {  55,3156 },
+ {  56,3156 }, {  57,3156 }, {  58,3156 }, {  59,3156 }, {  60,3156 },
+ {  61,3156 }, {  62,3156 }, {  63,3156 }, {  64,3156 }, {  65,3156 },
+ {  66,3156 }, {  67,3156 }, {  68,3156 }, {  69,3156 }, {  70,3156 },
+ {  71,3156 }, {  72,3156 }, {  73,3156 }, {  74,3156 }, {  75,3156 },
+ {  76,3156 }, {  77,3156 }, {  78,3156 }, {  79,3156 }, {  80,3156 },
+ {  81,3156 }, {  82,3156 }, {  83,3156 }, {  84,3156 }, {  85,3156 },
+ {  86,3156 }, {  87,3156 }, {  88,3156 }, {  89,3156 }, {  90,3156 },
+ {  91,3156 }, {  92,3156 }, {  93,3156 }, {  94,3156 }, {  95,3156 },
+ {  96,3156 }, {  97,3156 }, {  98,3156 }, {  99,3156 }, { 100,3156 },
+
+ { 101,3156 }, { 102,3156 }, { 103,3156 }, { 104,3156 }, { 105,3156 },
+ { 106,3156 }, { 107,3156 }, { 108,3156 }, { 109,3156 }, { 110,3156 },
+ { 111,3156 }, { 112,3156 }, { 113,3156 }, { 114,3156 }, { 115,3156 },
+ { 116,3156 }, { 117,3156 }, { 118,3156 }, { 119,3156 }, { 120,3156 },
+ { 121,3156 }, { 122,3156 }, { 123,3156 }, { 124,3156 }, { 125,3156 },
+ { 126,3156 }, { 127,3156 }, { 128,3156 }, { 129,3156 }, { 130,3156 },
+ { 131,3156 }, { 132,3156 }, { 133,3156 }, { 134,3156 }, { 135,3156 },
+ { 136,3156 }, { 137,3156 }, { 138,3156 }, { 139,3156 }, { 140,3156 },
+ { 141,3156 }, { 142,3156 }, { 143,3156 }, { 144,3156 }, { 145,3156 },
+ { 146,3156 }, { 147,3156 }, { 148,3156 }, { 149,3156 }, { 150,3156 },
+
+ { 151,3156 }, { 152,3156 }, { 153,3156 }, { 154,3156 }, { 155,3156 },
+ { 156,3156 }, { 157,3156 }, { 158,3156 }, { 159,3156 }, { 160,3156 },
+ { 161,3156 }, { 162,3156 }, { 163,3156 }, { 164,3156 }, { 165,3156 },
+ { 166,3156 }, { 167,3156 }, { 168,3156 }, { 169,3156 }, { 170,3156 },
+ { 171,3156 }, { 172,3156 }, { 173,3156 }, { 174,3156 }, { 175,3156 },
+ { 176,3156 }, { 177,3156 }, { 178,3156 }, { 179,3156 }, { 180,3156 },
+ { 181,3156 }, { 182,3156 }, { 183,3156 }, { 184,3156 }, { 185,3156 },
+ { 186,3156 }, { 187,3156 }, { 188,3156 }, { 189,3156 }, { 190,3156 },
+ { 191,3156 }, { 192,3156 }, { 193,3156 }, { 194,3156 }, { 195,3156 },
+ { 196,3156 }, { 197,3156 }, { 198,3156 }, { 199,3156 }, { 200,3156 },
+
+ { 201,3156 }, { 202,3156 }, { 203,3156 }, { 204,3156 }, { 205,3156 },
+ { 206,3156 }, { 207,3156 }, { 208,3156 }, { 209,3156 }, { 210,3156 },
+ { 211,3156 }, { 212,3156 }, { 213,3156 }, { 214,3156 }, { 215,3156 },
+ { 216,3156 }, { 217,3156 }, { 218,3156 }, { 219,3156 }, { 220,3156 },
+ { 221,3156 }, { 222,3156 }, { 223,3156 }, { 224,3156 }, { 225,3156 },
+ { 226,3156 }, { 227,3156 }, { 228,3156 }, { 229,3156 }, { 230,3156 },
+ { 231,3156 }, { 232,3156 }, { 233,3156 }, { 234,3156 }, { 235,3156 },
+ { 236,3156 }, { 237,3156 }, { 238,3156 }, { 239,3156 }, { 240,3156 },
+ { 241,3156 }, { 242,3156 }, { 243,3156 }, { 244,3156 }, { 245,3156 },
+ { 246,3156 }, { 247,3156 }, { 248,3156 }, { 249,3156 }, { 250,3156 },
+
+ { 251,3156 }, { 252,3156 }, { 253,3156 }, { 254,3156 }, { 255,3156 },
+ { 256,3156 }, {   0,  19 }, {   0,14066 }, {   1,2898 }, {   2,2898 },
+ {   3,2898 }, {   4,2898 }, {   5,2898 }, {   6,2898 }, {   7,2898 },
+ {   8,2898 }, {   9,6578 }, {  10,6583 }, {  11,2898 }, {  12,6578 },
+ {  13,6599 }, {  14,2898 }, {  15,2898 }, {  16,2898 }, {  17,2898 },
+ {  18,2898 }, {  19,2898 }, {  20,2898 }, {  21,2898 }, {  22,2898 },
+ {  23,2898 }, {  24,2898 }, {  25,2898 }, {  26,2898 }, {  27,2898 },
+ {  28,2898 }, {  29,2898 }, {  30,2898 }, {  31,2898 }, {  32,6578 },
+ {  33,2898 }, {  34,2898 }, {  35,2898 }, {  36,2898 }, {  37,2898 },
+ {  38,2898 }, {  39,2898 }, {  40,2898 }, {  41,2898 }, {  42,2898 },
+
+ {  43,2898 }, {  44,2898 }, {  45,2900 }, {  46,2898 }, {  47,2898 },
+ {  48,2898 }, {  49,2898 }, {  50,2898 }, {  51,2898 }, {  52,2898 },
+ {  53,2898 }, {  54,2898 }, {  55,2898 }, {  56,2898 }, {  57,2898 },
+ {  58,2898 }, {  59,2898 }, {  60,2898 }, {  61,2898 }, {  62,2898 },
+ {  63,2898 }, {  64,2898 }, {  65,2898 }, {  66,2898 }, {  67,2898 },
+ {  68,2898 }, {  69,2898 }, {  70,2898 }, {  71,2898 }, {  72,2898 },
+ {  73,2898 }, {  74,2898 }, {  75,2898 }, {  76,2898 }, {  77,2898 },
+ {  78,2898 }, {  79,2898 }, {  80,2898 }, {  81,2898 }, {  82,2898 },
+ {  83,2898 }, {  84,2898 }, {  85,2898 }, {  86,2898 }, {  87,2898 },
+ {  88,2898 }, {  89,2898 }, {  90,2898 }, {  91,2898 }, {  92,2898 },
+
+ {  93,2898 }, {  94,2898 }, {  95,2898 }, {  96,2898 }, {  97,2898 },
+ {  98,2898 }, {  99,2898 }, { 100,2898 }, { 101,2898 }, { 102,2898 },
+ { 103,2898 }, { 104,2898 }, { 105,2898 }, { 106,2898 }, { 107,2898 },
+ { 108,2898 }, { 109,2898 }, { 110,2898 }, { 111,2898 }, { 112,2898 },
+ { 113,2898 }, { 114,2898 }, { 115,2898 }, { 116,2898 }, { 117,2898 },
+ { 118,2898 }, { 119,2898 }, { 120,2898 }, { 121,2898 }, { 122,2898 },
+ { 123,2898 }, { 124,2898 }, { 125,2898 }, { 126,2898 }, { 127,2898 },
+ { 128,2898 }, { 129,2898 }, { 130,2898 }, { 131,2898 }, { 132,2898 },
+ { 133,2898 }, { 134,2898 }, { 135,2898 }, { 136,2898 }, { 137,2898 },
+ { 138,2898 }, { 139,2898 }, { 140,2898 }, { 141,2898 }, { 142,2898 },
+
+ { 143,2898 }, { 144,2898 }, { 145,2898 }, { 146,2898 }, { 147,2898 },
+ { 148,2898 }, { 149,2898 }, { 150,2898 }, { 151,2898 }, { 152,2898 },
+ { 153,2898 }, { 154,2898 }, { 155,2898 }, { 156,2898 }, { 157,2898 },
+ { 158,2898 }, { 159,2898 }, { 160,2898 }, { 161,2898 }, { 162,2898 },
+ { 163,2898 }, { 164,2898 }, { 165,2898 }, { 166,2898 }, { 167,2898 },
+ { 168,2898 }, { 169,2898 }, { 170,2898 }, { 171,2898 }, { 172,2898 },
+ { 173,2898 }, { 174,2898 }, { 175,2898 }, { 176,2898 }, { 177,2898 },
+ { 178,2898 }, { 179,2898 }, { 180,2898 }, { 181,2898 }, { 182,2898 },
+ { 183,2898 }, { 184,2898 }, { 185,2898 }, { 186,2898 }, { 187,2898 },
+ { 188,2898 }, { 189,2898 }, { 190,2898 }, { 191,2898 }, { 192,2898 },
+
+ { 193,2898 }, { 194,2898 }, { 195,2898 }, { 196,2898 }, { 197,2898 },
+ { 198,2898 }, { 199,2898 }, { 200,2898 }, { 201,2898 }, { 202,2898 },
+ { 203,2898 }, { 204,2898 }, { 205,2898 }, { 206,2898 }, { 207,2898 },
+ { 208,2898 }, { 209,2898 }, { 210,2898 }, { 211,2898 }, { 212,2898 },
+ { 213,2898 }, { 214,2898 }, { 215,2898 }, { 216,2898 }, { 217,2898 },
+ { 218,2898 }, { 219,2898 }, { 220,2898 }, { 221,2898 }, { 222,2898 },
+ { 223,2898 }, { 224,2898 }, { 225,2898 }, { 226,2898 }, { 227,2898 },
+ { 228,2898 }, { 229,2898 }, { 230,2898 }, { 231,2898 }, { 232,2898 },
+ { 233,2898 }, { 234,2898 }, { 235,2898 }, { 236,2898 }, { 237,2898 },
+ { 238,2898 }, { 239,2898 }, { 240,2898 }, { 241,2898 }, { 242,2898 },
+
+ { 243,2898 }, { 244,2898 }, { 245,2898 }, { 246,2898 }, { 247,2898 },
+ { 248,2898 }, { 249,2898 }, { 250,2898 }, { 251,2898 }, { 252,2898 },
+ { 253,2898 }, { 254,2898 }, { 255,2898 }, { 256,2898 }, {   0,   0 },
+ {   0,13808 }, {   1,6388 }, {   2,6388 }, {   3,6388 }, {   4,6388 },
+ {   5,6388 }, {   6,6388 }, {   7,6388 }, {   8,6388 }, {   9,6388 },
+ {  10,6646 }, {  11,6388 }, {  12,6388 }, {  13,6388 }, {  14,6388 },
+ {  15,6388 }, {  16,6388 }, {  17,6388 }, {  18,6388 }, {  19,6388 },
+ {  20,6388 }, {  21,6388 }, {  22,6388 }, {  23,6388 }, {  24,6388 },
+ {  25,6388 }, {  26,6388 }, {  27,6388 }, {  28,6388 }, {  29,6388 },
+ {  30,6388 }, {  31,6388 }, {  32,6388 }, {  33,6388 }, {  34,6388 },
+
+ {  35,6388 }, {  36,6388 }, {  37,6388 }, {  38,6388 }, {  39,2645 },
+ {  40,6388 }, {  41,6388 }, {  42,6388 }, {  43,6388 }, {  44,6388 },
+ {  45,6388 }, {  46,6388 }, {  47,6388 }, {  48,6388 }, {  49,6388 },
+ {  50,6388 }, {  51,6388 }, {  52,6388 }, {  53,6388 }, {  54,6388 },
+ {  55,6388 }, {  56,6388 }, {  57,6388 }, {  58,6388 }, {  59,6388 },
+ {  60,6388 }, {  61,6388 }, {  62,6388 }, {  63,6388 }, {  64,6388 },
+ {  65,6388 }, {  66,6388 }, {  67,6388 }, {  68,6388 }, {  69,6388 },
+ {  70,6388 }, {  71,6388 }, {  72,6388 }, {  73,6388 }, {  74,6388 },
+ {  75,6388 }, {  76,6388 }, {  77,6388 }, {  78,6388 }, {  79,6388 },
+ {  80,6388 }, {  81,6388 }, {  82,6388 }, {  83,6388 }, {  84,6388 },
+
+ {  85,6388 }, {  86,6388 }, {  87,6388 }, {  88,6388 }, {  89,6388 },
+ {  90,6388 }, {  91,6388 }, {  92,6904 }, {  93,6388 }, {  94,6388 },
+ {  95,6388 }, {  96,6388 }, {  97,6388 }, {  98,6388 }, {  99,6388 },
+ { 100,6388 }, { 101,6388 }, { 102,6388 }, { 103,6388 }, { 104,6388 },
+ { 105,6388 }, { 106,6388 }, { 107,6388 }, { 108,6388 }, { 109,6388 },
+ { 110,6388 }, { 111,6388 }, { 112,6388 }, { 113,6388 }, { 114,6388 },
+ { 115,6388 }, { 116,6388 }, { 117,6388 }, { 118,6388 }, { 119,6388 },
+ { 120,6388 }, { 121,6388 }, { 122,6388 }, { 123,6388 }, { 124,6388 },
+ { 125,6388 }, { 126,6388 }, { 127,6388 }, { 128,6388 }, { 129,6388 },
+ { 130,6388 }, { 131,6388 }, { 132,6388 }, { 133,6388 }, { 134,6388 },
+
+ { 135,6388 }, { 136,6388 }, { 137,6388 }, { 138,6388 }, { 139,6388 },
+ { 140,6388 }, { 141,6388 }, { 142,6388 }, { 143,6388 }, { 144,6388 },
+ { 145,6388 }, { 146,6388 }, { 147,6388 }, { 148,6388 }, { 149,6388 },
+ { 150,6388 }, { 151,6388 }, { 152,6388 }, { 153,6388 }, { 154,6388 },
+ { 155,6388 }, { 156,6388 }, { 157,6388 }, { 158,6388 }, { 159,6388 },
+ { 160,6388 }, { 161,6388 }, { 162,6388 }, { 163,6388 }, { 164,6388 },
+ { 165,6388 }, { 166,6388 }, { 167,6388 }, { 168,6388 }, { 169,6388 },
+ { 170,6388 }, { 171,6388 }, { 172,6388 }, { 173,6388 }, { 174,6388 },
+ { 175,6388 }, { 176,6388 }, { 177,6388 }, { 178,6388 }, { 179,6388 },
+ { 180,6388 }, { 181,6388 }, { 182,6388 }, { 183,6388 }, { 184,6388 },
+
+ { 185,6388 }, { 186,6388 }, { 187,6388 }, { 188,6388 }, { 189,6388 },
+ { 190,6388 }, { 191,6388 }, { 192,6388 }, { 193,6388 }, { 194,6388 },
+ { 195,6388 }, { 196,6388 }, { 197,6388 }, { 198,6388 }, { 199,6388 },
+ { 200,6388 }, { 201,6388 }, { 202,6388 }, { 203,6388 }, { 204,6388 },
+ { 205,6388 }, { 206,6388 }, { 207,6388 }, { 208,6388 }, { 209,6388 },
+ { 210,6388 }, { 211,6388 }, { 212,6388 }, { 213,6388 }, { 214,6388 },
+ { 215,6388 }, { 216,6388 }, { 217,6388 }, { 218,6388 }, { 219,6388 },
+ { 220,6388 }, { 221,6388 }, { 222,6388 }, { 223,6388 }, { 224,6388 },
+ { 225,6388 }, { 226,6388 }, { 227,6388 }, { 228,6388 }, { 229,6388 },
+ { 230,6388 }, { 231,6388 }, { 232,6388 }, { 233,6388 }, { 234,6388 },
+
+ { 235,6388 }, { 236,6388 }, { 237,6388 }, { 238,6388 }, { 239,6388 },
+ { 240,6388 }, { 241,6388 }, { 242,6388 }, { 243,6388 }, { 244,6388 },
+ { 245,6388 }, { 246,6388 }, { 247,6388 }, { 248,6388 }, { 249,6388 },
+ { 250,6388 }, { 251,6388 }, { 252,6388 }, { 253,6388 }, { 254,6388 },
+ { 255,6388 }, { 256,6388 }, {   0,   0 }, {   0,13550 }, {   1,6130 },
+ {   2,6130 }, {   3,6130 }, {   4,6130 }, {   5,6130 }, {   6,6130 },
+ {   7,6130 }, {   8,6130 }, {   9,6130 }, {  10,6388 }, {  11,6130 },
+ {  12,6130 }, {  13,6130 }, {  14,6130 }, {  15,6130 }, {  16,6130 },
+ {  17,6130 }, {  18,6130 }, {  19,6130 }, {  20,6130 }, {  21,6130 },
+ {  22,6130 }, {  23,6130 }, {  24,6130 }, {  25,6130 }, {  26,6130 },
+
+ {  27,6130 }, {  28,6130 }, {  29,6130 }, {  30,6130 }, {  31,6130 },
+ {  32,6130 }, {  33,6130 }, {  34,6130 }, {  35,6130 }, {  36,6130 },
+ {  37,6130 }, {  38,6130 }, {  39,2387 }, {  40,6130 }, {  41,6130 },
+ {  42,6130 }, {  43,6130 }, {  44,6130 }, {  45,6130 }, {  46,6130 },
+ {  47,6130 }, {  48,6130 }, {  49,6130 }, {  50,6130 }, {  51,6130 },
+ {  52,6130 }, {  53,6130 }, {  54,6130 }, {  55,6130 }, {  56,6130 },
+ {  57,6130 }, {  58,6130 }, {  59,6130 }, {  60,6130 }, {  61,6130 },
+ {  62,6130 }, {  63,6130 }, {  64,6130 }, {  65,6130 }, {  66,6130 },
+ {  67,6130 }, {  68,6130 }, {  69,6130 }, {  70,6130 }, {  71,6130 },
+ {  72,6130 }, {  73,6130 }, {  74,6130 }, {  75,6130 }, {  76,6130 },
+
+ {  77,6130 }, {  78,6130 }, {  79,6130 }, {  80,6130 }, {  81,6130 },
+ {  82,6130 }, {  83,6130 }, {  84,6130 }, {  85,6130 }, {  86,6130 },
+ {  87,6130 }, {  88,6130 }, {  89,6130 }, {  90,6130 }, {  91,6130 },
+ {  92,6646 }, {  93,6130 }, {  94,6130 }, {  95,6130 }, {  96,6130 },
+ {  97,6130 }, {  98,6130 }, {  99,6130 }, { 100,6130 }, { 101,6130 },
+ { 102,6130 }, { 103,6130 }, { 104,6130 }, { 105,6130 }, { 106,6130 },
+ { 107,6130 }, { 108,6130 }, { 109,6130 }, { 110,6130 }, { 111,6130 },
+ { 112,6130 }, { 113,6130 }, { 114,6130 }, { 115,6130 }, { 116,6130 },
+ { 117,6130 }, { 118,6130 }, { 119,6130 }, { 120,6130 }, { 121,6130 },
+ { 122,6130 }, { 123,6130 }, { 124,6130 }, { 125,6130 }, { 126,6130 },
+
+ { 127,6130 }, { 128,6130 }, { 129,6130 }, { 130,6130 }, { 131,6130 },
+ { 132,6130 }, { 133,6130 }, { 134,6130 }, { 135,6130 }, { 136,6130 },
+ { 137,6130 }, { 138,6130 }, { 139,6130 }, { 140,6130 }, { 141,6130 },
+ { 142,6130 }, { 143,6130 }, { 144,6130 }, { 145,6130 }, { 146,6130 },
+ { 147,6130 }, { 148,6130 }, { 149,6130 }, { 150,6130 }, { 151,6130 },
+ { 152,6130 }, { 153,6130 }, { 154,6130 }, { 155,6130 }, { 156,6130 },
+ { 157,6130 }, { 158,6130 }, { 159,6130 }, { 160,6130 }, { 161,6130 },
+ { 162,6130 }, { 163,6130 }, { 164,6130 }, { 165,6130 }, { 166,6130 },
+ { 167,6130 }, { 168,6130 }, { 169,6130 }, { 170,6130 }, { 171,6130 },
+ { 172,6130 }, { 173,6130 }, { 174,6130 }, { 175,6130 }, { 176,6130 },
+
+ { 177,6130 }, { 178,6130 }, { 179,6130 }, { 180,6130 }, { 181,6130 },
+ { 182,6130 }, { 183,6130 }, { 184,6130 }, { 185,6130 }, { 186,6130 },
+ { 187,6130 }, { 188,6130 }, { 189,6130 }, { 190,6130 }, { 191,6130 },
+ { 192,6130 }, { 193,6130 }, { 194,6130 }, { 195,6130 }, { 196,6130 },
+ { 197,6130 }, { 198,6130 }, { 199,6130 }, { 200,6130 }, { 201,6130 },
+ { 202,6130 }, { 203,6130 }, { 204,6130 }, { 205,6130 }, { 206,6130 },
+ { 207,6130 }, { 208,6130 }, { 209,6130 }, { 210,6130 }, { 211,6130 },
+ { 212,6130 }, { 213,6130 }, { 214,6130 }, { 215,6130 }, { 216,6130 },
+ { 217,6130 }, { 218,6130 }, { 219,6130 }, { 220,6130 }, { 221,6130 },
+ { 222,6130 }, { 223,6130 }, { 224,6130 }, { 225,6130 }, { 226,6130 },
+
+ { 227,6130 }, { 228,6130 }, { 229,6130 }, { 230,6130 }, { 231,6130 },
+ { 232,6130 }, { 233,6130 }, { 234,6130 }, { 235,6130 }, { 236,6130 },
+ { 237,6130 }, { 238,6130 }, { 239,6130 }, { 240,6130 }, { 241,6130 },
+ { 242,6130 }, { 243,6130 }, { 244,6130 }, { 245,6130 }, { 246,6130 },
+ { 247,6130 }, { 248,6130 }, { 249,6130 }, { 250,6130 }, { 251,6130 },
+ { 252,6130 }, { 253,6130 }, { 254,6130 }, { 255,6130 }, { 256,6130 },
+ {   0,   0 }, {   0,13292 }, {   1,6646 }, {   2,6646 }, {   3,6646 },
+ {   4,6646 }, {   5,6646 }, {   6,6646 }, {   7,6646 }, {   8,6646 },
+ {   9,6646 }, {  10,6904 }, {  11,6646 }, {  12,6646 }, {  13,6646 },
+ {  14,6646 }, {  15,6646 }, {  16,6646 }, {  17,6646 }, {  18,6646 },
+
+ {  19,6646 }, {  20,6646 }, {  21,6646 }, {  22,6646 }, {  23,6646 },
+ {  24,6646 }, {  25,6646 }, {  26,6646 }, {  27,6646 }, {  28,6646 },
+ {  29,6646 }, {  30,6646 }, {  31,6646 }, {  32,6646 }, {  33,6646 },
+ {  34,6646 }, {  35,6646 }, {  36,7162 }, {  37,6646 }, {  38,6646 },
+ {  39,6646 }, {  40,6646 }, {  41,6646 }, {  42,6646 }, {  43,6646 },
+ {  44,6646 }, {  45,6646 }, {  46,6646 }, {  47,6646 }, {  48,6646 },
+ {  49,6646 }, {  50,6646 }, {  51,6646 }, {  52,6646 }, {  53,6646 },
+ {  54,6646 }, {  55,6646 }, {  56,6646 }, {  57,6646 }, {  58,6646 },
+ {  59,6646 }, {  60,6646 }, {  61,6646 }, {  62,6646 }, {  63,6646 },
+ {  64,6646 }, {  65,6646 }, {  66,6646 }, {  67,6646 }, {  68,6646 },
+
+ {  69,6646 }, {  70,6646 }, {  71,6646 }, {  72,6646 }, {  73,6646 },
+ {  74,6646 }, {  75,6646 }, {  76,6646 }, {  77,6646 }, {  78,6646 },
+ {  79,6646 }, {  80,6646 }, {  81,6646 }, {  82,6646 }, {  83,6646 },
+ {  84,6646 }, {  85,6646 }, {  86,6646 }, {  87,6646 }, {  88,6646 },
+ {  89,6646 }, {  90,6646 }, {  91,6646 }, {  92,6646 }, {  93,6646 },
+ {  94,6646 }, {  95,6646 }, {  96,6646 }, {  97,6646 }, {  98,6646 },
+ {  99,6646 }, { 100,6646 }, { 101,6646 }, { 102,6646 }, { 103,6646 },
+ { 104,6646 }, { 105,6646 }, { 106,6646 }, { 107,6646 }, { 108,6646 },
+ { 109,6646 }, { 110,6646 }, { 111,6646 }, { 112,6646 }, { 113,6646 },
+ { 114,6646 }, { 115,6646 }, { 116,6646 }, { 117,6646 }, { 118,6646 },
+
+ { 119,6646 }, { 120,6646 }, { 121,6646 }, { 122,6646 }, { 123,6646 },
+ { 124,6646 }, { 125,6646 }, { 126,6646 }, { 127,6646 }, { 128,6646 },
+ { 129,6646 }, { 130,6646 }, { 131,6646 }, { 132,6646 }, { 133,6646 },
+ { 134,6646 }, { 135,6646 }, { 136,6646 }, { 137,6646 }, { 138,6646 },
+ { 139,6646 }, { 140,6646 }, { 141,6646 }, { 142,6646 }, { 143,6646 },
+ { 144,6646 }, { 145,6646 }, { 146,6646 }, { 147,6646 }, { 148,6646 },
+ { 149,6646 }, { 150,6646 }, { 151,6646 }, { 152,6646 }, { 153,6646 },
+ { 154,6646 }, { 155,6646 }, { 156,6646 }, { 157,6646 }, { 158,6646 },
+ { 159,6646 }, { 160,6646 }, { 161,6646 }, { 162,6646 }, { 163,6646 },
+ { 164,6646 }, { 165,6646 }, { 166,6646 }, { 167,6646 }, { 168,6646 },
+
+ { 169,6646 }, { 170,6646 }, { 171,6646 }, { 172,6646 }, { 173,6646 },
+ { 174,6646 }, { 175,6646 }, { 176,6646 }, { 177,6646 }, { 178,6646 },
+ { 179,6646 }, { 180,6646 }, { 181,6646 }, { 182,6646 }, { 183,6646 },
+ { 184,6646 }, { 185,6646 }, { 186,6646 }, { 187,6646 }, { 188,6646 },
+ { 189,6646 }, { 190,6646 }, { 191,6646 }, { 192,6646 }, { 193,6646 },
+ { 194,6646 }, { 195,6646 }, { 196,6646 }, { 197,6646 }, { 198,6646 },
+ { 199,6646 }, { 200,6646 }, { 201,6646 }, { 202,6646 }, { 203,6646 },
+ { 204,6646 }, { 205,6646 }, { 206,6646 }, { 207,6646 }, { 208,6646 },
+ { 209,6646 }, { 210,6646 }, { 211,6646 }, { 212,6646 }, { 213,6646 },
+ { 214,6646 }, { 215,6646 }, { 216,6646 }, { 217,6646 }, { 218,6646 },
+
+ { 219,6646 }, { 220,6646 }, { 221,6646 }, { 222,6646 }, { 223,6646 },
+ { 224,6646 }, { 225,6646 }, { 226,6646 }, { 227,6646 }, { 228,6646 },
+ { 229,6646 }, { 230,6646 }, { 231,6646 }, { 232,6646 }, { 233,6646 },
+ { 234,6646 }, { 235,6646 }, { 236,6646 }, { 237,6646 }, { 238,6646 },
+ { 239,6646 }, { 240,6646 }, { 241,6646 }, { 242,6646 }, { 243,6646 },
+ { 244,6646 }, { 245,6646 }, { 246,6646 }, { 247,6646 }, { 248,6646 },
+ { 249,6646 }, { 250,6646 }, { 251,6646 }, { 252,6646 }, { 253,6646 },
+ { 254,6646 }, { 255,6646 }, { 256,6646 }, {   0,   0 }, {   0,13034 },
+ {   1,6388 }, {   2,6388 }, {   3,6388 }, {   4,6388 }, {   5,6388 },
+ {   6,6388 }, {   7,6388 }, {   8,6388 }, {   9,6388 }, {  10,6646 },
+
+ {  11,6388 }, {  12,6388 }, {  13,6388 }, {  14,6388 }, {  15,6388 },
+ {  16,6388 }, {  17,6388 }, {  18,6388 }, {  19,6388 }, {  20,6388 },
+ {  21,6388 }, {  22,6388 }, {  23,6388 }, {  24,6388 }, {  25,6388 },
+ {  26,6388 }, {  27,6388 }, {  28,6388 }, {  29,6388 }, {  30,6388 },
+ {  31,6388 }, {  32,6388 }, {  33,6388 }, {  34,6388 }, {  35,6388 },
+ {  36,6904 }, {  37,6388 }, {  38,6388 }, {  39,6388 }, {  40,6388 },
+ {  41,6388 }, {  42,6388 }, {  43,6388 }, {  44,6388 }, {  45,6388 },
+ {  46,6388 }, {  47,6388 }, {  48,6388 }, {  49,6388 }, {  50,6388 },
+ {  51,6388 }, {  52,6388 }, {  53,6388 }, {  54,6388 }, {  55,6388 },
+ {  56,6388 }, {  57,6388 }, {  58,6388 }, {  59,6388 }, {  60,6388 },
+
+ {  61,6388 }, {  62,6388 }, {  63,6388 }, {  64,6388 }, {  65,6388 },
+ {  66,6388 }, {  67,6388 }, {  68,6388 }, {  69,6388 }, {  70,6388 },
+ {  71,6388 }, {  72,6388 }, {  73,6388 }, {  74,6388 }, {  75,6388 },
+ {  76,6388 }, {  77,6388 }, {  78,6388 }, {  79,6388 }, {  80,6388 },
+ {  81,6388 }, {  82,6388 }, {  83,6388 }, {  84,6388 }, {  85,6388 },
+ {  86,6388 }, {  87,6388 }, {  88,6388 }, {  89,6388 }, {  90,6388 },
+ {  91,6388 }, {  92,6388 }, {  93,6388 }, {  94,6388 }, {  95,6388 },
+ {  96,6388 }, {  97,6388 }, {  98,6388 }, {  99,6388 }, { 100,6388 },
+ { 101,6388 }, { 102,6388 }, { 103,6388 }, { 104,6388 }, { 105,6388 },
+ { 106,6388 }, { 107,6388 }, { 108,6388 }, { 109,6388 }, { 110,6388 },
+
+ { 111,6388 }, { 112,6388 }, { 113,6388 }, { 114,6388 }, { 115,6388 },
+ { 116,6388 }, { 117,6388 }, { 118,6388 }, { 119,6388 }, { 120,6388 },
+ { 121,6388 }, { 122,6388 }, { 123,6388 }, { 124,6388 }, { 125,6388 },
+ { 126,6388 }, { 127,6388 }, { 128,6388 }, { 129,6388 }, { 130,6388 },
+ { 131,6388 }, { 132,6388 }, { 133,6388 }, { 134,6388 }, { 135,6388 },
+ { 136,6388 }, { 137,6388 }, { 138,6388 }, { 139,6388 }, { 140,6388 },
+ { 141,6388 }, { 142,6388 }, { 143,6388 }, { 144,6388 }, { 145,6388 },
+ { 146,6388 }, { 147,6388 }, { 148,6388 }, { 149,6388 }, { 150,6388 },
+ { 151,6388 }, { 152,6388 }, { 153,6388 }, { 154,6388 }, { 155,6388 },
+ { 156,6388 }, { 157,6388 }, { 158,6388 }, { 159,6388 }, { 160,6388 },
+
+ { 161,6388 }, { 162,6388 }, { 163,6388 }, { 164,6388 }, { 165,6388 },
+ { 166,6388 }, { 167,6388 }, { 168,6388 }, { 169,6388 }, { 170,6388 },
+ { 171,6388 }, { 172,6388 }, { 173,6388 }, { 174,6388 }, { 175,6388 },
+ { 176,6388 }, { 177,6388 }, { 178,6388 }, { 179,6388 }, { 180,6388 },
+ { 181,6388 }, { 182,6388 }, { 183,6388 }, { 184,6388 }, { 185,6388 },
+ { 186,6388 }, { 187,6388 }, { 188,6388 }, { 189,6388 }, { 190,6388 },
+ { 191,6388 }, { 192,6388 }, { 193,6388 }, { 194,6388 }, { 195,6388 },
+ { 196,6388 }, { 197,6388 }, { 198,6388 }, { 199,6388 }, { 200,6388 },
+ { 201,6388 }, { 202,6388 }, { 203,6388 }, { 204,6388 }, { 205,6388 },
+ { 206,6388 }, { 207,6388 }, { 208,6388 }, { 209,6388 }, { 210,6388 },
+
+ { 211,6388 }, { 212,6388 }, { 213,6388 }, { 214,6388 }, { 215,6388 },
+ { 216,6388 }, { 217,6388 }, { 218,6388 }, { 219,6388 }, { 220,6388 },
+ { 221,6388 }, { 222,6388 }, { 223,6388 }, { 224,6388 }, { 225,6388 },
+ { 226,6388 }, { 227,6388 }, { 228,6388 }, { 229,6388 }, { 230,6388 },
+ { 231,6388 }, { 232,6388 }, { 233,6388 }, { 234,6388 }, { 235,6388 },
+ { 236,6388 }, { 237,6388 }, { 238,6388 }, { 239,6388 }, { 240,6388 },
+ { 241,6388 }, { 242,6388 }, { 243,6388 }, { 244,6388 }, { 245,6388 },
+ { 246,6388 }, { 247,6388 }, { 248,6388 }, { 249,6388 }, { 250,6388 },
+ { 251,6388 }, { 252,6388 }, { 253,6388 }, { 254,6388 }, { 255,6388 },
+ { 256,6388 }, {   0,   0 }, {   0,12776 }, {   1,4514 }, {   2,4514 },
+
+ {   3,4514 }, {   4,4514 }, {   5,4514 }, {   6,4514 }, {   7,4514 },
+ {   8,4514 }, {   9,4514 }, {  10,4514 }, {  11,4514 }, {  12,4514 },
+ {  13,4514 }, {  14,4514 }, {  15,4514 }, {  16,4514 }, {  17,4514 },
+ {  18,4514 }, {  19,4514 }, {  20,4514 }, {  21,4514 }, {  22,4514 },
+ {  23,4514 }, {  24,4514 }, {  25,4514 }, {  26,4514 }, {  27,4514 },
+ {  28,4514 }, {  29,4514 }, {  30,4514 }, {  31,4514 }, {  32,4514 },
+ {  33,4514 }, {  34,1615 }, {  35,4514 }, {  36,4514 }, {  37,4514 },
+ {  38,4514 }, {  39,4514 }, {  40,4514 }, {  41,4514 }, {  42,4514 },
+ {  43,4514 }, {  44,4514 }, {  45,4514 }, {  46,4514 }, {  47,4514 },
+ {  48,4514 }, {  49,4514 }, {  50,4514 }, {  51,4514 }, {  52,4514 },
+
+ {  53,4514 }, {  54,4514 }, {  55,4514 }, {  56,4514 }, {  57,4514 },
+ {  58,4514 }, {  59,4514 }, {  60,4514 }, {  61,4514 }, {  62,4514 },
+ {  63,4514 }, {  64,4514 }, {  65,4514 }, {  66,4514 }, {  67,4514 },
+ {  68,4514 }, {  69,4514 }, {  70,4514 }, {  71,4514 }, {  72,4514 },
+ {  73,4514 }, {  74,4514 }, {  75,4514 }, {  76,4514 }, {  77,4514 },
+ {  78,4514 }, {  79,4514 }, {  80,4514 }, {  81,4514 }, {  82,4514 },
+ {  83,4514 }, {  84,4514 }, {  85,4514 }, {  86,4514 }, {  87,4514 },
+ {  88,4514 }, {  89,4514 }, {  90,4514 }, {  91,4514 }, {  92,4514 },
+ {  93,4514 }, {  94,4514 }, {  95,4514 }, {  96,4514 }, {  97,4514 },
+ {  98,4514 }, {  99,4514 }, { 100,4514 }, { 101,4514 }, { 102,4514 },
+
+ { 103,4514 }, { 104,4514 }, { 105,4514 }, { 106,4514 }, { 107,4514 },
+ { 108,4514 }, { 109,4514 }, { 110,4514 }, { 111,4514 }, { 112,4514 },
+ { 113,4514 }, { 114,4514 }, { 115,4514 }, { 116,4514 }, { 117,4514 },
+ { 118,4514 }, { 119,4514 }, { 120,4514 }, { 121,4514 }, { 122,4514 },
+ { 123,4514 }, { 124,4514 }, { 125,4514 }, { 126,4514 }, { 127,4514 },
+ { 128,4514 }, { 129,4514 }, { 130,4514 }, { 131,4514 }, { 132,4514 },
+ { 133,4514 }, { 134,4514 }, { 135,4514 }, { 136,4514 }, { 137,4514 },
+ { 138,4514 }, { 139,4514 }, { 140,4514 }, { 141,4514 }, { 142,4514 },
+ { 143,4514 }, { 144,4514 }, { 145,4514 }, { 146,4514 }, { 147,4514 },
+ { 148,4514 }, { 149,4514 }, { 150,4514 }, { 151,4514 }, { 152,4514 },
+
+ { 153,4514 }, { 154,4514 }, { 155,4514 }, { 156,4514 }, { 157,4514 },
+ { 158,4514 }, { 159,4514 }, { 160,4514 }, { 161,4514 }, { 162,4514 },
+ { 163,4514 }, { 164,4514 }, { 165,4514 }, { 166,4514 }, { 167,4514 },
+ { 168,4514 }, { 169,4514 }, { 170,4514 }, { 171,4514 }, { 172,4514 },
+ { 173,4514 }, { 174,4514 }, { 175,4514 }, { 176,4514 }, { 177,4514 },
+ { 178,4514 }, { 179,4514 }, { 180,4514 }, { 181,4514 }, { 182,4514 },
+ { 183,4514 }, { 184,4514 }, { 185,4514 }, { 186,4514 }, { 187,4514 },
+ { 188,4514 }, { 189,4514 }, { 190,4514 }, { 191,4514 }, { 192,4514 },
+ { 193,4514 }, { 194,4514 }, { 195,4514 }, { 196,4514 }, { 197,4514 },
+ { 198,4514 }, { 199,4514 }, { 200,4514 }, { 201,4514 }, { 202,4514 },
+
+ { 203,4514 }, { 204,4514 }, { 205,4514 }, { 206,4514 }, { 207,4514 },
+ { 208,4514 }, { 209,4514 }, { 210,4514 }, { 211,4514 }, { 212,4514 },
+ { 213,4514 }, { 214,4514 }, { 215,4514 }, { 216,4514 }, { 217,4514 },
+ { 218,4514 }, { 219,4514 }, { 220,4514 }, { 221,4514 }, { 222,4514 },
+ { 223,4514 }, { 224,4514 }, { 225,4514 }, { 226,4514 }, { 227,4514 },
+ { 228,4514 }, { 229,4514 }, { 230,4514 }, { 231,4514 }, { 232,4514 },
+ { 233,4514 }, { 234,4514 }, { 235,4514 }, { 236,4514 }, { 237,4514 },
+ { 238,4514 }, { 239,4514 }, { 240,4514 }, { 241,4514 }, { 242,4514 },
+ { 243,4514 }, { 244,4514 }, { 245,4514 }, { 246,4514 }, { 247,4514 },
+ { 248,4514 }, { 249,4514 }, { 250,4514 }, { 251,4514 }, { 252,4514 },
+
+ { 253,4514 }, { 254,4514 }, { 255,4514 }, { 256,4514 }, {   0,   0 },
+ {   0,12518 }, {   1,4256 }, {   2,4256 }, {   3,4256 }, {   4,4256 },
+ {   5,4256 }, {   6,4256 }, {   7,4256 }, {   8,4256 }, {   9,4256 },
+ {  10,4256 }, {  11,4256 }, {  12,4256 }, {  13,4256 }, {  14,4256 },
+ {  15,4256 }, {  16,4256 }, {  17,4256 }, {  18,4256 }, {  19,4256 },
+ {  20,4256 }, {  21,4256 }, {  22,4256 }, {  23,4256 }, {  24,4256 },
+ {  25,4256 }, {  26,4256 }, {  27,4256 }, {  28,4256 }, {  29,4256 },
+ {  30,4256 }, {  31,4256 }, {  32,4256 }, {  33,4256 }, {  34,1357 },
+ {  35,4256 }, {  36,4256 }, {  37,4256 }, {  38,4256 }, {  39,4256 },
+ {  40,4256 }, {  41,4256 }, {  42,4256 }, {  43,4256 }, {  44,4256 },
+
+ {  45,4256 }, {  46,4256 }, {  47,4256 }, {  48,4256 }, {  49,4256 },
+ {  50,4256 }, {  51,4256 }, {  52,4256 }, {  53,4256 }, {  54,4256 },
+ {  55,4256 }, {  56,4256 }, {  57,4256 }, {  58,4256 }, {  59,4256 },
+ {  60,4256 }, {  61,4256 }, {  62,4256 }, {  63,4256 }, {  64,4256 },
+ {  65,4256 }, {  66,4256 }, {  67,4256 }, {  68,4256 }, {  69,4256 },
+ {  70,4256 }, {  71,4256 }, {  72,4256 }, {  73,4256 }, {  74,4256 },
+ {  75,4256 }, {  76,4256 }, {  77,4256 }, {  78,4256 }, {  79,4256 },
+ {  80,4256 }, {  81,4256 }, {  82,4256 }, {  83,4256 }, {  84,4256 },
+ {  85,4256 }, {  86,4256 }, {  87,4256 }, {  88,4256 }, {  89,4256 },
+ {  90,4256 }, {  91,4256 }, {  92,4256 }, {  93,4256 }, {  94,4256 },
+
+ {  95,4256 }, {  96,4256 }, {  97,4256 }, {  98,4256 }, {  99,4256 },
+ { 100,4256 }, { 101,4256 }, { 102,4256 }, { 103,4256 }, { 104,4256 },
+ { 105,4256 }, { 106,4256 }, { 107,4256 }, { 108,4256 }, { 109,4256 },
+ { 110,4256 }, { 111,4256 }, { 112,4256 }, { 113,4256 }, { 114,4256 },
+ { 115,4256 }, { 116,4256 }, { 117,4256 }, { 118,4256 }, { 119,4256 },
+ { 120,4256 }, { 121,4256 }, { 122,4256 }, { 123,4256 }, { 124,4256 },
+ { 125,4256 }, { 126,4256 }, { 127,4256 }, { 128,4256 }, { 129,4256 },
+ { 130,4256 }, { 131,4256 }, { 132,4256 }, { 133,4256 }, { 134,4256 },
+ { 135,4256 }, { 136,4256 }, { 137,4256 }, { 138,4256 }, { 139,4256 },
+ { 140,4256 }, { 141,4256 }, { 142,4256 }, { 143,4256 }, { 144,4256 },
+
+ { 145,4256 }, { 146,4256 }, { 147,4256 }, { 148,4256 }, { 149,4256 },
+ { 150,4256 }, { 151,4256 }, { 152,4256 }, { 153,4256 }, { 154,4256 },
+ { 155,4256 }, { 156,4256 }, { 157,4256 }, { 158,4256 }, { 159,4256 },
+ { 160,4256 }, { 161,4256 }, { 162,4256 }, { 163,4256 }, { 164,4256 },
+ { 165,4256 }, { 166,4256 }, { 167,4256 }, { 168,4256 }, { 169,4256 },
+ { 170,4256 }, { 171,4256 }, { 172,4256 }, { 173,4256 }, { 174,4256 },
+ { 175,4256 }, { 176,4256 }, { 177,4256 }, { 178,4256 }, { 179,4256 },
+ { 180,4256 }, { 181,4256 }, { 182,4256 }, { 183,4256 }, { 184,4256 },
+ { 185,4256 }, { 186,4256 }, { 187,4256 }, { 188,4256 }, { 189,4256 },
+ { 190,4256 }, { 191,4256 }, { 192,4256 }, { 193,4256 }, { 194,4256 },
+
+ { 195,4256 }, { 196,4256 }, { 197,4256 }, { 198,4256 }, { 199,4256 },
+ { 200,4256 }, { 201,4256 }, { 202,4256 }, { 203,4256 }, { 204,4256 },
+ { 205,4256 }, { 206,4256 }, { 207,4256 }, { 208,4256 }, { 209,4256 },
+ { 210,4256 }, { 211,4256 }, { 212,4256 }, { 213,4256 }, { 214,4256 },
+ { 215,4256 }, { 216,4256 }, { 217,4256 }, { 218,4256 }, { 219,4256 },
+ { 220,4256 }, { 221,4256 }, { 222,4256 }, { 223,4256 }, { 224,4256 },
+ { 225,4256 }, { 226,4256 }, { 227,4256 }, { 228,4256 }, { 229,4256 },
+ { 230,4256 }, { 231,4256 }, { 232,4256 }, { 233,4256 }, { 234,4256 },
+ { 235,4256 }, { 236,4256 }, { 237,4256 }, { 238,4256 }, { 239,4256 },
+ { 240,4256 }, { 241,4256 }, { 242,4256 }, { 243,4256 }, { 244,4256 },
+
+ { 245,4256 }, { 246,4256 }, { 247,4256 }, { 248,4256 }, { 249,4256 },
+ { 250,4256 }, { 251,4256 }, { 252,4256 }, { 253,4256 }, { 254,4256 },
+ { 255,4256 }, { 256,4256 }, {   0,   0 }, {   0,12260 }, {   1,4514 },
+ {   2,4514 }, {   3,4514 }, {   4,4514 }, {   5,4514 }, {   6,4514 },
+ {   7,4514 }, {   8,4514 }, {   9,4514 }, {  10,4514 }, {  11,4514 },
+ {  12,4514 }, {  13,4514 }, {  14,4514 }, {  15,4514 }, {  16,4514 },
+ {  17,4514 }, {  18,4514 }, {  19,4514 }, {  20,4514 }, {  21,4514 },
+ {  22,4514 }, {  23,4514 }, {  24,4514 }, {  25,4514 }, {  26,4514 },
+ {  27,4514 }, {  28,4514 }, {  29,4514 }, {  30,4514 }, {  31,4514 },
+ {  32,4514 }, {  33,4514 }, {  34,4514 }, {  35,4514 }, {  36,4514 },
+
+ {  37,4514 }, {  38,4514 }, {  39,1090 }, {  40,4514 }, {  41,4514 },
+ {  42,4514 }, {  43,4514 }, {  44,4514 }, {  45,4514 }, {  46,4514 },
+ {  47,4514 }, {  48,4514 }, {  49,4514 }, {  50,4514 }, {  51,4514 },
+ {  52,4514 }, {  53,4514 }, {  54,4514 }, {  55,4514 }, {  56,4514 },
+ {  57,4514 }, {  58,4514 }, {  59,4514 }, {  60,4514 }, {  61,4514 },
+ {  62,4514 }, {  63,4514 }, {  64,4514 }, {  65,4514 }, {  66,4514 },
+ {  67,4514 }, {  68,4514 }, {  69,4514 }, {  70,4514 }, {  71,4514 },
+ {  72,4514 }, {  73,4514 }, {  74,4514 }, {  75,4514 }, {  76,4514 },
+ {  77,4514 }, {  78,4514 }, {  79,4514 }, {  80,4514 }, {  81,4514 },
+ {  82,4514 }, {  83,4514 }, {  84,4514 }, {  85,4514 }, {  86,4514 },
+
+ {  87,4514 }, {  88,4514 }, {  89,4514 }, {  90,4514 }, {  91,4514 },
+ {  92,4514 }, {  93,4514 }, {  94,4514 }, {  95,4514 }, {  96,4514 },
+ {  97,4514 }, {  98,4514 }, {  99,4514 }, { 100,4514 }, { 101,4514 },
+ { 102,4514 }, { 103,4514 }, { 104,4514 }, { 105,4514 }, { 106,4514 },
+ { 107,4514 }, { 108,4514 }, { 109,4514 }, { 110,4514 }, { 111,4514 },
+ { 112,4514 }, { 113,4514 }, { 114,4514 }, { 115,4514 }, { 116,4514 },
+ { 117,4514 }, { 118,4514 }, { 119,4514 }, { 120,4514 }, { 121,4514 },
+ { 122,4514 }, { 123,4514 }, { 124,4514 }, { 125,4514 }, { 126,4514 },
+ { 127,4514 }, { 128,4514 }, { 129,4514 }, { 130,4514 }, { 131,4514 },
+ { 132,4514 }, { 133,4514 }, { 134,4514 }, { 135,4514 }, { 136,4514 },
+
+ { 137,4514 }, { 138,4514 }, { 139,4514 }, { 140,4514 }, { 141,4514 },
+ { 142,4514 }, { 143,4514 }, { 144,4514 }, { 145,4514 }, { 146,4514 },
+ { 147,4514 }, { 148,4514 }, { 149,4514 }, { 150,4514 }, { 151,4514 },
+ { 152,4514 }, { 153,4514 }, { 154,4514 }, { 155,4514 }, { 156,4514 },
+ { 157,4514 }, { 158,4514 }, { 159,4514 }, { 160,4514 }, { 161,4514 },
+ { 162,4514 }, { 163,4514 }, { 164,4514 }, { 165,4514 }, { 166,4514 },
+ { 167,4514 }, { 168,4514 }, { 169,4514 }, { 170,4514 }, { 171,4514 },
+ { 172,4514 }, { 173,4514 }, { 174,4514 }, { 175,4514 }, { 176,4514 },
+ { 177,4514 }, { 178,4514 }, { 179,4514 }, { 180,4514 }, { 181,4514 },
+ { 182,4514 }, { 183,4514 }, { 184,4514 }, { 185,4514 }, { 186,4514 },
+
+ { 187,4514 }, { 188,4514 }, { 189,4514 }, { 190,4514 }, { 191,4514 },
+ { 192,4514 }, { 193,4514 }, { 194,4514 }, { 195,4514 }, { 196,4514 },
+ { 197,4514 }, { 198,4514 }, { 199,4514 }, { 200,4514 }, { 201,4514 },
+ { 202,4514 }, { 203,4514 }, { 204,4514 }, { 205,4514 }, { 206,4514 },
+ { 207,4514 }, { 208,4514 }, { 209,4514 }, { 210,4514 }, { 211,4514 },
+ { 212,4514 }, { 213,4514 }, { 214,4514 }, { 215,4514 }, { 216,4514 },
+ { 217,4514 }, { 218,4514 }, { 219,4514 }, { 220,4514 }, { 221,4514 },
+ { 222,4514 }, { 223,4514 }, { 224,4514 }, { 225,4514 }, { 226,4514 },
+ { 227,4514 }, { 228,4514 }, { 229,4514 }, { 230,4514 }, { 231,4514 },
+ { 232,4514 }, { 233,4514 }, { 234,4514 }, { 235,4514 }, { 236,4514 },
+
+ { 237,4514 }, { 238,4514 }, { 239,4514 }, { 240,4514 }, { 241,4514 },
+ { 242,4514 }, { 243,4514 }, { 244,4514 }, { 245,4514 }, { 246,4514 },
+ { 247,4514 }, { 248,4514 }, { 249,4514 }, { 250,4514 }, { 251,4514 },
+ { 252,4514 }, { 253,4514 }, { 254,4514 }, { 255,4514 }, { 256,4514 },
+ {   0,   0 }, {   0,12002 }, {   1,4256 }, {   2,4256 }, {   3,4256 },
+ {   4,4256 }, {   5,4256 }, {   6,4256 }, {   7,4256 }, {   8,4256 },
+ {   9,4256 }, {  10,4256 }, {  11,4256 }, {  12,4256 }, {  13,4256 },
+ {  14,4256 }, {  15,4256 }, {  16,4256 }, {  17,4256 }, {  18,4256 },
+ {  19,4256 }, {  20,4256 }, {  21,4256 }, {  22,4256 }, {  23,4256 },
+ {  24,4256 }, {  25,4256 }, {  26,4256 }, {  27,4256 }, {  28,4256 },
+
+ {  29,4256 }, {  30,4256 }, {  31,4256 }, {  32,4256 }, {  33,4256 },
+ {  34,4256 }, {  35,4256 }, {  36,4256 }, {  37,4256 }, {  38,4256 },
+ {  39, 832 }, {  40,4256 }, {  41,4256 }, {  42,4256 }, {  43,4256 },
+ {  44,4256 }, {  45,4256 }, {  46,4256 }, {  47,4256 }, {  48,4256 },
+ {  49,4256 }, {  50,4256 }, {  51,4256 }, {  52,4256 }, {  53,4256 },
+ {  54,4256 }, {  55,4256 }, {  56,4256 }, {  57,4256 }, {  58,4256 },
+ {  59,4256 }, {  60,4256 }, {  61,4256 }, {  62,4256 }, {  63,4256 },
+ {  64,4256 }, {  65,4256 }, {  66,4256 }, {  67,4256 }, {  68,4256 },
+ {  69,4256 }, {  70,4256 }, {  71,4256 }, {  72,4256 }, {  73,4256 },
+ {  74,4256 }, {  75,4256 }, {  76,4256 }, {  77,4256 }, {  78,4256 },
+
+ {  79,4256 }, {  80,4256 }, {  81,4256 }, {  82,4256 }, {  83,4256 },
+ {  84,4256 }, {  85,4256 }, {  86,4256 }, {  87,4256 }, {  88,4256 },
+ {  89,4256 }, {  90,4256 }, {  91,4256 }, {  92,4256 }, {  93,4256 },
+ {  94,4256 }, {  95,4256 }, {  96,4256 }, {  97,4256 }, {  98,4256 },
+ {  99,4256 }, { 100,4256 }, { 101,4256 }, { 102,4256 }, { 103,4256 },
+ { 104,4256 }, { 105,4256 }, { 106,4256 }, { 107,4256 }, { 108,4256 },
+ { 109,4256 }, { 110,4256 }, { 111,4256 }, { 112,4256 }, { 113,4256 },
+ { 114,4256 }, { 115,4256 }, { 116,4256 }, { 117,4256 }, { 118,4256 },
+ { 119,4256 }, { 120,4256 }, { 121,4256 }, { 122,4256 }, { 123,4256 },
+ { 124,4256 }, { 125,4256 }, { 126,4256 }, { 127,4256 }, { 128,4256 },
+
+ { 129,4256 }, { 130,4256 }, { 131,4256 }, { 132,4256 }, { 133,4256 },
+ { 134,4256 }, { 135,4256 }, { 136,4256 }, { 137,4256 }, { 138,4256 },
+ { 139,4256 }, { 140,4256 }, { 141,4256 }, { 142,4256 }, { 143,4256 },
+ { 144,4256 }, { 145,4256 }, { 146,4256 }, { 147,4256 }, { 148,4256 },
+ { 149,4256 }, { 150,4256 }, { 151,4256 }, { 152,4256 }, { 153,4256 },
+ { 154,4256 }, { 155,4256 }, { 156,4256 }, { 157,4256 }, { 158,4256 },
+ { 159,4256 }, { 160,4256 }, { 161,4256 }, { 162,4256 }, { 163,4256 },
+ { 164,4256 }, { 165,4256 }, { 166,4256 }, { 167,4256 }, { 168,4256 },
+ { 169,4256 }, { 170,4256 }, { 171,4256 }, { 172,4256 }, { 173,4256 },
+ { 174,4256 }, { 175,4256 }, { 176,4256 }, { 177,4256 }, { 178,4256 },
+
+ { 179,4256 }, { 180,4256 }, { 181,4256 }, { 182,4256 }, { 183,4256 },
+ { 184,4256 }, { 185,4256 }, { 186,4256 }, { 187,4256 }, { 188,4256 },
+ { 189,4256 }, { 190,4256 }, { 191,4256 }, { 192,4256 }, { 193,4256 },
+ { 194,4256 }, { 195,4256 }, { 196,4256 }, { 197,4256 }, { 198,4256 },
+ { 199,4256 }, { 200,4256 }, { 201,4256 }, { 202,4256 }, { 203,4256 },
+ { 204,4256 }, { 205,4256 }, { 206,4256 }, { 207,4256 }, { 208,4256 },
+ { 209,4256 }, { 210,4256 }, { 211,4256 }, { 212,4256 }, { 213,4256 },
+ { 214,4256 }, { 215,4256 }, { 216,4256 }, { 217,4256 }, { 218,4256 },
+ { 219,4256 }, { 220,4256 }, { 221,4256 }, { 222,4256 }, { 223,4256 },
+ { 224,4256 }, { 225,4256 }, { 226,4256 }, { 227,4256 }, { 228,4256 },
+
+ { 229,4256 }, { 230,4256 }, { 231,4256 }, { 232,4256 }, { 233,4256 },
+ { 234,4256 }, { 235,4256 }, { 236,4256 }, { 237,4256 }, { 238,4256 },
+ { 239,4256 }, { 240,4256 }, { 241,4256 }, { 242,4256 }, { 243,4256 },
+ { 244,4256 }, { 245,4256 }, { 246,4256 }, { 247,4256 }, { 248,4256 },
+ { 249,4256 }, { 250,4256 }, { 251,4256 }, { 252,4256 }, { 253,4256 },
+ { 254,4256 }, { 255,4256 }, { 256,4256 }, {   0,   0 }, {   0,11744 },
+ {   1, 593 }, {   2, 593 }, {   3, 593 }, {   4, 593 }, {   5, 593 },
+ {   6, 593 }, {   7, 593 }, {   8, 593 }, {   9, 593 }, {  10, 597 },
+ {  11, 593 }, {  12, 593 }, {  13, 593 }, {  14, 593 }, {  15, 593 },
+ {  16, 593 }, {  17, 593 }, {  18, 593 }, {  19, 593 }, {  20, 593 },
+
+ {  21, 593 }, {  22, 593 }, {  23, 593 }, {  24, 593 }, {  25, 593 },
+ {  26, 593 }, {  27, 593 }, {  28, 593 }, {  29, 593 }, {  30, 593 },
+ {  31, 593 }, {  32, 593 }, {  33, 593 }, {  34, 593 }, {  35, 593 },
+ {  36, 593 }, {  37, 593 }, {  38, 593 }, {  39, 593 }, {  40, 593 },
+ {  41, 593 }, {  42, 593 }, {  43, 593 }, {  44, 593 }, {  45, 593 },
+ {  46, 593 }, {  47, 593 }, {  48, 593 }, {  49, 593 }, {  50, 593 },
+ {  51, 593 }, {  52, 593 }, {  53, 593 }, {  54, 593 }, {  55, 593 },
+ {  56, 593 }, {  57, 593 }, {  58, 593 }, {  59, 593 }, {  60, 593 },
+ {  61, 593 }, {  62, 593 }, {  63, 593 }, {  64, 593 }, {  65, 593 },
+ {  66, 593 }, {  67, 593 }, {  68, 593 }, {  69, 593 }, {  70, 593 },
+
+ {  71, 593 }, {  72, 593 }, {  73, 593 }, {  74, 593 }, {  75, 593 },
+ {  76, 593 }, {  77, 593 }, {  78, 593 }, {  79, 593 }, {  80, 593 },
+ {  81, 593 }, {  82, 593 }, {  83, 593 }, {  84, 593 }, {  85, 593 },
+ {  86, 593 }, {  87, 593 }, {  88, 593 }, {  89, 593 }, {  90, 593 },
+ {  91, 593 }, {  92, 637 }, {  93, 593 }, {  94, 593 }, {  95, 593 },
+ {  96, 593 }, {  97, 593 }, {  98, 593 }, {  99, 593 }, { 100, 593 },
+ { 101, 593 }, { 102, 593 }, { 103, 593 }, { 104, 593 }, { 105, 593 },
+ { 106, 593 }, { 107, 593 }, { 108, 593 }, { 109, 593 }, { 110, 593 },
+ { 111, 593 }, { 112, 593 }, { 113, 593 }, { 114, 593 }, { 115, 593 },
+ { 116, 593 }, { 117, 593 }, { 118, 593 }, { 119, 593 }, { 120, 593 },
+
+ { 121, 593 }, { 122, 593 }, { 123, 593 }, { 124, 593 }, { 125, 593 },
+ { 126, 593 }, { 127, 593 }, { 128, 593 }, { 129, 593 }, { 130, 593 },
+ { 131, 593 }, { 132, 593 }, { 133, 593 }, { 134, 593 }, { 135, 593 },
+ { 136, 593 }, { 137, 593 }, { 138, 593 }, { 139, 593 }, { 140, 593 },
+ { 141, 593 }, { 142, 593 }, { 143, 593 }, { 144, 593 }, { 145, 593 },
+ { 146, 593 }, { 147, 593 }, { 148, 593 }, { 149, 593 }, { 150, 593 },
+ { 151, 593 }, { 152, 593 }, { 153, 593 }, { 154, 593 }, { 155, 593 },
+ { 156, 593 }, { 157, 593 }, { 158, 593 }, { 159, 593 }, { 160, 593 },
+ { 161, 593 }, { 162, 593 }, { 163, 593 }, { 164, 593 }, { 165, 593 },
+ { 166, 593 }, { 167, 593 }, { 168, 593 }, { 169, 593 }, { 170, 593 },
+
+ { 171, 593 }, { 172, 593 }, { 173, 593 }, { 174, 593 }, { 175, 593 },
+ { 176, 593 }, { 177, 593 }, { 178, 593 }, { 179, 593 }, { 180, 593 },
+ { 181, 593 }, { 182, 593 }, { 183, 593 }, { 184, 593 }, { 185, 593 },
+ { 186, 593 }, { 187, 593 }, { 188, 593 }, { 189, 593 }, { 190, 593 },
+ { 191, 593 }, { 192, 593 }, { 193, 593 }, { 194, 593 }, { 195, 593 },
+ { 196, 593 }, { 197, 593 }, { 198, 593 }, { 199, 593 }, { 200, 593 },
+ { 201, 593 }, { 202, 593 }, { 203, 593 }, { 204, 593 }, { 205, 593 },
+ { 206, 593 }, { 207, 593 }, { 208, 593 }, { 209, 593 }, { 210, 593 },
+ { 211, 593 }, { 212, 593 }, { 213, 593 }, { 214, 593 }, { 215, 593 },
+ { 216, 593 }, { 217, 593 }, { 218, 593 }, { 219, 593 }, { 220, 593 },
+
+ { 221, 593 }, { 222, 593 }, { 223, 593 }, { 224, 593 }, { 225, 593 },
+ { 226, 593 }, { 227, 593 }, { 228, 593 }, { 229, 593 }, { 230, 593 },
+ { 231, 593 }, { 232, 593 }, { 233, 593 }, { 234, 593 }, { 235, 593 },
+ { 236, 593 }, { 237, 593 }, { 238, 593 }, { 239, 593 }, { 240, 593 },
+ { 241, 593 }, { 242, 593 }, { 243, 593 }, { 244, 593 }, { 245, 593 },
+ { 246, 593 }, { 247, 593 }, { 248, 593 }, { 249, 593 }, { 250, 593 },
+ { 251, 593 }, { 252, 593 }, { 253, 593 }, { 254, 593 }, { 255, 593 },
+ { 256, 593 }, {   0,   0 }, {   0,11486 }, {   1, 335 }, {   2, 335 },
+ {   3, 335 }, {   4, 335 }, {   5, 335 }, {   6, 335 }, {   7, 335 },
+ {   8, 335 }, {   9, 335 }, {  10, 339 }, {  11, 335 }, {  12, 335 },
+
+ {  13, 335 }, {  14, 335 }, {  15, 335 }, {  16, 335 }, {  17, 335 },
+ {  18, 335 }, {  19, 335 }, {  20, 335 }, {  21, 335 }, {  22, 335 },
+ {  23, 335 }, {  24, 335 }, {  25, 335 }, {  26, 335 }, {  27, 335 },
+ {  28, 335 }, {  29, 335 }, {  30, 335 }, {  31, 335 }, {  32, 335 },
+ {  33, 335 }, {  34, 335 }, {  35, 335 }, {  36, 335 }, {  37, 335 },
+ {  38, 335 }, {  39, 335 }, {  40, 335 }, {  41, 335 }, {  42, 335 },
+ {  43, 335 }, {  44, 335 }, {  45, 335 }, {  46, 335 }, {  47, 335 },
+ {  48, 335 }, {  49, 335 }, {  50, 335 }, {  51, 335 }, {  52, 335 },
+ {  53, 335 }, {  54, 335 }, {  55, 335 }, {  56, 335 }, {  57, 335 },
+ {  58, 335 }, {  59, 335 }, {  60, 335 }, {  61, 335 }, {  62, 335 },
+
+ {  63, 335 }, {  64, 335 }, {  65, 335 }, {  66, 335 }, {  67, 335 },
+ {  68, 335 }, {  69, 335 }, {  70, 335 }, {  71, 335 }, {  72, 335 },
+ {  73, 335 }, {  74, 335 }, {  75, 335 }, {  76, 335 }, {  77, 335 },
+ {  78, 335 }, {  79, 335 }, {  80, 335 }, {  81, 335 }, {  82, 335 },
+ {  83, 335 }, {  84, 335 }, {  85, 335 }, {  86, 335 }, {  87, 335 },
+ {  88, 335 }, {  89, 335 }, {  90, 335 }, {  91, 335 }, {  92, 379 },
+ {  93, 335 }, {  94, 335 }, {  95, 335 }, {  96, 335 }, {  97, 335 },
+ {  98, 335 }, {  99, 335 }, { 100, 335 }, { 101, 335 }, { 102, 335 },
+ { 103, 335 }, { 104, 335 }, { 105, 335 }, { 106, 335 }, { 107, 335 },
+ { 108, 335 }, { 109, 335 }, { 110, 335 }, { 111, 335 }, { 112, 335 },
+
+ { 113, 335 }, { 114, 335 }, { 115, 335 }, { 116, 335 }, { 117, 335 },
+ { 118, 335 }, { 119, 335 }, { 120, 335 }, { 121, 335 }, { 122, 335 },
+ { 123, 335 }, { 124, 335 }, { 125, 335 }, { 126, 335 }, { 127, 335 },
+ { 128, 335 }, { 129, 335 }, { 130, 335 }, { 131, 335 }, { 132, 335 },
+ { 133, 335 }, { 134, 335 }, { 135, 335 }, { 136, 335 }, { 137, 335 },
+ { 138, 335 }, { 139, 335 }, { 140, 335 }, { 141, 335 }, { 142, 335 },
+ { 143, 335 }, { 144, 335 }, { 145, 335 }, { 146, 335 }, { 147, 335 },
+ { 148, 335 }, { 149, 335 }, { 150, 335 }, { 151, 335 }, { 152, 335 },
+ { 153, 335 }, { 154, 335 }, { 155, 335 }, { 156, 335 }, { 157, 335 },
+ { 158, 335 }, { 159, 335 }, { 160, 335 }, { 161, 335 }, { 162, 335 },
+
+ { 163, 335 }, { 164, 335 }, { 165, 335 }, { 166, 335 }, { 167, 335 },
+ { 168, 335 }, { 169, 335 }, { 170, 335 }, { 171, 335 }, { 172, 335 },
+ { 173, 335 }, { 174, 335 }, { 175, 335 }, { 176, 335 }, { 177, 335 },
+ { 178, 335 }, { 179, 335 }, { 180, 335 }, { 181, 335 }, { 182, 335 },
+ { 183, 335 }, { 184, 335 }, { 185, 335 }, { 186, 335 }, { 187, 335 },
+ { 188, 335 }, { 189, 335 }, { 190, 335 }, { 191, 335 }, { 192, 335 },
+ { 193, 335 }, { 194, 335 }, { 195, 335 }, { 196, 335 }, { 197, 335 },
+ { 198, 335 }, { 199, 335 }, { 200, 335 }, { 201, 335 }, { 202, 335 },
+ { 203, 335 }, { 204, 335 }, { 205, 335 }, { 206, 335 }, { 207, 335 },
+ { 208, 335 }, { 209, 335 }, { 210, 335 }, { 211, 335 }, { 212, 335 },
+
+ { 213, 335 }, { 214, 335 }, { 215, 335 }, { 216, 335 }, { 217, 335 },
+ { 218, 335 }, { 219, 335 }, { 220, 335 }, { 221, 335 }, { 222, 335 },
+ { 223, 335 }, { 224, 335 }, { 225, 335 }, { 226, 335 }, { 227, 335 },
+ { 228, 335 }, { 229, 335 }, { 230, 335 }, { 231, 335 }, { 232, 335 },
+ { 233, 335 }, { 234, 335 }, { 235, 335 }, { 236, 335 }, { 237, 335 },
+ { 238, 335 }, { 239, 335 }, { 240, 335 }, { 241, 335 }, { 242, 335 },
+ { 243, 335 }, { 244, 335 }, { 245, 335 }, { 246, 335 }, { 247, 335 },
+ { 248, 335 }, { 249, 335 }, { 250, 335 }, { 251, 335 }, { 252, 335 },
+ { 253, 335 }, { 254, 335 }, { 255, 335 }, { 256, 335 }, {   0,  65 },
+ {   0,11228 }, {   0,   1 }, {   0,11226 }, {   0,  39 }, {   0,11224 },
+
+ {   0,   0 }, {   0,   1 }, {   0,11221 }, {   0,  56 }, {   0,11219 },
+ {   0,   0 }, {   9,5098 }, {  10,5098 }, {   0,   0 }, {  12,5098 },
+ {  13,5098 }, {   9,5093 }, {  10,5093 }, {   0,   0 }, {  12,5093 },
+ {  13,5093 }, {   0,  14 }, {   0,11206 }, {   0,  55 }, {   0,11204 },
+ {   0,   0 }, {   0,  55 }, {   0,11201 }, {   0,  17 }, {   0,11199 },
+ {   0,   0 }, {   0,   7 }, {   0,11196 }, {   0,   0 }, {  32,5098 },
+ {   0,   7 }, {   0,11192 }, {   0,   0 }, {   0,   0 }, {  32,5093 },
+ {   0,  41 }, {   0,11187 }, {  33,5346 }, {   0,   0 }, {  35,5346 },
+ {   0,   0 }, {  37,5346 }, {  38,5346 }, {   0,  56 }, {   0,11179 },
+ {   0,   0 }, {  42,5346 }, {  43,5346 }, {   0,   0 }, {  45,5346 },
+
+ {   0,   0 }, {  47,5346 }, {   0,  17 }, {   0,11170 }, {   0,  20 },
+ {   0,11168 }, {   0,  19 }, {   0,11166 }, {   0,   0 }, {   0,  17 },
+ {   0,11163 }, {   0,  42 }, {   0,11161 }, {   0,   0 }, {  60,5346 },
+ {  61,5357 }, {  62,5346 }, {  63,5346 }, {  64,5346 }, {  42, 348 },
+ {  34, 346 }, {   0,  26 }, {   0,11151 }, {  42,7050 }, {  47, 353 },
+ {   0,  27 }, {   0,11147 }, {  33,5306 }, {   0,   0 }, {  35,5306 },
+ {  58, 100 }, {  37,5306 }, {  38,5306 }, {  61, 102 }, {   0,   0 },
+ {   0,   0 }, {  42,5306 }, {  43,5306 }, {   0,   0 }, {  45,5306 },
+ {   0,   0 }, {  47,5306 }, {  39, 331 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  34, 320 }, {   0,   0 }, {  94,5346 }, {  39, 324 },
+
+ {  96,5346 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  60,5306 },
+ {  61,5306 }, {  62,5306 }, {  63,5306 }, {  64,5306 }, {   0,  65 },
+ {   0,11113 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,  26 }, {   0,11107 }, {   0,  33 }, {   0,11105 }, {   0,  48 },
+ {   0,11103 }, {   0,  47 }, {   0,11101 }, {   0,  49 }, {   0,11099 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,5346 }, {   0,   0 },
+ { 126,5346 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,5306 }, {   0,   0 },
+ {  96,5306 }, {   0,   0 }, {   0,  64 }, {   0,11080 }, {   0,   9 },
+ {   0,11078 }, {  36,   8 }, {   0,  15 }, {   0,11075 }, {   0,   0 },
+
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  60,5510 }, {  61,5550 }, {  62,5510 }, {  63,5510 }, {  64,5510 },
- {  42, 408 }, {  34, 420 }, {   0,  54 }, {   0,29962 }, {  42,7294 },
- {  47, 410 }, {   0,  27 }, {   0,29958 }, {  33,5470 }, {   0,   0 },
- {  35,5470 }, {  58, 100 }, {  37,5470 }, {  38,5470 }, {  61, 102 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,5268 }, {  49,5268 },
+ {  50,5268 }, {  51,5268 }, {  52,5268 }, {  53,5268 }, {  54,5268 },
+ {  55,5268 }, {  56,5268 }, {  57,5268 }, { 124,5306 }, {   0,   0 },
+ { 126,5306 }, {   0,  46 }, {   0,11051 }, {   0,  13 }, {   0,11049 },
+ {  65,5331 }, {  66,5331 }, {  67,5331 }, {  68,5331 }, {  69,5331 },
+ {  70,5331 }, {  71,5331 }, {  72,5331 }, {  73,5331 }, {  74,5331 },
+ {  75,5331 }, {  76,5331 }, {  77,5331 }, {  78,5331 }, {  79,5331 },
+ {  80,5331 }, {  81,5331 }, {  82,5331 }, {  83,5331 }, {  84,5331 },
+ {  85,5331 }, {  86,5331 }, {  87,5331 }, {  88,5331 }, {  89,5331 },
 
- {   0,   0 }, {   0,   0 }, {  42,5470 }, {  43,5470 }, {  34, 402 },
- {  45,5470 }, {   0,   0 }, {  47,5470 }, {   0,   0 }, {   0,  27 },
- {   0,29940 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,5510 },
- {   0,   0 }, {  96,5510 }, {   0,  27 }, {   0,29932 }, {  45,9179 },
- {  60,5470 }, {  61,5470 }, {  62,5470 }, {  63,5470 }, {  64,5470 },
- {   0,  79 }, {   0,29924 }, {   0,  35 }, {   0,29922 }, {   0,  36 },
- {   0,29920 }, {   0,  35 }, {   0,29918 }, {   0,  43 }, {   0,29916 },
- {   0,  62 }, {   0,29914 }, {   0,  61 }, {   0,29912 }, {   0,  63 },
- {   0,29910 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,5510 },
- {   0,   0 }, { 126,5510 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  90,5331 }, {  85,8881 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  95,5331 }, {  63,   0 }, {  97,5331 }, {  98,5331 }, {  99,5331 },
+ { 100,5331 }, { 101,5331 }, { 102,5331 }, { 103,5331 }, { 104,5331 },
+ { 105,5331 }, { 106,5331 }, { 107,5331 }, { 108,5331 }, { 109,5331 },
+ { 110,5331 }, { 111,5331 }, { 112,5331 }, { 113,5331 }, { 114,5331 },
+ { 115,5331 }, { 116,5331 }, { 117,5331 }, { 118,5331 }, { 119,5331 },
+ { 120,5331 }, { 121,5331 }, { 122,5331 }, { 117,8904 }, {   0,   0 },
+ {  63, -29 }, {   0,   0 }, {   0,   0 }, { 128,5331 }, { 129,5331 },
+ { 130,5331 }, { 131,5331 }, { 132,5331 }, { 133,5331 }, { 134,5331 },
+ { 135,5331 }, { 136,5331 }, { 137,5331 }, { 138,5331 }, { 139,5331 },
 
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,5470 },
- {  45,9456 }, {  96,5470 }, {  69, 465 }, {   0,  78 }, {   0,29891 },
- {   0,   8 }, {   0,29889 }, {  36,   8 }, {   0,  20 }, {   0,29886 },
+ { 140,5331 }, { 141,5331 }, { 142,5331 }, { 143,5331 }, { 144,5331 },
+ { 145,5331 }, { 146,5331 }, { 147,5331 }, { 148,5331 }, { 149,5331 },
+ { 150,5331 }, { 151,5331 }, { 152,5331 }, { 153,5331 }, { 154,5331 },
+ { 155,5331 }, { 156,5331 }, { 157,5331 }, { 158,5331 }, { 159,5331 },
+ { 160,5331 }, { 161,5331 }, { 162,5331 }, { 163,5331 }, { 164,5331 },
+ { 165,5331 }, { 166,5331 }, { 167,5331 }, { 168,5331 }, { 169,5331 },
+ { 170,5331 }, { 171,5331 }, { 172,5331 }, { 173,5331 }, { 174,5331 },
+ { 175,5331 }, { 176,5331 }, { 177,5331 }, { 178,5331 }, { 179,5331 },
+ { 180,5331 }, { 181,5331 }, { 182,5331 }, { 183,5331 }, { 184,5331 },
+ { 185,5331 }, { 186,5331 }, { 187,5331 }, { 188,5331 }, { 189,5331 },
+
+ { 190,5331 }, { 191,5331 }, { 192,5331 }, { 193,5331 }, { 194,5331 },
+ { 195,5331 }, { 196,5331 }, { 197,5331 }, { 198,5331 }, { 199,5331 },
+ { 200,5331 }, { 201,5331 }, { 202,5331 }, { 203,5331 }, { 204,5331 },
+ { 205,5331 }, { 206,5331 }, { 207,5331 }, { 208,5331 }, { 209,5331 },
+ { 210,5331 }, { 211,5331 }, { 212,5331 }, { 213,5331 }, { 214,5331 },
+ { 215,5331 }, { 216,5331 }, { 217,5331 }, { 218,5331 }, { 219,5331 },
+ { 220,5331 }, { 221,5331 }, { 222,5331 }, { 223,5331 }, { 224,5331 },
+ { 225,5331 }, { 226,5331 }, { 227,5331 }, { 228,5331 }, { 229,5331 },
+ { 230,5331 }, { 231,5331 }, { 232,5331 }, { 233,5331 }, { 234,5331 },
+ { 235,5331 }, { 236,5331 }, { 237,5331 }, { 238,5331 }, { 239,5331 },
+
+ { 240,5331 }, { 241,5331 }, { 242,5331 }, { 243,5331 }, { 244,5331 },
+ { 245,5331 }, { 246,5331 }, { 247,5331 }, { 248,5331 }, { 249,5331 },
+ { 250,5331 }, { 251,5331 }, { 252,5331 }, { 253,5331 }, { 254,5331 },
+ { 255,5331 }, {   0,  55 }, {   0,10856 }, {   0,  45 }, {   0,10854 },
+ {   0,  12 }, {   0,10852 }, {   0,   0 }, {   0,   0 }, {   0,   8 },
+ {   0,10848 }, {   0,   0 }, {   0,  55 }, {   0,10845 }, {   0,   5 },
+ {   0,10843 }, {   0,  43 }, {   0,10841 }, {   0,  21 }, {   0,10839 },
+ {   0,  19 }, {   0,10837 }, {   0,  18 }, {   0,10835 }, {   0,  29 },
+ {   0,10833 }, {   0,  35 }, {   0,10831 }, {   0,  60 }, {   0,10829 },
+ {   0,   0 }, {   0,  55 }, {   0,10826 }, {   0,  40 }, {   0,10824 },
+
+ {  33,4983 }, {   0,   0 }, {  35,4983 }, {  34,  30 }, {  37,4983 },
+ {  38,4983 }, {   0,  16 }, {   0,10816 }, {  39,  38 }, {  42,4983 },
+ {  43,4983 }, {  33,4972 }, {  45,4983 }, {  35,4972 }, {  47,4983 },
+ {  37,4972 }, {  38,4972 }, {  42,   0 }, {   0,  30 }, {   0,10804 },
+ {  42,4972 }, {  43,4972 }, {  47,   5 }, {  45,5320 }, {   0,   0 },
+ {  47,4972 }, {   0,   0 }, {  60,4983 }, {  61,4983 }, {  62,4983 },
+ {  63,4983 }, {  64,4983 }, {   0,  31 }, {   0,10790 }, {   0,  24 },
+ {   0,10788 }, {   0,  25 }, {   0,10786 }, {  60,4972 }, {  61,4972 },
+ {  62,4972 }, {  63,4972 }, {  64,4972 }, {  46,-277 }, {   0,   0 },
+ {  48,5559 }, {  49,5559 }, {  50,5559 }, {  51,5559 }, {  52,5559 },
+
+ {  53,5559 }, {  54,5559 }, {  55,5559 }, {  56,5559 }, {  57,5559 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,5461 },
- {  49,5461 }, {  50,5461 }, {  51,5461 }, {  52,5461 }, {  53,5461 },
- {  54,5461 }, {  55,5461 }, {  56,5461 }, {  57,5461 }, { 124,5470 },
- {   0,   0 }, { 126,5470 }, {  69, 447 }, {   0,   0 }, { 101, 465 },
- {   0,   0 }, {  65,5523 }, {  66,5523 }, {  67,5523 }, {  68,5523 },
- {  69,5523 }, {  70,5523 }, {  71,5523 }, {  72,5523 }, {  73,5523 },
-
- {  74,5523 }, {  75,5523 }, {  76,5523 }, {  77,5523 }, {  78,5523 },
- {  79,5523 }, {  80,5523 }, {  81,5523 }, {  82,5523 }, {  83,5523 },
- {  84,5523 }, {  85,5523 }, {  86,5523 }, {  87,5523 }, {  88,5523 },
- {  89,5523 }, {  90,5523 }, {  85,9692 }, {   0,   0 }, { 101, 447 },
- {   0,   0 }, {  95,5523 }, {  63,   0 }, {  97,5523 }, {  98,5523 },
- {  99,5523 }, { 100,5523 }, { 101,5523 }, { 102,5523 }, { 103,5523 },
- { 104,5523 }, { 105,5523 }, { 106,5523 }, { 107,5523 }, { 108,5523 },
- { 109,5523 }, { 110,5523 }, { 111,5523 }, { 112,5523 }, { 113,5523 },
- { 114,5523 }, { 115,5523 }, { 116,5523 }, { 117,5523 }, { 118,5523 },
- { 119,5523 }, { 120,5523 }, { 121,5523 }, { 122,5523 }, { 117,9715 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,5523 },
- { 129,5523 }, { 130,5523 }, { 131,5523 }, { 132,5523 }, { 133,5523 },
- { 134,5523 }, { 135,5523 }, { 136,5523 }, { 137,5523 }, { 138,5523 },
- { 139,5523 }, { 140,5523 }, { 141,5523 }, { 142,5523 }, { 143,5523 },
- { 144,5523 }, { 145,5523 }, { 146,5523 }, { 147,5523 }, { 148,5523 },
- { 149,5523 }, { 150,5523 }, { 151,5523 }, { 152,5523 }, { 153,5523 },
- { 154,5523 }, { 155,5523 }, { 156,5523 }, { 157,5523 }, { 158,5523 },
- { 159,5523 }, { 160,5523 }, { 161,5523 }, { 162,5523 }, { 163,5523 },
- { 164,5523 }, { 165,5523 }, { 166,5523 }, { 167,5523 }, { 168,5523 },
- { 169,5523 }, { 170,5523 }, { 171,5523 }, { 172,5523 }, { 173,5523 },
-
- { 174,5523 }, { 175,5523 }, { 176,5523 }, { 177,5523 }, { 178,5523 },
- { 179,5523 }, { 180,5523 }, { 181,5523 }, { 182,5523 }, { 183,5523 },
- { 184,5523 }, { 185,5523 }, { 186,5523 }, { 187,5523 }, { 188,5523 },
- { 189,5523 }, { 190,5523 }, { 191,5523 }, { 192,5523 }, { 193,5523 },
- { 194,5523 }, { 195,5523 }, { 196,5523 }, { 197,5523 }, { 198,5523 },
- { 199,5523 }, { 200,5523 }, { 201,5523 }, { 202,5523 }, { 203,5523 },
- { 204,5523 }, { 205,5523 }, { 206,5523 }, { 207,5523 }, { 208,5523 },
- { 209,5523 }, { 210,5523 }, { 211,5523 }, { 212,5523 }, { 213,5523 },
- { 214,5523 }, { 215,5523 }, { 216,5523 }, { 217,5523 }, { 218,5523 },
- { 219,5523 }, { 220,5523 }, { 221,5523 }, { 222,5523 }, { 223,5523 },
-
- { 224,5523 }, { 225,5523 }, { 226,5523 }, { 227,5523 }, { 228,5523 },
- { 229,5523 }, { 230,5523 }, { 231,5523 }, { 232,5523 }, { 233,5523 },
- { 234,5523 }, { 235,5523 }, { 236,5523 }, { 237,5523 }, { 238,5523 },
- { 239,5523 }, { 240,5523 }, { 241,5523 }, { 242,5523 }, { 243,5523 },
- { 244,5523 }, { 245,5523 }, { 246,5523 }, { 247,5523 }, { 248,5523 },
- { 249,5523 }, { 250,5523 }, { 251,5523 }, { 252,5523 }, { 253,5523 },
- { 254,5523 }, { 255,5523 }, {   0,  69 }, {   0,29667 }, {   0,  60 },
- {   0,29665 }, {   0,  18 }, {   0,29663 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  69 }, {   0,29656 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  59 }, {   0,29651 },
-
- {   0,  15 }, {   0,29649 }, {   0,   0 }, {   0,  10 }, {   0,29646 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,  69 }, {   0,29637 }, {   0,   0 },
- {   0,   0 }, {  33,5147 }, {   0,   0 }, {  35,5147 }, {   0,   0 },
- {  37,5147 }, {  38,5147 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  42,5147 }, {  43,5147 }, {  33,5136 }, {  45,5147 }, {  35,5136 },
- {  47,5147 }, {  37,5136 }, {  38,5136 }, {  34, 170 }, {   0,   0 },
- {   0,   0 }, {  42,5136 }, {  43,5136 }, {  39, 172 }, {  45,5512 },
- {   0,   0 }, {  47,5136 }, {   0,   0 }, {  60,5147 }, {  61,5147 },
- {  62,5147 }, {  63,5147 }, {  64,5147 }, {  63,-226 }, {  45,10420 },
-
- {   0,   7 }, {   0,29599 }, {   0,   4 }, {   0,29597 }, {  60,5136 },
- {  61,5136 }, {  62,5136 }, {  63,5136 }, {  64,5136 }, {  46,-277 },
- {   0,   0 }, {  48,5751 }, {  49,5751 }, {  50,5751 }, {  51,5751 },
- {  52,5751 }, {  53,5751 }, {  54,5751 }, {  55,5751 }, {  56,5751 },
- {  57,5751 }, {   0,  57 }, {   0,29578 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  94,5147 }, {   0,   0 }, {  96,5147 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  69 }, {   0,29566 },
- {   0,  72 }, {   0,29564 }, {   0,   0 }, {  94,5136 }, {   0,   0 },
- {  96,5136 }, {   0,   0 }, {   0,   0 }, {  42,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  47,   2 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  17 }, {   0,29546 },
- {   0,  30 }, {   0,29544 }, { 124,5147 }, {   0,   0 }, { 126,5147 },
- {   0,  23 }, {   0,29539 }, {   0,  38 }, {   0,29537 }, {   0,  45 },
- {   0,29535 }, {   0,   0 }, {  33,5046 }, { 124,5136 }, {  35,5046 },
- { 126,5136 }, {  37,5046 }, {  38,5046 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  42,5705 }, {  43,5046 }, {   0,   0 }, {  45,5046 },
- {   0,   0 }, {  47,5046 }, {  46,5705 }, {   0,   0 }, {  48,5769 },
- {  49,5769 }, {  50,5769 }, {  51,5769 }, {  52,5769 }, {  53,5769 },
- {  54,5769 }, {  55,5769 }, {  56,5769 }, {  57,5769 }, {  60,5046 },
- {  61,5046 }, {  62,5046 }, {  63,5046 }, {  64,5046 }, {  45,10706 },
-
- {   0,  69 }, {   0,29499 }, {   0,  55 }, {   0,29497 }, {   0,   0 },
- {  69,5791 }, {  45,11004 }, {   0,  25 }, {   0,29492 }, {   0,   0 },
- {   0,   0 }, {   0,  69 }, {   0,29488 }, {   0,   0 }, {   0,  28 },
- {   0,29485 }, {   0,  74 }, {   0,29483 }, {   0,  50 }, {   0,29481 },
- {   0,  21 }, {   0,29479 }, {   0,  14 }, {   0,29477 }, {   0,  10 },
- {   0,29475 }, {   0,  13 }, {   0,29473 }, {  94,5046 }, {   0,   0 },
- {  96,5046 }, {   0,  17 }, {   0,29468 }, {   0,   0 }, {  33,4979 },
- {   0,   0 }, {  35,4979 }, { 101,5791 }, {  37,4979 }, {  38,4979 },
- {   0,  41 }, {   0,29459 }, {   0,   0 }, {  42,4979 }, {  43,4979 },
- {  33,4968 }, {  45,4979 }, {  35,4968 }, {  47,4979 }, {  37,4968 },
-
- {  38,4968 }, {   0,   0 }, {   0,   0 }, {  45,11918 }, {  42,4968 },
- {  43,4968 }, {   0,   0 }, {  45,4968 }, { 124,5046 }, {  47,4968 },
- { 126,5046 }, {  60,4979 }, {  61,5766 }, {  62,5807 }, {  63,4979 },
- {  64,4979 }, {   0,   0 }, {   0,  23 }, {   0,29432 }, {   0,   0 },
- {  45,12544 }, {   0,   0 }, {  60,4968 }, {  61,4968 }, {  62,5863 },
- {  63,4968 }, {  64,4968 }, {  45,13569 }, {   0,  69 }, {   0,29421 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  83, 100 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  94,4979 }, {   0,   0 }, {  96,4979 }, {  83, 377 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,  55 }, {   0,29397 }, {   0,  25 },
- {   0,29395 }, {  94,4968 }, {   0,   0 }, {  96,4968 }, {   0,   0 },
- {   0,  78 }, {   0,29389 }, {  33,4901 }, {  45,14565 }, {  35,4901 },
- {   0,   0 }, {  37,4901 }, {  38,4901 }, { 115, 100 }, {   0,   0 },
- {   0,   0 }, {  42,4901 }, {  43,4901 }, {   0,   0 }, {  45,4901 },
- { 124,4979 }, {  47,4901 }, { 126,4979 }, {   0,   0 }, {   0,   0 },
- { 115, 377 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, { 124,4968 }, {   0,   0 }, { 126,4968 }, {  60,4901 },
- {  61,5807 }, {  62,4901 }, {  63,4901 }, {  64,4901 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  36,5855 }, {   0,   0 }, {   0,   0 },
-
- {  45,15687 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,5855 },
- {  49,5855 }, {  50,5855 }, {  51,5855 }, {  52,5855 }, {  53,5855 },
- {  54,5855 }, {  55,5855 }, {  56,5855 }, {  57,5855 }, {   0,   0 },
- {  67, 548 }, {   0,   0 }, {   0,   0 }, {  94,4901 }, {  63,-502 },
- {  96,4901 }, {  65,5855 }, {  66,5855 }, {  67,5855 }, {  68,5855 },
- {  69,5855 }, {  70,5855 }, {  71,5855 }, {  72,5855 }, {  73,5855 },
- {  74,5855 }, {  75,5855 }, {  76,5855 }, {  77,5855 }, {  78,5855 },
- {  79,5855 }, {  80,5855 }, {  81,5855 }, {  82,5855 }, {  83,5855 },
- {  84,5855 }, {  85,5855 }, {  86,5855 }, {  87,5855 }, {  88,5855 },
-
- {  89,5855 }, {  90,5855 }, {  99, 548 }, { 124,4901 }, {   0,   0 },
- { 126,4901 }, {  95,5855 }, {   0,   0 }, {  97,5855 }, {  98,5855 },
- {  99,5855 }, { 100,5855 }, { 101,5855 }, { 102,5855 }, { 103,5855 },
- { 104,5855 }, { 105,5855 }, { 106,5855 }, { 107,5855 }, { 108,5855 },
- { 109,5855 }, { 110,5855 }, { 111,5855 }, { 112,5855 }, { 113,5855 },
- { 114,5855 }, { 115,5855 }, { 116,5855 }, { 117,5855 }, { 118,5855 },
- { 119,5855 }, { 120,5855 }, { 121,5855 }, { 122,5855 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,5855 },
- { 129,5855 }, { 130,5855 }, { 131,5855 }, { 132,5855 }, { 133,5855 },
- { 134,5855 }, { 135,5855 }, { 136,5855 }, { 137,5855 }, { 138,5855 },
-
- { 139,5855 }, { 140,5855 }, { 141,5855 }, { 142,5855 }, { 143,5855 },
- { 144,5855 }, { 145,5855 }, { 146,5855 }, { 147,5855 }, { 148,5855 },
- { 149,5855 }, { 150,5855 }, { 151,5855 }, { 152,5855 }, { 153,5855 },
- { 154,5855 }, { 155,5855 }, { 156,5855 }, { 157,5855 }, { 158,5855 },
- { 159,5855 }, { 160,5855 }, { 161,5855 }, { 162,5855 }, { 163,5855 },
- { 164,5855 }, { 165,5855 }, { 166,5855 }, { 167,5855 }, { 168,5855 },
- { 169,5855 }, { 170,5855 }, { 171,5855 }, { 172,5855 }, { 173,5855 },
- { 174,5855 }, { 175,5855 }, { 176,5855 }, { 177,5855 }, { 178,5855 },
- { 179,5855 }, { 180,5855 }, { 181,5855 }, { 182,5855 }, { 183,5855 },
- { 184,5855 }, { 185,5855 }, { 186,5855 }, { 187,5855 }, { 188,5855 },
-
- { 189,5855 }, { 190,5855 }, { 191,5855 }, { 192,5855 }, { 193,5855 },
- { 194,5855 }, { 195,5855 }, { 196,5855 }, { 197,5855 }, { 198,5855 },
- { 199,5855 }, { 200,5855 }, { 201,5855 }, { 202,5855 }, { 203,5855 },
- { 204,5855 }, { 205,5855 }, { 206,5855 }, { 207,5855 }, { 208,5855 },
- { 209,5855 }, { 210,5855 }, { 211,5855 }, { 212,5855 }, { 213,5855 },
- { 214,5855 }, { 215,5855 }, { 216,5855 }, { 217,5855 }, { 218,5855 },
- { 219,5855 }, { 220,5855 }, { 221,5855 }, { 222,5855 }, { 223,5855 },
- { 224,5855 }, { 225,5855 }, { 226,5855 }, { 227,5855 }, { 228,5855 },
- { 229,5855 }, { 230,5855 }, { 231,5855 }, { 232,5855 }, { 233,5855 },
- { 234,5855 }, { 235,5855 }, { 236,5855 }, { 237,5855 }, { 238,5855 },
-
- { 239,5855 }, { 240,5855 }, { 241,5855 }, { 242,5855 }, { 243,5855 },
- { 244,5855 }, { 245,5855 }, { 246,5855 }, { 247,5855 }, { 248,5855 },
- { 249,5855 }, { 250,5855 }, { 251,5855 }, { 252,5855 }, { 253,5855 },
- { 254,5855 }, { 255,5855 }, {   0,  78 }, {   0,29132 }, {   0,   0 },
+ {   0,   0 }, {  94,4983 }, {   0,   0 }, {  96,4983 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  55 }, {   0,10755 }, {   0,  58 },
+ {   0,10753 }, {   0,   0 }, {  94,4972 }, {   0,   0 }, {  96,4972 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  28 }, {   0,29108 }, {   0,  39 }, {   0,29106 },
- {   0,  40 }, {   0,29104 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  36,5598 },
- {   0,   0 }, {   0,   0 }, {  39,-757 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  48,5598 }, {  49,5598 }, {  50,5598 }, {  51,5598 },
- {  52,5598 }, {  53,5598 }, {  54,5598 }, {  55,5598 }, {  56,5598 },
- {  57,5598 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  63,-759 }, {   0,   0 }, {  65,5598 }, {  66,5598 },
- {  67,5598 }, {  68,5598 }, {  69,5598 }, {  70,5598 }, {  71,5598 },
- {  72,5598 }, {  73,5598 }, {  74,5598 }, {  75,5598 }, {  76,5598 },
- {  77,5598 }, {  78,5598 }, {  79,5598 }, {  80,5598 }, {  81,5598 },
-
- {  82,5598 }, {  83,5598 }, {  84,5598 }, {  85,5598 }, {  86,5598 },
- {  87,5598 }, {  88,5598 }, {  89,5598 }, {  90,5598 }, {  67, 261 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,5598 }, {   0,   0 },
- {  97,5598 }, {  98,5598 }, {  99,5598 }, { 100,5598 }, { 101,5598 },
- { 102,5598 }, { 103,5598 }, { 104,5598 }, { 105,5598 }, { 106,5598 },
- { 107,5598 }, { 108,5598 }, { 109,5598 }, { 110,5598 }, { 111,5598 },
- { 112,5598 }, { 113,5598 }, { 114,5598 }, { 115,5598 }, { 116,5598 },
- { 117,5598 }, { 118,5598 }, { 119,5598 }, { 120,5598 }, { 121,5598 },
- { 122,5598 }, {  99, 261 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, { 128,5598 }, { 129,5598 }, { 130,5598 }, { 131,5598 },
-
- { 132,5598 }, { 133,5598 }, { 134,5598 }, { 135,5598 }, { 136,5598 },
- { 137,5598 }, { 138,5598 }, { 139,5598 }, { 140,5598 }, { 141,5598 },
- { 142,5598 }, { 143,5598 }, { 144,5598 }, { 145,5598 }, { 146,5598 },
- { 147,5598 }, { 148,5598 }, { 149,5598 }, { 150,5598 }, { 151,5598 },
- { 152,5598 }, { 153,5598 }, { 154,5598 }, { 155,5598 }, { 156,5598 },
- { 157,5598 }, { 158,5598 }, { 159,5598 }, { 160,5598 }, { 161,5598 },
- { 162,5598 }, { 163,5598 }, { 164,5598 }, { 165,5598 }, { 166,5598 },
- { 167,5598 }, { 168,5598 }, { 169,5598 }, { 170,5598 }, { 171,5598 },
- { 172,5598 }, { 173,5598 }, { 174,5598 }, { 175,5598 }, { 176,5598 },
- { 177,5598 }, { 178,5598 }, { 179,5598 }, { 180,5598 }, { 181,5598 },
-
- { 182,5598 }, { 183,5598 }, { 184,5598 }, { 185,5598 }, { 186,5598 },
- { 187,5598 }, { 188,5598 }, { 189,5598 }, { 190,5598 }, { 191,5598 },
- { 192,5598 }, { 193,5598 }, { 194,5598 }, { 195,5598 }, { 196,5598 },
- { 197,5598 }, { 198,5598 }, { 199,5598 }, { 200,5598 }, { 201,5598 },
- { 202,5598 }, { 203,5598 }, { 204,5598 }, { 205,5598 }, { 206,5598 },
- { 207,5598 }, { 208,5598 }, { 209,5598 }, { 210,5598 }, { 211,5598 },
- { 212,5598 }, { 213,5598 }, { 214,5598 }, { 215,5598 }, { 216,5598 },
- { 217,5598 }, { 218,5598 }, { 219,5598 }, { 220,5598 }, { 221,5598 },
- { 222,5598 }, { 223,5598 }, { 224,5598 }, { 225,5598 }, { 226,5598 },
- { 227,5598 }, { 228,5598 }, { 229,5598 }, { 230,5598 }, { 231,5598 },
-
- { 232,5598 }, { 233,5598 }, { 234,5598 }, { 235,5598 }, { 236,5598 },
- { 237,5598 }, { 238,5598 }, { 239,5598 }, { 240,5598 }, { 241,5598 },
- { 242,5598 }, { 243,5598 }, { 244,5598 }, { 245,5598 }, { 246,5598 },
- { 247,5598 }, { 248,5598 }, { 249,5598 }, { 250,5598 }, { 251,5598 },
- { 252,5598 }, { 253,5598 }, { 254,5598 }, { 255,5598 }, {   0,  78 },
- {   0,28875 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, { 124,4983 }, {   0,   0 }, { 126,4983 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
- {   0,  55 }, {   0,28849 }, {   0,  28 }, {   0,28847 }, {   0,   0 },
+ {   0,   0 }, {  33,4882 }, { 124,4972 }, {  35,4882 }, { 126,4972 },
+ {  37,4882 }, {  38,4882 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  42,5513 }, {  43,4882 }, {   0,   0 }, {  45,4882 }, {   0,   0 },
+ {  47,4882 }, {  46,5513 }, {   0,   0 }, {  48,5577 }, {  49,5577 },
+ {  50,5577 }, {  51,5577 }, {  52,5577 }, {  53,5577 }, {  54,5577 },
+ {  55,5577 }, {  56,5577 }, {  57,5577 }, {  60,4882 }, {  61,4882 },
+ {  62,4882 }, {  63,4882 }, {  64,4882 }, {   0,   0 }, {   0,  55 },
+ {   0,10688 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  69,5599 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  36,5341 }, {   0,   0 }, {   0,   0 }, {  39,-1011 },
+ {   0,  55 }, {   0,10677 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,5341 }, {  49,5341 },
- {  50,5341 }, {  51,5341 }, {  52,5341 }, {  53,5341 }, {  54,5341 },
- {  55,5341 }, {  56,5341 }, {  57,5341 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  63,-790 }, {   0,   0 },
- {  65,5341 }, {  66,5341 }, {  67,5341 }, {  68,5341 }, {  69,5341 },
- {  70,5341 }, {  71,5341 }, {  72,5341 }, {  73,5341 }, {  74,5341 },
-
- {  75,5341 }, {  76,5341 }, {  77,5341 }, {  78,5341 }, {  79,5341 },
- {  80,5341 }, {  81,5341 }, {  82,5341 }, {  83,5341 }, {  84,5341 },
- {  85,5341 }, {  86,5341 }, {  87,5341 }, {  88,5341 }, {  89,5341 },
- {  90,5341 }, {  65, 242 }, {   0,   0 }, {  65, 242 }, {   0,   0 },
- {  95,5341 }, {   0,   0 }, {  97,5341 }, {  98,5341 }, {  99,5341 },
- { 100,5341 }, { 101,5341 }, { 102,5341 }, { 103,5341 }, { 104,5341 },
- { 105,5341 }, { 106,5341 }, { 107,5341 }, { 108,5341 }, { 109,5341 },
- { 110,5341 }, { 111,5341 }, { 112,5341 }, { 113,5341 }, { 114,5341 },
- { 115,5341 }, { 116,5341 }, { 117,5341 }, { 118,5341 }, { 119,5341 },
- { 120,5341 }, { 121,5341 }, { 122,5341 }, {  97, 242 }, {   0,   0 },
-
- {  97, 242 }, {   0,   0 }, {   0,   0 }, { 128,5341 }, { 129,5341 },
- { 130,5341 }, { 131,5341 }, { 132,5341 }, { 133,5341 }, { 134,5341 },
- { 135,5341 }, { 136,5341 }, { 137,5341 }, { 138,5341 }, { 139,5341 },
- { 140,5341 }, { 141,5341 }, { 142,5341 }, { 143,5341 }, { 144,5341 },
- { 145,5341 }, { 146,5341 }, { 147,5341 }, { 148,5341 }, { 149,5341 },
- { 150,5341 }, { 151,5341 }, { 152,5341 }, { 153,5341 }, { 154,5341 },
- { 155,5341 }, { 156,5341 }, { 157,5341 }, { 158,5341 }, { 159,5341 },
- { 160,5341 }, { 161,5341 }, { 162,5341 }, { 163,5341 }, { 164,5341 },
- { 165,5341 }, { 166,5341 }, { 167,5341 }, { 168,5341 }, { 169,5341 },
- { 170,5341 }, { 171,5341 }, { 172,5341 }, { 173,5341 }, { 174,5341 },
-
- { 175,5341 }, { 176,5341 }, { 177,5341 }, { 178,5341 }, { 179,5341 },
- { 180,5341 }, { 181,5341 }, { 182,5341 }, { 183,5341 }, { 184,5341 },
- { 185,5341 }, { 186,5341 }, { 187,5341 }, { 188,5341 }, { 189,5341 },
- { 190,5341 }, { 191,5341 }, { 192,5341 }, { 193,5341 }, { 194,5341 },
- { 195,5341 }, { 196,5341 }, { 197,5341 }, { 198,5341 }, { 199,5341 },
- { 200,5341 }, { 201,5341 }, { 202,5341 }, { 203,5341 }, { 204,5341 },
- { 205,5341 }, { 206,5341 }, { 207,5341 }, { 208,5341 }, { 209,5341 },
- { 210,5341 }, { 211,5341 }, { 212,5341 }, { 213,5341 }, { 214,5341 },
- { 215,5341 }, { 216,5341 }, { 217,5341 }, { 218,5341 }, { 219,5341 },
- { 220,5341 }, { 221,5341 }, { 222,5341 }, { 223,5341 }, { 224,5341 },
-
- { 225,5341 }, { 226,5341 }, { 227,5341 }, { 228,5341 }, { 229,5341 },
- { 230,5341 }, { 231,5341 }, { 232,5341 }, { 233,5341 }, { 234,5341 },
- { 235,5341 }, { 236,5341 }, { 237,5341 }, { 238,5341 }, { 239,5341 },
- { 240,5341 }, { 241,5341 }, { 242,5341 }, { 243,5341 }, { 244,5341 },
- { 245,5341 }, { 246,5341 }, { 247,5341 }, { 248,5341 }, { 249,5341 },
- { 250,5341 }, { 251,5341 }, { 252,5341 }, { 253,5341 }, { 254,5341 },
- { 255,5341 }, {   0,  78 }, {   0,28618 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,  55 }, {   0,28607 }, {   0,  28 },
- {   0,28605 }, {   0,  33 }, {   0,28603 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  94,4882 }, {   0,   0 }, {  96,4882 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,4815 }, {   0,   0 },
+ {  35,4815 }, { 101,5599 }, {  37,4815 }, {  38,4815 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  42,4815 }, {  43,4815 }, {  33,4804 },
+ {  45,4815 }, {  35,4804 }, {  47,4815 }, {  37,4804 }, {  38,4804 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,4804 }, {  43,4804 },
+ {   0,   0 }, {  45,4804 }, { 124,4882 }, {  47,4804 }, { 126,4882 },
+ {  60,4815 }, {  61,5574 }, {  62,5615 }, {  63,4815 }, {  64,4815 },
 
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  55 },
- {   0,28595 }, {   0,  28 }, {   0,28593 }, {   0,  34 }, {   0,28591 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  36,5084 }, {   0,   0 },
- {   0,   0 }, {  39,-1045 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  60,4804 }, {  61,4804 }, {  62,5671 }, {  63,4804 },
+ {  64,4804 }, {   0,   0 }, {   0,  55 }, {   0,10610 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  48,5084 }, {  49,5084 }, {  50,5084 }, {  51,5084 }, {  52,5084 },
- {  53,5084 }, {  54,5084 }, {  55,5084 }, {  56,5084 }, {  57,5084 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  63,-1273 }, {   0,   0 }, {  65,5084 }, {  66,5084 }, {  67,5084 },
-
- {  68,5084 }, {  69,5084 }, {  70,5084 }, {  71,5084 }, {  72,5084 },
- {  73,5084 }, {  74,5084 }, {  75,5084 }, {  76,5084 }, {  77,5084 },
- {  78,5084 }, {  79,5084 }, {  80,5084 }, {  81,5084 }, {  82,5084 },
- {  83,5084 }, {  84,5084 }, {  85,5084 }, {  86,5084 }, {  87,5084 },
- {  88,5084 }, {  89,5084 }, {  90,5084 }, {  80,  12 }, {  69,21847 },
- {  80,  12 }, {  69,21869 }, {  95,5084 }, {   0,   0 }, {  97,5084 },
- {  98,5084 }, {  99,5084 }, { 100,5084 }, { 101,5084 }, { 102,5084 },
- { 103,5084 }, { 104,5084 }, { 105,5084 }, { 106,5084 }, { 107,5084 },
- { 108,5084 }, { 109,5084 }, { 110,5084 }, { 111,5084 }, { 112,5084 },
- { 113,5084 }, { 114,5084 }, { 115,5084 }, { 116,5084 }, { 117,5084 },
-
- { 118,5084 }, { 119,5084 }, { 120,5084 }, { 121,5084 }, { 122,5084 },
- { 112,  12 }, { 101,21847 }, { 112,  12 }, { 101,21869 }, {   0,   0 },
- { 128,5084 }, { 129,5084 }, { 130,5084 }, { 131,5084 }, { 132,5084 },
- { 133,5084 }, { 134,5084 }, { 135,5084 }, { 136,5084 }, { 137,5084 },
- { 138,5084 }, { 139,5084 }, { 140,5084 }, { 141,5084 }, { 142,5084 },
- { 143,5084 }, { 144,5084 }, { 145,5084 }, { 146,5084 }, { 147,5084 },
- { 148,5084 }, { 149,5084 }, { 150,5084 }, { 151,5084 }, { 152,5084 },
- { 153,5084 }, { 154,5084 }, { 155,5084 }, { 156,5084 }, { 157,5084 },
- { 158,5084 }, { 159,5084 }, { 160,5084 }, { 161,5084 }, { 162,5084 },
- { 163,5084 }, { 164,5084 }, { 165,5084 }, { 166,5084 }, { 167,5084 },
-
- { 168,5084 }, { 169,5084 }, { 170,5084 }, { 171,5084 }, { 172,5084 },
- { 173,5084 }, { 174,5084 }, { 175,5084 }, { 176,5084 }, { 177,5084 },
- { 178,5084 }, { 179,5084 }, { 180,5084 }, { 181,5084 }, { 182,5084 },
- { 183,5084 }, { 184,5084 }, { 185,5084 }, { 186,5084 }, { 187,5084 },
- { 188,5084 }, { 189,5084 }, { 190,5084 }, { 191,5084 }, { 192,5084 },
- { 193,5084 }, { 194,5084 }, { 195,5084 }, { 196,5084 }, { 197,5084 },
- { 198,5084 }, { 199,5084 }, { 200,5084 }, { 201,5084 }, { 202,5084 },
- { 203,5084 }, { 204,5084 }, { 205,5084 }, { 206,5084 }, { 207,5084 },
- { 208,5084 }, { 209,5084 }, { 210,5084 }, { 211,5084 }, { 212,5084 },
- { 213,5084 }, { 214,5084 }, { 215,5084 }, { 216,5084 }, { 217,5084 },
-
- { 218,5084 }, { 219,5084 }, { 220,5084 }, { 221,5084 }, { 222,5084 },
- { 223,5084 }, { 224,5084 }, { 225,5084 }, { 226,5084 }, { 227,5084 },
- { 228,5084 }, { 229,5084 }, { 230,5084 }, { 231,5084 }, { 232,5084 },
- { 233,5084 }, { 234,5084 }, { 235,5084 }, { 236,5084 }, { 237,5084 },
- { 238,5084 }, { 239,5084 }, { 240,5084 }, { 241,5084 }, { 242,5084 },
- { 243,5084 }, { 244,5084 }, { 245,5084 }, { 246,5084 }, { 247,5084 },
- { 248,5084 }, { 249,5084 }, { 250,5084 }, { 251,5084 }, { 252,5084 },
- { 253,5084 }, { 254,5084 }, { 255,5084 }, {   0,  78 }, {   0,28361 },
- {   0,  55 }, {   0,28359 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,4815 },
+ {   0,   0 }, {  96,4815 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  94,4804 }, {   0,   0 }, {  96,4804 }, {   0,   0 }, {   0,  64 },
+ {   0,10578 }, {  33,4737 }, {   0,   0 }, {  35,4737 }, {   0,   0 },
 
- {   0,   0 }, {   0,  28 }, {   0,28348 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  55 }, {   0,28341 },
- {   0,  28 }, {   0,28339 }, {   0,  56 }, {   0,28337 }, {   0,  29 },
- {   0,28335 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  37,4737 }, {  38,4737 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  42,4737 }, {  43,4737 }, {   0,   0 }, {  45,4737 }, { 124,4815 },
+ {  47,4737 }, { 126,4815 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  36,4827 }, {   0,   0 }, {  38,-1290 }, {   0,   0 }, {   0,   0 },
+ { 124,4804 }, {   0,   0 }, { 126,4804 }, {  60,4737 }, {  61,5615 },
+ {  62,4737 }, {  63,4737 }, {  64,4737 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  36,5663 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,22485 }, {  48,4827 }, {  49,4827 }, {  50,4827 },
- {  51,4827 }, {  52,4827 }, {  53,4827 }, {  54,4827 }, {  55,4827 },
- {  56,4827 }, {  57,4827 }, {  45,22732 }, {  39,   4 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,5663 }, {  49,5663 },
+ {  50,5663 }, {  51,5663 }, {  52,5663 }, {  53,5663 }, {  54,5663 },
 
- {  39,   4 }, {   0,   0 }, {  63,-1530 }, {   0,   0 }, {  65,4827 },
- {  66,4827 }, {  67,4827 }, {  68,4827 }, {  69,4827 }, {  70,4827 },
- {  71,4827 }, {  72,4827 }, {  73,4827 }, {  74,4827 }, {  75,4827 },
- {  76,4827 }, {  77,4827 }, {  78,4827 }, {  79,4827 }, {  80,4827 },
- {  81,4827 }, {  82,4827 }, {  83,4827 }, {  84,4827 }, {  85,4827 },
- {  86,4827 }, {  87,4827 }, {  88,4827 }, {  89,4827 }, {  90,4827 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,4827 },
- {   0,   0 }, {  97,4827 }, {  98,4827 }, {  99,4827 }, { 100,4827 },
- { 101,4827 }, { 102,4827 }, { 103,4827 }, { 104,4827 }, { 105,4827 },
- { 106,4827 }, { 107,4827 }, { 108,4827 }, { 109,4827 }, { 110,4827 },
+ {  55,5663 }, {  56,5663 }, {  57,5663 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  94,4737 }, {  63,-502 }, {  96,4737 },
+ {  65,5663 }, {  66,5663 }, {  67,5663 }, {  68,5663 }, {  69,5663 },
+ {  70,5663 }, {  71,5663 }, {  72,5663 }, {  73,5663 }, {  74,5663 },
+ {  75,5663 }, {  76,5663 }, {  77,5663 }, {  78,5663 }, {  79,5663 },
+ {  80,5663 }, {  81,5663 }, {  82,5663 }, {  83,5663 }, {  84,5663 },
+ {  85,5663 }, {  86,5663 }, {  87,5663 }, {  88,5663 }, {  89,5663 },
+ {  90,5663 }, {   0,   0 }, { 124,4737 }, {   0,   0 }, { 126,4737 },
+ {  95,5663 }, {   0,   0 }, {  97,5663 }, {  98,5663 }, {  99,5663 },
+ { 100,5663 }, { 101,5663 }, { 102,5663 }, { 103,5663 }, { 104,5663 },
 
- { 111,4827 }, { 112,4827 }, { 113,4827 }, { 114,4827 }, { 115,4827 },
- { 116,4827 }, { 117,4827 }, { 118,4827 }, { 119,4827 }, { 120,4827 },
- { 121,4827 }, { 122,4827 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 128,4827 }, { 129,4827 }, { 130,4827 },
- { 131,4827 }, { 132,4827 }, { 133,4827 }, { 134,4827 }, { 135,4827 },
- { 136,4827 }, { 137,4827 }, { 138,4827 }, { 139,4827 }, { 140,4827 },
- { 141,4827 }, { 142,4827 }, { 143,4827 }, { 144,4827 }, { 145,4827 },
- { 146,4827 }, { 147,4827 }, { 148,4827 }, { 149,4827 }, { 150,4827 },
- { 151,4827 }, { 152,4827 }, { 153,4827 }, { 154,4827 }, { 155,4827 },
- { 156,4827 }, { 157,4827 }, { 158,4827 }, { 159,4827 }, { 160,4827 },
+ { 105,5663 }, { 106,5663 }, { 107,5663 }, { 108,5663 }, { 109,5663 },
+ { 110,5663 }, { 111,5663 }, { 112,5663 }, { 113,5663 }, { 114,5663 },
+ { 115,5663 }, { 116,5663 }, { 117,5663 }, { 118,5663 }, { 119,5663 },
+ { 120,5663 }, { 121,5663 }, { 122,5663 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,5663 }, { 129,5663 },
+ { 130,5663 }, { 131,5663 }, { 132,5663 }, { 133,5663 }, { 134,5663 },
+ { 135,5663 }, { 136,5663 }, { 137,5663 }, { 138,5663 }, { 139,5663 },
+ { 140,5663 }, { 141,5663 }, { 142,5663 }, { 143,5663 }, { 144,5663 },
+ { 145,5663 }, { 146,5663 }, { 147,5663 }, { 148,5663 }, { 149,5663 },
+ { 150,5663 }, { 151,5663 }, { 152,5663 }, { 153,5663 }, { 154,5663 },
 
- { 161,4827 }, { 162,4827 }, { 163,4827 }, { 164,4827 }, { 165,4827 },
- { 166,4827 }, { 167,4827 }, { 168,4827 }, { 169,4827 }, { 170,4827 },
- { 171,4827 }, { 172,4827 }, { 173,4827 }, { 174,4827 }, { 175,4827 },
- { 176,4827 }, { 177,4827 }, { 178,4827 }, { 179,4827 }, { 180,4827 },
- { 181,4827 }, { 182,4827 }, { 183,4827 }, { 184,4827 }, { 185,4827 },
- { 186,4827 }, { 187,4827 }, { 188,4827 }, { 189,4827 }, { 190,4827 },
- { 191,4827 }, { 192,4827 }, { 193,4827 }, { 194,4827 }, { 195,4827 },
- { 196,4827 }, { 197,4827 }, { 198,4827 }, { 199,4827 }, { 200,4827 },
- { 201,4827 }, { 202,4827 }, { 203,4827 }, { 204,4827 }, { 205,4827 },
- { 206,4827 }, { 207,4827 }, { 208,4827 }, { 209,4827 }, { 210,4827 },
+ { 155,5663 }, { 156,5663 }, { 157,5663 }, { 158,5663 }, { 159,5663 },
+ { 160,5663 }, { 161,5663 }, { 162,5663 }, { 163,5663 }, { 164,5663 },
+ { 165,5663 }, { 166,5663 }, { 167,5663 }, { 168,5663 }, { 169,5663 },
+ { 170,5663 }, { 171,5663 }, { 172,5663 }, { 173,5663 }, { 174,5663 },
+ { 175,5663 }, { 176,5663 }, { 177,5663 }, { 178,5663 }, { 179,5663 },
+ { 180,5663 }, { 181,5663 }, { 182,5663 }, { 183,5663 }, { 184,5663 },
+ { 185,5663 }, { 186,5663 }, { 187,5663 }, { 188,5663 }, { 189,5663 },
+ { 190,5663 }, { 191,5663 }, { 192,5663 }, { 193,5663 }, { 194,5663 },
+ { 195,5663 }, { 196,5663 }, { 197,5663 }, { 198,5663 }, { 199,5663 },
+ { 200,5663 }, { 201,5663 }, { 202,5663 }, { 203,5663 }, { 204,5663 },
 
- { 211,4827 }, { 212,4827 }, { 213,4827 }, { 214,4827 }, { 215,4827 },
- { 216,4827 }, { 217,4827 }, { 218,4827 }, { 219,4827 }, { 220,4827 },
- { 221,4827 }, { 222,4827 }, { 223,4827 }, { 224,4827 }, { 225,4827 },
- { 226,4827 }, { 227,4827 }, { 228,4827 }, { 229,4827 }, { 230,4827 },
- { 231,4827 }, { 232,4827 }, { 233,4827 }, { 234,4827 }, { 235,4827 },
- { 236,4827 }, { 237,4827 }, { 238,4827 }, { 239,4827 }, { 240,4827 },
- { 241,4827 }, { 242,4827 }, { 243,4827 }, { 244,4827 }, { 245,4827 },
- { 246,4827 }, { 247,4827 }, { 248,4827 }, { 249,4827 }, { 250,4827 },
- { 251,4827 }, { 252,4827 }, { 253,4827 }, { 254,4827 }, { 255,4827 },
- {   0,  78 }, {   0,28104 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ { 205,5663 }, { 206,5663 }, { 207,5663 }, { 208,5663 }, { 209,5663 },
+ { 210,5663 }, { 211,5663 }, { 212,5663 }, { 213,5663 }, { 214,5663 },
+ { 215,5663 }, { 216,5663 }, { 217,5663 }, { 218,5663 }, { 219,5663 },
+ { 220,5663 }, { 221,5663 }, { 222,5663 }, { 223,5663 }, { 224,5663 },
+ { 225,5663 }, { 226,5663 }, { 227,5663 }, { 228,5663 }, { 229,5663 },
+ { 230,5663 }, { 231,5663 }, { 232,5663 }, { 233,5663 }, { 234,5663 },
+ { 235,5663 }, { 236,5663 }, { 237,5663 }, { 238,5663 }, { 239,5663 },
+ { 240,5663 }, { 241,5663 }, { 242,5663 }, { 243,5663 }, { 244,5663 },
+ { 245,5663 }, { 246,5663 }, { 247,5663 }, { 248,5663 }, { 249,5663 },
+ { 250,5663 }, { 251,5663 }, { 252,5663 }, { 253,5663 }, { 254,5663 },
 
+ { 255,5663 }, {   0,  64 }, {   0,10321 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  36,4570 }, {   0,   0 }, {   0,   0 },
- {  39,-1545 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,4570 },
- {  49,4570 }, {  50,4570 }, {  51,4570 }, {  52,4570 }, {  53,4570 },
-
- {  54,4570 }, {  55,4570 }, {  56,4570 }, {  57,4570 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  63,-1787 },
- {   0,   0 }, {  65,4570 }, {  66,4570 }, {  67,4570 }, {  68,4570 },
- {  69,4570 }, {  70,4570 }, {  71,4570 }, {  72,4570 }, {  73,4570 },
- {  74,4570 }, {  75,4570 }, {  76,4570 }, {  77,4570 }, {  78,4570 },
- {  79,4570 }, {  80,4570 }, {  81,4570 }, {  82,4570 }, {  83,4570 },
- {  84,4570 }, {  85,4570 }, {  86,4570 }, {  87,4570 }, {  88,4570 },
- {  89,4570 }, {  90,4570 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  95,4570 }, {   0,   0 }, {  97,4570 }, {  98,4570 },
- {  99,4570 }, { 100,4570 }, { 101,4570 }, { 102,4570 }, { 103,4570 },
-
- { 104,4570 }, { 105,4570 }, { 106,4570 }, { 107,4570 }, { 108,4570 },
- { 109,4570 }, { 110,4570 }, { 111,4570 }, { 112,4570 }, { 113,4570 },
- { 114,4570 }, { 115,4570 }, { 116,4570 }, { 117,4570 }, { 118,4570 },
- { 119,4570 }, { 120,4570 }, { 121,4570 }, { 122,4570 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,4570 },
- { 129,4570 }, { 130,4570 }, { 131,4570 }, { 132,4570 }, { 133,4570 },
- { 134,4570 }, { 135,4570 }, { 136,4570 }, { 137,4570 }, { 138,4570 },
- { 139,4570 }, { 140,4570 }, { 141,4570 }, { 142,4570 }, { 143,4570 },
- { 144,4570 }, { 145,4570 }, { 146,4570 }, { 147,4570 }, { 148,4570 },
- { 149,4570 }, { 150,4570 }, { 151,4570 }, { 152,4570 }, { 153,4570 },
-
- { 154,4570 }, { 155,4570 }, { 156,4570 }, { 157,4570 }, { 158,4570 },
- { 159,4570 }, { 160,4570 }, { 161,4570 }, { 162,4570 }, { 163,4570 },
- { 164,4570 }, { 165,4570 }, { 166,4570 }, { 167,4570 }, { 168,4570 },
- { 169,4570 }, { 170,4570 }, { 171,4570 }, { 172,4570 }, { 173,4570 },
- { 174,4570 }, { 175,4570 }, { 176,4570 }, { 177,4570 }, { 178,4570 },
- { 179,4570 }, { 180,4570 }, { 181,4570 }, { 182,4570 }, { 183,4570 },
- { 184,4570 }, { 185,4570 }, { 186,4570 }, { 187,4570 }, { 188,4570 },
- { 189,4570 }, { 190,4570 }, { 191,4570 }, { 192,4570 }, { 193,4570 },
- { 194,4570 }, { 195,4570 }, { 196,4570 }, { 197,4570 }, { 198,4570 },
- { 199,4570 }, { 200,4570 }, { 201,4570 }, { 202,4570 }, { 203,4570 },
-
- { 204,4570 }, { 205,4570 }, { 206,4570 }, { 207,4570 }, { 208,4570 },
- { 209,4570 }, { 210,4570 }, { 211,4570 }, { 212,4570 }, { 213,4570 },
- { 214,4570 }, { 215,4570 }, { 216,4570 }, { 217,4570 }, { 218,4570 },
- { 219,4570 }, { 220,4570 }, { 221,4570 }, { 222,4570 }, { 223,4570 },
- { 224,4570 }, { 225,4570 }, { 226,4570 }, { 227,4570 }, { 228,4570 },
- { 229,4570 }, { 230,4570 }, { 231,4570 }, { 232,4570 }, { 233,4570 },
- { 234,4570 }, { 235,4570 }, { 236,4570 }, { 237,4570 }, { 238,4570 },
- { 239,4570 }, { 240,4570 }, { 241,4570 }, { 242,4570 }, { 243,4570 },
- { 244,4570 }, { 245,4570 }, { 246,4570 }, { 247,4570 }, { 248,4570 },
- { 249,4570 }, { 250,4570 }, { 251,4570 }, { 252,4570 }, { 253,4570 },
-
- { 254,4570 }, { 255,4570 }, {   0,  12 }, {   0,27847 }, {   1,4570 },
- {   2,4570 }, {   3,4570 }, {   4,4570 }, {   5,4570 }, {   6,4570 },
- {   7,4570 }, {   8,4570 }, {   9,4570 }, {  10,4570 }, {  11,4570 },
- {  12,4570 }, {  13,4570 }, {  14,4570 }, {  15,4570 }, {  16,4570 },
- {  17,4570 }, {  18,4570 }, {  19,4570 }, {  20,4570 }, {  21,4570 },
- {  22,4570 }, {  23,4570 }, {  24,4570 }, {  25,4570 }, {  26,4570 },
- {  27,4570 }, {  28,4570 }, {  29,4570 }, {  30,4570 }, {  31,4570 },
- {  32,4570 }, {  33,4570 }, {  34,4570 }, {  35,4570 }, {  36,4570 },
- {  37,4570 }, {  38,4570 }, {   0,   0 }, {  40,4570 }, {  41,4570 },
- {  42,4570 }, {  43,4570 }, {  44,4570 }, {  45,4570 }, {  46,4570 },
-
- {  47,4570 }, {  48,4570 }, {  49,4570 }, {  50,4570 }, {  51,4570 },
- {  52,4570 }, {  53,4570 }, {  54,4570 }, {  55,4570 }, {  56,4570 },
- {  57,4570 }, {  58,4570 }, {  59,4570 }, {  60,4570 }, {  61,4570 },
- {  62,4570 }, {  63,4570 }, {  64,4570 }, {  65,4570 }, {  66,4570 },
- {  67,4570 }, {  68,4570 }, {  69,4570 }, {  70,4570 }, {  71,4570 },
- {  72,4570 }, {  73,4570 }, {  74,4570 }, {  75,4570 }, {  76,4570 },
- {  77,4570 }, {  78,4570 }, {  79,4570 }, {  80,4570 }, {  81,4570 },
- {  82,4570 }, {  83,4570 }, {  84,4570 }, {  85,4570 }, {  86,4570 },
- {  87,4570 }, {  88,4570 }, {  89,4570 }, {  90,4570 }, {  91,4570 },
- {  92,4570 }, {  93,4570 }, {  94,4570 }, {  95,4570 }, {  96,4570 },
-
- {  97,4570 }, {  98,4570 }, {  99,4570 }, { 100,4570 }, { 101,4570 },
- { 102,4570 }, { 103,4570 }, { 104,4570 }, { 105,4570 }, { 106,4570 },
- { 107,4570 }, { 108,4570 }, { 109,4570 }, { 110,4570 }, { 111,4570 },
- { 112,4570 }, { 113,4570 }, { 114,4570 }, { 115,4570 }, { 116,4570 },
- { 117,4570 }, { 118,4570 }, { 119,4570 }, { 120,4570 }, { 121,4570 },
- { 122,4570 }, { 123,4570 }, { 124,4570 }, { 125,4570 }, { 126,4570 },
- { 127,4570 }, { 128,4570 }, { 129,4570 }, { 130,4570 }, { 131,4570 },
- { 132,4570 }, { 133,4570 }, { 134,4570 }, { 135,4570 }, { 136,4570 },
- { 137,4570 }, { 138,4570 }, { 139,4570 }, { 140,4570 }, { 141,4570 },
- { 142,4570 }, { 143,4570 }, { 144,4570 }, { 145,4570 }, { 146,4570 },
-
- { 147,4570 }, { 148,4570 }, { 149,4570 }, { 150,4570 }, { 151,4570 },
- { 152,4570 }, { 153,4570 }, { 154,4570 }, { 155,4570 }, { 156,4570 },
- { 157,4570 }, { 158,4570 }, { 159,4570 }, { 160,4570 }, { 161,4570 },
- { 162,4570 }, { 163,4570 }, { 164,4570 }, { 165,4570 }, { 166,4570 },
- { 167,4570 }, { 168,4570 }, { 169,4570 }, { 170,4570 }, { 171,4570 },
- { 172,4570 }, { 173,4570 }, { 174,4570 }, { 175,4570 }, { 176,4570 },
- { 177,4570 }, { 178,4570 }, { 179,4570 }, { 180,4570 }, { 181,4570 },
- { 182,4570 }, { 183,4570 }, { 184,4570 }, { 185,4570 }, { 186,4570 },
- { 187,4570 }, { 188,4570 }, { 189,4570 }, { 190,4570 }, { 191,4570 },
- { 192,4570 }, { 193,4570 }, { 194,4570 }, { 195,4570 }, { 196,4570 },
-
- { 197,4570 }, { 198,4570 }, { 199,4570 }, { 200,4570 }, { 201,4570 },
- { 202,4570 }, { 203,4570 }, { 204,4570 }, { 205,4570 }, { 206,4570 },
- { 207,4570 }, { 208,4570 }, { 209,4570 }, { 210,4570 }, { 211,4570 },
- { 212,4570 }, { 213,4570 }, { 214,4570 }, { 215,4570 }, { 216,4570 },
- { 217,4570 }, { 218,4570 }, { 219,4570 }, { 220,4570 }, { 221,4570 },
- { 222,4570 }, { 223,4570 }, { 224,4570 }, { 225,4570 }, { 226,4570 },
- { 227,4570 }, { 228,4570 }, { 229,4570 }, { 230,4570 }, { 231,4570 },
- { 232,4570 }, { 233,4570 }, { 234,4570 }, { 235,4570 }, { 236,4570 },
- { 237,4570 }, { 238,4570 }, { 239,4570 }, { 240,4570 }, { 241,4570 },
- { 242,4570 }, { 243,4570 }, { 244,4570 }, { 245,4570 }, { 246,4570 },
-
- { 247,4570 }, { 248,4570 }, { 249,4570 }, { 250,4570 }, { 251,4570 },
- { 252,4570 }, { 253,4570 }, { 254,4570 }, { 255,4570 }, { 256,4570 },
- {   0,   9 }, {   0,27589 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,4570 }, {  10,4575 }, {   0,   0 }, {  12,4570 }, {  13,4575 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,4570 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  36,5406 }, {   0,   0 },
+ {   0,   0 }, {  39,-757 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
+ {  48,5406 }, {  49,5406 }, {  50,5406 }, {  51,5406 }, {  52,5406 },
+ {  53,5406 }, {  54,5406 }, {  55,5406 }, {  56,5406 }, {  57,5406 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-2057 }, {   0,   5 }, {   0,27542 }, {   1,4575 },
- {   2,4575 }, {   3,4575 }, {   4,4575 }, {   5,4575 }, {   6,4575 },
- {   7,4575 }, {   8,4575 }, {   9,4575 }, {  10,4575 }, {  11,4575 },
- {  12,4575 }, {  13,4575 }, {  14,4575 }, {  15,4575 }, {  16,4575 },
- {  17,4575 }, {  18,4575 }, {  19,4575 }, {  20,4575 }, {  21,4575 },
- {  22,4575 }, {  23,4575 }, {  24,4575 }, {  25,4575 }, {  26,4575 },
- {  27,4575 }, {  28,4575 }, {  29,4575 }, {  30,4575 }, {  31,4575 },
- {  32,4575 }, {  33,4575 }, {  34,4575 }, {  35,4575 }, {  36,4575 },
- {  37,4575 }, {  38,4575 }, {  39,4575 }, {  40,4575 }, {  41,4575 },
+ {  63,-759 }, {   0,   0 }, {  65,5406 }, {  66,5406 }, {  67,5406 },
+ {  68,5406 }, {  69,5406 }, {  70,5406 }, {  71,5406 }, {  72,5406 },
+ {  73,5406 }, {  74,5406 }, {  75,5406 }, {  76,5406 }, {  77,5406 },
+ {  78,5406 }, {  79,5406 }, {  80,5406 }, {  81,5406 }, {  82,5406 },
+ {  83,5406 }, {  84,5406 }, {  85,5406 }, {  86,5406 }, {  87,5406 },
+ {  88,5406 }, {  89,5406 }, {  90,5406 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  95,5406 }, {   0,   0 }, {  97,5406 },
 
- {   0,   0 }, {  43,4575 }, {  44,4575 }, {  45,4575 }, {  46,4575 },
- {   0,   0 }, {  48,4575 }, {  49,4575 }, {  50,4575 }, {  51,4575 },
- {  52,4575 }, {  53,4575 }, {  54,4575 }, {  55,4575 }, {  56,4575 },
- {  57,4575 }, {  58,4575 }, {  59,4575 }, {  60,4575 }, {  61,4575 },
- {  62,4575 }, {  63,4575 }, {  64,4575 }, {  65,4575 }, {  66,4575 },
- {  67,4575 }, {  68,4575 }, {  69,4575 }, {  70,4575 }, {  71,4575 },
- {  72,4575 }, {  73,4575 }, {  74,4575 }, {  75,4575 }, {  76,4575 },
- {  77,4575 }, {  78,4575 }, {  79,4575 }, {  80,4575 }, {  81,4575 },
- {  82,4575 }, {  83,4575 }, {  84,4575 }, {  85,4575 }, {  86,4575 },
- {  87,4575 }, {  88,4575 }, {  89,4575 }, {  90,4575 }, {  91,4575 },
-
- {  92,4575 }, {  93,4575 }, {  94,4575 }, {  95,4575 }, {  96,4575 },
- {  97,4575 }, {  98,4575 }, {  99,4575 }, { 100,4575 }, { 101,4575 },
- { 102,4575 }, { 103,4575 }, { 104,4575 }, { 105,4575 }, { 106,4575 },
- { 107,4575 }, { 108,4575 }, { 109,4575 }, { 110,4575 }, { 111,4575 },
- { 112,4575 }, { 113,4575 }, { 114,4575 }, { 115,4575 }, { 116,4575 },
- { 117,4575 }, { 118,4575 }, { 119,4575 }, { 120,4575 }, { 121,4575 },
- { 122,4575 }, { 123,4575 }, { 124,4575 }, { 125,4575 }, { 126,4575 },
- { 127,4575 }, { 128,4575 }, { 129,4575 }, { 130,4575 }, { 131,4575 },
- { 132,4575 }, { 133,4575 }, { 134,4575 }, { 135,4575 }, { 136,4575 },
- { 137,4575 }, { 138,4575 }, { 139,4575 }, { 140,4575 }, { 141,4575 },
-
- { 142,4575 }, { 143,4575 }, { 144,4575 }, { 145,4575 }, { 146,4575 },
- { 147,4575 }, { 148,4575 }, { 149,4575 }, { 150,4575 }, { 151,4575 },
- { 152,4575 }, { 153,4575 }, { 154,4575 }, { 155,4575 }, { 156,4575 },
- { 157,4575 }, { 158,4575 }, { 159,4575 }, { 160,4575 }, { 161,4575 },
- { 162,4575 }, { 163,4575 }, { 164,4575 }, { 165,4575 }, { 166,4575 },
- { 167,4575 }, { 168,4575 }, { 169,4575 }, { 170,4575 }, { 171,4575 },
- { 172,4575 }, { 173,4575 }, { 174,4575 }, { 175,4575 }, { 176,4575 },
- { 177,4575 }, { 178,4575 }, { 179,4575 }, { 180,4575 }, { 181,4575 },
- { 182,4575 }, { 183,4575 }, { 184,4575 }, { 185,4575 }, { 186,4575 },
- { 187,4575 }, { 188,4575 }, { 189,4575 }, { 190,4575 }, { 191,4575 },
-
- { 192,4575 }, { 193,4575 }, { 194,4575 }, { 195,4575 }, { 196,4575 },
- { 197,4575 }, { 198,4575 }, { 199,4575 }, { 200,4575 }, { 201,4575 },
- { 202,4575 }, { 203,4575 }, { 204,4575 }, { 205,4575 }, { 206,4575 },
- { 207,4575 }, { 208,4575 }, { 209,4575 }, { 210,4575 }, { 211,4575 },
- { 212,4575 }, { 213,4575 }, { 214,4575 }, { 215,4575 }, { 216,4575 },
- { 217,4575 }, { 218,4575 }, { 219,4575 }, { 220,4575 }, { 221,4575 },
- { 222,4575 }, { 223,4575 }, { 224,4575 }, { 225,4575 }, { 226,4575 },
- { 227,4575 }, { 228,4575 }, { 229,4575 }, { 230,4575 }, { 231,4575 },
- { 232,4575 }, { 233,4575 }, { 234,4575 }, { 235,4575 }, { 236,4575 },
- { 237,4575 }, { 238,4575 }, { 239,4575 }, { 240,4575 }, { 241,4575 },
-
- { 242,4575 }, { 243,4575 }, { 244,4575 }, { 245,4575 }, { 246,4575 },
- { 247,4575 }, { 248,4575 }, { 249,4575 }, { 250,4575 }, { 251,4575 },
- { 252,4575 }, { 253,4575 }, { 254,4575 }, { 255,4575 }, { 256,4575 },
- {   0,   5 }, {   0,27284 }, {   1,4317 }, {   2,4317 }, {   3,4317 },
- {   4,4317 }, {   5,4317 }, {   6,4317 }, {   7,4317 }, {   8,4317 },
- {   9,4317 }, {  10,4317 }, {  11,4317 }, {  12,4317 }, {  13,4317 },
- {  14,4317 }, {  15,4317 }, {  16,4317 }, {  17,4317 }, {  18,4317 },
- {  19,4317 }, {  20,4317 }, {  21,4317 }, {  22,4317 }, {  23,4317 },
- {  24,4317 }, {  25,4317 }, {  26,4317 }, {  27,4317 }, {  28,4317 },
- {  29,4317 }, {  30,4317 }, {  31,4317 }, {  32,4317 }, {  33,4317 },
-
- {  34,4317 }, {  35,4317 }, {  36,4317 }, {  37,4317 }, {  38,4317 },
- {  39,4317 }, {  40,4317 }, {  41,4317 }, {   0,   0 }, {  43,4317 },
- {  44,4317 }, {  45,4317 }, {  46,4317 }, {   0,   0 }, {  48,4317 },
- {  49,4317 }, {  50,4317 }, {  51,4317 }, {  52,4317 }, {  53,4317 },
- {  54,4317 }, {  55,4317 }, {  56,4317 }, {  57,4317 }, {  58,4317 },
- {  59,4317 }, {  60,4317 }, {  61,4317 }, {  62,4317 }, {  63,4317 },
- {  64,4317 }, {  65,4317 }, {  66,4317 }, {  67,4317 }, {  68,4317 },
- {  69,4317 }, {  70,4317 }, {  71,4317 }, {  72,4317 }, {  73,4317 },
- {  74,4317 }, {  75,4317 }, {  76,4317 }, {  77,4317 }, {  78,4317 },
- {  79,4317 }, {  80,4317 }, {  81,4317 }, {  82,4317 }, {  83,4317 },
-
- {  84,4317 }, {  85,4317 }, {  86,4317 }, {  87,4317 }, {  88,4317 },
- {  89,4317 }, {  90,4317 }, {  91,4317 }, {  92,4317 }, {  93,4317 },
- {  94,4317 }, {  95,4317 }, {  96,4317 }, {  97,4317 }, {  98,4317 },
- {  99,4317 }, { 100,4317 }, { 101,4317 }, { 102,4317 }, { 103,4317 },
- { 104,4317 }, { 105,4317 }, { 106,4317 }, { 107,4317 }, { 108,4317 },
- { 109,4317 }, { 110,4317 }, { 111,4317 }, { 112,4317 }, { 113,4317 },
- { 114,4317 }, { 115,4317 }, { 116,4317 }, { 117,4317 }, { 118,4317 },
- { 119,4317 }, { 120,4317 }, { 121,4317 }, { 122,4317 }, { 123,4317 },
- { 124,4317 }, { 125,4317 }, { 126,4317 }, { 127,4317 }, { 128,4317 },
- { 129,4317 }, { 130,4317 }, { 131,4317 }, { 132,4317 }, { 133,4317 },
-
- { 134,4317 }, { 135,4317 }, { 136,4317 }, { 137,4317 }, { 138,4317 },
- { 139,4317 }, { 140,4317 }, { 141,4317 }, { 142,4317 }, { 143,4317 },
- { 144,4317 }, { 145,4317 }, { 146,4317 }, { 147,4317 }, { 148,4317 },
- { 149,4317 }, { 150,4317 }, { 151,4317 }, { 152,4317 }, { 153,4317 },
- { 154,4317 }, { 155,4317 }, { 156,4317 }, { 157,4317 }, { 158,4317 },
- { 159,4317 }, { 160,4317 }, { 161,4317 }, { 162,4317 }, { 163,4317 },
- { 164,4317 }, { 165,4317 }, { 166,4317 }, { 167,4317 }, { 168,4317 },
- { 169,4317 }, { 170,4317 }, { 171,4317 }, { 172,4317 }, { 173,4317 },
- { 174,4317 }, { 175,4317 }, { 176,4317 }, { 177,4317 }, { 178,4317 },
- { 179,4317 }, { 180,4317 }, { 181,4317 }, { 182,4317 }, { 183,4317 },
-
- { 184,4317 }, { 185,4317 }, { 186,4317 }, { 187,4317 }, { 188,4317 },
- { 189,4317 }, { 190,4317 }, { 191,4317 }, { 192,4317 }, { 193,4317 },
- { 194,4317 }, { 195,4317 }, { 196,4317 }, { 197,4317 }, { 198,4317 },
- { 199,4317 }, { 200,4317 }, { 201,4317 }, { 202,4317 }, { 203,4317 },
- { 204,4317 }, { 205,4317 }, { 206,4317 }, { 207,4317 }, { 208,4317 },
- { 209,4317 }, { 210,4317 }, { 211,4317 }, { 212,4317 }, { 213,4317 },
- { 214,4317 }, { 215,4317 }, { 216,4317 }, { 217,4317 }, { 218,4317 },
- { 219,4317 }, { 220,4317 }, { 221,4317 }, { 222,4317 }, { 223,4317 },
- { 224,4317 }, { 225,4317 }, { 226,4317 }, { 227,4317 }, { 228,4317 },
- { 229,4317 }, { 230,4317 }, { 231,4317 }, { 232,4317 }, { 233,4317 },
-
- { 234,4317 }, { 235,4317 }, { 236,4317 }, { 237,4317 }, { 238,4317 },
- { 239,4317 }, { 240,4317 }, { 241,4317 }, { 242,4317 }, { 243,4317 },
- { 244,4317 }, { 245,4317 }, { 246,4317 }, { 247,4317 }, { 248,4317 },
- { 249,4317 }, { 250,4317 }, { 251,4317 }, { 252,4317 }, { 253,4317 },
- { 254,4317 }, { 255,4317 }, { 256,4317 }, {   0,  58 }, {   0,27026 },
- {   1,4445 }, {   2,4445 }, {   3,4445 }, {   4,4445 }, {   5,4445 },
- {   6,4445 }, {   7,4445 }, {   8,4445 }, {   9,4445 }, {  10,4445 },
- {  11,4445 }, {  12,4445 }, {  13,4445 }, {  14,4445 }, {  15,4445 },
- {  16,4445 }, {  17,4445 }, {  18,4445 }, {  19,4445 }, {  20,4445 },
- {  21,4445 }, {  22,4445 }, {  23,4445 }, {  24,4445 }, {  25,4445 },
-
- {  26,4445 }, {  27,4445 }, {  28,4445 }, {  29,4445 }, {  30,4445 },
- {  31,4445 }, {  32,4445 }, {  33,4445 }, {   0,   0 }, {  35,4445 },
- {  36,4445 }, {  37,4445 }, {  38,4445 }, {  39,4445 }, {  40,4445 },
- {  41,4445 }, {  42,4445 }, {  43,4445 }, {  44,4445 }, {  45,4445 },
- {  46,4445 }, {  47,4445 }, {  48,4445 }, {  49,4445 }, {  50,4445 },
- {  51,4445 }, {  52,4445 }, {  53,4445 }, {  54,4445 }, {  55,4445 },
- {  56,4445 }, {  57,4445 }, {  58,4445 }, {  59,4445 }, {  60,4445 },
- {  61,4445 }, {  62,4445 }, {  63,4445 }, {  64,4445 }, {  65,4445 },
- {  66,4445 }, {  67,4445 }, {  68,4445 }, {  69,4445 }, {  70,4445 },
- {  71,4445 }, {  72,4445 }, {  73,4445 }, {  74,4445 }, {  75,4445 },
-
- {  76,4445 }, {  77,4445 }, {  78,4445 }, {  79,4445 }, {  80,4445 },
- {  81,4445 }, {  82,4445 }, {  83,4445 }, {  84,4445 }, {  85,4445 },
- {  86,4445 }, {  87,4445 }, {  88,4445 }, {  89,4445 }, {  90,4445 },
- {  91,4445 }, {  92,4445 }, {  93,4445 }, {  94,4445 }, {  95,4445 },
- {  96,4445 }, {  97,4445 }, {  98,4445 }, {  99,4445 }, { 100,4445 },
- { 101,4445 }, { 102,4445 }, { 103,4445 }, { 104,4445 }, { 105,4445 },
- { 106,4445 }, { 107,4445 }, { 108,4445 }, { 109,4445 }, { 110,4445 },
- { 111,4445 }, { 112,4445 }, { 113,4445 }, { 114,4445 }, { 115,4445 },
- { 116,4445 }, { 117,4445 }, { 118,4445 }, { 119,4445 }, { 120,4445 },
- { 121,4445 }, { 122,4445 }, { 123,4445 }, { 124,4445 }, { 125,4445 },
-
- { 126,4445 }, { 127,4445 }, { 128,4445 }, { 129,4445 }, { 130,4445 },
- { 131,4445 }, { 132,4445 }, { 133,4445 }, { 134,4445 }, { 135,4445 },
- { 136,4445 }, { 137,4445 }, { 138,4445 }, { 139,4445 }, { 140,4445 },
- { 141,4445 }, { 142,4445 }, { 143,4445 }, { 144,4445 }, { 145,4445 },
- { 146,4445 }, { 147,4445 }, { 148,4445 }, { 149,4445 }, { 150,4445 },
- { 151,4445 }, { 152,4445 }, { 153,4445 }, { 154,4445 }, { 155,4445 },
- { 156,4445 }, { 157,4445 }, { 158,4445 }, { 159,4445 }, { 160,4445 },
- { 161,4445 }, { 162,4445 }, { 163,4445 }, { 164,4445 }, { 165,4445 },
- { 166,4445 }, { 167,4445 }, { 168,4445 }, { 169,4445 }, { 170,4445 },
- { 171,4445 }, { 172,4445 }, { 173,4445 }, { 174,4445 }, { 175,4445 },
-
- { 176,4445 }, { 177,4445 }, { 178,4445 }, { 179,4445 }, { 180,4445 },
- { 181,4445 }, { 182,4445 }, { 183,4445 }, { 184,4445 }, { 185,4445 },
- { 186,4445 }, { 187,4445 }, { 188,4445 }, { 189,4445 }, { 190,4445 },
- { 191,4445 }, { 192,4445 }, { 193,4445 }, { 194,4445 }, { 195,4445 },
- { 196,4445 }, { 197,4445 }, { 198,4445 }, { 199,4445 }, { 200,4445 },
- { 201,4445 }, { 202,4445 }, { 203,4445 }, { 204,4445 }, { 205,4445 },
- { 206,4445 }, { 207,4445 }, { 208,4445 }, { 209,4445 }, { 210,4445 },
- { 211,4445 }, { 212,4445 }, { 213,4445 }, { 214,4445 }, { 215,4445 },
- { 216,4445 }, { 217,4445 }, { 218,4445 }, { 219,4445 }, { 220,4445 },
- { 221,4445 }, { 222,4445 }, { 223,4445 }, { 224,4445 }, { 225,4445 },
-
- { 226,4445 }, { 227,4445 }, { 228,4445 }, { 229,4445 }, { 230,4445 },
- { 231,4445 }, { 232,4445 }, { 233,4445 }, { 234,4445 }, { 235,4445 },
- { 236,4445 }, { 237,4445 }, { 238,4445 }, { 239,4445 }, { 240,4445 },
- { 241,4445 }, { 242,4445 }, { 243,4445 }, { 244,4445 }, { 245,4445 },
- { 246,4445 }, { 247,4445 }, { 248,4445 }, { 249,4445 }, { 250,4445 },
- { 251,4445 }, { 252,4445 }, { 253,4445 }, { 254,4445 }, { 255,4445 },
- { 256,4445 }, {   0,  11 }, {   0,26768 }, {   1,4445 }, {   2,4445 },
- {   3,4445 }, {   4,4445 }, {   5,4445 }, {   6,4445 }, {   7,4445 },
- {   8,4445 }, {   9,4445 }, {  10,4445 }, {  11,4445 }, {  12,4445 },
- {  13,4445 }, {  14,4445 }, {  15,4445 }, {  16,4445 }, {  17,4445 },
-
- {  18,4445 }, {  19,4445 }, {  20,4445 }, {  21,4445 }, {  22,4445 },
- {  23,4445 }, {  24,4445 }, {  25,4445 }, {  26,4445 }, {  27,4445 },
- {  28,4445 }, {  29,4445 }, {  30,4445 }, {  31,4445 }, {  32,4445 },
- {  33,4445 }, {  34,4445 }, {  35,4445 }, {  36,4445 }, {  37,4445 },
- {  38,4445 }, {   0,   0 }, {  40,4445 }, {  41,4445 }, {  42,4445 },
- {  43,4445 }, {  44,4445 }, {  45,4445 }, {  46,4445 }, {  47,4445 },
- {  48,4445 }, {  49,4445 }, {  50,4445 }, {  51,4445 }, {  52,4445 },
- {  53,4445 }, {  54,4445 }, {  55,4445 }, {  56,4445 }, {  57,4445 },
- {  58,4445 }, {  59,4445 }, {  60,4445 }, {  61,4445 }, {  62,4445 },
- {  63,4445 }, {  64,4445 }, {  65,4445 }, {  66,4445 }, {  67,4445 },
-
- {  68,4445 }, {  69,4445 }, {  70,4445 }, {  71,4445 }, {  72,4445 },
- {  73,4445 }, {  74,4445 }, {  75,4445 }, {  76,4445 }, {  77,4445 },
- {  78,4445 }, {  79,4445 }, {  80,4445 }, {  81,4445 }, {  82,4445 },
- {  83,4445 }, {  84,4445 }, {  85,4445 }, {  86,4445 }, {  87,4445 },
- {  88,4445 }, {  89,4445 }, {  90,4445 }, {  91,4445 }, {  92,4445 },
- {  93,4445 }, {  94,4445 }, {  95,4445 }, {  96,4445 }, {  97,4445 },
- {  98,4445 }, {  99,4445 }, { 100,4445 }, { 101,4445 }, { 102,4445 },
- { 103,4445 }, { 104,4445 }, { 105,4445 }, { 106,4445 }, { 107,4445 },
- { 108,4445 }, { 109,4445 }, { 110,4445 }, { 111,4445 }, { 112,4445 },
- { 113,4445 }, { 114,4445 }, { 115,4445 }, { 116,4445 }, { 117,4445 },
-
- { 118,4445 }, { 119,4445 }, { 120,4445 }, { 121,4445 }, { 122,4445 },
- { 123,4445 }, { 124,4445 }, { 125,4445 }, { 126,4445 }, { 127,4445 },
- { 128,4445 }, { 129,4445 }, { 130,4445 }, { 131,4445 }, { 132,4445 },
- { 133,4445 }, { 134,4445 }, { 135,4445 }, { 136,4445 }, { 137,4445 },
- { 138,4445 }, { 139,4445 }, { 140,4445 }, { 141,4445 }, { 142,4445 },
- { 143,4445 }, { 144,4445 }, { 145,4445 }, { 146,4445 }, { 147,4445 },
- { 148,4445 }, { 149,4445 }, { 150,4445 }, { 151,4445 }, { 152,4445 },
- { 153,4445 }, { 154,4445 }, { 155,4445 }, { 156,4445 }, { 157,4445 },
- { 158,4445 }, { 159,4445 }, { 160,4445 }, { 161,4445 }, { 162,4445 },
- { 163,4445 }, { 164,4445 }, { 165,4445 }, { 166,4445 }, { 167,4445 },
-
- { 168,4445 }, { 169,4445 }, { 170,4445 }, { 171,4445 }, { 172,4445 },
- { 173,4445 }, { 174,4445 }, { 175,4445 }, { 176,4445 }, { 177,4445 },
- { 178,4445 }, { 179,4445 }, { 180,4445 }, { 181,4445 }, { 182,4445 },
- { 183,4445 }, { 184,4445 }, { 185,4445 }, { 186,4445 }, { 187,4445 },
- { 188,4445 }, { 189,4445 }, { 190,4445 }, { 191,4445 }, { 192,4445 },
- { 193,4445 }, { 194,4445 }, { 195,4445 }, { 196,4445 }, { 197,4445 },
- { 198,4445 }, { 199,4445 }, { 200,4445 }, { 201,4445 }, { 202,4445 },
- { 203,4445 }, { 204,4445 }, { 205,4445 }, { 206,4445 }, { 207,4445 },
- { 208,4445 }, { 209,4445 }, { 210,4445 }, { 211,4445 }, { 212,4445 },
- { 213,4445 }, { 214,4445 }, { 215,4445 }, { 216,4445 }, { 217,4445 },
-
- { 218,4445 }, { 219,4445 }, { 220,4445 }, { 221,4445 }, { 222,4445 },
- { 223,4445 }, { 224,4445 }, { 225,4445 }, { 226,4445 }, { 227,4445 },
- { 228,4445 }, { 229,4445 }, { 230,4445 }, { 231,4445 }, { 232,4445 },
- { 233,4445 }, { 234,4445 }, { 235,4445 }, { 236,4445 }, { 237,4445 },
- { 238,4445 }, { 239,4445 }, { 240,4445 }, { 241,4445 }, { 242,4445 },
- { 243,4445 }, { 244,4445 }, { 245,4445 }, { 246,4445 }, { 247,4445 },
- { 248,4445 }, { 249,4445 }, { 250,4445 }, { 251,4445 }, { 252,4445 },
- { 253,4445 }, { 254,4445 }, { 255,4445 }, { 256,4445 }, {   0,  16 },
- {   0,26510 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,4445 },
-
- {  10,4450 }, {   0,   0 }, {  12,4445 }, {  13,4450 }, {   0,   0 },
+ {  98,5406 }, {  99,5406 }, { 100,5406 }, { 101,5406 }, { 102,5406 },
+ { 103,5406 }, { 104,5406 }, { 105,5406 }, { 106,5406 }, { 107,5406 },
+ { 108,5406 }, { 109,5406 }, { 110,5406 }, { 111,5406 }, { 112,5406 },
+ { 113,5406 }, { 114,5406 }, { 115,5406 }, { 116,5406 }, { 117,5406 },
+ { 118,5406 }, { 119,5406 }, { 120,5406 }, { 121,5406 }, { 122,5406 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,4445 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  45,-3036 }, {   0,  32 }, {   0,26463 }, {   1,4450 }, {   2,4450 },
- {   3,4450 }, {   4,4450 }, {   5,4450 }, {   6,4450 }, {   7,4450 },
- {   8,4450 }, {   9,4450 }, {  10,4450 }, {  11,4450 }, {  12,4450 },
+ { 128,5406 }, { 129,5406 }, { 130,5406 }, { 131,5406 }, { 132,5406 },
+ { 133,5406 }, { 134,5406 }, { 135,5406 }, { 136,5406 }, { 137,5406 },
+ { 138,5406 }, { 139,5406 }, { 140,5406 }, { 141,5406 }, { 142,5406 },
+ { 143,5406 }, { 144,5406 }, { 145,5406 }, { 146,5406 }, { 147,5406 },
 
- {  13,4450 }, {  14,4450 }, {  15,4450 }, {  16,4450 }, {  17,4450 },
- {  18,4450 }, {  19,4450 }, {  20,4450 }, {  21,4450 }, {  22,4450 },
- {  23,4450 }, {  24,4450 }, {  25,4450 }, {  26,4450 }, {  27,4450 },
- {  28,4450 }, {  29,4450 }, {  30,4450 }, {  31,4450 }, {  32,4450 },
- {  33,4450 }, {  34,4450 }, {  35,4450 }, {  36,4450 }, {  37,4450 },
- {  38,4450 }, {   0,   0 }, {  40,4450 }, {  41,4450 }, {  42,4450 },
- {  43,4450 }, {  44,4450 }, {  45,4450 }, {  46,4450 }, {  47,4450 },
- {  48,4450 }, {  49,4450 }, {  50,4450 }, {  51,4450 }, {  52,4450 },
- {  53,4450 }, {  54,4450 }, {  55,4450 }, {  56,4450 }, {  57,4450 },
- {  58,4450 }, {  59,4450 }, {  60,4450 }, {  61,4450 }, {  62,4450 },
+ { 148,5406 }, { 149,5406 }, { 150,5406 }, { 151,5406 }, { 152,5406 },
+ { 153,5406 }, { 154,5406 }, { 155,5406 }, { 156,5406 }, { 157,5406 },
+ { 158,5406 }, { 159,5406 }, { 160,5406 }, { 161,5406 }, { 162,5406 },
+ { 163,5406 }, { 164,5406 }, { 165,5406 }, { 166,5406 }, { 167,5406 },
+ { 168,5406 }, { 169,5406 }, { 170,5406 }, { 171,5406 }, { 172,5406 },
+ { 173,5406 }, { 174,5406 }, { 175,5406 }, { 176,5406 }, { 177,5406 },
+ { 178,5406 }, { 179,5406 }, { 180,5406 }, { 181,5406 }, { 182,5406 },
+ { 183,5406 }, { 184,5406 }, { 185,5406 }, { 186,5406 }, { 187,5406 },
+ { 188,5406 }, { 189,5406 }, { 190,5406 }, { 191,5406 }, { 192,5406 },
+ { 193,5406 }, { 194,5406 }, { 195,5406 }, { 196,5406 }, { 197,5406 },
 
- {  63,4450 }, {  64,4450 }, {  65,4450 }, {  66,4450 }, {  67,4450 },
- {  68,4450 }, {  69,4450 }, {  70,4450 }, {  71,4450 }, {  72,4450 },
- {  73,4450 }, {  74,4450 }, {  75,4450 }, {  76,4450 }, {  77,4450 },
- {  78,4450 }, {  79,4450 }, {  80,4450 }, {  81,4450 }, {  82,4450 },
- {  83,4450 }, {  84,4450 }, {  85,4450 }, {  86,4450 }, {  87,4450 },
- {  88,4450 }, {  89,4450 }, {  90,4450 }, {  91,4450 }, {   0,   0 },
- {  93,4450 }, {  94,4450 }, {  95,4450 }, {  96,4450 }, {  97,4450 },
- {  98,4450 }, {  99,4450 }, { 100,4450 }, { 101,4450 }, { 102,4450 },
- { 103,4450 }, { 104,4450 }, { 105,4450 }, { 106,4450 }, { 107,4450 },
- { 108,4450 }, { 109,4450 }, { 110,4450 }, { 111,4450 }, { 112,4450 },
+ { 198,5406 }, { 199,5406 }, { 200,5406 }, { 201,5406 }, { 202,5406 },
+ { 203,5406 }, { 204,5406 }, { 205,5406 }, { 206,5406 }, { 207,5406 },
+ { 208,5406 }, { 209,5406 }, { 210,5406 }, { 211,5406 }, { 212,5406 },
+ { 213,5406 }, { 214,5406 }, { 215,5406 }, { 216,5406 }, { 217,5406 },
+ { 218,5406 }, { 219,5406 }, { 220,5406 }, { 221,5406 }, { 222,5406 },
+ { 223,5406 }, { 224,5406 }, { 225,5406 }, { 226,5406 }, { 227,5406 },
+ { 228,5406 }, { 229,5406 }, { 230,5406 }, { 231,5406 }, { 232,5406 },
+ { 233,5406 }, { 234,5406 }, { 235,5406 }, { 236,5406 }, { 237,5406 },
+ { 238,5406 }, { 239,5406 }, { 240,5406 }, { 241,5406 }, { 242,5406 },
+ { 243,5406 }, { 244,5406 }, { 245,5406 }, { 246,5406 }, { 247,5406 },
 
- { 113,4450 }, { 114,4450 }, { 115,4450 }, { 116,4450 }, { 117,4450 },
- { 118,4450 }, { 119,4450 }, { 120,4450 }, { 121,4450 }, { 122,4450 },
- { 123,4450 }, { 124,4450 }, { 125,4450 }, { 126,4450 }, { 127,4450 },
- { 128,4450 }, { 129,4450 }, { 130,4450 }, { 131,4450 }, { 132,4450 },
- { 133,4450 }, { 134,4450 }, { 135,4450 }, { 136,4450 }, { 137,4450 },
- { 138,4450 }, { 139,4450 }, { 140,4450 }, { 141,4450 }, { 142,4450 },
- { 143,4450 }, { 144,4450 }, { 145,4450 }, { 146,4450 }, { 147,4450 },
- { 148,4450 }, { 149,4450 }, { 150,4450 }, { 151,4450 }, { 152,4450 },
- { 153,4450 }, { 154,4450 }, { 155,4450 }, { 156,4450 }, { 157,4450 },
- { 158,4450 }, { 159,4450 }, { 160,4450 }, { 161,4450 }, { 162,4450 },
-
- { 163,4450 }, { 164,4450 }, { 165,4450 }, { 166,4450 }, { 167,4450 },
- { 168,4450 }, { 169,4450 }, { 170,4450 }, { 171,4450 }, { 172,4450 },
- { 173,4450 }, { 174,4450 }, { 175,4450 }, { 176,4450 }, { 177,4450 },
- { 178,4450 }, { 179,4450 }, { 180,4450 }, { 181,4450 }, { 182,4450 },
- { 183,4450 }, { 184,4450 }, { 185,4450 }, { 186,4450 }, { 187,4450 },
- { 188,4450 }, { 189,4450 }, { 190,4450 }, { 191,4450 }, { 192,4450 },
- { 193,4450 }, { 194,4450 }, { 195,4450 }, { 196,4450 }, { 197,4450 },
- { 198,4450 }, { 199,4450 }, { 200,4450 }, { 201,4450 }, { 202,4450 },
- { 203,4450 }, { 204,4450 }, { 205,4450 }, { 206,4450 }, { 207,4450 },
- { 208,4450 }, { 209,4450 }, { 210,4450 }, { 211,4450 }, { 212,4450 },
-
- { 213,4450 }, { 214,4450 }, { 215,4450 }, { 216,4450 }, { 217,4450 },
- { 218,4450 }, { 219,4450 }, { 220,4450 }, { 221,4450 }, { 222,4450 },
- { 223,4450 }, { 224,4450 }, { 225,4450 }, { 226,4450 }, { 227,4450 },
- { 228,4450 }, { 229,4450 }, { 230,4450 }, { 231,4450 }, { 232,4450 },
- { 233,4450 }, { 234,4450 }, { 235,4450 }, { 236,4450 }, { 237,4450 },
- { 238,4450 }, { 239,4450 }, { 240,4450 }, { 241,4450 }, { 242,4450 },
- { 243,4450 }, { 244,4450 }, { 245,4450 }, { 246,4450 }, { 247,4450 },
- { 248,4450 }, { 249,4450 }, { 250,4450 }, { 251,4450 }, { 252,4450 },
- { 253,4450 }, { 254,4450 }, { 255,4450 }, { 256,4450 }, {   0,  32 },
- {   0,26205 }, {   1,4192 }, {   2,4192 }, {   3,4192 }, {   4,4192 },
-
- {   5,4192 }, {   6,4192 }, {   7,4192 }, {   8,4192 }, {   9,4192 },
- {  10,4192 }, {  11,4192 }, {  12,4192 }, {  13,4192 }, {  14,4192 },
- {  15,4192 }, {  16,4192 }, {  17,4192 }, {  18,4192 }, {  19,4192 },
- {  20,4192 }, {  21,4192 }, {  22,4192 }, {  23,4192 }, {  24,4192 },
- {  25,4192 }, {  26,4192 }, {  27,4192 }, {  28,4192 }, {  29,4192 },
- {  30,4192 }, {  31,4192 }, {  32,4192 }, {  33,4192 }, {  34,4192 },
- {  35,4192 }, {  36,4192 }, {  37,4192 }, {  38,4192 }, {   0,   0 },
- {  40,4192 }, {  41,4192 }, {  42,4192 }, {  43,4192 }, {  44,4192 },
- {  45,4192 }, {  46,4192 }, {  47,4192 }, {  48,4192 }, {  49,4192 },
- {  50,4192 }, {  51,4192 }, {  52,4192 }, {  53,4192 }, {  54,4192 },
-
- {  55,4192 }, {  56,4192 }, {  57,4192 }, {  58,4192 }, {  59,4192 },
- {  60,4192 }, {  61,4192 }, {  62,4192 }, {  63,4192 }, {  64,4192 },
- {  65,4192 }, {  66,4192 }, {  67,4192 }, {  68,4192 }, {  69,4192 },
- {  70,4192 }, {  71,4192 }, {  72,4192 }, {  73,4192 }, {  74,4192 },
- {  75,4192 }, {  76,4192 }, {  77,4192 }, {  78,4192 }, {  79,4192 },
- {  80,4192 }, {  81,4192 }, {  82,4192 }, {  83,4192 }, {  84,4192 },
- {  85,4192 }, {  86,4192 }, {  87,4192 }, {  88,4192 }, {  89,4192 },
- {  90,4192 }, {  91,4192 }, {   0,   0 }, {  93,4192 }, {  94,4192 },
- {  95,4192 }, {  96,4192 }, {  97,4192 }, {  98,4192 }, {  99,4192 },
- { 100,4192 }, { 101,4192 }, { 102,4192 }, { 103,4192 }, { 104,4192 },
-
- { 105,4192 }, { 106,4192 }, { 107,4192 }, { 108,4192 }, { 109,4192 },
- { 110,4192 }, { 111,4192 }, { 112,4192 }, { 113,4192 }, { 114,4192 },
- { 115,4192 }, { 116,4192 }, { 117,4192 }, { 118,4192 }, { 119,4192 },
- { 120,4192 }, { 121,4192 }, { 122,4192 }, { 123,4192 }, { 124,4192 },
- { 125,4192 }, { 126,4192 }, { 127,4192 }, { 128,4192 }, { 129,4192 },
- { 130,4192 }, { 131,4192 }, { 132,4192 }, { 133,4192 }, { 134,4192 },
- { 135,4192 }, { 136,4192 }, { 137,4192 }, { 138,4192 }, { 139,4192 },
- { 140,4192 }, { 141,4192 }, { 142,4192 }, { 143,4192 }, { 144,4192 },
- { 145,4192 }, { 146,4192 }, { 147,4192 }, { 148,4192 }, { 149,4192 },
- { 150,4192 }, { 151,4192 }, { 152,4192 }, { 153,4192 }, { 154,4192 },
-
- { 155,4192 }, { 156,4192 }, { 157,4192 }, { 158,4192 }, { 159,4192 },
- { 160,4192 }, { 161,4192 }, { 162,4192 }, { 163,4192 }, { 164,4192 },
- { 165,4192 }, { 166,4192 }, { 167,4192 }, { 168,4192 }, { 169,4192 },
- { 170,4192 }, { 171,4192 }, { 172,4192 }, { 173,4192 }, { 174,4192 },
- { 175,4192 }, { 176,4192 }, { 177,4192 }, { 178,4192 }, { 179,4192 },
- { 180,4192 }, { 181,4192 }, { 182,4192 }, { 183,4192 }, { 184,4192 },
- { 185,4192 }, { 186,4192 }, { 187,4192 }, { 188,4192 }, { 189,4192 },
- { 190,4192 }, { 191,4192 }, { 192,4192 }, { 193,4192 }, { 194,4192 },
- { 195,4192 }, { 196,4192 }, { 197,4192 }, { 198,4192 }, { 199,4192 },
- { 200,4192 }, { 201,4192 }, { 202,4192 }, { 203,4192 }, { 204,4192 },
-
- { 205,4192 }, { 206,4192 }, { 207,4192 }, { 208,4192 }, { 209,4192 },
- { 210,4192 }, { 211,4192 }, { 212,4192 }, { 213,4192 }, { 214,4192 },
- { 215,4192 }, { 216,4192 }, { 217,4192 }, { 218,4192 }, { 219,4192 },
- { 220,4192 }, { 221,4192 }, { 222,4192 }, { 223,4192 }, { 224,4192 },
- { 225,4192 }, { 226,4192 }, { 227,4192 }, { 228,4192 }, { 229,4192 },
- { 230,4192 }, { 231,4192 }, { 232,4192 }, { 233,4192 }, { 234,4192 },
- { 235,4192 }, { 236,4192 }, { 237,4192 }, { 238,4192 }, { 239,4192 },
- { 240,4192 }, { 241,4192 }, { 242,4192 }, { 243,4192 }, { 244,4192 },
- { 245,4192 }, { 246,4192 }, { 247,4192 }, { 248,4192 }, { 249,4192 },
- { 250,4192 }, { 251,4192 }, { 252,4192 }, { 253,4192 }, { 254,4192 },
-
- { 255,4192 }, { 256,4192 }, {   0,  22 }, {   0,25947 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   9,4192 }, {  10,4197 }, {   0,   0 },
- {  12,4192 }, {  13,4197 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  32,4192 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  39,-3597 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-3592 }, {   0,  42 },
-
- {   0,25900 }, {   1,-3637 }, {   2,-3637 }, {   3,-3637 }, {   4,-3637 },
- {   5,-3637 }, {   6,-3637 }, {   7,-3637 }, {   8,-3637 }, {   9,-3637 },
- {  10,-3637 }, {  11,-3637 }, {  12,-3637 }, {  13,-3637 }, {  14,-3637 },
- {  15,-3637 }, {  16,-3637 }, {  17,-3637 }, {  18,-3637 }, {  19,-3637 },
- {  20,-3637 }, {  21,-3637 }, {  22,-3637 }, {  23,-3637 }, {  24,-3637 },
- {  25,-3637 }, {  26,-3637 }, {  27,-3637 }, {  28,-3637 }, {  29,-3637 },
- {  30,-3637 }, {  31,-3637 }, {  32,-3637 }, {  33,-3637 }, {  34,-3637 },
- {  35,-3637 }, {  36,-3637 }, {  37,-3637 }, {  38,-3637 }, {  39,-3637 },
- {  40,-3637 }, {  41,-3637 }, {  42,-3637 }, {  43,-3637 }, {  44,-3637 },
- {  45,-3637 }, {  46,-3637 }, {  47,-3637 }, {  48,4152 }, {  49,4152 },
-
- {  50,4152 }, {  51,4152 }, {  52,4152 }, {  53,4152 }, {  54,4152 },
- {  55,4152 }, {  56,-3637 }, {  57,-3637 }, {  58,-3637 }, {  59,-3637 },
- {  60,-3637 }, {  61,-3637 }, {  62,-3637 }, {  63,-3637 }, {  64,-3637 },
- {  65,-3637 }, {  66,-3637 }, {  67,-3637 }, {  68,-3637 }, {  69,-3637 },
- {  70,-3637 }, {  71,-3637 }, {  72,-3637 }, {  73,-3637 }, {  74,-3637 },
- {  75,-3637 }, {  76,-3637 }, {  77,-3637 }, {  78,-3637 }, {  79,-3637 },
- {  80,-3637 }, {  81,-3637 }, {  82,-3637 }, {  83,-3637 }, {  84,-3637 },
- {  85,4165 }, {  86,-3637 }, {  87,-3637 }, {  88,-3637 }, {  89,-3637 },
- {  90,-3637 }, {  91,-3637 }, {  92,-3637 }, {  93,-3637 }, {  94,-3637 },
- {  95,-3637 }, {  96,-3637 }, {  97,-3637 }, {  98,-3637 }, {  99,-3637 },
-
- { 100,-3637 }, { 101,-3637 }, { 102,-3637 }, { 103,-3637 }, { 104,-3637 },
- { 105,-3637 }, { 106,-3637 }, { 107,-3637 }, { 108,-3637 }, { 109,-3637 },
- { 110,-3637 }, { 111,-3637 }, { 112,-3637 }, { 113,-3637 }, { 114,-3637 },
- { 115,-3637 }, { 116,-3637 }, { 117,4188 }, { 118,-3637 }, { 119,-3637 },
- { 120,4226 }, { 121,-3637 }, { 122,-3637 }, { 123,-3637 }, { 124,-3637 },
- { 125,-3637 }, { 126,-3637 }, { 127,-3637 }, { 128,-3637 }, { 129,-3637 },
- { 130,-3637 }, { 131,-3637 }, { 132,-3637 }, { 133,-3637 }, { 134,-3637 },
- { 135,-3637 }, { 136,-3637 }, { 137,-3637 }, { 138,-3637 }, { 139,-3637 },
- { 140,-3637 }, { 141,-3637 }, { 142,-3637 }, { 143,-3637 }, { 144,-3637 },
- { 145,-3637 }, { 146,-3637 }, { 147,-3637 }, { 148,-3637 }, { 149,-3637 },
-
- { 150,-3637 }, { 151,-3637 }, { 152,-3637 }, { 153,-3637 }, { 154,-3637 },
- { 155,-3637 }, { 156,-3637 }, { 157,-3637 }, { 158,-3637 }, { 159,-3637 },
- { 160,-3637 }, { 161,-3637 }, { 162,-3637 }, { 163,-3637 }, { 164,-3637 },
- { 165,-3637 }, { 166,-3637 }, { 167,-3637 }, { 168,-3637 }, { 169,-3637 },
- { 170,-3637 }, { 171,-3637 }, { 172,-3637 }, { 173,-3637 }, { 174,-3637 },
- { 175,-3637 }, { 176,-3637 }, { 177,-3637 }, { 178,-3637 }, { 179,-3637 },
- { 180,-3637 }, { 181,-3637 }, { 182,-3637 }, { 183,-3637 }, { 184,-3637 },
- { 185,-3637 }, { 186,-3637 }, { 187,-3637 }, { 188,-3637 }, { 189,-3637 },
- { 190,-3637 }, { 191,-3637 }, { 192,-3637 }, { 193,-3637 }, { 194,-3637 },
- { 195,-3637 }, { 196,-3637 }, { 197,-3637 }, { 198,-3637 }, { 199,-3637 },
-
- { 200,-3637 }, { 201,-3637 }, { 202,-3637 }, { 203,-3637 }, { 204,-3637 },
- { 205,-3637 }, { 206,-3637 }, { 207,-3637 }, { 208,-3637 }, { 209,-3637 },
- { 210,-3637 }, { 211,-3637 }, { 212,-3637 }, { 213,-3637 }, { 214,-3637 },
- { 215,-3637 }, { 216,-3637 }, { 217,-3637 }, { 218,-3637 }, { 219,-3637 },
- { 220,-3637 }, { 221,-3637 }, { 222,-3637 }, { 223,-3637 }, { 224,-3637 },
- { 225,-3637 }, { 226,-3637 }, { 227,-3637 }, { 228,-3637 }, { 229,-3637 },
- { 230,-3637 }, { 231,-3637 }, { 232,-3637 }, { 233,-3637 }, { 234,-3637 },
- { 235,-3637 }, { 236,-3637 }, { 237,-3637 }, { 238,-3637 }, { 239,-3637 },
- { 240,-3637 }, { 241,-3637 }, { 242,-3637 }, { 243,-3637 }, { 244,-3637 },
- { 245,-3637 }, { 246,-3637 }, { 247,-3637 }, { 248,-3637 }, { 249,-3637 },
-
- { 250,-3637 }, { 251,-3637 }, { 252,-3637 }, { 253,-3637 }, { 254,-3637 },
- { 255,-3637 }, { 256,-3637 }, {   0,  31 }, {   0,25642 }, {   1,4072 },
- {   2,4072 }, {   3,4072 }, {   4,4072 }, {   5,4072 }, {   6,4072 },
- {   7,4072 }, {   8,4072 }, {   9,4072 }, {  10,4072 }, {  11,4072 },
- {  12,4072 }, {  13,4072 }, {  14,4072 }, {  15,4072 }, {  16,4072 },
- {  17,4072 }, {  18,4072 }, {  19,4072 }, {  20,4072 }, {  21,4072 },
- {  22,4072 }, {  23,4072 }, {  24,4072 }, {  25,4072 }, {  26,4072 },
- {  27,4072 }, {  28,4072 }, {  29,4072 }, {  30,4072 }, {  31,4072 },
- {  32,4072 }, {  33,4072 }, {  34,4072 }, {  35,4072 }, {  36,4072 },
- {  37,4072 }, {  38,4072 }, {   0,   0 }, {  40,4072 }, {  41,4072 },
-
- {  42,4072 }, {  43,4072 }, {  44,4072 }, {  45,4072 }, {  46,4072 },
- {  47,4072 }, {  48,4072 }, {  49,4072 }, {  50,4072 }, {  51,4072 },
- {  52,4072 }, {  53,4072 }, {  54,4072 }, {  55,4072 }, {  56,4072 },
- {  57,4072 }, {  58,4072 }, {  59,4072 }, {  60,4072 }, {  61,4072 },
- {  62,4072 }, {  63,4072 }, {  64,4072 }, {  65,4072 }, {  66,4072 },
- {  67,4072 }, {  68,4072 }, {  69,4072 }, {  70,4072 }, {  71,4072 },
- {  72,4072 }, {  73,4072 }, {  74,4072 }, {  75,4072 }, {  76,4072 },
- {  77,4072 }, {  78,4072 }, {  79,4072 }, {  80,4072 }, {  81,4072 },
- {  82,4072 }, {  83,4072 }, {  84,4072 }, {  85,4072 }, {  86,4072 },
- {  87,4072 }, {  88,4072 }, {  89,4072 }, {  90,4072 }, {  91,4072 },
-
- {  92,4072 }, {  93,4072 }, {  94,4072 }, {  95,4072 }, {  96,4072 },
- {  97,4072 }, {  98,4072 }, {  99,4072 }, { 100,4072 }, { 101,4072 },
- { 102,4072 }, { 103,4072 }, { 104,4072 }, { 105,4072 }, { 106,4072 },
- { 107,4072 }, { 108,4072 }, { 109,4072 }, { 110,4072 }, { 111,4072 },
- { 112,4072 }, { 113,4072 }, { 114,4072 }, { 115,4072 }, { 116,4072 },
- { 117,4072 }, { 118,4072 }, { 119,4072 }, { 120,4072 }, { 121,4072 },
- { 122,4072 }, { 123,4072 }, { 124,4072 }, { 125,4072 }, { 126,4072 },
- { 127,4072 }, { 128,4072 }, { 129,4072 }, { 130,4072 }, { 131,4072 },
- { 132,4072 }, { 133,4072 }, { 134,4072 }, { 135,4072 }, { 136,4072 },
- { 137,4072 }, { 138,4072 }, { 139,4072 }, { 140,4072 }, { 141,4072 },
-
- { 142,4072 }, { 143,4072 }, { 144,4072 }, { 145,4072 }, { 146,4072 },
- { 147,4072 }, { 148,4072 }, { 149,4072 }, { 150,4072 }, { 151,4072 },
- { 152,4072 }, { 153,4072 }, { 154,4072 }, { 155,4072 }, { 156,4072 },
- { 157,4072 }, { 158,4072 }, { 159,4072 }, { 160,4072 }, { 161,4072 },
- { 162,4072 }, { 163,4072 }, { 164,4072 }, { 165,4072 }, { 166,4072 },
- { 167,4072 }, { 168,4072 }, { 169,4072 }, { 170,4072 }, { 171,4072 },
- { 172,4072 }, { 173,4072 }, { 174,4072 }, { 175,4072 }, { 176,4072 },
- { 177,4072 }, { 178,4072 }, { 179,4072 }, { 180,4072 }, { 181,4072 },
- { 182,4072 }, { 183,4072 }, { 184,4072 }, { 185,4072 }, { 186,4072 },
- { 187,4072 }, { 188,4072 }, { 189,4072 }, { 190,4072 }, { 191,4072 },
-
- { 192,4072 }, { 193,4072 }, { 194,4072 }, { 195,4072 }, { 196,4072 },
- { 197,4072 }, { 198,4072 }, { 199,4072 }, { 200,4072 }, { 201,4072 },
- { 202,4072 }, { 203,4072 }, { 204,4072 }, { 205,4072 }, { 206,4072 },
- { 207,4072 }, { 208,4072 }, { 209,4072 }, { 210,4072 }, { 211,4072 },
- { 212,4072 }, { 213,4072 }, { 214,4072 }, { 215,4072 }, { 216,4072 },
- { 217,4072 }, { 218,4072 }, { 219,4072 }, { 220,4072 }, { 221,4072 },
- { 222,4072 }, { 223,4072 }, { 224,4072 }, { 225,4072 }, { 226,4072 },
- { 227,4072 }, { 228,4072 }, { 229,4072 }, { 230,4072 }, { 231,4072 },
- { 232,4072 }, { 233,4072 }, { 234,4072 }, { 235,4072 }, { 236,4072 },
- { 237,4072 }, { 238,4072 }, { 239,4072 }, { 240,4072 }, { 241,4072 },
-
- { 242,4072 }, { 243,4072 }, { 244,4072 }, { 245,4072 }, { 246,4072 },
- { 247,4072 }, { 248,4072 }, { 249,4072 }, { 250,4072 }, { 251,4072 },
- { 252,4072 }, { 253,4072 }, { 254,4072 }, { 255,4072 }, { 256,4072 },
- {   0,  22 }, {   0,25384 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,3629 }, {  10,3634 }, {   0,   0 }, {  12,3629 }, {  13,3634 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,3629 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,-4160 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-4155 }, {   0,  46 }, {   0,25337 }, {   1,4025 },
- {   2,4025 }, {   3,4025 }, {   4,4025 }, {   5,4025 }, {   6,4025 },
- {   7,4025 }, {   8,4025 }, {   9,4025 }, {  10,4025 }, {  11,4025 },
- {  12,4025 }, {  13,4025 }, {  14,4025 }, {  15,4025 }, {  16,4025 },
- {  17,4025 }, {  18,4025 }, {  19,4025 }, {  20,4025 }, {  21,4025 },
- {  22,4025 }, {  23,4025 }, {  24,4025 }, {  25,4025 }, {  26,4025 },
- {  27,4025 }, {  28,4025 }, {  29,4025 }, {  30,4025 }, {  31,4025 },
- {  32,4025 }, {  33,4025 }, {  34,4025 }, {  35,4025 }, {   0,   0 },
-
- {  37,4025 }, {  38,4025 }, {  39,4025 }, {  40,4025 }, {  41,4025 },
- {  42,4025 }, {  43,4025 }, {  44,4025 }, {  45,4025 }, {  46,4025 },
- {  47,4025 }, {  48,4025 }, {  49,4025 }, {  50,4025 }, {  51,4025 },
- {  52,4025 }, {  53,4025 }, {  54,4025 }, {  55,4025 }, {  56,4025 },
- {  57,4025 }, {  58,4025 }, {  59,4025 }, {  60,4025 }, {  61,4025 },
- {  62,4025 }, {  63,4025 }, {  64,4025 }, {  65,4025 }, {  66,4025 },
- {  67,4025 }, {  68,4025 }, {  69,4025 }, {  70,4025 }, {  71,4025 },
- {  72,4025 }, {  73,4025 }, {  74,4025 }, {  75,4025 }, {  76,4025 },
- {  77,4025 }, {  78,4025 }, {  79,4025 }, {  80,4025 }, {  81,4025 },
- {  82,4025 }, {  83,4025 }, {  84,4025 }, {  85,4025 }, {  86,4025 },
-
- {  87,4025 }, {  88,4025 }, {  89,4025 }, {  90,4025 }, {  91,4025 },
- {  92,4025 }, {  93,4025 }, {  94,4025 }, {  95,4025 }, {  96,4025 },
- {  97,4025 }, {  98,4025 }, {  99,4025 }, { 100,4025 }, { 101,4025 },
- { 102,4025 }, { 103,4025 }, { 104,4025 }, { 105,4025 }, { 106,4025 },
- { 107,4025 }, { 108,4025 }, { 109,4025 }, { 110,4025 }, { 111,4025 },
- { 112,4025 }, { 113,4025 }, { 114,4025 }, { 115,4025 }, { 116,4025 },
- { 117,4025 }, { 118,4025 }, { 119,4025 }, { 120,4025 }, { 121,4025 },
- { 122,4025 }, { 123,4025 }, { 124,4025 }, { 125,4025 }, { 126,4025 },
- { 127,4025 }, { 128,4025 }, { 129,4025 }, { 130,4025 }, { 131,4025 },
- { 132,4025 }, { 133,4025 }, { 134,4025 }, { 135,4025 }, { 136,4025 },
-
- { 137,4025 }, { 138,4025 }, { 139,4025 }, { 140,4025 }, { 141,4025 },
- { 142,4025 }, { 143,4025 }, { 144,4025 }, { 145,4025 }, { 146,4025 },
- { 147,4025 }, { 148,4025 }, { 149,4025 }, { 150,4025 }, { 151,4025 },
- { 152,4025 }, { 153,4025 }, { 154,4025 }, { 155,4025 }, { 156,4025 },
- { 157,4025 }, { 158,4025 }, { 159,4025 }, { 160,4025 }, { 161,4025 },
- { 162,4025 }, { 163,4025 }, { 164,4025 }, { 165,4025 }, { 166,4025 },
- { 167,4025 }, { 168,4025 }, { 169,4025 }, { 170,4025 }, { 171,4025 },
- { 172,4025 }, { 173,4025 }, { 174,4025 }, { 175,4025 }, { 176,4025 },
- { 177,4025 }, { 178,4025 }, { 179,4025 }, { 180,4025 }, { 181,4025 },
- { 182,4025 }, { 183,4025 }, { 184,4025 }, { 185,4025 }, { 186,4025 },
-
- { 187,4025 }, { 188,4025 }, { 189,4025 }, { 190,4025 }, { 191,4025 },
- { 192,4025 }, { 193,4025 }, { 194,4025 }, { 195,4025 }, { 196,4025 },
- { 197,4025 }, { 198,4025 }, { 199,4025 }, { 200,4025 }, { 201,4025 },
- { 202,4025 }, { 203,4025 }, { 204,4025 }, { 205,4025 }, { 206,4025 },
- { 207,4025 }, { 208,4025 }, { 209,4025 }, { 210,4025 }, { 211,4025 },
- { 212,4025 }, { 213,4025 }, { 214,4025 }, { 215,4025 }, { 216,4025 },
- { 217,4025 }, { 218,4025 }, { 219,4025 }, { 220,4025 }, { 221,4025 },
- { 222,4025 }, { 223,4025 }, { 224,4025 }, { 225,4025 }, { 226,4025 },
- { 227,4025 }, { 228,4025 }, { 229,4025 }, { 230,4025 }, { 231,4025 },
- { 232,4025 }, { 233,4025 }, { 234,4025 }, { 235,4025 }, { 236,4025 },
-
- { 237,4025 }, { 238,4025 }, { 239,4025 }, { 240,4025 }, { 241,4025 },
- { 242,4025 }, { 243,4025 }, { 244,4025 }, { 245,4025 }, { 246,4025 },
- { 247,4025 }, { 248,4025 }, { 249,4025 }, { 250,4025 }, { 251,4025 },
- { 252,4025 }, { 253,4025 }, { 254,4025 }, { 255,4025 }, { 256,4025 },
- {   0,  46 }, {   0,25079 }, {   1,3767 }, {   2,3767 }, {   3,3767 },
- {   4,3767 }, {   5,3767 }, {   6,3767 }, {   7,3767 }, {   8,3767 },
- {   9,3767 }, {  10,3767 }, {  11,3767 }, {  12,3767 }, {  13,3767 },
- {  14,3767 }, {  15,3767 }, {  16,3767 }, {  17,3767 }, {  18,3767 },
- {  19,3767 }, {  20,3767 }, {  21,3767 }, {  22,3767 }, {  23,3767 },
- {  24,3767 }, {  25,3767 }, {  26,3767 }, {  27,3767 }, {  28,3767 },
-
- {  29,3767 }, {  30,3767 }, {  31,3767 }, {  32,3767 }, {  33,3767 },
- {  34,3767 }, {  35,3767 }, {   0,   0 }, {  37,3767 }, {  38,3767 },
- {  39,3767 }, {  40,3767 }, {  41,3767 }, {  42,3767 }, {  43,3767 },
- {  44,3767 }, {  45,3767 }, {  46,3767 }, {  47,3767 }, {  48,3767 },
- {  49,3767 }, {  50,3767 }, {  51,3767 }, {  52,3767 }, {  53,3767 },
- {  54,3767 }, {  55,3767 }, {  56,3767 }, {  57,3767 }, {  58,3767 },
- {  59,3767 }, {  60,3767 }, {  61,3767 }, {  62,3767 }, {  63,3767 },
- {  64,3767 }, {  65,3767 }, {  66,3767 }, {  67,3767 }, {  68,3767 },
- {  69,3767 }, {  70,3767 }, {  71,3767 }, {  72,3767 }, {  73,3767 },
- {  74,3767 }, {  75,3767 }, {  76,3767 }, {  77,3767 }, {  78,3767 },
-
- {  79,3767 }, {  80,3767 }, {  81,3767 }, {  82,3767 }, {  83,3767 },
- {  84,3767 }, {  85,3767 }, {  86,3767 }, {  87,3767 }, {  88,3767 },
- {  89,3767 }, {  90,3767 }, {  91,3767 }, {  92,3767 }, {  93,3767 },
- {  94,3767 }, {  95,3767 }, {  96,3767 }, {  97,3767 }, {  98,3767 },
- {  99,3767 }, { 100,3767 }, { 101,3767 }, { 102,3767 }, { 103,3767 },
- { 104,3767 }, { 105,3767 }, { 106,3767 }, { 107,3767 }, { 108,3767 },
- { 109,3767 }, { 110,3767 }, { 111,3767 }, { 112,3767 }, { 113,3767 },
- { 114,3767 }, { 115,3767 }, { 116,3767 }, { 117,3767 }, { 118,3767 },
- { 119,3767 }, { 120,3767 }, { 121,3767 }, { 122,3767 }, { 123,3767 },
- { 124,3767 }, { 125,3767 }, { 126,3767 }, { 127,3767 }, { 128,3767 },
-
- { 129,3767 }, { 130,3767 }, { 131,3767 }, { 132,3767 }, { 133,3767 },
- { 134,3767 }, { 135,3767 }, { 136,3767 }, { 137,3767 }, { 138,3767 },
- { 139,3767 }, { 140,3767 }, { 141,3767 }, { 142,3767 }, { 143,3767 },
- { 144,3767 }, { 145,3767 }, { 146,3767 }, { 147,3767 }, { 148,3767 },
- { 149,3767 }, { 150,3767 }, { 151,3767 }, { 152,3767 }, { 153,3767 },
- { 154,3767 }, { 155,3767 }, { 156,3767 }, { 157,3767 }, { 158,3767 },
- { 159,3767 }, { 160,3767 }, { 161,3767 }, { 162,3767 }, { 163,3767 },
- { 164,3767 }, { 165,3767 }, { 166,3767 }, { 167,3767 }, { 168,3767 },
- { 169,3767 }, { 170,3767 }, { 171,3767 }, { 172,3767 }, { 173,3767 },
- { 174,3767 }, { 175,3767 }, { 176,3767 }, { 177,3767 }, { 178,3767 },
-
- { 179,3767 }, { 180,3767 }, { 181,3767 }, { 182,3767 }, { 183,3767 },
- { 184,3767 }, { 185,3767 }, { 186,3767 }, { 187,3767 }, { 188,3767 },
- { 189,3767 }, { 190,3767 }, { 191,3767 }, { 192,3767 }, { 193,3767 },
- { 194,3767 }, { 195,3767 }, { 196,3767 }, { 197,3767 }, { 198,3767 },
- { 199,3767 }, { 200,3767 }, { 201,3767 }, { 202,3767 }, { 203,3767 },
- { 204,3767 }, { 205,3767 }, { 206,3767 }, { 207,3767 }, { 208,3767 },
- { 209,3767 }, { 210,3767 }, { 211,3767 }, { 212,3767 }, { 213,3767 },
- { 214,3767 }, { 215,3767 }, { 216,3767 }, { 217,3767 }, { 218,3767 },
- { 219,3767 }, { 220,3767 }, { 221,3767 }, { 222,3767 }, { 223,3767 },
- { 224,3767 }, { 225,3767 }, { 226,3767 }, { 227,3767 }, { 228,3767 },
-
- { 229,3767 }, { 230,3767 }, { 231,3767 }, { 232,3767 }, { 233,3767 },
- { 234,3767 }, { 235,3767 }, { 236,3767 }, { 237,3767 }, { 238,3767 },
- { 239,3767 }, { 240,3767 }, { 241,3767 }, { 242,3767 }, { 243,3767 },
- { 244,3767 }, { 245,3767 }, { 246,3767 }, { 247,3767 }, { 248,3767 },
- { 249,3767 }, { 250,3767 }, { 251,3767 }, { 252,3767 }, { 253,3767 },
- { 254,3767 }, { 255,3767 }, { 256,3767 }, {   0,  48 }, {   0,24821 },
- {   0,  53 }, {   0,24819 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  53 }, {   0,24814 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,3767 }, {  10,3767 }, {   0,   0 }, {  12,3767 }, {  13,3767 },
- {   9,3762 }, {  10,3762 }, {   0,   0 }, {  12,3762 }, {  13,3762 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,3767 }, {   0,   0 },
- {  36,-4714 }, {   0,   0 }, {   0,   0 }, {  32,3762 }, {   0,   0 },
+ { 248,5406 }, { 249,5406 }, { 250,5406 }, { 251,5406 }, { 252,5406 },
+ { 253,5406 }, { 254,5406 }, { 255,5406 }, {   0,  64 }, {   0,10064 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,3767 },
- {  66,3767 }, {  67,3767 }, {  68,3767 }, {  69,3767 }, {  70,3767 },
-
- {  71,3767 }, {  72,3767 }, {  73,3767 }, {  74,3767 }, {  75,3767 },
- {  76,3767 }, {  77,3767 }, {  78,3767 }, {  79,3767 }, {  80,3767 },
- {  81,3767 }, {  82,3767 }, {  83,3767 }, {  84,3767 }, {  85,3767 },
- {  86,3767 }, {  87,3767 }, {  88,3767 }, {  89,3767 }, {  90,3767 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,3767 },
- {   0,   0 }, {  97,3767 }, {  98,3767 }, {  99,3767 }, { 100,3767 },
- { 101,3767 }, { 102,3767 }, { 103,3767 }, { 104,3767 }, { 105,3767 },
- { 106,3767 }, { 107,3767 }, { 108,3767 }, { 109,3767 }, { 110,3767 },
- { 111,3767 }, { 112,3767 }, { 113,3767 }, { 114,3767 }, { 115,3767 },
- { 116,3767 }, { 117,3767 }, { 118,3767 }, { 119,3767 }, { 120,3767 },
-
- { 121,3767 }, { 122,3767 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 128,3767 }, { 129,3767 }, { 130,3767 },
- { 131,3767 }, { 132,3767 }, { 133,3767 }, { 134,3767 }, { 135,3767 },
- { 136,3767 }, { 137,3767 }, { 138,3767 }, { 139,3767 }, { 140,3767 },
- { 141,3767 }, { 142,3767 }, { 143,3767 }, { 144,3767 }, { 145,3767 },
- { 146,3767 }, { 147,3767 }, { 148,3767 }, { 149,3767 }, { 150,3767 },
- { 151,3767 }, { 152,3767 }, { 153,3767 }, { 154,3767 }, { 155,3767 },
- { 156,3767 }, { 157,3767 }, { 158,3767 }, { 159,3767 }, { 160,3767 },
- { 161,3767 }, { 162,3767 }, { 163,3767 }, { 164,3767 }, { 165,3767 },
- { 166,3767 }, { 167,3767 }, { 168,3767 }, { 169,3767 }, { 170,3767 },
-
- { 171,3767 }, { 172,3767 }, { 173,3767 }, { 174,3767 }, { 175,3767 },
- { 176,3767 }, { 177,3767 }, { 178,3767 }, { 179,3767 }, { 180,3767 },
- { 181,3767 }, { 182,3767 }, { 183,3767 }, { 184,3767 }, { 185,3767 },
- { 186,3767 }, { 187,3767 }, { 188,3767 }, { 189,3767 }, { 190,3767 },
- { 191,3767 }, { 192,3767 }, { 193,3767 }, { 194,3767 }, { 195,3767 },
- { 196,3767 }, { 197,3767 }, { 198,3767 }, { 199,3767 }, { 200,3767 },
- { 201,3767 }, { 202,3767 }, { 203,3767 }, { 204,3767 }, { 205,3767 },
- { 206,3767 }, { 207,3767 }, { 208,3767 }, { 209,3767 }, { 210,3767 },
- { 211,3767 }, { 212,3767 }, { 213,3767 }, { 214,3767 }, { 215,3767 },
- { 216,3767 }, { 217,3767 }, { 218,3767 }, { 219,3767 }, { 220,3767 },
-
- { 221,3767 }, { 222,3767 }, { 223,3767 }, { 224,3767 }, { 225,3767 },
- { 226,3767 }, { 227,3767 }, { 228,3767 }, { 229,3767 }, { 230,3767 },
- { 231,3767 }, { 232,3767 }, { 233,3767 }, { 234,3767 }, { 235,3767 },
- { 236,3767 }, { 237,3767 }, { 238,3767 }, { 239,3767 }, { 240,3767 },
- { 241,3767 }, { 242,3767 }, { 243,3767 }, { 244,3767 }, { 245,3767 },
- { 246,3767 }, { 247,3767 }, { 248,3767 }, { 249,3767 }, { 250,3767 },
- { 251,3767 }, { 252,3767 }, { 253,3767 }, { 254,3767 }, { 255,3767 },
- {   0,  24 }, {   0,24564 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  26 }, {   0,24559 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,4025 }, {  10,4030 }, {   0,   0 }, {  12,4025 }, {  13,4030 },
-
- {   9,4041 }, {  10,4041 }, {   0,   0 }, {  12,4041 }, {  13,4041 },
- {   0,   0 }, {   0,  26 }, {   0,24543 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   9,4025 }, {  10,4025 }, {  32,4025 }, {  12,4025 },
- {  13,4025 }, {   0,   0 }, {   0,   0 }, {  32,4041 }, {   0,   0 },
- {  39,-4980 }, {   0,   0 }, {   0,   1 }, {   0,24522 }, {   0,  70 },
- {   0,24520 }, {  45,-4928 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 }, {  32,4025 },
- {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  32,   0 }, {   0,   0 }, {   0,   0 }, {  33,   0 }, {   0,   0 },
- {  35,   0 }, {   0,   0 }, {  37,   0 }, {  38,   0 }, {   0,  68 },
- {   0,24480 }, {   0,   0 }, {  42,   0 }, {  43,   0 }, {   0,   0 },
- {  45,   0 }, {   0,   0 }, {  47,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  71 }, {   0,24463 }, {   0,   0 }, {   0,   0 },
+ {  36,5149 }, {   0,   0 }, {   0,   0 }, {  39,-1011 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  48,5149 }, {  49,5149 }, {  50,5149 },
+ {  51,5149 }, {  52,5149 }, {  53,5149 }, {  54,5149 }, {  55,5149 },
+ {  56,5149 }, {  57,5149 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  63,-987 }, {   0,   0 }, {  65,5149 },
+ {  66,5149 }, {  67,5149 }, {  68,5149 }, {  69,5149 }, {  70,5149 },
+ {  71,5149 }, {  72,5149 }, {  73,5149 }, {  74,5149 }, {  75,5149 },
+ {  76,5149 }, {  77,5149 }, {  78,5149 }, {  79,5149 }, {  80,5149 },
+ {  81,5149 }, {  82,5149 }, {  83,5149 }, {  84,5149 }, {  85,5149 },
+ {  86,5149 }, {  87,5149 }, {  88,5149 }, {  89,5149 }, {  90,5149 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,5149 },
+ {   0,   0 }, {  97,5149 }, {  98,5149 }, {  99,5149 }, { 100,5149 },
+ { 101,5149 }, { 102,5149 }, { 103,5149 }, { 104,5149 }, { 105,5149 },
+ { 106,5149 }, { 107,5149 }, { 108,5149 }, { 109,5149 }, { 110,5149 },
+ { 111,5149 }, { 112,5149 }, { 113,5149 }, { 114,5149 }, { 115,5149 },
+ { 116,5149 }, { 117,5149 }, { 118,5149 }, { 119,5149 }, { 120,5149 },
+ { 121,5149 }, { 122,5149 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, { 128,5149 }, { 129,5149 }, { 130,5149 },
+ { 131,5149 }, { 132,5149 }, { 133,5149 }, { 134,5149 }, { 135,5149 },
+ { 136,5149 }, { 137,5149 }, { 138,5149 }, { 139,5149 }, { 140,5149 },
+
+ { 141,5149 }, { 142,5149 }, { 143,5149 }, { 144,5149 }, { 145,5149 },
+ { 146,5149 }, { 147,5149 }, { 148,5149 }, { 149,5149 }, { 150,5149 },
+ { 151,5149 }, { 152,5149 }, { 153,5149 }, { 154,5149 }, { 155,5149 },
+ { 156,5149 }, { 157,5149 }, { 158,5149 }, { 159,5149 }, { 160,5149 },
+ { 161,5149 }, { 162,5149 }, { 163,5149 }, { 164,5149 }, { 165,5149 },
+ { 166,5149 }, { 167,5149 }, { 168,5149 }, { 169,5149 }, { 170,5149 },
+ { 171,5149 }, { 172,5149 }, { 173,5149 }, { 174,5149 }, { 175,5149 },
+ { 176,5149 }, { 177,5149 }, { 178,5149 }, { 179,5149 }, { 180,5149 },
+ { 181,5149 }, { 182,5149 }, { 183,5149 }, { 184,5149 }, { 185,5149 },
+ { 186,5149 }, { 187,5149 }, { 188,5149 }, { 189,5149 }, { 190,5149 },
+
+ { 191,5149 }, { 192,5149 }, { 193,5149 }, { 194,5149 }, { 195,5149 },
+ { 196,5149 }, { 197,5149 }, { 198,5149 }, { 199,5149 }, { 200,5149 },
+ { 201,5149 }, { 202,5149 }, { 203,5149 }, { 204,5149 }, { 205,5149 },
+ { 206,5149 }, { 207,5149 }, { 208,5149 }, { 209,5149 }, { 210,5149 },
+ { 211,5149 }, { 212,5149 }, { 213,5149 }, { 214,5149 }, { 215,5149 },
+ { 216,5149 }, { 217,5149 }, { 218,5149 }, { 219,5149 }, { 220,5149 },
+ { 221,5149 }, { 222,5149 }, { 223,5149 }, { 224,5149 }, { 225,5149 },
+ { 226,5149 }, { 227,5149 }, { 228,5149 }, { 229,5149 }, { 230,5149 },
+ { 231,5149 }, { 232,5149 }, { 233,5149 }, { 234,5149 }, { 235,5149 },
+ { 236,5149 }, { 237,5149 }, { 238,5149 }, { 239,5149 }, { 240,5149 },
+
+ { 241,5149 }, { 242,5149 }, { 243,5149 }, { 244,5149 }, { 245,5149 },
+ { 246,5149 }, { 247,5149 }, { 248,5149 }, { 249,5149 }, { 250,5149 },
+ { 251,5149 }, { 252,5149 }, { 253,5149 }, { 254,5149 }, { 255,5149 },
+ {   0,  64 }, {   0,9807 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {  36,4892 }, {   0,   0 }, {   0,   0 },
+ {  39,-1242 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,4892 },
+ {  49,4892 }, {  50,4892 }, {  51,4892 }, {  52,4892 }, {  53,4892 },
+ {  54,4892 }, {  55,4892 }, {  56,4892 }, {  57,4892 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  63,-1273 },
+ {   0,   0 }, {  65,4892 }, {  66,4892 }, {  67,4892 }, {  68,4892 },
+ {  69,4892 }, {  70,4892 }, {  71,4892 }, {  72,4892 }, {  73,4892 },
+ {  74,4892 }, {  75,4892 }, {  76,4892 }, {  77,4892 }, {  78,4892 },
+ {  79,4892 }, {  80,4892 }, {  81,4892 }, {  82,4892 }, {  83,4892 },
+
+ {  84,4892 }, {  85,4892 }, {  86,4892 }, {  87,4892 }, {  88,4892 },
+ {  89,4892 }, {  90,4892 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  95,4892 }, {   0,   0 }, {  97,4892 }, {  98,4892 },
+ {  99,4892 }, { 100,4892 }, { 101,4892 }, { 102,4892 }, { 103,4892 },
+ { 104,4892 }, { 105,4892 }, { 106,4892 }, { 107,4892 }, { 108,4892 },
+ { 109,4892 }, { 110,4892 }, { 111,4892 }, { 112,4892 }, { 113,4892 },
+ { 114,4892 }, { 115,4892 }, { 116,4892 }, { 117,4892 }, { 118,4892 },
+ { 119,4892 }, { 120,4892 }, { 121,4892 }, { 122,4892 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,4892 },
+ { 129,4892 }, { 130,4892 }, { 131,4892 }, { 132,4892 }, { 133,4892 },
+
+ { 134,4892 }, { 135,4892 }, { 136,4892 }, { 137,4892 }, { 138,4892 },
+ { 139,4892 }, { 140,4892 }, { 141,4892 }, { 142,4892 }, { 143,4892 },
+ { 144,4892 }, { 145,4892 }, { 146,4892 }, { 147,4892 }, { 148,4892 },
+ { 149,4892 }, { 150,4892 }, { 151,4892 }, { 152,4892 }, { 153,4892 },
+ { 154,4892 }, { 155,4892 }, { 156,4892 }, { 157,4892 }, { 158,4892 },
+ { 159,4892 }, { 160,4892 }, { 161,4892 }, { 162,4892 }, { 163,4892 },
+ { 164,4892 }, { 165,4892 }, { 166,4892 }, { 167,4892 }, { 168,4892 },
+ { 169,4892 }, { 170,4892 }, { 171,4892 }, { 172,4892 }, { 173,4892 },
+ { 174,4892 }, { 175,4892 }, { 176,4892 }, { 177,4892 }, { 178,4892 },
+ { 179,4892 }, { 180,4892 }, { 181,4892 }, { 182,4892 }, { 183,4892 },
+
+ { 184,4892 }, { 185,4892 }, { 186,4892 }, { 187,4892 }, { 188,4892 },
+ { 189,4892 }, { 190,4892 }, { 191,4892 }, { 192,4892 }, { 193,4892 },
+ { 194,4892 }, { 195,4892 }, { 196,4892 }, { 197,4892 }, { 198,4892 },
+ { 199,4892 }, { 200,4892 }, { 201,4892 }, { 202,4892 }, { 203,4892 },
+ { 204,4892 }, { 205,4892 }, { 206,4892 }, { 207,4892 }, { 208,4892 },
+ { 209,4892 }, { 210,4892 }, { 211,4892 }, { 212,4892 }, { 213,4892 },
+ { 214,4892 }, { 215,4892 }, { 216,4892 }, { 217,4892 }, { 218,4892 },
+ { 219,4892 }, { 220,4892 }, { 221,4892 }, { 222,4892 }, { 223,4892 },
+ { 224,4892 }, { 225,4892 }, { 226,4892 }, { 227,4892 }, { 228,4892 },
+ { 229,4892 }, { 230,4892 }, { 231,4892 }, { 232,4892 }, { 233,4892 },
+
+ { 234,4892 }, { 235,4892 }, { 236,4892 }, { 237,4892 }, { 238,4892 },
+ { 239,4892 }, { 240,4892 }, { 241,4892 }, { 242,4892 }, { 243,4892 },
+ { 244,4892 }, { 245,4892 }, { 246,4892 }, { 247,4892 }, { 248,4892 },
+ { 249,4892 }, { 250,4892 }, { 251,4892 }, { 252,4892 }, { 253,4892 },
+ { 254,4892 }, { 255,4892 }, {   0,  64 }, {   0,9550 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  36,4635 },
+ {   0,   0 }, {  38,-1304 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  48,4635 }, {  49,4635 }, {  50,4635 }, {  51,4635 },
+ {  52,4635 }, {  53,4635 }, {  54,4635 }, {  55,4635 }, {  56,4635 },
+ {  57,4635 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  63,-1530 }, {   0,   0 }, {  65,4635 }, {  66,4635 },
+ {  67,4635 }, {  68,4635 }, {  69,4635 }, {  70,4635 }, {  71,4635 },
+ {  72,4635 }, {  73,4635 }, {  74,4635 }, {  75,4635 }, {  76,4635 },
+
+ {  77,4635 }, {  78,4635 }, {  79,4635 }, {  80,4635 }, {  81,4635 },
+ {  82,4635 }, {  83,4635 }, {  84,4635 }, {  85,4635 }, {  86,4635 },
+ {  87,4635 }, {  88,4635 }, {  89,4635 }, {  90,4635 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,4635 }, {   0,   0 },
+ {  97,4635 }, {  98,4635 }, {  99,4635 }, { 100,4635 }, { 101,4635 },
+ { 102,4635 }, { 103,4635 }, { 104,4635 }, { 105,4635 }, { 106,4635 },
+ { 107,4635 }, { 108,4635 }, { 109,4635 }, { 110,4635 }, { 111,4635 },
+ { 112,4635 }, { 113,4635 }, { 114,4635 }, { 115,4635 }, { 116,4635 },
+ { 117,4635 }, { 118,4635 }, { 119,4635 }, { 120,4635 }, { 121,4635 },
+ { 122,4635 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, { 128,4635 }, { 129,4635 }, { 130,4635 }, { 131,4635 },
+ { 132,4635 }, { 133,4635 }, { 134,4635 }, { 135,4635 }, { 136,4635 },
+ { 137,4635 }, { 138,4635 }, { 139,4635 }, { 140,4635 }, { 141,4635 },
+ { 142,4635 }, { 143,4635 }, { 144,4635 }, { 145,4635 }, { 146,4635 },
+ { 147,4635 }, { 148,4635 }, { 149,4635 }, { 150,4635 }, { 151,4635 },
+ { 152,4635 }, { 153,4635 }, { 154,4635 }, { 155,4635 }, { 156,4635 },
+ { 157,4635 }, { 158,4635 }, { 159,4635 }, { 160,4635 }, { 161,4635 },
+ { 162,4635 }, { 163,4635 }, { 164,4635 }, { 165,4635 }, { 166,4635 },
+ { 167,4635 }, { 168,4635 }, { 169,4635 }, { 170,4635 }, { 171,4635 },
+ { 172,4635 }, { 173,4635 }, { 174,4635 }, { 175,4635 }, { 176,4635 },
+
+ { 177,4635 }, { 178,4635 }, { 179,4635 }, { 180,4635 }, { 181,4635 },
+ { 182,4635 }, { 183,4635 }, { 184,4635 }, { 185,4635 }, { 186,4635 },
+ { 187,4635 }, { 188,4635 }, { 189,4635 }, { 190,4635 }, { 191,4635 },
+ { 192,4635 }, { 193,4635 }, { 194,4635 }, { 195,4635 }, { 196,4635 },
+ { 197,4635 }, { 198,4635 }, { 199,4635 }, { 200,4635 }, { 201,4635 },
+ { 202,4635 }, { 203,4635 }, { 204,4635 }, { 205,4635 }, { 206,4635 },
+ { 207,4635 }, { 208,4635 }, { 209,4635 }, { 210,4635 }, { 211,4635 },
+ { 212,4635 }, { 213,4635 }, { 214,4635 }, { 215,4635 }, { 216,4635 },
+ { 217,4635 }, { 218,4635 }, { 219,4635 }, { 220,4635 }, { 221,4635 },
+ { 222,4635 }, { 223,4635 }, { 224,4635 }, { 225,4635 }, { 226,4635 },
+
+ { 227,4635 }, { 228,4635 }, { 229,4635 }, { 230,4635 }, { 231,4635 },
+ { 232,4635 }, { 233,4635 }, { 234,4635 }, { 235,4635 }, { 236,4635 },
+ { 237,4635 }, { 238,4635 }, { 239,4635 }, { 240,4635 }, { 241,4635 },
+ { 242,4635 }, { 243,4635 }, { 244,4635 }, { 245,4635 }, { 246,4635 },
+ { 247,4635 }, { 248,4635 }, { 249,4635 }, { 250,4635 }, { 251,4635 },
+ { 252,4635 }, { 253,4635 }, { 254,4635 }, { 255,4635 }, {   0,  64 },
+ {   0,9293 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  36,4378 }, {   0,   0 }, {   0,   0 }, {  39,-1559 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,4378 }, {  49,4378 },
+ {  50,4378 }, {  51,4378 }, {  52,4378 }, {  53,4378 }, {  54,4378 },
+ {  55,4378 }, {  56,4378 }, {  57,4378 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  63,-1787 }, {   0,   0 },
+ {  65,4378 }, {  66,4378 }, {  67,4378 }, {  68,4378 }, {  69,4378 },
+
+ {  70,4378 }, {  71,4378 }, {  72,4378 }, {  73,4378 }, {  74,4378 },
+ {  75,4378 }, {  76,4378 }, {  77,4378 }, {  78,4378 }, {  79,4378 },
+ {  80,4378 }, {  81,4378 }, {  82,4378 }, {  83,4378 }, {  84,4378 },
+ {  85,4378 }, {  86,4378 }, {  87,4378 }, {  88,4378 }, {  89,4378 },
+ {  90,4378 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  95,4378 }, {   0,   0 }, {  97,4378 }, {  98,4378 }, {  99,4378 },
+ { 100,4378 }, { 101,4378 }, { 102,4378 }, { 103,4378 }, { 104,4378 },
+ { 105,4378 }, { 106,4378 }, { 107,4378 }, { 108,4378 }, { 109,4378 },
+ { 110,4378 }, { 111,4378 }, { 112,4378 }, { 113,4378 }, { 114,4378 },
+ { 115,4378 }, { 116,4378 }, { 117,4378 }, { 118,4378 }, { 119,4378 },
+
+ { 120,4378 }, { 121,4378 }, { 122,4378 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,4378 }, { 129,4378 },
+ { 130,4378 }, { 131,4378 }, { 132,4378 }, { 133,4378 }, { 134,4378 },
+ { 135,4378 }, { 136,4378 }, { 137,4378 }, { 138,4378 }, { 139,4378 },
+ { 140,4378 }, { 141,4378 }, { 142,4378 }, { 143,4378 }, { 144,4378 },
+ { 145,4378 }, { 146,4378 }, { 147,4378 }, { 148,4378 }, { 149,4378 },
+ { 150,4378 }, { 151,4378 }, { 152,4378 }, { 153,4378 }, { 154,4378 },
+ { 155,4378 }, { 156,4378 }, { 157,4378 }, { 158,4378 }, { 159,4378 },
+ { 160,4378 }, { 161,4378 }, { 162,4378 }, { 163,4378 }, { 164,4378 },
+ { 165,4378 }, { 166,4378 }, { 167,4378 }, { 168,4378 }, { 169,4378 },
+
+ { 170,4378 }, { 171,4378 }, { 172,4378 }, { 173,4378 }, { 174,4378 },
+ { 175,4378 }, { 176,4378 }, { 177,4378 }, { 178,4378 }, { 179,4378 },
+ { 180,4378 }, { 181,4378 }, { 182,4378 }, { 183,4378 }, { 184,4378 },
+ { 185,4378 }, { 186,4378 }, { 187,4378 }, { 188,4378 }, { 189,4378 },
+ { 190,4378 }, { 191,4378 }, { 192,4378 }, { 193,4378 }, { 194,4378 },
+ { 195,4378 }, { 196,4378 }, { 197,4378 }, { 198,4378 }, { 199,4378 },
+ { 200,4378 }, { 201,4378 }, { 202,4378 }, { 203,4378 }, { 204,4378 },
+ { 205,4378 }, { 206,4378 }, { 207,4378 }, { 208,4378 }, { 209,4378 },
+ { 210,4378 }, { 211,4378 }, { 212,4378 }, { 213,4378 }, { 214,4378 },
+ { 215,4378 }, { 216,4378 }, { 217,4378 }, { 218,4378 }, { 219,4378 },
+
+ { 220,4378 }, { 221,4378 }, { 222,4378 }, { 223,4378 }, { 224,4378 },
+ { 225,4378 }, { 226,4378 }, { 227,4378 }, { 228,4378 }, { 229,4378 },
+ { 230,4378 }, { 231,4378 }, { 232,4378 }, { 233,4378 }, { 234,4378 },
+ { 235,4378 }, { 236,4378 }, { 237,4378 }, { 238,4378 }, { 239,4378 },
+ { 240,4378 }, { 241,4378 }, { 242,4378 }, { 243,4378 }, { 244,4378 },
+ { 245,4378 }, { 246,4378 }, { 247,4378 }, { 248,4378 }, { 249,4378 },
+ { 250,4378 }, { 251,4378 }, { 252,4378 }, { 253,4378 }, { 254,4378 },
+ { 255,4378 }, {   0,  11 }, {   0,9036 }, {   1,4378 }, {   2,4378 },
+ {   3,4378 }, {   4,4378 }, {   5,4378 }, {   6,4378 }, {   7,4378 },
+ {   8,4378 }, {   9,4378 }, {  10,4378 }, {  11,4378 }, {  12,4378 },
+
+ {  13,4378 }, {  14,4378 }, {  15,4378 }, {  16,4378 }, {  17,4378 },
+ {  18,4378 }, {  19,4378 }, {  20,4378 }, {  21,4378 }, {  22,4378 },
+ {  23,4378 }, {  24,4378 }, {  25,4378 }, {  26,4378 }, {  27,4378 },
+ {  28,4378 }, {  29,4378 }, {  30,4378 }, {  31,4378 }, {  32,4378 },
+ {  33,4378 }, {  34,4378 }, {  35,4378 }, {  36,4378 }, {  37,4378 },
+ {  38,4378 }, {   0,   0 }, {  40,4378 }, {  41,4378 }, {  42,4378 },
+ {  43,4378 }, {  44,4378 }, {  45,4378 }, {  46,4378 }, {  47,4378 },
+ {  48,4378 }, {  49,4378 }, {  50,4378 }, {  51,4378 }, {  52,4378 },
+ {  53,4378 }, {  54,4378 }, {  55,4378 }, {  56,4378 }, {  57,4378 },
+ {  58,4378 }, {  59,4378 }, {  60,4378 }, {  61,4378 }, {  62,4378 },
+
+ {  63,4378 }, {  64,4378 }, {  65,4378 }, {  66,4378 }, {  67,4378 },
+ {  68,4378 }, {  69,4378 }, {  70,4378 }, {  71,4378 }, {  72,4378 },
+ {  73,4378 }, {  74,4378 }, {  75,4378 }, {  76,4378 }, {  77,4378 },
+ {  78,4378 }, {  79,4378 }, {  80,4378 }, {  81,4378 }, {  82,4378 },
+ {  83,4378 }, {  84,4378 }, {  85,4378 }, {  86,4378 }, {  87,4378 },
+ {  88,4378 }, {  89,4378 }, {  90,4378 }, {  91,4378 }, {  92,4378 },
+ {  93,4378 }, {  94,4378 }, {  95,4378 }, {  96,4378 }, {  97,4378 },
+ {  98,4378 }, {  99,4378 }, { 100,4378 }, { 101,4378 }, { 102,4378 },
+ { 103,4378 }, { 104,4378 }, { 105,4378 }, { 106,4378 }, { 107,4378 },
+ { 108,4378 }, { 109,4378 }, { 110,4378 }, { 111,4378 }, { 112,4378 },
+
+ { 113,4378 }, { 114,4378 }, { 115,4378 }, { 116,4378 }, { 117,4378 },
+ { 118,4378 }, { 119,4378 }, { 120,4378 }, { 121,4378 }, { 122,4378 },
+ { 123,4378 }, { 124,4378 }, { 125,4378 }, { 126,4378 }, { 127,4378 },
+ { 128,4378 }, { 129,4378 }, { 130,4378 }, { 131,4378 }, { 132,4378 },
+ { 133,4378 }, { 134,4378 }, { 135,4378 }, { 136,4378 }, { 137,4378 },
+ { 138,4378 }, { 139,4378 }, { 140,4378 }, { 141,4378 }, { 142,4378 },
+ { 143,4378 }, { 144,4378 }, { 145,4378 }, { 146,4378 }, { 147,4378 },
+ { 148,4378 }, { 149,4378 }, { 150,4378 }, { 151,4378 }, { 152,4378 },
+ { 153,4378 }, { 154,4378 }, { 155,4378 }, { 156,4378 }, { 157,4378 },
+ { 158,4378 }, { 159,4378 }, { 160,4378 }, { 161,4378 }, { 162,4378 },
+
+ { 163,4378 }, { 164,4378 }, { 165,4378 }, { 166,4378 }, { 167,4378 },
+ { 168,4378 }, { 169,4378 }, { 170,4378 }, { 171,4378 }, { 172,4378 },
+ { 173,4378 }, { 174,4378 }, { 175,4378 }, { 176,4378 }, { 177,4378 },
+ { 178,4378 }, { 179,4378 }, { 180,4378 }, { 181,4378 }, { 182,4378 },
+ { 183,4378 }, { 184,4378 }, { 185,4378 }, { 186,4378 }, { 187,4378 },
+ { 188,4378 }, { 189,4378 }, { 190,4378 }, { 191,4378 }, { 192,4378 },
+ { 193,4378 }, { 194,4378 }, { 195,4378 }, { 196,4378 }, { 197,4378 },
+ { 198,4378 }, { 199,4378 }, { 200,4378 }, { 201,4378 }, { 202,4378 },
+ { 203,4378 }, { 204,4378 }, { 205,4378 }, { 206,4378 }, { 207,4378 },
+ { 208,4378 }, { 209,4378 }, { 210,4378 }, { 211,4378 }, { 212,4378 },
+
+ { 213,4378 }, { 214,4378 }, { 215,4378 }, { 216,4378 }, { 217,4378 },
+ { 218,4378 }, { 219,4378 }, { 220,4378 }, { 221,4378 }, { 222,4378 },
+ { 223,4378 }, { 224,4378 }, { 225,4378 }, { 226,4378 }, { 227,4378 },
+ { 228,4378 }, { 229,4378 }, { 230,4378 }, { 231,4378 }, { 232,4378 },
+ { 233,4378 }, { 234,4378 }, { 235,4378 }, { 236,4378 }, { 237,4378 },
+ { 238,4378 }, { 239,4378 }, { 240,4378 }, { 241,4378 }, { 242,4378 },
+ { 243,4378 }, { 244,4378 }, { 245,4378 }, { 246,4378 }, { 247,4378 },
+ { 248,4378 }, { 249,4378 }, { 250,4378 }, { 251,4378 }, { 252,4378 },
+ { 253,4378 }, { 254,4378 }, { 255,4378 }, { 256,4378 }, {   0,   6 },
+ {   0,8778 }, {   1,4378 }, {   2,4378 }, {   3,4378 }, {   4,4378 },
+
+ {   5,4378 }, {   6,4378 }, {   7,4378 }, {   8,4378 }, {   9,4378 },
+ {  10,4378 }, {  11,4378 }, {  12,4378 }, {  13,4378 }, {  14,4378 },
+ {  15,4378 }, {  16,4378 }, {  17,4378 }, {  18,4378 }, {  19,4378 },
+ {  20,4378 }, {  21,4378 }, {  22,4378 }, {  23,4378 }, {  24,4378 },
+ {  25,4378 }, {  26,4378 }, {  27,4378 }, {  28,4378 }, {  29,4378 },
+ {  30,4378 }, {  31,4378 }, {  32,4378 }, {  33,4378 }, {  34,4378 },
+ {  35,4378 }, {  36,4378 }, {  37,4378 }, {  38,4378 }, {  39,4378 },
+ {  40,4378 }, {  41,4378 }, {   0,   0 }, {  43,4378 }, {  44,4378 },
+ {  45,4378 }, {  46,4378 }, {   0,   0 }, {  48,4378 }, {  49,4378 },
+ {  50,4378 }, {  51,4378 }, {  52,4378 }, {  53,4378 }, {  54,4378 },
+
+ {  55,4378 }, {  56,4378 }, {  57,4378 }, {  58,4378 }, {  59,4378 },
+ {  60,4378 }, {  61,4378 }, {  62,4378 }, {  63,4378 }, {  64,4378 },
+ {  65,4378 }, {  66,4378 }, {  67,4378 }, {  68,4378 }, {  69,4378 },
+ {  70,4378 }, {  71,4378 }, {  72,4378 }, {  73,4378 }, {  74,4378 },
+ {  75,4378 }, {  76,4378 }, {  77,4378 }, {  78,4378 }, {  79,4378 },
+ {  80,4378 }, {  81,4378 }, {  82,4378 }, {  83,4378 }, {  84,4378 },
+ {  85,4378 }, {  86,4378 }, {  87,4378 }, {  88,4378 }, {  89,4378 },
+ {  90,4378 }, {  91,4378 }, {  92,4378 }, {  93,4378 }, {  94,4378 },
+ {  95,4378 }, {  96,4378 }, {  97,4378 }, {  98,4378 }, {  99,4378 },
+ { 100,4378 }, { 101,4378 }, { 102,4378 }, { 103,4378 }, { 104,4378 },
+
+ { 105,4378 }, { 106,4378 }, { 107,4378 }, { 108,4378 }, { 109,4378 },
+ { 110,4378 }, { 111,4378 }, { 112,4378 }, { 113,4378 }, { 114,4378 },
+ { 115,4378 }, { 116,4378 }, { 117,4378 }, { 118,4378 }, { 119,4378 },
+ { 120,4378 }, { 121,4378 }, { 122,4378 }, { 123,4378 }, { 124,4378 },
+ { 125,4378 }, { 126,4378 }, { 127,4378 }, { 128,4378 }, { 129,4378 },
+ { 130,4378 }, { 131,4378 }, { 132,4378 }, { 133,4378 }, { 134,4378 },
+ { 135,4378 }, { 136,4378 }, { 137,4378 }, { 138,4378 }, { 139,4378 },
+ { 140,4378 }, { 141,4378 }, { 142,4378 }, { 143,4378 }, { 144,4378 },
+ { 145,4378 }, { 146,4378 }, { 147,4378 }, { 148,4378 }, { 149,4378 },
+ { 150,4378 }, { 151,4378 }, { 152,4378 }, { 153,4378 }, { 154,4378 },
+
+ { 155,4378 }, { 156,4378 }, { 157,4378 }, { 158,4378 }, { 159,4378 },
+ { 160,4378 }, { 161,4378 }, { 162,4378 }, { 163,4378 }, { 164,4378 },
+ { 165,4378 }, { 166,4378 }, { 167,4378 }, { 168,4378 }, { 169,4378 },
+ { 170,4378 }, { 171,4378 }, { 172,4378 }, { 173,4378 }, { 174,4378 },
+ { 175,4378 }, { 176,4378 }, { 177,4378 }, { 178,4378 }, { 179,4378 },
+ { 180,4378 }, { 181,4378 }, { 182,4378 }, { 183,4378 }, { 184,4378 },
+ { 185,4378 }, { 186,4378 }, { 187,4378 }, { 188,4378 }, { 189,4378 },
+ { 190,4378 }, { 191,4378 }, { 192,4378 }, { 193,4378 }, { 194,4378 },
+ { 195,4378 }, { 196,4378 }, { 197,4378 }, { 198,4378 }, { 199,4378 },
+ { 200,4378 }, { 201,4378 }, { 202,4378 }, { 203,4378 }, { 204,4378 },
+
+ { 205,4378 }, { 206,4378 }, { 207,4378 }, { 208,4378 }, { 209,4378 },
+ { 210,4378 }, { 211,4378 }, { 212,4378 }, { 213,4378 }, { 214,4378 },
+ { 215,4378 }, { 216,4378 }, { 217,4378 }, { 218,4378 }, { 219,4378 },
+ { 220,4378 }, { 221,4378 }, { 222,4378 }, { 223,4378 }, { 224,4378 },
+ { 225,4378 }, { 226,4378 }, { 227,4378 }, { 228,4378 }, { 229,4378 },
+ { 230,4378 }, { 231,4378 }, { 232,4378 }, { 233,4378 }, { 234,4378 },
+ { 235,4378 }, { 236,4378 }, { 237,4378 }, { 238,4378 }, { 239,4378 },
+ { 240,4378 }, { 241,4378 }, { 242,4378 }, { 243,4378 }, { 244,4378 },
+ { 245,4378 }, { 246,4378 }, { 247,4378 }, { 248,4378 }, { 249,4378 },
+ { 250,4378 }, { 251,4378 }, { 252,4378 }, { 253,4378 }, { 254,4378 },
+
+ { 255,4378 }, { 256,4378 }, {   0,   6 }, {   0,8520 }, {   1,4120 },
+ {   2,4120 }, {   3,4120 }, {   4,4120 }, {   5,4120 }, {   6,4120 },
+ {   7,4120 }, {   8,4120 }, {   9,4120 }, {  10,4120 }, {  11,4120 },
+ {  12,4120 }, {  13,4120 }, {  14,4120 }, {  15,4120 }, {  16,4120 },
+ {  17,4120 }, {  18,4120 }, {  19,4120 }, {  20,4120 }, {  21,4120 },
+ {  22,4120 }, {  23,4120 }, {  24,4120 }, {  25,4120 }, {  26,4120 },
+ {  27,4120 }, {  28,4120 }, {  29,4120 }, {  30,4120 }, {  31,4120 },
+ {  32,4120 }, {  33,4120 }, {  34,4120 }, {  35,4120 }, {  36,4120 },
+ {  37,4120 }, {  38,4120 }, {  39,4120 }, {  40,4120 }, {  41,4120 },
+ {   0,   0 }, {  43,4120 }, {  44,4120 }, {  45,4120 }, {  46,4120 },
+
+ {   0,   0 }, {  48,4120 }, {  49,4120 }, {  50,4120 }, {  51,4120 },
+ {  52,4120 }, {  53,4120 }, {  54,4120 }, {  55,4120 }, {  56,4120 },
+ {  57,4120 }, {  58,4120 }, {  59,4120 }, {  60,4120 }, {  61,4120 },
+ {  62,4120 }, {  63,4120 }, {  64,4120 }, {  65,4120 }, {  66,4120 },
+ {  67,4120 }, {  68,4120 }, {  69,4120 }, {  70,4120 }, {  71,4120 },
+ {  72,4120 }, {  73,4120 }, {  74,4120 }, {  75,4120 }, {  76,4120 },
+ {  77,4120 }, {  78,4120 }, {  79,4120 }, {  80,4120 }, {  81,4120 },
+ {  82,4120 }, {  83,4120 }, {  84,4120 }, {  85,4120 }, {  86,4120 },
+ {  87,4120 }, {  88,4120 }, {  89,4120 }, {  90,4120 }, {  91,4120 },
+ {  92,4120 }, {  93,4120 }, {  94,4120 }, {  95,4120 }, {  96,4120 },
+
+ {  97,4120 }, {  98,4120 }, {  99,4120 }, { 100,4120 }, { 101,4120 },
+ { 102,4120 }, { 103,4120 }, { 104,4120 }, { 105,4120 }, { 106,4120 },
+ { 107,4120 }, { 108,4120 }, { 109,4120 }, { 110,4120 }, { 111,4120 },
+ { 112,4120 }, { 113,4120 }, { 114,4120 }, { 115,4120 }, { 116,4120 },
+ { 117,4120 }, { 118,4120 }, { 119,4120 }, { 120,4120 }, { 121,4120 },
+ { 122,4120 }, { 123,4120 }, { 124,4120 }, { 125,4120 }, { 126,4120 },
+ { 127,4120 }, { 128,4120 }, { 129,4120 }, { 130,4120 }, { 131,4120 },
+ { 132,4120 }, { 133,4120 }, { 134,4120 }, { 135,4120 }, { 136,4120 },
+ { 137,4120 }, { 138,4120 }, { 139,4120 }, { 140,4120 }, { 141,4120 },
+ { 142,4120 }, { 143,4120 }, { 144,4120 }, { 145,4120 }, { 146,4120 },
+
+ { 147,4120 }, { 148,4120 }, { 149,4120 }, { 150,4120 }, { 151,4120 },
+ { 152,4120 }, { 153,4120 }, { 154,4120 }, { 155,4120 }, { 156,4120 },
+ { 157,4120 }, { 158,4120 }, { 159,4120 }, { 160,4120 }, { 161,4120 },
+ { 162,4120 }, { 163,4120 }, { 164,4120 }, { 165,4120 }, { 166,4120 },
+ { 167,4120 }, { 168,4120 }, { 169,4120 }, { 170,4120 }, { 171,4120 },
+ { 172,4120 }, { 173,4120 }, { 174,4120 }, { 175,4120 }, { 176,4120 },
+ { 177,4120 }, { 178,4120 }, { 179,4120 }, { 180,4120 }, { 181,4120 },
+ { 182,4120 }, { 183,4120 }, { 184,4120 }, { 185,4120 }, { 186,4120 },
+ { 187,4120 }, { 188,4120 }, { 189,4120 }, { 190,4120 }, { 191,4120 },
+ { 192,4120 }, { 193,4120 }, { 194,4120 }, { 195,4120 }, { 196,4120 },
+
+ { 197,4120 }, { 198,4120 }, { 199,4120 }, { 200,4120 }, { 201,4120 },
+ { 202,4120 }, { 203,4120 }, { 204,4120 }, { 205,4120 }, { 206,4120 },
+ { 207,4120 }, { 208,4120 }, { 209,4120 }, { 210,4120 }, { 211,4120 },
+ { 212,4120 }, { 213,4120 }, { 214,4120 }, { 215,4120 }, { 216,4120 },
+ { 217,4120 }, { 218,4120 }, { 219,4120 }, { 220,4120 }, { 221,4120 },
+ { 222,4120 }, { 223,4120 }, { 224,4120 }, { 225,4120 }, { 226,4120 },
+ { 227,4120 }, { 228,4120 }, { 229,4120 }, { 230,4120 }, { 231,4120 },
+ { 232,4120 }, { 233,4120 }, { 234,4120 }, { 235,4120 }, { 236,4120 },
+ { 237,4120 }, { 238,4120 }, { 239,4120 }, { 240,4120 }, { 241,4120 },
+ { 242,4120 }, { 243,4120 }, { 244,4120 }, { 245,4120 }, { 246,4120 },
+
+ { 247,4120 }, { 248,4120 }, { 249,4120 }, { 250,4120 }, { 251,4120 },
+ { 252,4120 }, { 253,4120 }, { 254,4120 }, { 255,4120 }, { 256,4120 },
+ {   0,  44 }, {   0,8262 }, {   1,4248 }, {   2,4248 }, {   3,4248 },
+ {   4,4248 }, {   5,4248 }, {   6,4248 }, {   7,4248 }, {   8,4248 },
+ {   9,4248 }, {  10,4248 }, {  11,4248 }, {  12,4248 }, {  13,4248 },
+ {  14,4248 }, {  15,4248 }, {  16,4248 }, {  17,4248 }, {  18,4248 },
+ {  19,4248 }, {  20,4248 }, {  21,4248 }, {  22,4248 }, {  23,4248 },
+ {  24,4248 }, {  25,4248 }, {  26,4248 }, {  27,4248 }, {  28,4248 },
+ {  29,4248 }, {  30,4248 }, {  31,4248 }, {  32,4248 }, {  33,4248 },
+ {   0,   0 }, {  35,4248 }, {  36,4248 }, {  37,4248 }, {  38,4248 },
+
+ {  39,4248 }, {  40,4248 }, {  41,4248 }, {  42,4248 }, {  43,4248 },
+ {  44,4248 }, {  45,4248 }, {  46,4248 }, {  47,4248 }, {  48,4248 },
+ {  49,4248 }, {  50,4248 }, {  51,4248 }, {  52,4248 }, {  53,4248 },
+ {  54,4248 }, {  55,4248 }, {  56,4248 }, {  57,4248 }, {  58,4248 },
+ {  59,4248 }, {  60,4248 }, {  61,4248 }, {  62,4248 }, {  63,4248 },
+ {  64,4248 }, {  65,4248 }, {  66,4248 }, {  67,4248 }, {  68,4248 },
+ {  69,4248 }, {  70,4248 }, {  71,4248 }, {  72,4248 }, {  73,4248 },
+ {  74,4248 }, {  75,4248 }, {  76,4248 }, {  77,4248 }, {  78,4248 },
+ {  79,4248 }, {  80,4248 }, {  81,4248 }, {  82,4248 }, {  83,4248 },
+ {  84,4248 }, {  85,4248 }, {  86,4248 }, {  87,4248 }, {  88,4248 },
+
+ {  89,4248 }, {  90,4248 }, {  91,4248 }, {  92,4248 }, {  93,4248 },
+ {  94,4248 }, {  95,4248 }, {  96,4248 }, {  97,4248 }, {  98,4248 },
+ {  99,4248 }, { 100,4248 }, { 101,4248 }, { 102,4248 }, { 103,4248 },
+ { 104,4248 }, { 105,4248 }, { 106,4248 }, { 107,4248 }, { 108,4248 },
+ { 109,4248 }, { 110,4248 }, { 111,4248 }, { 112,4248 }, { 113,4248 },
+ { 114,4248 }, { 115,4248 }, { 116,4248 }, { 117,4248 }, { 118,4248 },
+ { 119,4248 }, { 120,4248 }, { 121,4248 }, { 122,4248 }, { 123,4248 },
+ { 124,4248 }, { 125,4248 }, { 126,4248 }, { 127,4248 }, { 128,4248 },
+ { 129,4248 }, { 130,4248 }, { 131,4248 }, { 132,4248 }, { 133,4248 },
+ { 134,4248 }, { 135,4248 }, { 136,4248 }, { 137,4248 }, { 138,4248 },
+
+ { 139,4248 }, { 140,4248 }, { 141,4248 }, { 142,4248 }, { 143,4248 },
+ { 144,4248 }, { 145,4248 }, { 146,4248 }, { 147,4248 }, { 148,4248 },
+ { 149,4248 }, { 150,4248 }, { 151,4248 }, { 152,4248 }, { 153,4248 },
+ { 154,4248 }, { 155,4248 }, { 156,4248 }, { 157,4248 }, { 158,4248 },
+ { 159,4248 }, { 160,4248 }, { 161,4248 }, { 162,4248 }, { 163,4248 },
+ { 164,4248 }, { 165,4248 }, { 166,4248 }, { 167,4248 }, { 168,4248 },
+ { 169,4248 }, { 170,4248 }, { 171,4248 }, { 172,4248 }, { 173,4248 },
+ { 174,4248 }, { 175,4248 }, { 176,4248 }, { 177,4248 }, { 178,4248 },
+ { 179,4248 }, { 180,4248 }, { 181,4248 }, { 182,4248 }, { 183,4248 },
+ { 184,4248 }, { 185,4248 }, { 186,4248 }, { 187,4248 }, { 188,4248 },
+
+ { 189,4248 }, { 190,4248 }, { 191,4248 }, { 192,4248 }, { 193,4248 },
+ { 194,4248 }, { 195,4248 }, { 196,4248 }, { 197,4248 }, { 198,4248 },
+ { 199,4248 }, { 200,4248 }, { 201,4248 }, { 202,4248 }, { 203,4248 },
+ { 204,4248 }, { 205,4248 }, { 206,4248 }, { 207,4248 }, { 208,4248 },
+ { 209,4248 }, { 210,4248 }, { 211,4248 }, { 212,4248 }, { 213,4248 },
+ { 214,4248 }, { 215,4248 }, { 216,4248 }, { 217,4248 }, { 218,4248 },
+ { 219,4248 }, { 220,4248 }, { 221,4248 }, { 222,4248 }, { 223,4248 },
+ { 224,4248 }, { 225,4248 }, { 226,4248 }, { 227,4248 }, { 228,4248 },
+ { 229,4248 }, { 230,4248 }, { 231,4248 }, { 232,4248 }, { 233,4248 },
+ { 234,4248 }, { 235,4248 }, { 236,4248 }, { 237,4248 }, { 238,4248 },
+
+ { 239,4248 }, { 240,4248 }, { 241,4248 }, { 242,4248 }, { 243,4248 },
+ { 244,4248 }, { 245,4248 }, { 246,4248 }, { 247,4248 }, { 248,4248 },
+ { 249,4248 }, { 250,4248 }, { 251,4248 }, { 252,4248 }, { 253,4248 },
+ { 254,4248 }, { 255,4248 }, { 256,4248 }, {   0,  10 }, {   0,8004 },
+ {   1,4248 }, {   2,4248 }, {   3,4248 }, {   4,4248 }, {   5,4248 },
+ {   6,4248 }, {   7,4248 }, {   8,4248 }, {   9,4248 }, {  10,4248 },
+ {  11,4248 }, {  12,4248 }, {  13,4248 }, {  14,4248 }, {  15,4248 },
+ {  16,4248 }, {  17,4248 }, {  18,4248 }, {  19,4248 }, {  20,4248 },
+ {  21,4248 }, {  22,4248 }, {  23,4248 }, {  24,4248 }, {  25,4248 },
+ {  26,4248 }, {  27,4248 }, {  28,4248 }, {  29,4248 }, {  30,4248 },
+
+ {  31,4248 }, {  32,4248 }, {  33,4248 }, {  34,4248 }, {  35,4248 },
+ {  36,4248 }, {  37,4248 }, {  38,4248 }, {   0,   0 }, {  40,4248 },
+ {  41,4248 }, {  42,4248 }, {  43,4248 }, {  44,4248 }, {  45,4248 },
+ {  46,4248 }, {  47,4248 }, {  48,4248 }, {  49,4248 }, {  50,4248 },
+ {  51,4248 }, {  52,4248 }, {  53,4248 }, {  54,4248 }, {  55,4248 },
+ {  56,4248 }, {  57,4248 }, {  58,4248 }, {  59,4248 }, {  60,4248 },
+ {  61,4248 }, {  62,4248 }, {  63,4248 }, {  64,4248 }, {  65,4248 },
+ {  66,4248 }, {  67,4248 }, {  68,4248 }, {  69,4248 }, {  70,4248 },
+ {  71,4248 }, {  72,4248 }, {  73,4248 }, {  74,4248 }, {  75,4248 },
+ {  76,4248 }, {  77,4248 }, {  78,4248 }, {  79,4248 }, {  80,4248 },
+
+ {  81,4248 }, {  82,4248 }, {  83,4248 }, {  84,4248 }, {  85,4248 },
+ {  86,4248 }, {  87,4248 }, {  88,4248 }, {  89,4248 }, {  90,4248 },
+ {  91,4248 }, {  92,4248 }, {  93,4248 }, {  94,4248 }, {  95,4248 },
+ {  96,4248 }, {  97,4248 }, {  98,4248 }, {  99,4248 }, { 100,4248 },
+ { 101,4248 }, { 102,4248 }, { 103,4248 }, { 104,4248 }, { 105,4248 },
+ { 106,4248 }, { 107,4248 }, { 108,4248 }, { 109,4248 }, { 110,4248 },
+ { 111,4248 }, { 112,4248 }, { 113,4248 }, { 114,4248 }, { 115,4248 },
+ { 116,4248 }, { 117,4248 }, { 118,4248 }, { 119,4248 }, { 120,4248 },
+ { 121,4248 }, { 122,4248 }, { 123,4248 }, { 124,4248 }, { 125,4248 },
+ { 126,4248 }, { 127,4248 }, { 128,4248 }, { 129,4248 }, { 130,4248 },
+
+ { 131,4248 }, { 132,4248 }, { 133,4248 }, { 134,4248 }, { 135,4248 },
+ { 136,4248 }, { 137,4248 }, { 138,4248 }, { 139,4248 }, { 140,4248 },
+ { 141,4248 }, { 142,4248 }, { 143,4248 }, { 144,4248 }, { 145,4248 },
+ { 146,4248 }, { 147,4248 }, { 148,4248 }, { 149,4248 }, { 150,4248 },
+ { 151,4248 }, { 152,4248 }, { 153,4248 }, { 154,4248 }, { 155,4248 },
+ { 156,4248 }, { 157,4248 }, { 158,4248 }, { 159,4248 }, { 160,4248 },
+ { 161,4248 }, { 162,4248 }, { 163,4248 }, { 164,4248 }, { 165,4248 },
+ { 166,4248 }, { 167,4248 }, { 168,4248 }, { 169,4248 }, { 170,4248 },
+ { 171,4248 }, { 172,4248 }, { 173,4248 }, { 174,4248 }, { 175,4248 },
+ { 176,4248 }, { 177,4248 }, { 178,4248 }, { 179,4248 }, { 180,4248 },
+
+ { 181,4248 }, { 182,4248 }, { 183,4248 }, { 184,4248 }, { 185,4248 },
+ { 186,4248 }, { 187,4248 }, { 188,4248 }, { 189,4248 }, { 190,4248 },
+ { 191,4248 }, { 192,4248 }, { 193,4248 }, { 194,4248 }, { 195,4248 },
+ { 196,4248 }, { 197,4248 }, { 198,4248 }, { 199,4248 }, { 200,4248 },
+ { 201,4248 }, { 202,4248 }, { 203,4248 }, { 204,4248 }, { 205,4248 },
+ { 206,4248 }, { 207,4248 }, { 208,4248 }, { 209,4248 }, { 210,4248 },
+ { 211,4248 }, { 212,4248 }, { 213,4248 }, { 214,4248 }, { 215,4248 },
+ { 216,4248 }, { 217,4248 }, { 218,4248 }, { 219,4248 }, { 220,4248 },
+ { 221,4248 }, { 222,4248 }, { 223,4248 }, { 224,4248 }, { 225,4248 },
+ { 226,4248 }, { 227,4248 }, { 228,4248 }, { 229,4248 }, { 230,4248 },
+
+ { 231,4248 }, { 232,4248 }, { 233,4248 }, { 234,4248 }, { 235,4248 },
+ { 236,4248 }, { 237,4248 }, { 238,4248 }, { 239,4248 }, { 240,4248 },
+ { 241,4248 }, { 242,4248 }, { 243,4248 }, { 244,4248 }, { 245,4248 },
+ { 246,4248 }, { 247,4248 }, { 248,4248 }, { 249,4248 }, { 250,4248 },
+ { 251,4248 }, { 252,4248 }, { 253,4248 }, { 254,4248 }, { 255,4248 },
+ { 256,4248 }, {   0,  22 }, {   0,7746 }, {   1,4248 }, {   2,4248 },
+ {   3,4248 }, {   4,4248 }, {   5,4248 }, {   6,4248 }, {   7,4248 },
+ {   8,4248 }, {   9,4248 }, {  10,4248 }, {  11,4248 }, {  12,4248 },
+ {  13,4248 }, {  14,4248 }, {  15,4248 }, {  16,4248 }, {  17,4248 },
+ {  18,4248 }, {  19,4248 }, {  20,4248 }, {  21,4248 }, {  22,4248 },
+
+ {  23,4248 }, {  24,4248 }, {  25,4248 }, {  26,4248 }, {  27,4248 },
+ {  28,4248 }, {  29,4248 }, {  30,4248 }, {  31,4248 }, {  32,4248 },
+ {  33,4248 }, {  34,4248 }, {  35,4248 }, {  36,4248 }, {  37,4248 },
+ {  38,4248 }, {   0,   0 }, {  40,4248 }, {  41,4248 }, {  42,4248 },
+ {  43,4248 }, {  44,4248 }, {  45,4248 }, {  46,4248 }, {  47,4248 },
+ {  48,4248 }, {  49,4248 }, {  50,4248 }, {  51,4248 }, {  52,4248 },
+ {  53,4248 }, {  54,4248 }, {  55,4248 }, {  56,4248 }, {  57,4248 },
+ {  58,4248 }, {  59,4248 }, {  60,4248 }, {  61,4248 }, {  62,4248 },
+ {  63,4248 }, {  64,4248 }, {  65,4248 }, {  66,4248 }, {  67,4248 },
+ {  68,4248 }, {  69,4248 }, {  70,4248 }, {  71,4248 }, {  72,4248 },
+
+ {  73,4248 }, {  74,4248 }, {  75,4248 }, {  76,4248 }, {  77,4248 },
+ {  78,4248 }, {  79,4248 }, {  80,4248 }, {  81,4248 }, {  82,4248 },
+ {  83,4248 }, {  84,4248 }, {  85,4248 }, {  86,4248 }, {  87,4248 },
+ {  88,4248 }, {  89,4248 }, {  90,4248 }, {  91,4248 }, {  92,4248 },
+ {  93,4248 }, {  94,4248 }, {  95,4248 }, {  96,4248 }, {  97,4248 },
+ {  98,4248 }, {  99,4248 }, { 100,4248 }, { 101,4248 }, { 102,4248 },
+ { 103,4248 }, { 104,4248 }, { 105,4248 }, { 106,4248 }, { 107,4248 },
+ { 108,4248 }, { 109,4248 }, { 110,4248 }, { 111,4248 }, { 112,4248 },
+ { 113,4248 }, { 114,4248 }, { 115,4248 }, { 116,4248 }, { 117,4248 },
+ { 118,4248 }, { 119,4248 }, { 120,4248 }, { 121,4248 }, { 122,4248 },
+
+ { 123,4248 }, { 124,4248 }, { 125,4248 }, { 126,4248 }, { 127,4248 },
+ { 128,4248 }, { 129,4248 }, { 130,4248 }, { 131,4248 }, { 132,4248 },
+ { 133,4248 }, { 134,4248 }, { 135,4248 }, { 136,4248 }, { 137,4248 },
+ { 138,4248 }, { 139,4248 }, { 140,4248 }, { 141,4248 }, { 142,4248 },
+ { 143,4248 }, { 144,4248 }, { 145,4248 }, { 146,4248 }, { 147,4248 },
+ { 148,4248 }, { 149,4248 }, { 150,4248 }, { 151,4248 }, { 152,4248 },
+ { 153,4248 }, { 154,4248 }, { 155,4248 }, { 156,4248 }, { 157,4248 },
+ { 158,4248 }, { 159,4248 }, { 160,4248 }, { 161,4248 }, { 162,4248 },
+ { 163,4248 }, { 164,4248 }, { 165,4248 }, { 166,4248 }, { 167,4248 },
+ { 168,4248 }, { 169,4248 }, { 170,4248 }, { 171,4248 }, { 172,4248 },
+
+ { 173,4248 }, { 174,4248 }, { 175,4248 }, { 176,4248 }, { 177,4248 },
+ { 178,4248 }, { 179,4248 }, { 180,4248 }, { 181,4248 }, { 182,4248 },
+ { 183,4248 }, { 184,4248 }, { 185,4248 }, { 186,4248 }, { 187,4248 },
+ { 188,4248 }, { 189,4248 }, { 190,4248 }, { 191,4248 }, { 192,4248 },
+ { 193,4248 }, { 194,4248 }, { 195,4248 }, { 196,4248 }, { 197,4248 },
+ { 198,4248 }, { 199,4248 }, { 200,4248 }, { 201,4248 }, { 202,4248 },
+ { 203,4248 }, { 204,4248 }, { 205,4248 }, { 206,4248 }, { 207,4248 },
+ { 208,4248 }, { 209,4248 }, { 210,4248 }, { 211,4248 }, { 212,4248 },
+ { 213,4248 }, { 214,4248 }, { 215,4248 }, { 216,4248 }, { 217,4248 },
+ { 218,4248 }, { 219,4248 }, { 220,4248 }, { 221,4248 }, { 222,4248 },
+
+ { 223,4248 }, { 224,4248 }, { 225,4248 }, { 226,4248 }, { 227,4248 },
+ { 228,4248 }, { 229,4248 }, { 230,4248 }, { 231,4248 }, { 232,4248 },
+ { 233,4248 }, { 234,4248 }, { 235,4248 }, { 236,4248 }, { 237,4248 },
+ { 238,4248 }, { 239,4248 }, { 240,4248 }, { 241,4248 }, { 242,4248 },
+ { 243,4248 }, { 244,4248 }, { 245,4248 }, { 246,4248 }, { 247,4248 },
+ { 248,4248 }, { 249,4248 }, { 250,4248 }, { 251,4248 }, { 252,4248 },
+ { 253,4248 }, { 254,4248 }, { 255,4248 }, { 256,4248 }, {   0,  19 },
+ {   0,7488 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  19 },
+ {   0,7483 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,4248 },
+ {  10,4253 }, {   0,   0 }, {  12,4248 }, {  13,4253 }, {   9,4264 },
+
+ {  10,4264 }, {   0,   0 }, {  12,4264 }, {  13,4264 }, {   0,   0 },
+ {   0,  19 }, {   0,7467 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   9,4248 }, {  10,4248 }, {  32,4248 }, {  12,4248 }, {  13,4248 },
+ {   0,   0 }, {   0,   0 }, {  32,4264 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,-3352 },
+ {  45,-3349 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  45,-3354 }, {   0,   0 }, {   0,   0 }, {  32,4248 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  39,-3368 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {  45,-3370 }, {   0,  23 }, {   0,7420 }, {   1,4248 },
+ {   2,4248 }, {   3,4248 }, {   4,4248 }, {   5,4248 }, {   6,4248 },
+ {   7,4248 }, {   8,4248 }, {   9,4248 }, {  10,4248 }, {  11,4248 },
+ {  12,4248 }, {  13,4248 }, {  14,4248 }, {  15,4248 }, {  16,4248 },
+ {  17,4248 }, {  18,4248 }, {  19,4248 }, {  20,4248 }, {  21,4248 },
+ {  22,4248 }, {  23,4248 }, {  24,4248 }, {  25,4248 }, {  26,4248 },
+ {  27,4248 }, {  28,4248 }, {  29,4248 }, {  30,4248 }, {  31,4248 },
+ {  32,4248 }, {  33,4248 }, {  34,4248 }, {  35,4248 }, {  36,4248 },
+ {  37,4248 }, {  38,4248 }, {   0,   0 }, {  40,4248 }, {  41,4248 },
+ {  42,4248 }, {  43,4248 }, {  44,4248 }, {  45,4248 }, {  46,4248 },
+
+ {  47,4248 }, {  48,4248 }, {  49,4248 }, {  50,4248 }, {  51,4248 },
+ {  52,4248 }, {  53,4248 }, {  54,4248 }, {  55,4248 }, {  56,4248 },
+ {  57,4248 }, {  58,4248 }, {  59,4248 }, {  60,4248 }, {  61,4248 },
+ {  62,4248 }, {  63,4248 }, {  64,4248 }, {  65,4248 }, {  66,4248 },
+ {  67,4248 }, {  68,4248 }, {  69,4248 }, {  70,4248 }, {  71,4248 },
+ {  72,4248 }, {  73,4248 }, {  74,4248 }, {  75,4248 }, {  76,4248 },
+ {  77,4248 }, {  78,4248 }, {  79,4248 }, {  80,4248 }, {  81,4248 },
+ {  82,4248 }, {  83,4248 }, {  84,4248 }, {  85,4248 }, {  86,4248 },
+ {  87,4248 }, {  88,4248 }, {  89,4248 }, {  90,4248 }, {  91,4248 },
+ {   0,   0 }, {  93,4248 }, {  94,4248 }, {  95,4248 }, {  96,4248 },
+
+ {  97,4248 }, {  98,4248 }, {  99,4248 }, { 100,4248 }, { 101,4248 },
+ { 102,4248 }, { 103,4248 }, { 104,4248 }, { 105,4248 }, { 106,4248 },
+ { 107,4248 }, { 108,4248 }, { 109,4248 }, { 110,4248 }, { 111,4248 },
+ { 112,4248 }, { 113,4248 }, { 114,4248 }, { 115,4248 }, { 116,4248 },
+ { 117,4248 }, { 118,4248 }, { 119,4248 }, { 120,4248 }, { 121,4248 },
+ { 122,4248 }, { 123,4248 }, { 124,4248 }, { 125,4248 }, { 126,4248 },
+ { 127,4248 }, { 128,4248 }, { 129,4248 }, { 130,4248 }, { 131,4248 },
+ { 132,4248 }, { 133,4248 }, { 134,4248 }, { 135,4248 }, { 136,4248 },
+ { 137,4248 }, { 138,4248 }, { 139,4248 }, { 140,4248 }, { 141,4248 },
+ { 142,4248 }, { 143,4248 }, { 144,4248 }, { 145,4248 }, { 146,4248 },
+
+ { 147,4248 }, { 148,4248 }, { 149,4248 }, { 150,4248 }, { 151,4248 },
+ { 152,4248 }, { 153,4248 }, { 154,4248 }, { 155,4248 }, { 156,4248 },
+ { 157,4248 }, { 158,4248 }, { 159,4248 }, { 160,4248 }, { 161,4248 },
+ { 162,4248 }, { 163,4248 }, { 164,4248 }, { 165,4248 }, { 166,4248 },
+ { 167,4248 }, { 168,4248 }, { 169,4248 }, { 170,4248 }, { 171,4248 },
+ { 172,4248 }, { 173,4248 }, { 174,4248 }, { 175,4248 }, { 176,4248 },
+ { 177,4248 }, { 178,4248 }, { 179,4248 }, { 180,4248 }, { 181,4248 },
+ { 182,4248 }, { 183,4248 }, { 184,4248 }, { 185,4248 }, { 186,4248 },
+ { 187,4248 }, { 188,4248 }, { 189,4248 }, { 190,4248 }, { 191,4248 },
+ { 192,4248 }, { 193,4248 }, { 194,4248 }, { 195,4248 }, { 196,4248 },
+
+ { 197,4248 }, { 198,4248 }, { 199,4248 }, { 200,4248 }, { 201,4248 },
+ { 202,4248 }, { 203,4248 }, { 204,4248 }, { 205,4248 }, { 206,4248 },
+ { 207,4248 }, { 208,4248 }, { 209,4248 }, { 210,4248 }, { 211,4248 },
+ { 212,4248 }, { 213,4248 }, { 214,4248 }, { 215,4248 }, { 216,4248 },
+ { 217,4248 }, { 218,4248 }, { 219,4248 }, { 220,4248 }, { 221,4248 },
+ { 222,4248 }, { 223,4248 }, { 224,4248 }, { 225,4248 }, { 226,4248 },
+ { 227,4248 }, { 228,4248 }, { 229,4248 }, { 230,4248 }, { 231,4248 },
+ { 232,4248 }, { 233,4248 }, { 234,4248 }, { 235,4248 }, { 236,4248 },
+ { 237,4248 }, { 238,4248 }, { 239,4248 }, { 240,4248 }, { 241,4248 },
+ { 242,4248 }, { 243,4248 }, { 244,4248 }, { 245,4248 }, { 246,4248 },
+
+ { 247,4248 }, { 248,4248 }, { 249,4248 }, { 250,4248 }, { 251,4248 },
+ { 252,4248 }, { 253,4248 }, { 254,4248 }, { 255,4248 }, { 256,4248 },
+ {   0,  23 }, {   0,7162 }, {   1,3990 }, {   2,3990 }, {   3,3990 },
+ {   4,3990 }, {   5,3990 }, {   6,3990 }, {   7,3990 }, {   8,3990 },
+ {   9,3990 }, {  10,3990 }, {  11,3990 }, {  12,3990 }, {  13,3990 },
+ {  14,3990 }, {  15,3990 }, {  16,3990 }, {  17,3990 }, {  18,3990 },
+ {  19,3990 }, {  20,3990 }, {  21,3990 }, {  22,3990 }, {  23,3990 },
+ {  24,3990 }, {  25,3990 }, {  26,3990 }, {  27,3990 }, {  28,3990 },
+ {  29,3990 }, {  30,3990 }, {  31,3990 }, {  32,3990 }, {  33,3990 },
+ {  34,3990 }, {  35,3990 }, {  36,3990 }, {  37,3990 }, {  38,3990 },
+
+ {   0,   0 }, {  40,3990 }, {  41,3990 }, {  42,3990 }, {  43,3990 },
+ {  44,3990 }, {  45,3990 }, {  46,3990 }, {  47,3990 }, {  48,3990 },
+ {  49,3990 }, {  50,3990 }, {  51,3990 }, {  52,3990 }, {  53,3990 },
+ {  54,3990 }, {  55,3990 }, {  56,3990 }, {  57,3990 }, {  58,3990 },
+ {  59,3990 }, {  60,3990 }, {  61,3990 }, {  62,3990 }, {  63,3990 },
+ {  64,3990 }, {  65,3990 }, {  66,3990 }, {  67,3990 }, {  68,3990 },
+ {  69,3990 }, {  70,3990 }, {  71,3990 }, {  72,3990 }, {  73,3990 },
+ {  74,3990 }, {  75,3990 }, {  76,3990 }, {  77,3990 }, {  78,3990 },
+ {  79,3990 }, {  80,3990 }, {  81,3990 }, {  82,3990 }, {  83,3990 },
+ {  84,3990 }, {  85,3990 }, {  86,3990 }, {  87,3990 }, {  88,3990 },
+
+ {  89,3990 }, {  90,3990 }, {  91,3990 }, {   0,   0 }, {  93,3990 },
+ {  94,3990 }, {  95,3990 }, {  96,3990 }, {  97,3990 }, {  98,3990 },
+ {  99,3990 }, { 100,3990 }, { 101,3990 }, { 102,3990 }, { 103,3990 },
+ { 104,3990 }, { 105,3990 }, { 106,3990 }, { 107,3990 }, { 108,3990 },
+ { 109,3990 }, { 110,3990 }, { 111,3990 }, { 112,3990 }, { 113,3990 },
+ { 114,3990 }, { 115,3990 }, { 116,3990 }, { 117,3990 }, { 118,3990 },
+ { 119,3990 }, { 120,3990 }, { 121,3990 }, { 122,3990 }, { 123,3990 },
+ { 124,3990 }, { 125,3990 }, { 126,3990 }, { 127,3990 }, { 128,3990 },
+ { 129,3990 }, { 130,3990 }, { 131,3990 }, { 132,3990 }, { 133,3990 },
+ { 134,3990 }, { 135,3990 }, { 136,3990 }, { 137,3990 }, { 138,3990 },
+
+ { 139,3990 }, { 140,3990 }, { 141,3990 }, { 142,3990 }, { 143,3990 },
+ { 144,3990 }, { 145,3990 }, { 146,3990 }, { 147,3990 }, { 148,3990 },
+ { 149,3990 }, { 150,3990 }, { 151,3990 }, { 152,3990 }, { 153,3990 },
+ { 154,3990 }, { 155,3990 }, { 156,3990 }, { 157,3990 }, { 158,3990 },
+ { 159,3990 }, { 160,3990 }, { 161,3990 }, { 162,3990 }, { 163,3990 },
+ { 164,3990 }, { 165,3990 }, { 166,3990 }, { 167,3990 }, { 168,3990 },
+ { 169,3990 }, { 170,3990 }, { 171,3990 }, { 172,3990 }, { 173,3990 },
+ { 174,3990 }, { 175,3990 }, { 176,3990 }, { 177,3990 }, { 178,3990 },
+ { 179,3990 }, { 180,3990 }, { 181,3990 }, { 182,3990 }, { 183,3990 },
+ { 184,3990 }, { 185,3990 }, { 186,3990 }, { 187,3990 }, { 188,3990 },
+
+ { 189,3990 }, { 190,3990 }, { 191,3990 }, { 192,3990 }, { 193,3990 },
+ { 194,3990 }, { 195,3990 }, { 196,3990 }, { 197,3990 }, { 198,3990 },
+ { 199,3990 }, { 200,3990 }, { 201,3990 }, { 202,3990 }, { 203,3990 },
+ { 204,3990 }, { 205,3990 }, { 206,3990 }, { 207,3990 }, { 208,3990 },
+ { 209,3990 }, { 210,3990 }, { 211,3990 }, { 212,3990 }, { 213,3990 },
+ { 214,3990 }, { 215,3990 }, { 216,3990 }, { 217,3990 }, { 218,3990 },
+ { 219,3990 }, { 220,3990 }, { 221,3990 }, { 222,3990 }, { 223,3990 },
+ { 224,3990 }, { 225,3990 }, { 226,3990 }, { 227,3990 }, { 228,3990 },
+ { 229,3990 }, { 230,3990 }, { 231,3990 }, { 232,3990 }, { 233,3990 },
+ { 234,3990 }, { 235,3990 }, { 236,3990 }, { 237,3990 }, { 238,3990 },
+
+ { 239,3990 }, { 240,3990 }, { 241,3990 }, { 242,3990 }, { 243,3990 },
+ { 244,3990 }, { 245,3990 }, { 246,3990 }, { 247,3990 }, { 248,3990 },
+ { 249,3990 }, { 250,3990 }, { 251,3990 }, { 252,3990 }, { 253,3990 },
+ { 254,3990 }, { 255,3990 }, { 256,3990 }, {   0,  32 }, {   0,6904 },
+ {   1,-3929 }, {   2,-3929 }, {   3,-3929 }, {   4,-3929 }, {   5,-3929 },
+ {   6,-3929 }, {   7,-3929 }, {   8,-3929 }, {   9,-3929 }, {  10,-3929 },
+ {  11,-3929 }, {  12,-3929 }, {  13,-3929 }, {  14,-3929 }, {  15,-3929 },
+ {  16,-3929 }, {  17,-3929 }, {  18,-3929 }, {  19,-3929 }, {  20,-3929 },
+ {  21,-3929 }, {  22,-3929 }, {  23,-3929 }, {  24,-3929 }, {  25,-3929 },
+ {  26,-3929 }, {  27,-3929 }, {  28,-3929 }, {  29,-3929 }, {  30,-3929 },
+
+ {  31,-3929 }, {  32,-3929 }, {  33,-3929 }, {  34,-3929 }, {  35,-3929 },
+ {  36,-3929 }, {  37,-3929 }, {  38,-3929 }, {  39,-3929 }, {  40,-3929 },
+ {  41,-3929 }, {  42,-3929 }, {  43,-3929 }, {  44,-3929 }, {  45,-3929 },
+ {  46,-3929 }, {  47,-3929 }, {  48,3990 }, {  49,3990 }, {  50,3990 },
+ {  51,3990 }, {  52,3990 }, {  53,3990 }, {  54,3990 }, {  55,3990 },
+ {  56,-3929 }, {  57,-3929 }, {  58,-3929 }, {  59,-3929 }, {  60,-3929 },
+ {  61,-3929 }, {  62,-3929 }, {  63,-3929 }, {  64,-3929 }, {  65,-3929 },
+ {  66,-3929 }, {  67,-3929 }, {  68,-3929 }, {  69,-3929 }, {  70,-3929 },
+ {  71,-3929 }, {  72,-3929 }, {  73,-3929 }, {  74,-3929 }, {  75,-3929 },
+ {  76,-3929 }, {  77,-3929 }, {  78,-3929 }, {  79,-3929 }, {  80,-3929 },
+
+ {  81,-3929 }, {  82,-3929 }, {  83,-3929 }, {  84,-3929 }, {  85,3998 },
+ {  86,-3929 }, {  87,-3929 }, {  88,-3929 }, {  89,-3929 }, {  90,-3929 },
+ {  91,-3929 }, {  92,-3929 }, {  93,-3929 }, {  94,-3929 }, {  95,-3929 },
+ {  96,-3929 }, {  97,-3929 }, {  98,-3929 }, {  99,-3929 }, { 100,-3929 },
+ { 101,-3929 }, { 102,-3929 }, { 103,-3929 }, { 104,-3929 }, { 105,-3929 },
+ { 106,-3929 }, { 107,-3929 }, { 108,-3929 }, { 109,-3929 }, { 110,-3929 },
+ { 111,-3929 }, { 112,-3929 }, { 113,-3929 }, { 114,-3929 }, { 115,-3929 },
+ { 116,-3929 }, { 117,4021 }, { 118,-3929 }, { 119,-3929 }, { 120,4059 },
+ { 121,-3929 }, { 122,-3929 }, { 123,-3929 }, { 124,-3929 }, { 125,-3929 },
+ { 126,-3929 }, { 127,-3929 }, { 128,-3929 }, { 129,-3929 }, { 130,-3929 },
+
+ { 131,-3929 }, { 132,-3929 }, { 133,-3929 }, { 134,-3929 }, { 135,-3929 },
+ { 136,-3929 }, { 137,-3929 }, { 138,-3929 }, { 139,-3929 }, { 140,-3929 },
+ { 141,-3929 }, { 142,-3929 }, { 143,-3929 }, { 144,-3929 }, { 145,-3929 },
+ { 146,-3929 }, { 147,-3929 }, { 148,-3929 }, { 149,-3929 }, { 150,-3929 },
+ { 151,-3929 }, { 152,-3929 }, { 153,-3929 }, { 154,-3929 }, { 155,-3929 },
+ { 156,-3929 }, { 157,-3929 }, { 158,-3929 }, { 159,-3929 }, { 160,-3929 },
+ { 161,-3929 }, { 162,-3929 }, { 163,-3929 }, { 164,-3929 }, { 165,-3929 },
+ { 166,-3929 }, { 167,-3929 }, { 168,-3929 }, { 169,-3929 }, { 170,-3929 },
+ { 171,-3929 }, { 172,-3929 }, { 173,-3929 }, { 174,-3929 }, { 175,-3929 },
+ { 176,-3929 }, { 177,-3929 }, { 178,-3929 }, { 179,-3929 }, { 180,-3929 },
+
+ { 181,-3929 }, { 182,-3929 }, { 183,-3929 }, { 184,-3929 }, { 185,-3929 },
+ { 186,-3929 }, { 187,-3929 }, { 188,-3929 }, { 189,-3929 }, { 190,-3929 },
+ { 191,-3929 }, { 192,-3929 }, { 193,-3929 }, { 194,-3929 }, { 195,-3929 },
+ { 196,-3929 }, { 197,-3929 }, { 198,-3929 }, { 199,-3929 }, { 200,-3929 },
+ { 201,-3929 }, { 202,-3929 }, { 203,-3929 }, { 204,-3929 }, { 205,-3929 },
+ { 206,-3929 }, { 207,-3929 }, { 208,-3929 }, { 209,-3929 }, { 210,-3929 },
+ { 211,-3929 }, { 212,-3929 }, { 213,-3929 }, { 214,-3929 }, { 215,-3929 },
+ { 216,-3929 }, { 217,-3929 }, { 218,-3929 }, { 219,-3929 }, { 220,-3929 },
+ { 221,-3929 }, { 222,-3929 }, { 223,-3929 }, { 224,-3929 }, { 225,-3929 },
+ { 226,-3929 }, { 227,-3929 }, { 228,-3929 }, { 229,-3929 }, { 230,-3929 },
+
+ { 231,-3929 }, { 232,-3929 }, { 233,-3929 }, { 234,-3929 }, { 235,-3929 },
+ { 236,-3929 }, { 237,-3929 }, { 238,-3929 }, { 239,-3929 }, { 240,-3929 },
+ { 241,-3929 }, { 242,-3929 }, { 243,-3929 }, { 244,-3929 }, { 245,-3929 },
+ { 246,-3929 }, { 247,-3929 }, { 248,-3929 }, { 249,-3929 }, { 250,-3929 },
+ { 251,-3929 }, { 252,-3929 }, { 253,-3929 }, { 254,-3929 }, { 255,-3929 },
+ { 256,-3929 }, {   0,  36 }, {   0,6646 }, {   1,3905 }, {   2,3905 },
+ {   3,3905 }, {   4,3905 }, {   5,3905 }, {   6,3905 }, {   7,3905 },
+ {   8,3905 }, {   9,3905 }, {  10,3905 }, {  11,3905 }, {  12,3905 },
+ {  13,3905 }, {  14,3905 }, {  15,3905 }, {  16,3905 }, {  17,3905 },
+ {  18,3905 }, {  19,3905 }, {  20,3905 }, {  21,3905 }, {  22,3905 },
+
+ {  23,3905 }, {  24,3905 }, {  25,3905 }, {  26,3905 }, {  27,3905 },
+ {  28,3905 }, {  29,3905 }, {  30,3905 }, {  31,3905 }, {  32,3905 },
+ {  33,3905 }, {  34,3905 }, {  35,3905 }, {   0,   0 }, {  37,3905 },
+ {  38,3905 }, {  39,3905 }, {  40,3905 }, {  41,3905 }, {  42,3905 },
+ {  43,3905 }, {  44,3905 }, {  45,3905 }, {  46,3905 }, {  47,3905 },
+ {  48,3905 }, {  49,3905 }, {  50,3905 }, {  51,3905 }, {  52,3905 },
+ {  53,3905 }, {  54,3905 }, {  55,3905 }, {  56,3905 }, {  57,3905 },
+ {  58,3905 }, {  59,3905 }, {  60,3905 }, {  61,3905 }, {  62,3905 },
+ {  63,3905 }, {  64,3905 }, {  65,3905 }, {  66,3905 }, {  67,3905 },
+ {  68,3905 }, {  69,3905 }, {  70,3905 }, {  71,3905 }, {  72,3905 },
+
+ {  73,3905 }, {  74,3905 }, {  75,3905 }, {  76,3905 }, {  77,3905 },
+ {  78,3905 }, {  79,3905 }, {  80,3905 }, {  81,3905 }, {  82,3905 },
+ {  83,3905 }, {  84,3905 }, {  85,3905 }, {  86,3905 }, {  87,3905 },
+ {  88,3905 }, {  89,3905 }, {  90,3905 }, {  91,3905 }, {  92,3905 },
+ {  93,3905 }, {  94,3905 }, {  95,3905 }, {  96,3905 }, {  97,3905 },
+ {  98,3905 }, {  99,3905 }, { 100,3905 }, { 101,3905 }, { 102,3905 },
+ { 103,3905 }, { 104,3905 }, { 105,3905 }, { 106,3905 }, { 107,3905 },
+ { 108,3905 }, { 109,3905 }, { 110,3905 }, { 111,3905 }, { 112,3905 },
+ { 113,3905 }, { 114,3905 }, { 115,3905 }, { 116,3905 }, { 117,3905 },
+ { 118,3905 }, { 119,3905 }, { 120,3905 }, { 121,3905 }, { 122,3905 },
+
+ { 123,3905 }, { 124,3905 }, { 125,3905 }, { 126,3905 }, { 127,3905 },
+ { 128,3905 }, { 129,3905 }, { 130,3905 }, { 131,3905 }, { 132,3905 },
+ { 133,3905 }, { 134,3905 }, { 135,3905 }, { 136,3905 }, { 137,3905 },
+ { 138,3905 }, { 139,3905 }, { 140,3905 }, { 141,3905 }, { 142,3905 },
+ { 143,3905 }, { 144,3905 }, { 145,3905 }, { 146,3905 }, { 147,3905 },
+ { 148,3905 }, { 149,3905 }, { 150,3905 }, { 151,3905 }, { 152,3905 },
+ { 153,3905 }, { 154,3905 }, { 155,3905 }, { 156,3905 }, { 157,3905 },
+ { 158,3905 }, { 159,3905 }, { 160,3905 }, { 161,3905 }, { 162,3905 },
+ { 163,3905 }, { 164,3905 }, { 165,3905 }, { 166,3905 }, { 167,3905 },
+ { 168,3905 }, { 169,3905 }, { 170,3905 }, { 171,3905 }, { 172,3905 },
+
+ { 173,3905 }, { 174,3905 }, { 175,3905 }, { 176,3905 }, { 177,3905 },
+ { 178,3905 }, { 179,3905 }, { 180,3905 }, { 181,3905 }, { 182,3905 },
+ { 183,3905 }, { 184,3905 }, { 185,3905 }, { 186,3905 }, { 187,3905 },
+ { 188,3905 }, { 189,3905 }, { 190,3905 }, { 191,3905 }, { 192,3905 },
+ { 193,3905 }, { 194,3905 }, { 195,3905 }, { 196,3905 }, { 197,3905 },
+ { 198,3905 }, { 199,3905 }, { 200,3905 }, { 201,3905 }, { 202,3905 },
+ { 203,3905 }, { 204,3905 }, { 205,3905 }, { 206,3905 }, { 207,3905 },
+ { 208,3905 }, { 209,3905 }, { 210,3905 }, { 211,3905 }, { 212,3905 },
+ { 213,3905 }, { 214,3905 }, { 215,3905 }, { 216,3905 }, { 217,3905 },
+ { 218,3905 }, { 219,3905 }, { 220,3905 }, { 221,3905 }, { 222,3905 },
+
+ { 223,3905 }, { 224,3905 }, { 225,3905 }, { 226,3905 }, { 227,3905 },
+ { 228,3905 }, { 229,3905 }, { 230,3905 }, { 231,3905 }, { 232,3905 },
+ { 233,3905 }, { 234,3905 }, { 235,3905 }, { 236,3905 }, { 237,3905 },
+ { 238,3905 }, { 239,3905 }, { 240,3905 }, { 241,3905 }, { 242,3905 },
+ { 243,3905 }, { 244,3905 }, { 245,3905 }, { 246,3905 }, { 247,3905 },
+ { 248,3905 }, { 249,3905 }, { 250,3905 }, { 251,3905 }, { 252,3905 },
+ { 253,3905 }, { 254,3905 }, { 255,3905 }, { 256,3905 }, {   0,  36 },
+ {   0,6388 }, {   1,3647 }, {   2,3647 }, {   3,3647 }, {   4,3647 },
+ {   5,3647 }, {   6,3647 }, {   7,3647 }, {   8,3647 }, {   9,3647 },
+ {  10,3647 }, {  11,3647 }, {  12,3647 }, {  13,3647 }, {  14,3647 },
+
+ {  15,3647 }, {  16,3647 }, {  17,3647 }, {  18,3647 }, {  19,3647 },
+ {  20,3647 }, {  21,3647 }, {  22,3647 }, {  23,3647 }, {  24,3647 },
+ {  25,3647 }, {  26,3647 }, {  27,3647 }, {  28,3647 }, {  29,3647 },
+ {  30,3647 }, {  31,3647 }, {  32,3647 }, {  33,3647 }, {  34,3647 },
+ {  35,3647 }, {   0,   0 }, {  37,3647 }, {  38,3647 }, {  39,3647 },
+ {  40,3647 }, {  41,3647 }, {  42,3647 }, {  43,3647 }, {  44,3647 },
+ {  45,3647 }, {  46,3647 }, {  47,3647 }, {  48,3647 }, {  49,3647 },
+ {  50,3647 }, {  51,3647 }, {  52,3647 }, {  53,3647 }, {  54,3647 },
+ {  55,3647 }, {  56,3647 }, {  57,3647 }, {  58,3647 }, {  59,3647 },
+ {  60,3647 }, {  61,3647 }, {  62,3647 }, {  63,3647 }, {  64,3647 },
+
+ {  65,3647 }, {  66,3647 }, {  67,3647 }, {  68,3647 }, {  69,3647 },
+ {  70,3647 }, {  71,3647 }, {  72,3647 }, {  73,3647 }, {  74,3647 },
+ {  75,3647 }, {  76,3647 }, {  77,3647 }, {  78,3647 }, {  79,3647 },
+ {  80,3647 }, {  81,3647 }, {  82,3647 }, {  83,3647 }, {  84,3647 },
+ {  85,3647 }, {  86,3647 }, {  87,3647 }, {  88,3647 }, {  89,3647 },
+ {  90,3647 }, {  91,3647 }, {  92,3647 }, {  93,3647 }, {  94,3647 },
+ {  95,3647 }, {  96,3647 }, {  97,3647 }, {  98,3647 }, {  99,3647 },
+ { 100,3647 }, { 101,3647 }, { 102,3647 }, { 103,3647 }, { 104,3647 },
+ { 105,3647 }, { 106,3647 }, { 107,3647 }, { 108,3647 }, { 109,3647 },
+ { 110,3647 }, { 111,3647 }, { 112,3647 }, { 113,3647 }, { 114,3647 },
+
+ { 115,3647 }, { 116,3647 }, { 117,3647 }, { 118,3647 }, { 119,3647 },
+ { 120,3647 }, { 121,3647 }, { 122,3647 }, { 123,3647 }, { 124,3647 },
+ { 125,3647 }, { 126,3647 }, { 127,3647 }, { 128,3647 }, { 129,3647 },
+ { 130,3647 }, { 131,3647 }, { 132,3647 }, { 133,3647 }, { 134,3647 },
+ { 135,3647 }, { 136,3647 }, { 137,3647 }, { 138,3647 }, { 139,3647 },
+ { 140,3647 }, { 141,3647 }, { 142,3647 }, { 143,3647 }, { 144,3647 },
+ { 145,3647 }, { 146,3647 }, { 147,3647 }, { 148,3647 }, { 149,3647 },
+ { 150,3647 }, { 151,3647 }, { 152,3647 }, { 153,3647 }, { 154,3647 },
+ { 155,3647 }, { 156,3647 }, { 157,3647 }, { 158,3647 }, { 159,3647 },
+ { 160,3647 }, { 161,3647 }, { 162,3647 }, { 163,3647 }, { 164,3647 },
+
+ { 165,3647 }, { 166,3647 }, { 167,3647 }, { 168,3647 }, { 169,3647 },
+ { 170,3647 }, { 171,3647 }, { 172,3647 }, { 173,3647 }, { 174,3647 },
+ { 175,3647 }, { 176,3647 }, { 177,3647 }, { 178,3647 }, { 179,3647 },
+ { 180,3647 }, { 181,3647 }, { 182,3647 }, { 183,3647 }, { 184,3647 },
+ { 185,3647 }, { 186,3647 }, { 187,3647 }, { 188,3647 }, { 189,3647 },
+ { 190,3647 }, { 191,3647 }, { 192,3647 }, { 193,3647 }, { 194,3647 },
+ { 195,3647 }, { 196,3647 }, { 197,3647 }, { 198,3647 }, { 199,3647 },
+ { 200,3647 }, { 201,3647 }, { 202,3647 }, { 203,3647 }, { 204,3647 },
+ { 205,3647 }, { 206,3647 }, { 207,3647 }, { 208,3647 }, { 209,3647 },
+ { 210,3647 }, { 211,3647 }, { 212,3647 }, { 213,3647 }, { 214,3647 },
+
+ { 215,3647 }, { 216,3647 }, { 217,3647 }, { 218,3647 }, { 219,3647 },
+ { 220,3647 }, { 221,3647 }, { 222,3647 }, { 223,3647 }, { 224,3647 },
+ { 225,3647 }, { 226,3647 }, { 227,3647 }, { 228,3647 }, { 229,3647 },
+ { 230,3647 }, { 231,3647 }, { 232,3647 }, { 233,3647 }, { 234,3647 },
+ { 235,3647 }, { 236,3647 }, { 237,3647 }, { 238,3647 }, { 239,3647 },
+ { 240,3647 }, { 241,3647 }, { 242,3647 }, { 243,3647 }, { 244,3647 },
+ { 245,3647 }, { 246,3647 }, { 247,3647 }, { 248,3647 }, { 249,3647 },
+ { 250,3647 }, { 251,3647 }, { 252,3647 }, { 253,3647 }, { 254,3647 },
+ { 255,3647 }, { 256,3647 }, {   0,  38 }, {   0,6130 }, {   0,   1 },
+ {   0,6128 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,   0 },
+ {  10,   0 }, {   0,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  32,   0 }, {   0,   0 }, {  36,-4701 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,3647 }, {  66,3647 },
+ {  67,3647 }, {  68,3647 }, {  69,3647 }, {  70,3647 }, {  71,3647 },
+ {  72,3647 }, {  73,3647 }, {  74,3647 }, {  75,3647 }, {  76,3647 },
+ {  77,3647 }, {  78,3647 }, {  79,3647 }, {  80,3647 }, {  81,3647 },
+ {  82,3647 }, {  83,3647 }, {  84,3647 }, {  85,3647 }, {  86,3647 },
+ {  87,3647 }, {  88,3647 }, {  89,3647 }, {  90,3647 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,3647 }, {   0,   0 },
+ {  97,3647 }, {  98,3647 }, {  99,3647 }, { 100,3647 }, { 101,3647 },
+ { 102,3647 }, { 103,3647 }, { 104,3647 }, { 105,3647 }, { 106,3647 },
+
+ { 107,3647 }, { 108,3647 }, { 109,3647 }, { 110,3647 }, { 111,3647 },
+ { 112,3647 }, { 113,3647 }, { 114,3647 }, { 115,3647 }, { 116,3647 },
+ { 117,3647 }, { 118,3647 }, { 119,3647 }, { 120,3647 }, { 121,3647 },
+ { 122,3647 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, { 128,3647 }, { 129,3647 }, { 130,3647 }, { 131,3647 },
+ { 132,3647 }, { 133,3647 }, { 134,3647 }, { 135,3647 }, { 136,3647 },
+ { 137,3647 }, { 138,3647 }, { 139,3647 }, { 140,3647 }, { 141,3647 },
+ { 142,3647 }, { 143,3647 }, { 144,3647 }, { 145,3647 }, { 146,3647 },
+ { 147,3647 }, { 148,3647 }, { 149,3647 }, { 150,3647 }, { 151,3647 },
+ { 152,3647 }, { 153,3647 }, { 154,3647 }, { 155,3647 }, { 156,3647 },
+
+ { 157,3647 }, { 158,3647 }, { 159,3647 }, { 160,3647 }, { 161,3647 },
+ { 162,3647 }, { 163,3647 }, { 164,3647 }, { 165,3647 }, { 166,3647 },
+ { 167,3647 }, { 168,3647 }, { 169,3647 }, { 170,3647 }, { 171,3647 },
+ { 172,3647 }, { 173,3647 }, { 174,3647 }, { 175,3647 }, { 176,3647 },
+ { 177,3647 }, { 178,3647 }, { 179,3647 }, { 180,3647 }, { 181,3647 },
+ { 182,3647 }, { 183,3647 }, { 184,3647 }, { 185,3647 }, { 186,3647 },
+ { 187,3647 }, { 188,3647 }, { 189,3647 }, { 190,3647 }, { 191,3647 },
+ { 192,3647 }, { 193,3647 }, { 194,3647 }, { 195,3647 }, { 196,3647 },
+ { 197,3647 }, { 198,3647 }, { 199,3647 }, { 200,3647 }, { 201,3647 },
+ { 202,3647 }, { 203,3647 }, { 204,3647 }, { 205,3647 }, { 206,3647 },
+
+ { 207,3647 }, { 208,3647 }, { 209,3647 }, { 210,3647 }, { 211,3647 },
+ { 212,3647 }, { 213,3647 }, { 214,3647 }, { 215,3647 }, { 216,3647 },
+ { 217,3647 }, { 218,3647 }, { 219,3647 }, { 220,3647 }, { 221,3647 },
+ { 222,3647 }, { 223,3647 }, { 224,3647 }, { 225,3647 }, { 226,3647 },
+ { 227,3647 }, { 228,3647 }, { 229,3647 }, { 230,3647 }, { 231,3647 },
+ { 232,3647 }, { 233,3647 }, { 234,3647 }, { 235,3647 }, { 236,3647 },
+ { 237,3647 }, { 238,3647 }, { 239,3647 }, { 240,3647 }, { 241,3647 },
+ { 242,3647 }, { 243,3647 }, { 244,3647 }, { 245,3647 }, { 246,3647 },
+ { 247,3647 }, { 248,3647 }, { 249,3647 }, { 250,3647 }, { 251,3647 },
+ { 252,3647 }, { 253,3647 }, { 254,3647 }, { 255,3647 }, {   0,  56 },
+
+ {   0,5873 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,  54 }, {   0,5862 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  57 }, {   0,5845 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,   0 }, {   0,   0 },
+ {  35,   0 }, {   0,   0 }, {  37,   0 }, {  38,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  42,   0 }, {  43,   0 }, {  33, -11 },
+ {  45,   0 }, {  35, -11 }, {  47,   0 }, {  37, -11 }, {  38, -11 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42, -11 }, {  43, -11 },
+ {   0,   0 }, {  45, -11 }, {   0,   0 }, {  47, -11 }, {   0,   0 },
  {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33, -40 }, {   0,   0 },
- {  35, -40 }, {   0,   0 }, {  37, -40 }, {  38, -40 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  42, -40 }, {  43, -40 }, {   0,   0 },
- {  45, -40 }, {   0,   0 }, {  47, -40 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,   0 },
- {   0,   0 }, {  96,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  60, -40 }, {  61, -40 }, {  62, -40 }, {  63, -40 }, {  64, -40 },
- {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 },
- {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  44 }, {   0,24401 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,   0 },
- {   0,   0 }, { 126,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94, -40 },
- {   0,   0 }, {  96, -40 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  36,-5515 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124, -40 },
- {   0,   0 }, { 126, -40 }, {  48,4257 }, {  49,4257 }, {  50,4257 },
-
- {  51,4257 }, {  52,4257 }, {  53,4257 }, {  54,4257 }, {  55,4257 },
- {  56,4257 }, {  57,4257 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,4257 },
- {  66,4257 }, {  67,4257 }, {  68,4257 }, {  69,4257 }, {  70,4257 },
- {  71,4257 }, {  72,4257 }, {  73,4257 }, {  74,4257 }, {  75,4257 },
- {  76,4257 }, {  77,4257 }, {  78,4257 }, {  79,4257 }, {  80,4257 },
- {  81,4257 }, {  82,4257 }, {  83,4257 }, {  84,4257 }, {  85,4257 },
- {  86,4257 }, {  87,4257 }, {  88,4257 }, {  89,4257 }, {  90,4257 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,4257 },
- {   0,   0 }, {  97,4257 }, {  98,4257 }, {  99,4257 }, { 100,4257 },
-
- { 101,4257 }, { 102,4257 }, { 103,4257 }, { 104,4257 }, { 105,4257 },
- { 106,4257 }, { 107,4257 }, { 108,4257 }, { 109,4257 }, { 110,4257 },
- { 111,4257 }, { 112,4257 }, { 113,4257 }, { 114,4257 }, { 115,4257 },
- { 116,4257 }, { 117,4257 }, { 118,4257 }, { 119,4257 }, { 120,4257 },
- { 121,4257 }, { 122,4257 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 128,4257 }, { 129,4257 }, { 130,4257 },
- { 131,4257 }, { 132,4257 }, { 133,4257 }, { 134,4257 }, { 135,4257 },
- { 136,4257 }, { 137,4257 }, { 138,4257 }, { 139,4257 }, { 140,4257 },
- { 141,4257 }, { 142,4257 }, { 143,4257 }, { 144,4257 }, { 145,4257 },
- { 146,4257 }, { 147,4257 }, { 148,4257 }, { 149,4257 }, { 150,4257 },
-
- { 151,4257 }, { 152,4257 }, { 153,4257 }, { 154,4257 }, { 155,4257 },
- { 156,4257 }, { 157,4257 }, { 158,4257 }, { 159,4257 }, { 160,4257 },
- { 161,4257 }, { 162,4257 }, { 163,4257 }, { 164,4257 }, { 165,4257 },
- { 166,4257 }, { 167,4257 }, { 168,4257 }, { 169,4257 }, { 170,4257 },
- { 171,4257 }, { 172,4257 }, { 173,4257 }, { 174,4257 }, { 175,4257 },
- { 176,4257 }, { 177,4257 }, { 178,4257 }, { 179,4257 }, { 180,4257 },
- { 181,4257 }, { 182,4257 }, { 183,4257 }, { 184,4257 }, { 185,4257 },
- { 186,4257 }, { 187,4257 }, { 188,4257 }, { 189,4257 }, { 190,4257 },
- { 191,4257 }, { 192,4257 }, { 193,4257 }, { 194,4257 }, { 195,4257 },
- { 196,4257 }, { 197,4257 }, { 198,4257 }, { 199,4257 }, { 200,4257 },
-
- { 201,4257 }, { 202,4257 }, { 203,4257 }, { 204,4257 }, { 205,4257 },
- { 206,4257 }, { 207,4257 }, { 208,4257 }, { 209,4257 }, { 210,4257 },
- { 211,4257 }, { 212,4257 }, { 213,4257 }, { 214,4257 }, { 215,4257 },
- { 216,4257 }, { 217,4257 }, { 218,4257 }, { 219,4257 }, { 220,4257 },
- { 221,4257 }, { 222,4257 }, { 223,4257 }, { 224,4257 }, { 225,4257 },
- { 226,4257 }, { 227,4257 }, { 228,4257 }, { 229,4257 }, { 230,4257 },
- { 231,4257 }, { 232,4257 }, { 233,4257 }, { 234,4257 }, { 235,4257 },
- { 236,4257 }, { 237,4257 }, { 238,4257 }, { 239,4257 }, { 240,4257 },
- { 241,4257 }, { 242,4257 }, { 243,4257 }, { 244,4257 }, { 245,4257 },
- { 246,4257 }, { 247,4257 }, { 248,4257 }, { 249,4257 }, { 250,4257 },
-
- { 251,4257 }, { 252,4257 }, { 253,4257 }, { 254,4257 }, { 255,4257 },
- {   0,   1 }, {   0,24144 }, {   1,4257 }, {   2,4257 }, {   3,4257 },
- {   4,4257 }, {   5,4257 }, {   6,4257 }, {   7,4257 }, {   8,4257 },
- {   9,4257 }, {   0,   0 }, {  11,4257 }, {  12,4257 }, {   0,   0 },
- {  14,4257 }, {  15,4257 }, {  16,4257 }, {  17,4257 }, {  18,4257 },
- {  19,4257 }, {  20,4257 }, {  21,4257 }, {  22,4257 }, {  23,4257 },
- {  24,4257 }, {  25,4257 }, {  26,4257 }, {  27,4257 }, {  28,4257 },
- {  29,4257 }, {  30,4257 }, {  31,4257 }, {  32,4257 }, {  33,4515 },
- {  34,4257 }, {  35,4515 }, {  36,4257 }, {  37,4515 }, {  38,4515 },
- {  39,4257 }, {  40,4257 }, {  41,4257 }, {  42,4515 }, {  43,4515 },
-
- {  44,4257 }, {  45,4515 }, {  46,4257 }, {  47,4515 }, {  48,4257 },
- {  49,4257 }, {  50,4257 }, {  51,4257 }, {  52,4257 }, {  53,4257 },
- {  54,4257 }, {  55,4257 }, {  56,4257 }, {  57,4257 }, {  58,4257 },
- {  59,4257 }, {  60,4515 }, {  61,4515 }, {  62,4515 }, {  63,4515 },
- {  64,4515 }, {  65,4257 }, {  66,4257 }, {  67,4257 }, {  68,4257 },
- {  69,4257 }, {  70,4257 }, {  71,4257 }, {  72,4257 }, {  73,4257 },
- {  74,4257 }, {  75,4257 }, {  76,4257 }, {  77,4257 }, {  78,4257 },
- {  79,4257 }, {  80,4257 }, {  81,4257 }, {  82,4257 }, {  83,4257 },
- {  84,4257 }, {  85,4257 }, {  86,4257 }, {  87,4257 }, {  88,4257 },
- {  89,4257 }, {  90,4257 }, {  91,4257 }, {  92,4257 }, {  93,4257 },
-
- {  94,4515 }, {  95,4257 }, {  96,4515 }, {  97,4257 }, {  98,4257 },
- {  99,4257 }, { 100,4257 }, { 101,4257 }, { 102,4257 }, { 103,4257 },
- { 104,4257 }, { 105,4257 }, { 106,4257 }, { 107,4257 }, { 108,4257 },
- { 109,4257 }, { 110,4257 }, { 111,4257 }, { 112,4257 }, { 113,4257 },
- { 114,4257 }, { 115,4257 }, { 116,4257 }, { 117,4257 }, { 118,4257 },
- { 119,4257 }, { 120,4257 }, { 121,4257 }, { 122,4257 }, { 123,4257 },
- { 124,4515 }, { 125,4257 }, { 126,4515 }, { 127,4257 }, { 128,4257 },
- { 129,4257 }, { 130,4257 }, { 131,4257 }, { 132,4257 }, { 133,4257 },
- { 134,4257 }, { 135,4257 }, { 136,4257 }, { 137,4257 }, { 138,4257 },
- { 139,4257 }, { 140,4257 }, { 141,4257 }, { 142,4257 }, { 143,4257 },
-
- { 144,4257 }, { 145,4257 }, { 146,4257 }, { 147,4257 }, { 148,4257 },
- { 149,4257 }, { 150,4257 }, { 151,4257 }, { 152,4257 }, { 153,4257 },
- { 154,4257 }, { 155,4257 }, { 156,4257 }, { 157,4257 }, { 158,4257 },
- { 159,4257 }, { 160,4257 }, { 161,4257 }, { 162,4257 }, { 163,4257 },
- { 164,4257 }, { 165,4257 }, { 166,4257 }, { 167,4257 }, { 168,4257 },
- { 169,4257 }, { 170,4257 }, { 171,4257 }, { 172,4257 }, { 173,4257 },
- { 174,4257 }, { 175,4257 }, { 176,4257 }, { 177,4257 }, { 178,4257 },
- { 179,4257 }, { 180,4257 }, { 181,4257 }, { 182,4257 }, { 183,4257 },
- { 184,4257 }, { 185,4257 }, { 186,4257 }, { 187,4257 }, { 188,4257 },
- { 189,4257 }, { 190,4257 }, { 191,4257 }, { 192,4257 }, { 193,4257 },
-
- { 194,4257 }, { 195,4257 }, { 196,4257 }, { 197,4257 }, { 198,4257 },
- { 199,4257 }, { 200,4257 }, { 201,4257 }, { 202,4257 }, { 203,4257 },
- { 204,4257 }, { 205,4257 }, { 206,4257 }, { 207,4257 }, { 208,4257 },
- { 209,4257 }, { 210,4257 }, { 211,4257 }, { 212,4257 }, { 213,4257 },
- { 214,4257 }, { 215,4257 }, { 216,4257 }, { 217,4257 }, { 218,4257 },
- { 219,4257 }, { 220,4257 }, { 221,4257 }, { 222,4257 }, { 223,4257 },
- { 224,4257 }, { 225,4257 }, { 226,4257 }, { 227,4257 }, { 228,4257 },
- { 229,4257 }, { 230,4257 }, { 231,4257 }, { 232,4257 }, { 233,4257 },
- { 234,4257 }, { 235,4257 }, { 236,4257 }, { 237,4257 }, { 238,4257 },
- { 239,4257 }, { 240,4257 }, { 241,4257 }, { 242,4257 }, { 243,4257 },
-
- { 244,4257 }, { 245,4257 }, { 246,4257 }, { 247,4257 }, { 248,4257 },
- { 249,4257 }, { 250,4257 }, { 251,4257 }, { 252,4257 }, { 253,4257 },
- { 254,4257 }, { 255,4257 }, { 256,4257 }, {   0,  73 }, {   0,23886 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   2 }, {   0,23861 },
- {   0,  73 }, {   0,23859 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
- {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
- {  56,   0 }, {  57,   0 }, {  33,4490 }, {   0,   0 }, {  35,4490 },
- {   0,   0 }, {  37,4490 }, {  38,4490 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  42,4490 }, {  43,4490 }, {  69, 113 }, {  45,4490 },
- {   0,   0 }, {  47,4490 }, {  46,-5624 }, {   0,   0 }, {  48,4490 },
- {  49,4490 }, {  50,4490 }, {  51,4490 }, {  52,4490 }, {  53,4490 },
- {  54,4490 }, {  55,4490 }, {  56,4490 }, {  57,4490 }, {  60,4490 },
-
- {  61,4490 }, {  62,4490 }, {  63,4490 }, {  64,4490 }, {   0,  72 },
- {   0,23795 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  69,  86 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- { 101, 113 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  76 }, {   0,23773 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,4490 }, {   0,   0 },
- {  96,4490 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 101,  86 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {  46, -64 }, {   0,   0 }, {  48,   0 }, {  49,   0 },
- {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
- {  55,   0 }, {  56,   0 }, {  57,   0 }, { 124,4490 }, {   0,   0 },
- { 126,4490 }, {   0,  65 }, {   0,23733 }, {   0,   0 }, {   0,   0 },
- {  43,4426 }, {   0,   0 }, {  45,4426 }, {   0,   0 }, {  69,  22 },
- {  48,4468 }, {  49,4468 }, {  50,4468 }, {  51,4468 }, {  52,4468 },
- {  53,4468 }, {  54,4468 }, {  55,4468 }, {  56,4468 }, {  57,4468 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  33,-787 }, {   0,   0 }, {  35,-787 }, {   0,   0 }, {  37,-787 },
- {  38,-787 }, { 101,  22 }, {   0,  67 }, {   0,23692 }, {  42,-787 },
- {  43,-787 }, {   0,   0 }, {  45,-787 }, {   0,   0 }, {  47,-787 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  60,-787 }, {  61,-787 }, {  62,-787 },
- {  63,-787 }, {  64,-787 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  33,-828 }, {   0,   0 }, {  35,-828 }, {   0,   0 },
- {  37,-828 }, {  38,-828 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  42,-828 }, {  43,-828 }, {   0,   0 }, {  45,-828 }, {   0,   0 },
- {  47,-828 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  94,-787 }, {   0,   0 }, {  96,-787 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  60,-828 }, {  61,-828 },
- {  62,-828 }, {  63,-828 }, {  64,-828 }, {   0,   0 }, {   0,  64 },
- {   0,23625 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  66 }, {   0,23614 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, { 124,-787 }, {   0,   0 }, { 126,-787 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {  94,-828 }, {   0,   0 }, {  96,-828 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,-895 }, {   0,   0 },
- {  35,-895 }, {   0,   0 }, {  37,-895 }, {  38,-895 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  42,-895 }, {  43,-895 }, {  33,-906 },
- {  45,-895 }, {  35,-906 }, {  47,-895 }, {  37,-906 }, {  38,-906 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,-906 }, {  43,-906 },
- {   0,   0 }, {  45,-906 }, { 124,-828 }, {  47,-906 }, { 126,-828 },
- {  60,-895 }, {  61,-895 }, {  62,-895 }, {  63,-895 }, {  64,-895 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  60,-906 }, {  61,-906 }, {  62,-906 }, {  63,-906 },
-
- {  64,-906 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  78 }, {   0,23534 }, {   0,   0 }, {   0,   0 }, {  94,-895 },
- {   0,   0 }, {  96,-895 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  94,-906 }, {   0,   0 }, {  96,-906 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,-895 },
-
- {   0,   0 }, { 126,-895 }, {  36,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- { 124,-906 }, {   0,   0 }, { 126,-906 }, {   0,   0 }, {  48,   0 },
- {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
- {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  63,-6357 },
- {   0,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
- {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
- {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
- {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 },
-
- {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 },
- {  89,   0 }, {  90,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  95,   0 }, {   0,   0 }, {  97,   0 }, {  98,   0 },
- {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
- { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
- { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
- { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
- { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,   0 },
- { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 },
-
- { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 },
- { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 },
- { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
- { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
- { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
- { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
- { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
- { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
- { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
- { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 },
-
- { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 },
- { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 },
- { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
- { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
- { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
- { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
- { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
- { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
- { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
- { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 },
-
- { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 },
- { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
- { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
- { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
- { 254,   0 }, { 255,   0 }, {   0,  12 }, {   0,23277 }, {   1,   0 },
- {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 },
- {   7,   0 }, {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 },
- {  12,   0 }, {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 },
- {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 },
- {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 },
-
- {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 },
- {  32,   0 }, {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 },
- {  37,   0 }, {  38,   0 }, {   0,   0 }, {  40,   0 }, {  41,   0 },
- {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 },
- {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
+ {   0,   0 }, {  60, -11 }, {  61, -11 }, {  62, -11 }, {  63, -11 },
+ {  64, -11 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
  {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
- {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 },
- {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 },
+ {  57,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,  34 }, {   0,5782 }, {   0,   0 }, {   0,   0 }, {  94,   0 },
+ {   0,   0 }, {  96,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  94, -11 }, {   0,   0 }, {  96, -11 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,   0 },
+ {   0,   0 }, { 126,   0 }, {  36,-5323 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ { 124, -11 }, {   0,   0 }, { 126, -11 }, {   0,   0 }, {  48,3638 },
+ {  49,3638 }, {  50,3638 }, {  51,3638 }, {  52,3638 }, {  53,3638 },
+ {  54,3638 }, {  55,3638 }, {  56,3638 }, {  57,3638 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  65,3638 }, {  66,3638 }, {  67,3638 }, {  68,3638 },
+ {  69,3638 }, {  70,3638 }, {  71,3638 }, {  72,3638 }, {  73,3638 },
+ {  74,3638 }, {  75,3638 }, {  76,3638 }, {  77,3638 }, {  78,3638 },
+ {  79,3638 }, {  80,3638 }, {  81,3638 }, {  82,3638 }, {  83,3638 },
+ {  84,3638 }, {  85,3638 }, {  86,3638 }, {  87,3638 }, {  88,3638 },
+ {  89,3638 }, {  90,3638 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  95,3638 }, {   0,   0 }, {  97,3638 }, {  98,3638 },
+ {  99,3638 }, { 100,3638 }, { 101,3638 }, { 102,3638 }, { 103,3638 },
+ { 104,3638 }, { 105,3638 }, { 106,3638 }, { 107,3638 }, { 108,3638 },
+
+ { 109,3638 }, { 110,3638 }, { 111,3638 }, { 112,3638 }, { 113,3638 },
+ { 114,3638 }, { 115,3638 }, { 116,3638 }, { 117,3638 }, { 118,3638 },
+ { 119,3638 }, { 120,3638 }, { 121,3638 }, { 122,3638 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,3638 },
+ { 129,3638 }, { 130,3638 }, { 131,3638 }, { 132,3638 }, { 133,3638 },
+ { 134,3638 }, { 135,3638 }, { 136,3638 }, { 137,3638 }, { 138,3638 },
+ { 139,3638 }, { 140,3638 }, { 141,3638 }, { 142,3638 }, { 143,3638 },
+ { 144,3638 }, { 145,3638 }, { 146,3638 }, { 147,3638 }, { 148,3638 },
+ { 149,3638 }, { 150,3638 }, { 151,3638 }, { 152,3638 }, { 153,3638 },
+ { 154,3638 }, { 155,3638 }, { 156,3638 }, { 157,3638 }, { 158,3638 },
+
+ { 159,3638 }, { 160,3638 }, { 161,3638 }, { 162,3638 }, { 163,3638 },
+ { 164,3638 }, { 165,3638 }, { 166,3638 }, { 167,3638 }, { 168,3638 },
+ { 169,3638 }, { 170,3638 }, { 171,3638 }, { 172,3638 }, { 173,3638 },
+ { 174,3638 }, { 175,3638 }, { 176,3638 }, { 177,3638 }, { 178,3638 },
+ { 179,3638 }, { 180,3638 }, { 181,3638 }, { 182,3638 }, { 183,3638 },
+ { 184,3638 }, { 185,3638 }, { 186,3638 }, { 187,3638 }, { 188,3638 },
+ { 189,3638 }, { 190,3638 }, { 191,3638 }, { 192,3638 }, { 193,3638 },
+ { 194,3638 }, { 195,3638 }, { 196,3638 }, { 197,3638 }, { 198,3638 },
+ { 199,3638 }, { 200,3638 }, { 201,3638 }, { 202,3638 }, { 203,3638 },
+ { 204,3638 }, { 205,3638 }, { 206,3638 }, { 207,3638 }, { 208,3638 },
+
+ { 209,3638 }, { 210,3638 }, { 211,3638 }, { 212,3638 }, { 213,3638 },
+ { 214,3638 }, { 215,3638 }, { 216,3638 }, { 217,3638 }, { 218,3638 },
+ { 219,3638 }, { 220,3638 }, { 221,3638 }, { 222,3638 }, { 223,3638 },
+ { 224,3638 }, { 225,3638 }, { 226,3638 }, { 227,3638 }, { 228,3638 },
+ { 229,3638 }, { 230,3638 }, { 231,3638 }, { 232,3638 }, { 233,3638 },
+ { 234,3638 }, { 235,3638 }, { 236,3638 }, { 237,3638 }, { 238,3638 },
+ { 239,3638 }, { 240,3638 }, { 241,3638 }, { 242,3638 }, { 243,3638 },
+ { 244,3638 }, { 245,3638 }, { 246,3638 }, { 247,3638 }, { 248,3638 },
+ { 249,3638 }, { 250,3638 }, { 251,3638 }, { 252,3638 }, { 253,3638 },
+ { 254,3638 }, { 255,3638 }, {   0,   2 }, {   0,5525 }, {   1,3638 },
+
+ {   2,3638 }, {   3,3638 }, {   4,3638 }, {   5,3638 }, {   6,3638 },
+ {   7,3638 }, {   8,3638 }, {   9,3638 }, {   0,   0 }, {  11,3638 },
+ {  12,3638 }, {   0,   0 }, {  14,3638 }, {  15,3638 }, {  16,3638 },
+ {  17,3638 }, {  18,3638 }, {  19,3638 }, {  20,3638 }, {  21,3638 },
+ {  22,3638 }, {  23,3638 }, {  24,3638 }, {  25,3638 }, {  26,3638 },
+ {  27,3638 }, {  28,3638 }, {  29,3638 }, {  30,3638 }, {  31,3638 },
+ {  32,3638 }, {  33,3896 }, {  34,3638 }, {  35,3896 }, {  36,3638 },
+ {  37,3896 }, {  38,3896 }, {  39,3638 }, {  40,3638 }, {  41,3638 },
+ {  42,3896 }, {  43,3896 }, {  44,3638 }, {  45,3896 }, {  46,3638 },
+ {  47,3896 }, {  48,3638 }, {  49,3638 }, {  50,3638 }, {  51,3638 },
+
+ {  52,3638 }, {  53,3638 }, {  54,3638 }, {  55,3638 }, {  56,3638 },
+ {  57,3638 }, {  58,3638 }, {  59,3638 }, {  60,3896 }, {  61,3896 },
+ {  62,3896 }, {  63,3896 }, {  64,3896 }, {  65,3638 }, {  66,3638 },
+ {  67,3638 }, {  68,3638 }, {  69,3638 }, {  70,3638 }, {  71,3638 },
+ {  72,3638 }, {  73,3638 }, {  74,3638 }, {  75,3638 }, {  76,3638 },
+ {  77,3638 }, {  78,3638 }, {  79,3638 }, {  80,3638 }, {  81,3638 },
+ {  82,3638 }, {  83,3638 }, {  84,3638 }, {  85,3638 }, {  86,3638 },
+ {  87,3638 }, {  88,3638 }, {  89,3638 }, {  90,3638 }, {  91,3638 },
+ {  92,3638 }, {  93,3638 }, {  94,3896 }, {  95,3638 }, {  96,3896 },
+ {  97,3638 }, {  98,3638 }, {  99,3638 }, { 100,3638 }, { 101,3638 },
+
+ { 102,3638 }, { 103,3638 }, { 104,3638 }, { 105,3638 }, { 106,3638 },
+ { 107,3638 }, { 108,3638 }, { 109,3638 }, { 110,3638 }, { 111,3638 },
+ { 112,3638 }, { 113,3638 }, { 114,3638 }, { 115,3638 }, { 116,3638 },
+ { 117,3638 }, { 118,3638 }, { 119,3638 }, { 120,3638 }, { 121,3638 },
+ { 122,3638 }, { 123,3638 }, { 124,3896 }, { 125,3638 }, { 126,3896 },
+ { 127,3638 }, { 128,3638 }, { 129,3638 }, { 130,3638 }, { 131,3638 },
+ { 132,3638 }, { 133,3638 }, { 134,3638 }, { 135,3638 }, { 136,3638 },
+ { 137,3638 }, { 138,3638 }, { 139,3638 }, { 140,3638 }, { 141,3638 },
+ { 142,3638 }, { 143,3638 }, { 144,3638 }, { 145,3638 }, { 146,3638 },
+ { 147,3638 }, { 148,3638 }, { 149,3638 }, { 150,3638 }, { 151,3638 },
+
+ { 152,3638 }, { 153,3638 }, { 154,3638 }, { 155,3638 }, { 156,3638 },
+ { 157,3638 }, { 158,3638 }, { 159,3638 }, { 160,3638 }, { 161,3638 },
+ { 162,3638 }, { 163,3638 }, { 164,3638 }, { 165,3638 }, { 166,3638 },
+ { 167,3638 }, { 168,3638 }, { 169,3638 }, { 170,3638 }, { 171,3638 },
+ { 172,3638 }, { 173,3638 }, { 174,3638 }, { 175,3638 }, { 176,3638 },
+ { 177,3638 }, { 178,3638 }, { 179,3638 }, { 180,3638 }, { 181,3638 },
+ { 182,3638 }, { 183,3638 }, { 184,3638 }, { 185,3638 }, { 186,3638 },
+ { 187,3638 }, { 188,3638 }, { 189,3638 }, { 190,3638 }, { 191,3638 },
+ { 192,3638 }, { 193,3638 }, { 194,3638 }, { 195,3638 }, { 196,3638 },
+ { 197,3638 }, { 198,3638 }, { 199,3638 }, { 200,3638 }, { 201,3638 },
+
+ { 202,3638 }, { 203,3638 }, { 204,3638 }, { 205,3638 }, { 206,3638 },
+ { 207,3638 }, { 208,3638 }, { 209,3638 }, { 210,3638 }, { 211,3638 },
+ { 212,3638 }, { 213,3638 }, { 214,3638 }, { 215,3638 }, { 216,3638 },
+ { 217,3638 }, { 218,3638 }, { 219,3638 }, { 220,3638 }, { 221,3638 },
+ { 222,3638 }, { 223,3638 }, { 224,3638 }, { 225,3638 }, { 226,3638 },
+ { 227,3638 }, { 228,3638 }, { 229,3638 }, { 230,3638 }, { 231,3638 },
+ { 232,3638 }, { 233,3638 }, { 234,3638 }, { 235,3638 }, { 236,3638 },
+ { 237,3638 }, { 238,3638 }, { 239,3638 }, { 240,3638 }, { 241,3638 },
+ { 242,3638 }, { 243,3638 }, { 244,3638 }, { 245,3638 }, { 246,3638 },
+ { 247,3638 }, { 248,3638 }, { 249,3638 }, { 250,3638 }, { 251,3638 },
+
+ { 252,3638 }, { 253,3638 }, { 254,3638 }, { 255,3638 }, { 256,3638 },
+ {   0,  59 }, {   0,5267 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   3 }, {   0,5242 }, {   0,  59 }, {   0,5240 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,   0 },
+ {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
+ {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  33,3871 },
+ {   0,   0 }, {  35,3871 }, {   0,   0 }, {  37,3871 }, {  38,3871 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,3871 }, {  43,3871 },
+ {  69, 113 }, {  45,3871 }, {   0,   0 }, {  47,3871 }, {  46,-5589 },
+ {   0,   0 }, {  48,3871 }, {  49,3871 }, {  50,3871 }, {  51,3871 },
+ {  52,3871 }, {  53,3871 }, {  54,3871 }, {  55,3871 }, {  56,3871 },
+ {  57,3871 }, {  60,3871 }, {  61,3871 }, {  62,3871 }, {  63,3871 },
+ {  64,3871 }, {   0,  58 }, {   0,5176 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {  69,  86 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, { 101, 113 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  62 }, {   0,5154 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  94,3871 }, {   0,   0 }, {  96,3871 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 101,  86 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  46, -64 }, {   0,   0 },
+ {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 },
+
+ {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 },
+ { 124,3871 }, {   0,   0 }, { 126,3871 }, {   0,  51 }, {   0,5114 },
+ {   0,   0 }, {   0,   0 }, {  43,3807 }, {   0,   0 }, {  45,3807 },
+ {   0,   0 }, {  69,  22 }, {  48,3849 }, {  49,3849 }, {  50,3849 },
+ {  51,3849 }, {  52,3849 }, {  53,3849 }, {  54,3849 }, {  55,3849 },
+ {  56,3849 }, {  57,3849 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  33,-759 }, {   0,   0 }, {  35,-759 },
+ {   0,   0 }, {  37,-759 }, {  38,-759 }, { 101,  22 }, {   0,  53 },
+
+ {   0,5073 }, {  42,-759 }, {  43,-759 }, {   0,   0 }, {  45,-759 },
+ {   0,   0 }, {  47,-759 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  60,-759 },
+ {  61,-759 }, {  62,-759 }, {  63,-759 }, {  64,-759 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,-800 }, {   0,   0 },
+ {  35,-800 }, {   0,   0 }, {  37,-800 }, {  38,-800 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  42,-800 }, {  43,-800 }, {   0,   0 },
+ {  45,-800 }, {   0,   0 }, {  47,-800 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,-759 }, {   0,   0 },
+ {  96,-759 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  60,-800 }, {  61,-800 }, {  62,-800 }, {  63,-800 }, {  64,-800 },
+ {   0,   0 }, {   0,  50 }, {   0,5006 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  52 }, {   0,4995 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,-759 }, {   0,   0 },
+ { 126,-759 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,-800 },
+ {   0,   0 }, {  96,-800 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {  33,-867 }, {   0,   0 }, {  35,-867 }, {   0,   0 }, {  37,-867 },
+ {  38,-867 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,-867 },
+ {  43,-867 }, {  33,-878 }, {  45,-867 }, {  35,-878 }, {  47,-867 },
+ {  37,-878 }, {  38,-878 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  42,-878 }, {  43,-878 }, {   0,   0 }, {  45,-878 }, { 124,-800 },
+ {  47,-878 }, { 126,-800 }, {  60,-867 }, {  61,-867 }, {  62,-867 },
+ {  63,-867 }, {  64,-867 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  60,-878 }, {  61,-878 },
+ {  62,-878 }, {  63,-878 }, {  64,-878 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  64 }, {   0,4915 }, {   0,   0 },
+ {   0,   0 }, {  94,-867 }, {   0,   0 }, {  96,-867 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  94,-878 }, {   0,   0 }, {  96,-878 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, { 124,-867 }, {   0,   0 }, { 126,-867 }, {  36,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, { 124,-878 }, {   0,   0 }, { 126,-878 },
+ {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
+ {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
+ {  57,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  63,-6165 }, {   0,   0 }, {  65,   0 }, {  66,   0 },
  {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
  {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 },
-
  {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 },
  {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 },
- {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 },
- {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 },
+ {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,   0 }, {   0,   0 },
  {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 }, { 101,   0 },
  { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 },
  { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 },
  { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 },
  { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 },
- { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 },
-
- { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
+ { 122,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
  { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 },
  { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 },
+
  { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 },
  { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 }, { 151,   0 },
  { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 },
@@ -3451,10 +3459,10 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 },
  { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 },
  { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 },
-
  { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 },
  { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 },
  { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 },
+
  { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 },
  { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 }, { 201,   0 },
  { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 },
@@ -3462,31 +3470,76 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 },
  { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 },
  { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 },
-
  { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 },
  { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 },
  { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 },
+
  { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 },
  { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 },
- { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 },
- {   0,   9 }, {   0,23019 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   9 }, {   0,23014 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,   0 }, {  10,   5 }, {   0,   0 }, {  12,   0 }, {  13,   5 },
- {   9,3741 }, {  10,3741 }, {   0,   0 }, {  12,3741 }, {  13,3741 },
+ { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, {   0,  11 },
+ {   0,4658 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
+ {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9,   0 },
+ {  10,   0 }, {  11,   0 }, {  12,   0 }, {  13,   0 }, {  14,   0 },
+ {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 },
+ {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 },
+ {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 },
+ {  30,   0 }, {  31,   0 }, {  32,   0 }, {  33,   0 }, {  34,   0 },
 
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,3741 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,-6463 }, {  45,-6627 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-6461 }, {   0,   5 }, {   0,22967 }, {   1,   0 },
+ {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 }, {   0,   0 },
+ {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 },
+ {  45,   0 }, {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 },
+ {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
+ {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 },
+ {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
+ {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 },
+ {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 },
+ {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 },
+ {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 },
+
+ {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 },
+ {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 },
+ {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 },
+ { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 },
+ { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 },
+ { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 },
+ { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 },
+ { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 },
+ { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 },
+ { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 },
+
+ { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 },
+ { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 },
+ { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 },
+ { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 },
+ { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 },
+ { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 },
+ { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 },
+ { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 },
+ { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 },
+ { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 },
+
+ { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 },
+ { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 },
+ { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 },
+ { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 },
+ { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 },
+ { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 },
+ { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 },
+ { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 },
+ { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 },
+ { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 },
+
+ { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 },
+ { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 },
+ { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 },
+ { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 },
+ { 255,   0 }, { 256,   0 }, {   0,   6 }, {   0,4400 }, {   1,   0 },
  {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 },
  {   7,   0 }, {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 },
  {  12,   0 }, {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 },
-
  {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 },
  {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 },
+
  {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 },
  {  32,   0 }, {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 },
  {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 }, {  41,   0 },
@@ -3495,9 +3548,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
  {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 },
  {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 },
-
  {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
  {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 },
+
  {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 },
  {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 },
  {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 },
@@ -3506,9 +3559,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 },
  { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 },
  { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 },
-
  { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 },
  { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 },
+
  { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
  { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 },
  { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 },
@@ -3517,9 +3570,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 },
  { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 },
  { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 },
-
  { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 },
  { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 },
+
  { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 },
  { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 },
  { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 },
@@ -3528,53 +3581,53 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 },
  { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 },
  { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 },
-
  { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 },
  { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 },
+
  { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 },
  { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 },
  { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 },
  { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 },
  { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 },
  { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 },
- {   0,   3 }, {   0,22709 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   4 }, {   0,4142 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,3741 },
- {   0,   0 }, {  35,3741 }, {   0,   0 }, {  37,3741 }, {  38,3741 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,3741 }, {  43,3741 },
- {   0,   0 }, {  45,3741 }, {   0,   0 }, {  47,3741 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {  60,3741 }, {  61,3741 }, {  62,3741 }, {  63,3741 },
- {  64,3741 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  94,3741 }, {   0,   0 }, {  96,3741 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  33,2863 },
+ {   0,   0 }, {  35,2863 }, {   0,   0 }, {  37,2863 }, {  38,2863 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,2863 }, {  43,2863 },
+ {   0,   0 }, {  45,2863 }, {   0,   0 }, {  47,2863 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- { 124,3741 }, {   0,   0 }, { 126,3741 }, {   0,  58 }, {   0,22581 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  60,2863 }, {  61,2863 }, {  62,2863 }, {  63,2863 },
+ {  64,2863 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  94,2863 }, {   0,   0 }, {  96,2863 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ { 124,2863 }, {   0,   0 }, { 126,2863 }, {   0,  44 }, {   0,4014 },
  {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 },
  {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9,   0 }, {  10,   0 },
  {  11,   0 }, {  12,   0 }, {  13,   0 }, {  14,   0 }, {  15,   0 },
  {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 },
  {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 },
  {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 },
-
  {  31,   0 }, {  32,   0 }, {  33,   0 }, {   0,   0 }, {  35,   0 },
  {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 },
+
  {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45,   0 },
  {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
  {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
@@ -3583,9 +3636,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 },
  {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 },
  {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 },
-
  {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 },
  {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 },
+
  {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 },
  {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
  { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 },
@@ -3594,9 +3647,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 },
  { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 },
  { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
-
  { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 },
  { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 },
+
  { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 },
  { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 },
  { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 },
@@ -3605,9 +3658,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 },
  { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 },
  { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 },
-
  { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 },
  { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 },
+
  { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 },
  { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 },
  { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 },
@@ -3616,20 +3669,20 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 },
  { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 },
  { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 },
-
  { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 },
  { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 },
+
  { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 },
  { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 },
  { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 },
- { 256,   0 }, {   0,  11 }, {   0,22323 }, {   1,   0 }, {   2,   0 },
+ { 256,   0 }, {   0,  10 }, {   0,3756 }, {   1,   0 }, {   2,   0 },
  {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 },
  {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 }, {  12,   0 },
  {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 },
  {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 },
-
  {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 },
  {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32,   0 },
+
  {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 },
  {  38,   0 }, {   0,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 },
  {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 }, {  47,   0 },
@@ -3638,9 +3691,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 },
  {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 },
  {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 },
-
  {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 },
  {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 },
+
  {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 },
  {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 }, {  92,   0 },
  {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 },
@@ -3649,9 +3702,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 },
  { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 },
  { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 },
-
  { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 },
  { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 },
+
  { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 },
  { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 },
  { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 },
@@ -3660,9 +3713,9 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 },
  { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 },
  { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 },
-
  { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 },
  { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 },
+
  { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 },
  { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 },
  { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 },
@@ -3671,129 +3724,20 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 },
  { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 },
  { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 },
-
  { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 },
  { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 },
- { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 },
- { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 },
- { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 },
- { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 },
- { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  16 },
- {   0,22065 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  16 },
- {   0,22060 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,   0 },
- {  10,   5 }, {   0,   0 }, {  12,   0 }, {  13,   5 }, {   9,3099 },
 
- {  10,3099 }, {   0,   0 }, {  12,3099 }, {  13,3099 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,3099 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,-7413 },
- {  45,-7481 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  45,-7408 }, {   0,  32 }, {   0,22013 }, {   1,   0 }, {   2,   0 },
- {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 },
- {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 }, {  12,   0 },
-
- {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 },
- {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 },
- {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 },
- {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32,   0 },
- {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 },
- {  38,   0 }, {   0,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 },
- {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 }, {  47,   0 },
- {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 },
- {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 },
- {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 },
-
- {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 },
- {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 },
- {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 },
- {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 },
- {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 },
- {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 }, {   0,   0 },
- {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 },
- {  98,   0 }, {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 },
- { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 },
- { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 },
-
- { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 },
- { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 },
- { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 },
- { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 },
- { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 },
- { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 },
- { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 },
- { 148,   0 }, { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 },
- { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 },
- { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 },
-
- { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 },
- { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 },
- { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 },
- { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 },
- { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 },
- { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 },
- { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 },
- { 198,   0 }, { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 },
- { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 },
- { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 },
-
- { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 },
- { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 },
- { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 },
- { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 },
  { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 },
  { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 },
  { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 },
  { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 },
  { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  22 },
- {   0,21755 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  22 },
-
- {   0,21750 }, {   0,  39 }, {   0,21748 }, {   0,   0 }, {   9,   0 },
- {  10,   5 }, {   0,   0 }, {  12,   0 }, {  13,   5 }, {   9,3168 },
- {  10,3168 }, {   0,   0 }, {  12,3168 }, {  13,3168 }, {   0,  37 },
- {   0,21735 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,3168 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,  37 }, {   0,21712 }, {  39,-7709 },
- {  45,-7784 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  45,-7682 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  48,3471 }, {  49,3471 }, {  50,3471 }, {  51,3471 }, {  52,3471 },
- {  53,3471 }, {  54,3471 }, {  55,3471 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,3466 }, {  49,3466 },
- {  50,3466 }, {  51,3466 }, {  52,3466 }, {  53,3466 }, {  54,3466 },
- {  55,3466 }, {  56,3466 }, {  57,3466 }, {   0,   0 }, {   0,   0 },
- {   0,  38 }, {   0,21674 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  65,3466 }, {  66,3466 }, {  67,3466 }, {  68,3466 }, {  69,3466 },
- {  70,3466 }, {  48,3466 }, {  49,3466 }, {  50,3466 }, {  51,3466 },
- {  52,3466 }, {  53,3466 }, {  54,3466 }, {  55,3466 }, {  56,3466 },
- {  57,3466 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,3466 }, {  66,3466 },
- {  67,3466 }, {  68,3466 }, {  69,3466 }, {  70,3466 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  97,3466 }, {  98,3466 }, {  99,3466 },
- { 100,3466 }, { 101,3466 }, { 102,3466 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,3466 },
- {  49,3466 }, {  50,3466 }, {  51,3466 }, {  52,3466 }, {  53,3466 },
- {  54,3466 }, {  55,3466 }, {  56,3466 }, {  57,3466 }, {   0,   0 },
- {  97,3466 }, {  98,3466 }, {  99,3466 }, { 100,3466 }, { 101,3466 },
- { 102,3466 }, {  65,3466 }, {  66,3466 }, {  67,3466 }, {  68,3466 },
- {  69,3466 }, {  70,3466 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,3466 }, {  98,3466 },
- {  99,3466 }, { 100,3466 }, { 101,3466 }, { 102,3466 }, {   0,  31 },
- {   0,21570 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
+ {   0,3498 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
  {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9,   0 },
  {  10,   0 }, {  11,   0 }, {  12,   0 }, {  13,   0 }, {  14,   0 },
  {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 },
-
  {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 },
+
  {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 },
  {  30,   0 }, {  31,   0 }, {  32,   0 }, {  33,   0 }, {  34,   0 },
  {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 }, {   0,   0 },
@@ -3803,8 +3747,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 },
  {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
  {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 },
-
  {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 },
+
  {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 },
  {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 },
  {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 },
@@ -3814,8 +3758,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 },
  { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 },
  { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 },
-
  { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 },
+
  { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 },
  { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 },
  { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 },
@@ -3825,8 +3769,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 },
  { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 },
  { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 },
-
  { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 },
+
  { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 },
  { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 },
  { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 },
@@ -3836,1052 +3780,141 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 },
  { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 },
  { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 },
-
  { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 },
+
  { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 },
  { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 },
  { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 },
  { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 },
  { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 },
  { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 },
- { 255,   0 }, { 256,   0 }, {   0,  46 }, {   0,21312 }, {   1,   0 },
- {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 },
- {   7,   0 }, {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 },
+ { 255,   0 }, { 256,   0 }, {   0,  19 }, {   0,3240 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  19 }, {   0,3235 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   5 }, {   0,   0 },
+ {  12,   0 }, {  13,   5 }, {   9,  16 }, {  10,  16 }, {   0,   0 },
 
- {  12,   0 }, {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 },
- {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 },
- {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 },
- {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 },
- {  32,   0 }, {  33,   0 }, {  34,   0 }, {  35,   0 }, {   0,   0 },
- {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 }, {  41,   0 },
- {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 },
- {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
- {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
- {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 },
-
- {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 },
- {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
- {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 },
- {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 },
- {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 },
- {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 },
- {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 },
- {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 }, { 101,   0 },
- { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 },
- { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 },
-
- { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 },
- { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 },
- { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 },
- { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
- { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 },
- { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 },
- { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 },
- { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 }, { 151,   0 },
- { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 },
- { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 },
-
- { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 },
- { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 },
- { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 },
- { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 },
- { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 },
- { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 },
- { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 },
- { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 }, { 201,   0 },
- { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 },
- { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 },
-
- { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 },
- { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 },
- { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 },
- { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 },
- { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 },
- { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 },
- { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 },
- { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 },
- { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 },
- {   0,  47 }, {   0,21054 }, {   0,  53 }, {   0,21052 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 }, {   0,   0 },
- {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  32,   0 }, {   0,   0 }, {  36,-8481 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,2918 },
- {  49,2918 }, {  50,2918 }, {  51,2918 }, {  52,2918 }, {  53,2918 },
-
- {  54,2918 }, {  55,2918 }, {  56,2918 }, {  57,2918 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  65,2918 }, {  66,2918 }, {  67,2918 }, {  68,2918 },
- {  69,2918 }, {  70,2918 }, {  71,2918 }, {  72,2918 }, {  73,2918 },
- {  74,2918 }, {  75,2918 }, {  76,2918 }, {  77,2918 }, {  78,2918 },
- {  79,2918 }, {  80,2918 }, {  81,2918 }, {  82,2918 }, {  83,2918 },
- {  84,2918 }, {  85,2918 }, {  86,2918 }, {  87,2918 }, {  88,2918 },
- {  89,2918 }, {  90,2918 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  95,2918 }, {   0,   0 }, {  97,2918 }, {  98,2918 },
- {  99,2918 }, { 100,2918 }, { 101,2918 }, { 102,2918 }, { 103,2918 },
-
- { 104,2918 }, { 105,2918 }, { 106,2918 }, { 107,2918 }, { 108,2918 },
- { 109,2918 }, { 110,2918 }, { 111,2918 }, { 112,2918 }, { 113,2918 },
- { 114,2918 }, { 115,2918 }, { 116,2918 }, { 117,2918 }, { 118,2918 },
- { 119,2918 }, { 120,2918 }, { 121,2918 }, { 122,2918 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,2918 },
- { 129,2918 }, { 130,2918 }, { 131,2918 }, { 132,2918 }, { 133,2918 },
- { 134,2918 }, { 135,2918 }, { 136,2918 }, { 137,2918 }, { 138,2918 },
- { 139,2918 }, { 140,2918 }, { 141,2918 }, { 142,2918 }, { 143,2918 },
- { 144,2918 }, { 145,2918 }, { 146,2918 }, { 147,2918 }, { 148,2918 },
- { 149,2918 }, { 150,2918 }, { 151,2918 }, { 152,2918 }, { 153,2918 },
-
- { 154,2918 }, { 155,2918 }, { 156,2918 }, { 157,2918 }, { 158,2918 },
- { 159,2918 }, { 160,2918 }, { 161,2918 }, { 162,2918 }, { 163,2918 },
- { 164,2918 }, { 165,2918 }, { 166,2918 }, { 167,2918 }, { 168,2918 },
- { 169,2918 }, { 170,2918 }, { 171,2918 }, { 172,2918 }, { 173,2918 },
- { 174,2918 }, { 175,2918 }, { 176,2918 }, { 177,2918 }, { 178,2918 },
- { 179,2918 }, { 180,2918 }, { 181,2918 }, { 182,2918 }, { 183,2918 },
- { 184,2918 }, { 185,2918 }, { 186,2918 }, { 187,2918 }, { 188,2918 },
- { 189,2918 }, { 190,2918 }, { 191,2918 }, { 192,2918 }, { 193,2918 },
- { 194,2918 }, { 195,2918 }, { 196,2918 }, { 197,2918 }, { 198,2918 },
- { 199,2918 }, { 200,2918 }, { 201,2918 }, { 202,2918 }, { 203,2918 },
-
- { 204,2918 }, { 205,2918 }, { 206,2918 }, { 207,2918 }, { 208,2918 },
- { 209,2918 }, { 210,2918 }, { 211,2918 }, { 212,2918 }, { 213,2918 },
- { 214,2918 }, { 215,2918 }, { 216,2918 }, { 217,2918 }, { 218,2918 },
- { 219,2918 }, { 220,2918 }, { 221,2918 }, { 222,2918 }, { 223,2918 },
- { 224,2918 }, { 225,2918 }, { 226,2918 }, { 227,2918 }, { 228,2918 },
- { 229,2918 }, { 230,2918 }, { 231,2918 }, { 232,2918 }, { 233,2918 },
- { 234,2918 }, { 235,2918 }, { 236,2918 }, { 237,2918 }, { 238,2918 },
- { 239,2918 }, { 240,2918 }, { 241,2918 }, { 242,2918 }, { 243,2918 },
- { 244,2918 }, { 245,2918 }, { 246,2918 }, { 247,2918 }, { 248,2918 },
- { 249,2918 }, { 250,2918 }, { 251,2918 }, { 252,2918 }, { 253,2918 },
-
- { 254,2918 }, { 255,2918 }, {   0,  53 }, {   0,20797 }, {   1,2918 },
- {   2,2918 }, {   3,2918 }, {   4,2918 }, {   5,2918 }, {   6,2918 },
- {   7,2918 }, {   8,2918 }, {   9,2918 }, {   0,   0 }, {  11,2918 },
- {  12,2918 }, {   0,   0 }, {  14,2918 }, {  15,2918 }, {  16,2918 },
- {  17,2918 }, {  18,2918 }, {  19,2918 }, {  20,2918 }, {  21,2918 },
- {  22,2918 }, {  23,2918 }, {  24,2918 }, {  25,2918 }, {  26,2918 },
- {  27,2918 }, {  28,2918 }, {  29,2918 }, {  30,2918 }, {  31,2918 },
- {  32,2918 }, {  33,2918 }, {  34,2918 }, {  35,2918 }, {  36,2918 },
- {  37,2918 }, {  38,2918 }, {  39,2918 }, {  40,2918 }, {  41,2918 },
- {  42,2918 }, {  43,2918 }, {  44,2918 }, {  45,2918 }, {  46,2918 },
-
- {  47,2918 }, {  48,2918 }, {  49,2918 }, {  50,2918 }, {  51,2918 },
- {  52,2918 }, {  53,2918 }, {  54,2918 }, {  55,2918 }, {  56,2918 },
- {  57,2918 }, {  58,2918 }, {  59,2918 }, {  60,2918 }, {  61,2918 },
- {  62,2918 }, {  63,2918 }, {  64,2918 }, {  65,2918 }, {  66,2918 },
- {  67,2918 }, {  68,2918 }, {  69,2918 }, {  70,2918 }, {  71,2918 },
- {  72,2918 }, {  73,2918 }, {  74,2918 }, {  75,2918 }, {  76,2918 },
- {  77,2918 }, {  78,2918 }, {  79,2918 }, {  80,2918 }, {  81,2918 },
- {  82,2918 }, {  83,2918 }, {  84,2918 }, {  85,2918 }, {  86,2918 },
- {  87,2918 }, {  88,2918 }, {  89,2918 }, {  90,2918 }, {  91,2918 },
- {  92,2918 }, {  93,2918 }, {  94,2918 }, {  95,2918 }, {  96,2918 },
-
- {  97,2918 }, {  98,2918 }, {  99,2918 }, { 100,2918 }, { 101,2918 },
- { 102,2918 }, { 103,2918 }, { 104,2918 }, { 105,2918 }, { 106,2918 },
- { 107,2918 }, { 108,2918 }, { 109,2918 }, { 110,2918 }, { 111,2918 },
- { 112,2918 }, { 113,2918 }, { 114,2918 }, { 115,2918 }, { 116,2918 },
- { 117,2918 }, { 118,2918 }, { 119,2918 }, { 120,2918 }, { 121,2918 },
- { 122,2918 }, { 123,2918 }, { 124,2918 }, { 125,2918 }, { 126,2918 },
- { 127,2918 }, { 128,2918 }, { 129,2918 }, { 130,2918 }, { 131,2918 },
- { 132,2918 }, { 133,2918 }, { 134,2918 }, { 135,2918 }, { 136,2918 },
- { 137,2918 }, { 138,2918 }, { 139,2918 }, { 140,2918 }, { 141,2918 },
- { 142,2918 }, { 143,2918 }, { 144,2918 }, { 145,2918 }, { 146,2918 },
-
- { 147,2918 }, { 148,2918 }, { 149,2918 }, { 150,2918 }, { 151,2918 },
- { 152,2918 }, { 153,2918 }, { 154,2918 }, { 155,2918 }, { 156,2918 },
- { 157,2918 }, { 158,2918 }, { 159,2918 }, { 160,2918 }, { 161,2918 },
- { 162,2918 }, { 163,2918 }, { 164,2918 }, { 165,2918 }, { 166,2918 },
- { 167,2918 }, { 168,2918 }, { 169,2918 }, { 170,2918 }, { 171,2918 },
- { 172,2918 }, { 173,2918 }, { 174,2918 }, { 175,2918 }, { 176,2918 },
- { 177,2918 }, { 178,2918 }, { 179,2918 }, { 180,2918 }, { 181,2918 },
- { 182,2918 }, { 183,2918 }, { 184,2918 }, { 185,2918 }, { 186,2918 },
- { 187,2918 }, { 188,2918 }, { 189,2918 }, { 190,2918 }, { 191,2918 },
- { 192,2918 }, { 193,2918 }, { 194,2918 }, { 195,2918 }, { 196,2918 },
-
- { 197,2918 }, { 198,2918 }, { 199,2918 }, { 200,2918 }, { 201,2918 },
- { 202,2918 }, { 203,2918 }, { 204,2918 }, { 205,2918 }, { 206,2918 },
- { 207,2918 }, { 208,2918 }, { 209,2918 }, { 210,2918 }, { 211,2918 },
- { 212,2918 }, { 213,2918 }, { 214,2918 }, { 215,2918 }, { 216,2918 },
- { 217,2918 }, { 218,2918 }, { 219,2918 }, { 220,2918 }, { 221,2918 },
- { 222,2918 }, { 223,2918 }, { 224,2918 }, { 225,2918 }, { 226,2918 },
- { 227,2918 }, { 228,2918 }, { 229,2918 }, { 230,2918 }, { 231,2918 },
- { 232,2918 }, { 233,2918 }, { 234,2918 }, { 235,2918 }, { 236,2918 },
- { 237,2918 }, { 238,2918 }, { 239,2918 }, { 240,2918 }, { 241,2918 },
- { 242,2918 }, { 243,2918 }, { 244,2918 }, { 245,2918 }, { 246,2918 },
-
- { 247,2918 }, { 248,2918 }, { 249,2918 }, { 250,2918 }, { 251,2918 },
- { 252,2918 }, { 253,2918 }, { 254,2918 }, { 255,2918 }, { 256,2918 },
- {   0,  24 }, {   0,20539 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  24 }, {   0,20534 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,   0 }, {  10,   5 }, {   0,   0 }, {  12,   0 }, {  13,   5 },
- {   9,2913 }, {  10,2913 }, {   0,   0 }, {  12,2913 }, {  13,2913 },
- {   0,   0 }, {   0,  26 }, {   0,20518 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   9,   0 }, {  10,   0 }, {  32,   0 }, {  12,   0 },
- {  13,   0 }, {   0,   0 }, {   0,   0 }, {  32,2913 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,-8925 }, {  45,-8953 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-8861 }, {   0,   0 }, {   0,   0 }, {  32,   0 },
- {   0,  26 }, {   0,20484 }, {   1,3168 }, {   2,3168 }, {   3,3168 },
- {   4,3168 }, {   5,3168 }, {   6,3168 }, {   7,3168 }, {   8,3168 },
- {   9,3168 }, {   0,   0 }, {  11,3168 }, {  12,3168 }, {   0,   0 },
- {  14,3168 }, {  15,3168 }, {  16,3168 }, {  17,3168 }, {  18,3168 },
- {  19,3168 }, {  20,3168 }, {  21,3168 }, {  22,3168 }, {  23,3168 },
- {  24,3168 }, {  25,3168 }, {  26,3168 }, {  27,3168 }, {  28,3168 },
- {  29,3168 }, {  30,3168 }, {  31,3168 }, {  32,3168 }, {  33,3168 },
-
- {  34,3168 }, {  35,3168 }, {  36,3168 }, {  37,3168 }, {  38,3168 },
- {  39,3168 }, {  40,3168 }, {  41,3168 }, {  42,3168 }, {  43,3168 },
- {  44,3168 }, {  45,3168 }, {  46,3168 }, {  47,3168 }, {  48,3168 },
- {  49,3168 }, {  50,3168 }, {  51,3168 }, {  52,3168 }, {  53,3168 },
- {  54,3168 }, {  55,3168 }, {  56,3168 }, {  57,3168 }, {  58,3168 },
- {  59,3168 }, {  60,3168 }, {  61,3168 }, {  62,3168 }, {  63,3168 },
- {  64,3168 }, {  65,3168 }, {  66,3168 }, {  67,3168 }, {  68,3168 },
- {  69,3168 }, {  70,3168 }, {  71,3168 }, {  72,3168 }, {  73,3168 },
- {  74,3168 }, {  75,3168 }, {  76,3168 }, {  77,3168 }, {  78,3168 },
- {  79,3168 }, {  80,3168 }, {  81,3168 }, {  82,3168 }, {  83,3168 },
-
- {  84,3168 }, {  85,3168 }, {  86,3168 }, {  87,3168 }, {  88,3168 },
- {  89,3168 }, {  90,3168 }, {  91,3168 }, {  92,3168 }, {  93,3168 },
- {  94,3168 }, {  95,3168 }, {  96,3168 }, {  97,3168 }, {  98,3168 },
- {  99,3168 }, { 100,3168 }, { 101,3168 }, { 102,3168 }, { 103,3168 },
- { 104,3168 }, { 105,3168 }, { 106,3168 }, { 107,3168 }, { 108,3168 },
- { 109,3168 }, { 110,3168 }, { 111,3168 }, { 112,3168 }, { 113,3168 },
- { 114,3168 }, { 115,3168 }, { 116,3168 }, { 117,3168 }, { 118,3168 },
- { 119,3168 }, { 120,3168 }, { 121,3168 }, { 122,3168 }, { 123,3168 },
- { 124,3168 }, { 125,3168 }, { 126,3168 }, { 127,3168 }, { 128,3168 },
- { 129,3168 }, { 130,3168 }, { 131,3168 }, { 132,3168 }, { 133,3168 },
-
- { 134,3168 }, { 135,3168 }, { 136,3168 }, { 137,3168 }, { 138,3168 },
- { 139,3168 }, { 140,3168 }, { 141,3168 }, { 142,3168 }, { 143,3168 },
- { 144,3168 }, { 145,3168 }, { 146,3168 }, { 147,3168 }, { 148,3168 },
- { 149,3168 }, { 150,3168 }, { 151,3168 }, { 152,3168 }, { 153,3168 },
- { 154,3168 }, { 155,3168 }, { 156,3168 }, { 157,3168 }, { 158,3168 },
- { 159,3168 }, { 160,3168 }, { 161,3168 }, { 162,3168 }, { 163,3168 },
- { 164,3168 }, { 165,3168 }, { 166,3168 }, { 167,3168 }, { 168,3168 },
- { 169,3168 }, { 170,3168 }, { 171,3168 }, { 172,3168 }, { 173,3168 },
- { 174,3168 }, { 175,3168 }, { 176,3168 }, { 177,3168 }, { 178,3168 },
- { 179,3168 }, { 180,3168 }, { 181,3168 }, { 182,3168 }, { 183,3168 },
-
- { 184,3168 }, { 185,3168 }, { 186,3168 }, { 187,3168 }, { 188,3168 },
- { 189,3168 }, { 190,3168 }, { 191,3168 }, { 192,3168 }, { 193,3168 },
- { 194,3168 }, { 195,3168 }, { 196,3168 }, { 197,3168 }, { 198,3168 },
- { 199,3168 }, { 200,3168 }, { 201,3168 }, { 202,3168 }, { 203,3168 },
- { 204,3168 }, { 205,3168 }, { 206,3168 }, { 207,3168 }, { 208,3168 },
- { 209,3168 }, { 210,3168 }, { 211,3168 }, { 212,3168 }, { 213,3168 },
- { 214,3168 }, { 215,3168 }, { 216,3168 }, { 217,3168 }, { 218,3168 },
- { 219,3168 }, { 220,3168 }, { 221,3168 }, { 222,3168 }, { 223,3168 },
- { 224,3168 }, { 225,3168 }, { 226,3168 }, { 227,3168 }, { 228,3168 },
- { 229,3168 }, { 230,3168 }, { 231,3168 }, { 232,3168 }, { 233,3168 },
-
- { 234,3168 }, { 235,3168 }, { 236,3168 }, { 237,3168 }, { 238,3168 },
- { 239,3168 }, { 240,3168 }, { 241,3168 }, { 242,3168 }, { 243,3168 },
- { 244,3168 }, { 245,3168 }, { 246,3168 }, { 247,3168 }, { 248,3168 },
- { 249,3168 }, { 250,3168 }, { 251,3168 }, { 252,3168 }, { 253,3168 },
- { 254,3168 }, { 255,3168 }, { 256,3168 }, {   0,  37 }, {   0,20226 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  37 }, {   0,20203 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48,3168 }, {  49,3168 }, {  50,3168 },
- {  51,3168 }, {  52,3168 }, {  53,3168 }, {  54,3168 }, {  55,3168 },
- {  56,3168 }, {  57,3168 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,3168 },
- {  66,3168 }, {  67,3168 }, {  68,3168 }, {  69,3168 }, {  70,3168 },
- {  48,3168 }, {  49,3168 }, {  50,3168 }, {  51,3168 }, {  52,3168 },
-
- {  53,3168 }, {  54,3168 }, {  55,3168 }, {  56,3168 }, {  57,3168 },
- {   0,  44 }, {   0,20144 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,3168 }, {  66,3168 }, {  67,3168 },
- {  68,3168 }, {  69,3168 }, {  70,3168 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  97,3168 }, {  98,3168 }, {  99,3168 }, { 100,3168 },
- { 101,3168 }, { 102,3168 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  36,-9772 }, {   0,   0 }, {  97,3168 },
- {  98,3168 }, {  99,3168 }, { 100,3168 }, { 101,3168 }, { 102,3168 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,   0 },
- {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
- {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
- {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
- {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
- {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 },
- {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 },
- {  89,   0 }, {  90,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {  95,   0 }, {   0,   0 }, {  97,   0 }, {  98,   0 },
- {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
- { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
- { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
- { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
- { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,   0 },
- { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 },
- { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 },
- { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 },
-
- { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
- { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
- { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
- { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
- { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
- { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
- { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
- { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 },
- { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 },
- { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 },
-
- { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
- { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
- { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
- { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
- { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
- { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
- { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
- { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 },
- { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 },
- { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
-
- { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
- { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
- { 254,   0 }, { 255,   0 }, {   0,   1 }, {   0,19887 }, {   1,   0 },
- {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 },
- {   7,   0 }, {   8,   0 }, {   9,   0 }, {   0,   0 }, {  11,   0 },
- {  12,   0 }, {   0,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 },
- {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 },
- {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 },
- {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 },
- {  32,   0 }, {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 },
-
- {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 }, {  41,   0 },
- {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 },
- {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
- {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
- {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 },
- {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 },
- {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
- {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 },
- {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 },
- {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 },
-
- {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 },
- {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 },
- {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 }, { 101,   0 },
- { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 },
- { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 },
- { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 },
- { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 },
- { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 },
- { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
- { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 },
-
- { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 },
- { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 },
- { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 }, { 151,   0 },
- { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 },
- { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 },
- { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 },
- { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 },
- { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 },
- { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 },
- { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 },
-
- { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 },
- { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 },
- { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 }, { 201,   0 },
- { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 },
- { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 },
- { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 },
- { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 },
- { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 },
- { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 },
- { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 },
-
- { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 },
- { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 },
- { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 },
- { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 },
- {   0,   1 }, {   0,19629 }, {   1,-258 }, {   2,-258 }, {   3,-258 },
- {   4,-258 }, {   5,-258 }, {   6,-258 }, {   7,-258 }, {   8,-258 },
- {   9,-258 }, {   0,   0 }, {  11,-258 }, {  12,-258 }, {   0,   0 },
- {  14,-258 }, {  15,-258 }, {  16,-258 }, {  17,-258 }, {  18,-258 },
- {  19,-258 }, {  20,-258 }, {  21,-258 }, {  22,-258 }, {  23,-258 },
- {  24,-258 }, {  25,-258 }, {  26,-258 }, {  27,-258 }, {  28,-258 },
-
- {  29,-258 }, {  30,-258 }, {  31,-258 }, {  32,-258 }, {  33,   0 },
- {  34,-258 }, {  35,   0 }, {  36,-258 }, {  37,   0 }, {  38,   0 },
- {  39,-258 }, {  40,-258 }, {  41,-258 }, {  42,   0 }, {  43,   0 },
- {  44,-258 }, {  45,   0 }, {  46,-258 }, {  47,   0 }, {  48,-258 },
- {  49,-258 }, {  50,-258 }, {  51,-258 }, {  52,-258 }, {  53,-258 },
- {  54,-258 }, {  55,-258 }, {  56,-258 }, {  57,-258 }, {  58,-258 },
- {  59,-258 }, {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 },
- {  64,   0 }, {  65,-258 }, {  66,-258 }, {  67,-258 }, {  68,-258 },
- {  69,-258 }, {  70,-258 }, {  71,-258 }, {  72,-258 }, {  73,-258 },
- {  74,-258 }, {  75,-258 }, {  76,-258 }, {  77,-258 }, {  78,-258 },
-
- {  79,-258 }, {  80,-258 }, {  81,-258 }, {  82,-258 }, {  83,-258 },
- {  84,-258 }, {  85,-258 }, {  86,-258 }, {  87,-258 }, {  88,-258 },
- {  89,-258 }, {  90,-258 }, {  91,-258 }, {  92,-258 }, {  93,-258 },
- {  94,   0 }, {  95,-258 }, {  96,   0 }, {  97,-258 }, {  98,-258 },
- {  99,-258 }, { 100,-258 }, { 101,-258 }, { 102,-258 }, { 103,-258 },
- { 104,-258 }, { 105,-258 }, { 106,-258 }, { 107,-258 }, { 108,-258 },
- { 109,-258 }, { 110,-258 }, { 111,-258 }, { 112,-258 }, { 113,-258 },
- { 114,-258 }, { 115,-258 }, { 116,-258 }, { 117,-258 }, { 118,-258 },
- { 119,-258 }, { 120,-258 }, { 121,-258 }, { 122,-258 }, { 123,-258 },
- { 124,   0 }, { 125,-258 }, { 126,   0 }, { 127,-258 }, { 128,-258 },
-
- { 129,-258 }, { 130,-258 }, { 131,-258 }, { 132,-258 }, { 133,-258 },
- { 134,-258 }, { 135,-258 }, { 136,-258 }, { 137,-258 }, { 138,-258 },
- { 139,-258 }, { 140,-258 }, { 141,-258 }, { 142,-258 }, { 143,-258 },
- { 144,-258 }, { 145,-258 }, { 146,-258 }, { 147,-258 }, { 148,-258 },
- { 149,-258 }, { 150,-258 }, { 151,-258 }, { 152,-258 }, { 153,-258 },
- { 154,-258 }, { 155,-258 }, { 156,-258 }, { 157,-258 }, { 158,-258 },
- { 159,-258 }, { 160,-258 }, { 161,-258 }, { 162,-258 }, { 163,-258 },
- { 164,-258 }, { 165,-258 }, { 166,-258 }, { 167,-258 }, { 168,-258 },
- { 169,-258 }, { 170,-258 }, { 171,-258 }, { 172,-258 }, { 173,-258 },
- { 174,-258 }, { 175,-258 }, { 176,-258 }, { 177,-258 }, { 178,-258 },
-
- { 179,-258 }, { 180,-258 }, { 181,-258 }, { 182,-258 }, { 183,-258 },
- { 184,-258 }, { 185,-258 }, { 186,-258 }, { 187,-258 }, { 188,-258 },
- { 189,-258 }, { 190,-258 }, { 191,-258 }, { 192,-258 }, { 193,-258 },
- { 194,-258 }, { 195,-258 }, { 196,-258 }, { 197,-258 }, { 198,-258 },
- { 199,-258 }, { 200,-258 }, { 201,-258 }, { 202,-258 }, { 203,-258 },
- { 204,-258 }, { 205,-258 }, { 206,-258 }, { 207,-258 }, { 208,-258 },
- { 209,-258 }, { 210,-258 }, { 211,-258 }, { 212,-258 }, { 213,-258 },
- { 214,-258 }, { 215,-258 }, { 216,-258 }, { 217,-258 }, { 218,-258 },
- { 219,-258 }, { 220,-258 }, { 221,-258 }, { 222,-258 }, { 223,-258 },
- { 224,-258 }, { 225,-258 }, { 226,-258 }, { 227,-258 }, { 228,-258 },
-
- { 229,-258 }, { 230,-258 }, { 231,-258 }, { 232,-258 }, { 233,-258 },
- { 234,-258 }, { 235,-258 }, { 236,-258 }, { 237,-258 }, { 238,-258 },
- { 239,-258 }, { 240,-258 }, { 241,-258 }, { 242,-258 }, { 243,-258 },
- { 244,-258 }, { 245,-258 }, { 246,-258 }, { 247,-258 }, { 248,-258 },
- { 249,-258 }, { 250,-258 }, { 251,-258 }, { 252,-258 }, { 253,-258 },
- { 254,-258 }, { 255,-258 }, { 256,-258 }, {   0,   2 }, {   0,19371 },
- {   0,  73 }, {   0,19369 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,  77 }, {   0,19347 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  33,   0 }, {   0,   0 }, {  35,   0 },
- {   0,   0 }, {  37,   0 }, {  38,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  42,   0 }, {  43,   0 }, {   0,   0 }, {  45,   0 },
- {   0,   0 }, {  47,   0 }, {   0,   0 }, {   0,   0 }, {  48,   0 },
- {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
- {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  60,   0 },
- {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {   0,  75 },
- {   0,19305 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  69,-4404 }, {  48,  42 }, {  49,  42 }, {  50,  42 }, {  51,  42 },
- {  52,  42 }, {  53,  42 }, {  54,  42 }, {  55,  42 }, {  56,  42 },
- {  57,  42 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,   0 }, {   0,   0 },
- {  96,   0 }, {   0,   9 }, {   0,19273 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 101,-4404 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   9,   0 }, {  10,   0 }, {   0,   0 }, {  12,   0 },
- {  13,   0 }, {   0,   0 }, {   0,   0 }, {  48,   0 }, {  49,   0 },
- {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
-
- {  55,   0 }, {  56,   0 }, {  57,   0 }, { 124,   0 }, {   0,   0 },
- { 126,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  39,-10204 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  45,-10202 }, {   0,   9 }, {   0,19226 },
- {   1,2553 }, {   2,2553 }, {   3,2553 }, {   4,2553 }, {   5,2553 },
- {   6,2553 }, {   7,2553 }, {   8,2553 }, {   9,2811 }, {  10,-3788 },
- {  11,2553 }, {  12,2811 }, {  13,-3788 }, {  14,2553 }, {  15,2553 },
- {  16,2553 }, {  17,2553 }, {  18,2553 }, {  19,2553 }, {  20,2553 },
- {  21,2553 }, {  22,2553 }, {  23,2553 }, {  24,2553 }, {  25,2553 },
-
- {  26,2553 }, {  27,2553 }, {  28,2553 }, {  29,2553 }, {  30,2553 },
- {  31,2553 }, {  32,2811 }, {  33,2553 }, {  34,2553 }, {  35,2553 },
- {  36,2553 }, {  37,2553 }, {  38,2553 }, {  39,2553 }, {  40,2553 },
- {  41,2553 }, {  42,2553 }, {  43,2553 }, {  44,2553 }, {  45,3069 },
- {  46,2553 }, {  47,2553 }, {  48,2553 }, {  49,2553 }, {  50,2553 },
- {  51,2553 }, {  52,2553 }, {  53,2553 }, {  54,2553 }, {  55,2553 },
- {  56,2553 }, {  57,2553 }, {  58,2553 }, {  59,2553 }, {  60,2553 },
- {  61,2553 }, {  62,2553 }, {  63,2553 }, {  64,2553 }, {  65,2553 },
- {  66,2553 }, {  67,2553 }, {  68,2553 }, {  69,2553 }, {  70,2553 },
- {  71,2553 }, {  72,2553 }, {  73,2553 }, {  74,2553 }, {  75,2553 },
-
- {  76,2553 }, {  77,2553 }, {  78,2553 }, {  79,2553 }, {  80,2553 },
- {  81,2553 }, {  82,2553 }, {  83,2553 }, {  84,2553 }, {  85,2553 },
- {  86,2553 }, {  87,2553 }, {  88,2553 }, {  89,2553 }, {  90,2553 },
- {  91,2553 }, {  92,2553 }, {  93,2553 }, {  94,2553 }, {  95,2553 },
- {  96,2553 }, {  97,2553 }, {  98,2553 }, {  99,2553 }, { 100,2553 },
- { 101,2553 }, { 102,2553 }, { 103,2553 }, { 104,2553 }, { 105,2553 },
- { 106,2553 }, { 107,2553 }, { 108,2553 }, { 109,2553 }, { 110,2553 },
- { 111,2553 }, { 112,2553 }, { 113,2553 }, { 114,2553 }, { 115,2553 },
- { 116,2553 }, { 117,2553 }, { 118,2553 }, { 119,2553 }, { 120,2553 },
- { 121,2553 }, { 122,2553 }, { 123,2553 }, { 124,2553 }, { 125,2553 },
-
- { 126,2553 }, { 127,2553 }, { 128,2553 }, { 129,2553 }, { 130,2553 },
- { 131,2553 }, { 132,2553 }, { 133,2553 }, { 134,2553 }, { 135,2553 },
- { 136,2553 }, { 137,2553 }, { 138,2553 }, { 139,2553 }, { 140,2553 },
- { 141,2553 }, { 142,2553 }, { 143,2553 }, { 144,2553 }, { 145,2553 },
- { 146,2553 }, { 147,2553 }, { 148,2553 }, { 149,2553 }, { 150,2553 },
- { 151,2553 }, { 152,2553 }, { 153,2553 }, { 154,2553 }, { 155,2553 },
- { 156,2553 }, { 157,2553 }, { 158,2553 }, { 159,2553 }, { 160,2553 },
- { 161,2553 }, { 162,2553 }, { 163,2553 }, { 164,2553 }, { 165,2553 },
- { 166,2553 }, { 167,2553 }, { 168,2553 }, { 169,2553 }, { 170,2553 },
- { 171,2553 }, { 172,2553 }, { 173,2553 }, { 174,2553 }, { 175,2553 },
-
- { 176,2553 }, { 177,2553 }, { 178,2553 }, { 179,2553 }, { 180,2553 },
- { 181,2553 }, { 182,2553 }, { 183,2553 }, { 184,2553 }, { 185,2553 },
- { 186,2553 }, { 187,2553 }, { 188,2553 }, { 189,2553 }, { 190,2553 },
- { 191,2553 }, { 192,2553 }, { 193,2553 }, { 194,2553 }, { 195,2553 },
- { 196,2553 }, { 197,2553 }, { 198,2553 }, { 199,2553 }, { 200,2553 },
- { 201,2553 }, { 202,2553 }, { 203,2553 }, { 204,2553 }, { 205,2553 },
- { 206,2553 }, { 207,2553 }, { 208,2553 }, { 209,2553 }, { 210,2553 },
- { 211,2553 }, { 212,2553 }, { 213,2553 }, { 214,2553 }, { 215,2553 },
- { 216,2553 }, { 217,2553 }, { 218,2553 }, { 219,2553 }, { 220,2553 },
- { 221,2553 }, { 222,2553 }, { 223,2553 }, { 224,2553 }, { 225,2553 },
-
- { 226,2553 }, { 227,2553 }, { 228,2553 }, { 229,2553 }, { 230,2553 },
- { 231,2553 }, { 232,2553 }, { 233,2553 }, { 234,2553 }, { 235,2553 },
- { 236,2553 }, { 237,2553 }, { 238,2553 }, { 239,2553 }, { 240,2553 },
- { 241,2553 }, { 242,2553 }, { 243,2553 }, { 244,2553 }, { 245,2553 },
- { 246,2553 }, { 247,2553 }, { 248,2553 }, { 249,2553 }, { 250,2553 },
- { 251,2553 }, { 252,2553 }, { 253,2553 }, { 254,2553 }, { 255,2553 },
- { 256,2553 }, {   0,   3 }, {   0,18968 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  16 }, {   0,18961 },
+ {  12,  16 }, {  13,  16 }, {   0,   0 }, {   0,  19 }, {   0,3219 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 },
+ {  32,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 },
+ {  32,  16 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  39,-7600 }, {  45,-7597 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-7602 }, {   0,   0 },
+ {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,-7616 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-7618 },
 
- {   0,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  33,   0 }, {   0,   0 }, {  35,   0 }, {   0,   0 }, {  37,   0 },
- {  38,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 }, {  42,   0 },
- {  43,   0 }, {   0,   0 }, {  45,   0 }, {  39,-10512 }, {  47,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-10507 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 },
- {  63,   0 }, {  64,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  94,   0 }, {   0,   0 }, {  96,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, { 124,   0 }, {   0,   0 }, { 126,   0 }, {   0,  16 },
- {   0,18840 }, {   1,3199 }, {   2,3199 }, {   3,3199 }, {   4,3199 },
- {   5,3199 }, {   6,3199 }, {   7,3199 }, {   8,3199 }, {   9,3457 },
- {  10,-3220 }, {  11,3199 }, {  12,3457 }, {  13,-3220 }, {  14,3199 },
- {  15,3199 }, {  16,3199 }, {  17,3199 }, {  18,3199 }, {  19,3199 },
- {  20,3199 }, {  21,3199 }, {  22,3199 }, {  23,3199 }, {  24,3199 },
- {  25,3199 }, {  26,3199 }, {  27,3199 }, {  28,3199 }, {  29,3199 },
- {  30,3199 }, {  31,3199 }, {  32,3457 }, {  33,3199 }, {  34,3199 },
- {  35,3199 }, {  36,3199 }, {  37,3199 }, {  38,3199 }, {  39,3199 },
-
- {  40,3199 }, {  41,3199 }, {  42,3199 }, {  43,3199 }, {  44,3199 },
- {  45,3715 }, {  46,3199 }, {  47,3199 }, {  48,3199 }, {  49,3199 },
- {  50,3199 }, {  51,3199 }, {  52,3199 }, {  53,3199 }, {  54,3199 },
- {  55,3199 }, {  56,3199 }, {  57,3199 }, {  58,3199 }, {  59,3199 },
- {  60,3199 }, {  61,3199 }, {  62,3199 }, {  63,3199 }, {  64,3199 },
- {  65,3199 }, {  66,3199 }, {  67,3199 }, {  68,3199 }, {  69,3199 },
- {  70,3199 }, {  71,3199 }, {  72,3199 }, {  73,3199 }, {  74,3199 },
- {  75,3199 }, {  76,3199 }, {  77,3199 }, {  78,3199 }, {  79,3199 },
- {  80,3199 }, {  81,3199 }, {  82,3199 }, {  83,3199 }, {  84,3199 },
- {  85,3199 }, {  86,3199 }, {  87,3199 }, {  88,3199 }, {  89,3199 },
-
- {  90,3199 }, {  91,3199 }, {  92,3199 }, {  93,3199 }, {  94,3199 },
- {  95,3199 }, {  96,3199 }, {  97,3199 }, {  98,3199 }, {  99,3199 },
- { 100,3199 }, { 101,3199 }, { 102,3199 }, { 103,3199 }, { 104,3199 },
- { 105,3199 }, { 106,3199 }, { 107,3199 }, { 108,3199 }, { 109,3199 },
- { 110,3199 }, { 111,3199 }, { 112,3199 }, { 113,3199 }, { 114,3199 },
- { 115,3199 }, { 116,3199 }, { 117,3199 }, { 118,3199 }, { 119,3199 },
- { 120,3199 }, { 121,3199 }, { 122,3199 }, { 123,3199 }, { 124,3199 },
- { 125,3199 }, { 126,3199 }, { 127,3199 }, { 128,3199 }, { 129,3199 },
- { 130,3199 }, { 131,3199 }, { 132,3199 }, { 133,3199 }, { 134,3199 },
- { 135,3199 }, { 136,3199 }, { 137,3199 }, { 138,3199 }, { 139,3199 },
-
- { 140,3199 }, { 141,3199 }, { 142,3199 }, { 143,3199 }, { 144,3199 },
- { 145,3199 }, { 146,3199 }, { 147,3199 }, { 148,3199 }, { 149,3199 },
- { 150,3199 }, { 151,3199 }, { 152,3199 }, { 153,3199 }, { 154,3199 },
- { 155,3199 }, { 156,3199 }, { 157,3199 }, { 158,3199 }, { 159,3199 },
- { 160,3199 }, { 161,3199 }, { 162,3199 }, { 163,3199 }, { 164,3199 },
- { 165,3199 }, { 166,3199 }, { 167,3199 }, { 168,3199 }, { 169,3199 },
- { 170,3199 }, { 171,3199 }, { 172,3199 }, { 173,3199 }, { 174,3199 },
- { 175,3199 }, { 176,3199 }, { 177,3199 }, { 178,3199 }, { 179,3199 },
- { 180,3199 }, { 181,3199 }, { 182,3199 }, { 183,3199 }, { 184,3199 },
- { 185,3199 }, { 186,3199 }, { 187,3199 }, { 188,3199 }, { 189,3199 },
-
- { 190,3199 }, { 191,3199 }, { 192,3199 }, { 193,3199 }, { 194,3199 },
- { 195,3199 }, { 196,3199 }, { 197,3199 }, { 198,3199 }, { 199,3199 },
- { 200,3199 }, { 201,3199 }, { 202,3199 }, { 203,3199 }, { 204,3199 },
- { 205,3199 }, { 206,3199 }, { 207,3199 }, { 208,3199 }, { 209,3199 },
- { 210,3199 }, { 211,3199 }, { 212,3199 }, { 213,3199 }, { 214,3199 },
- { 215,3199 }, { 216,3199 }, { 217,3199 }, { 218,3199 }, { 219,3199 },
- { 220,3199 }, { 221,3199 }, { 222,3199 }, { 223,3199 }, { 224,3199 },
- { 225,3199 }, { 226,3199 }, { 227,3199 }, { 228,3199 }, { 229,3199 },
- { 230,3199 }, { 231,3199 }, { 232,3199 }, { 233,3199 }, { 234,3199 },
- { 235,3199 }, { 236,3199 }, { 237,3199 }, { 238,3199 }, { 239,3199 },
-
- { 240,3199 }, { 241,3199 }, { 242,3199 }, { 243,3199 }, { 244,3199 },
- { 245,3199 }, { 246,3199 }, { 247,3199 }, { 248,3199 }, { 249,3199 },
- { 250,3199 }, { 251,3199 }, { 252,3199 }, { 253,3199 }, { 254,3199 },
- { 255,3199 }, { 256,3199 }, {   0,  22 }, {   0,18582 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 }, {   0,   0 },
- {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  32,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  39,-10877 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-10850 }, {   0,  22 },
- {   0,18535 }, {   1,3926 }, {   2,3926 }, {   3,3926 }, {   4,3926 },
- {   5,3926 }, {   6,3926 }, {   7,3926 }, {   8,3926 }, {   9,4184 },
- {  10,-3215 }, {  11,3926 }, {  12,4184 }, {  13,-3215 }, {  14,3926 },
- {  15,3926 }, {  16,3926 }, {  17,3926 }, {  18,3926 }, {  19,3926 },
- {  20,3926 }, {  21,3926 }, {  22,3926 }, {  23,3926 }, {  24,3926 },
- {  25,3926 }, {  26,3926 }, {  27,3926 }, {  28,3926 }, {  29,3926 },
- {  30,3926 }, {  31,3926 }, {  32,4184 }, {  33,3926 }, {  34,3926 },
-
- {  35,3926 }, {  36,3926 }, {  37,3926 }, {  38,3926 }, {  39,3926 },
- {  40,3926 }, {  41,3926 }, {  42,3926 }, {  43,3926 }, {  44,3926 },
- {  45,4442 }, {  46,3926 }, {  47,3926 }, {  48,3926 }, {  49,3926 },
- {  50,3926 }, {  51,3926 }, {  52,3926 }, {  53,3926 }, {  54,3926 },
- {  55,3926 }, {  56,3926 }, {  57,3926 }, {  58,3926 }, {  59,3926 },
- {  60,3926 }, {  61,3926 }, {  62,3926 }, {  63,3926 }, {  64,3926 },
- {  65,3926 }, {  66,3926 }, {  67,3926 }, {  68,3926 }, {  69,3926 },
- {  70,3926 }, {  71,3926 }, {  72,3926 }, {  73,3926 }, {  74,3926 },
- {  75,3926 }, {  76,3926 }, {  77,3926 }, {  78,3926 }, {  79,3926 },
- {  80,3926 }, {  81,3926 }, {  82,3926 }, {  83,3926 }, {  84,3926 },
-
- {  85,3926 }, {  86,3926 }, {  87,3926 }, {  88,3926 }, {  89,3926 },
- {  90,3926 }, {  91,3926 }, {  92,3926 }, {  93,3926 }, {  94,3926 },
- {  95,3926 }, {  96,3926 }, {  97,3926 }, {  98,3926 }, {  99,3926 },
- { 100,3926 }, { 101,3926 }, { 102,3926 }, { 103,3926 }, { 104,3926 },
- { 105,3926 }, { 106,3926 }, { 107,3926 }, { 108,3926 }, { 109,3926 },
- { 110,3926 }, { 111,3926 }, { 112,3926 }, { 113,3926 }, { 114,3926 },
- { 115,3926 }, { 116,3926 }, { 117,3926 }, { 118,3926 }, { 119,3926 },
- { 120,3926 }, { 121,3926 }, { 122,3926 }, { 123,3926 }, { 124,3926 },
- { 125,3926 }, { 126,3926 }, { 127,3926 }, { 128,3926 }, { 129,3926 },
- { 130,3926 }, { 131,3926 }, { 132,3926 }, { 133,3926 }, { 134,3926 },
-
- { 135,3926 }, { 136,3926 }, { 137,3926 }, { 138,3926 }, { 139,3926 },
- { 140,3926 }, { 141,3926 }, { 142,3926 }, { 143,3926 }, { 144,3926 },
- { 145,3926 }, { 146,3926 }, { 147,3926 }, { 148,3926 }, { 149,3926 },
- { 150,3926 }, { 151,3926 }, { 152,3926 }, { 153,3926 }, { 154,3926 },
- { 155,3926 }, { 156,3926 }, { 157,3926 }, { 158,3926 }, { 159,3926 },
- { 160,3926 }, { 161,3926 }, { 162,3926 }, { 163,3926 }, { 164,3926 },
- { 165,3926 }, { 166,3926 }, { 167,3926 }, { 168,3926 }, { 169,3926 },
- { 170,3926 }, { 171,3926 }, { 172,3926 }, { 173,3926 }, { 174,3926 },
- { 175,3926 }, { 176,3926 }, { 177,3926 }, { 178,3926 }, { 179,3926 },
- { 180,3926 }, { 181,3926 }, { 182,3926 }, { 183,3926 }, { 184,3926 },
-
- { 185,3926 }, { 186,3926 }, { 187,3926 }, { 188,3926 }, { 189,3926 },
- { 190,3926 }, { 191,3926 }, { 192,3926 }, { 193,3926 }, { 194,3926 },
- { 195,3926 }, { 196,3926 }, { 197,3926 }, { 198,3926 }, { 199,3926 },
- { 200,3926 }, { 201,3926 }, { 202,3926 }, { 203,3926 }, { 204,3926 },
- { 205,3926 }, { 206,3926 }, { 207,3926 }, { 208,3926 }, { 209,3926 },
- { 210,3926 }, { 211,3926 }, { 212,3926 }, { 213,3926 }, { 214,3926 },
- { 215,3926 }, { 216,3926 }, { 217,3926 }, { 218,3926 }, { 219,3926 },
- { 220,3926 }, { 221,3926 }, { 222,3926 }, { 223,3926 }, { 224,3926 },
- { 225,3926 }, { 226,3926 }, { 227,3926 }, { 228,3926 }, { 229,3926 },
- { 230,3926 }, { 231,3926 }, { 232,3926 }, { 233,3926 }, { 234,3926 },
-
- { 235,3926 }, { 236,3926 }, { 237,3926 }, { 238,3926 }, { 239,3926 },
- { 240,3926 }, { 241,3926 }, { 242,3926 }, { 243,3926 }, { 244,3926 },
- { 245,3926 }, { 246,3926 }, { 247,3926 }, { 248,3926 }, { 249,3926 },
- { 250,3926 }, { 251,3926 }, { 252,3926 }, { 253,3926 }, { 254,3926 },
- { 255,3926 }, { 256,3926 }, {   0,  39 }, {   0,18277 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  37 }, {   0,18269 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  37 }, {   0,18246 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  48,-10829 }, {  49,-10829 }, {  50,-10829 }, {  51,-10829 },
- {  52,-10829 }, {  53,-10829 }, {  54,-10829 }, {  55,-10829 }, {  48,4434 },
- {  49,4434 }, {  50,4434 }, {  51,4434 }, {  52,4434 }, {  53,4434 },
- {  54,4434 }, {  55,4434 }, {  56,4434 }, {  57,4434 }, {   0,   0 },
- {   0,   0 }, {   0,  40 }, {   0,18208 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  65,4434 }, {  66,4434 }, {  67,4434 }, {  68,4434 },
-
- {  69,4434 }, {  70,4434 }, {  48,4434 }, {  49,4434 }, {  50,4434 },
- {  51,4434 }, {  52,4434 }, {  53,4434 }, {  54,4434 }, {  55,4434 },
- {  56,4434 }, {  57,4434 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,4434 },
- {  66,4434 }, {  67,4434 }, {  68,4434 }, {  69,4434 }, {  70,4434 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,4434 }, {  98,4434 },
- {  99,4434 }, { 100,4434 }, { 101,4434 }, { 102,4434 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  48,-10896 }, {  49,-10896 }, {  50,-10896 }, {  51,-10896 }, {  52,-10896 },
- {  53,-10896 }, {  54,-10896 }, {  55,-10896 }, {  56,-10896 }, {  57,-10896 },
-
- {   0,   0 }, {  97,4434 }, {  98,4434 }, {  99,4434 }, { 100,4434 },
- { 101,4434 }, { 102,4434 }, {  65,-10896 }, {  66,-10896 }, {  67,-10896 },
- {  68,-10896 }, {  69,-10896 }, {  70,-10896 }, {   0,  47 }, {   0,18136 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-10896 },
- {  98,-10896 }, {  99,-10896 }, { 100,-10896 }, { 101,-10896 }, { 102,-10896 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {  36,-11399 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
- {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
- {  56,   0 }, {  57,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,   0 },
- {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 },
- {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 },
- {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 },
- {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 },
-
- {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,   0 },
- {   0,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
- { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 },
- { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 },
- { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 },
- { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 },
- { 121,   0 }, { 122,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
- { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 },
-
- { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 },
- { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 },
- { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 },
- { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 },
- { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 },
- { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 },
- { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 },
- { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 },
- { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 },
- { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 },
-
- { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 },
- { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 },
- { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 },
- { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 },
- { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 },
- { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 },
- { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 },
- { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 },
- { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 },
- { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 },
-
- { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 },
- { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 },
- { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 },
- { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 },
- {   0,  53 }, {   0,17879 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
+ {   0,  23 }, {   0,3172 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
  {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 },
- {   9,   0 }, {   0,   0 }, {  11,   0 }, {  12,   0 }, {   0,   0 },
+ {   9,   0 }, {  10,   0 }, {  11,   0 }, {  12,   0 }, {  13,   0 },
  {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 },
  {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 },
  {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 },
-
  {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32,   0 }, {  33,   0 },
  {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 },
- {  39,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 },
+ {   0,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 },
  {  44,   0 }, {  45,   0 }, {  46,   0 }, {  47,   0 }, {  48,   0 },
+
  {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
  {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 },
  {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 },
  {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
  {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
  {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
-
  {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 },
  {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 },
- {  89,   0 }, {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 },
+ {  89,   0 }, {  90,   0 }, {  91,   0 }, {   0,   0 }, {  93,   0 },
  {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 },
+
  {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
  { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
  { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
  { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
  { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 },
  { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 },
-
  { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 },
  { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 },
  { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 },
  { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
+
  { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
  { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
  { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
  { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
  { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
  { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
-
  { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 },
  { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 },
  { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 },
  { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
+
  { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
  { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
  { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
  { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
  { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
  { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
-
  { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 },
  { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 },
  { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
  { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
+
  { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
- { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  24 }, {   0,17621 },
+ { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  30 }, {   0,2914 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 },
- {   0,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
+ {   0,   0 }, {   0,  28 }, {   0,2906 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,-11838 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-11774 },
- {   0,  24 }, {   0,17574 }, {   1,4124 }, {   2,4124 }, {   3,4124 },
- {   4,4124 }, {   5,4124 }, {   6,4124 }, {   7,4124 }, {   8,4124 },
- {   9,4382 }, {  10,-2960 }, {  11,4124 }, {  12,4382 }, {  13,-2960 },
- {  14,4124 }, {  15,4124 }, {  16,4124 }, {  17,4124 }, {  18,4124 },
- {  19,4124 }, {  20,4124 }, {  21,4124 }, {  22,4124 }, {  23,4124 },
-
- {  24,4124 }, {  25,4124 }, {  26,4124 }, {  27,4124 }, {  28,4124 },
- {  29,4124 }, {  30,4124 }, {  31,4124 }, {  32,4382 }, {  33,4124 },
- {  34,4124 }, {  35,4124 }, {  36,4124 }, {  37,4124 }, {  38,4124 },
- {  39,4124 }, {  40,4124 }, {  41,4124 }, {  42,4124 }, {  43,4124 },
- {  44,4124 }, {  45,4640 }, {  46,4124 }, {  47,4124 }, {  48,4124 },
- {  49,4124 }, {  50,4124 }, {  51,4124 }, {  52,4124 }, {  53,4124 },
- {  54,4124 }, {  55,4124 }, {  56,4124 }, {  57,4124 }, {  58,4124 },
- {  59,4124 }, {  60,4124 }, {  61,4124 }, {  62,4124 }, {  63,4124 },
- {  64,4124 }, {  65,4124 }, {  66,4124 }, {  67,4124 }, {  68,4124 },
- {  69,4124 }, {  70,4124 }, {  71,4124 }, {  72,4124 }, {  73,4124 },
-
- {  74,4124 }, {  75,4124 }, {  76,4124 }, {  77,4124 }, {  78,4124 },
- {  79,4124 }, {  80,4124 }, {  81,4124 }, {  82,4124 }, {  83,4124 },
- {  84,4124 }, {  85,4124 }, {  86,4124 }, {  87,4124 }, {  88,4124 },
- {  89,4124 }, {  90,4124 }, {  91,4124 }, {  92,4124 }, {  93,4124 },
- {  94,4124 }, {  95,4124 }, {  96,4124 }, {  97,4124 }, {  98,4124 },
- {  99,4124 }, { 100,4124 }, { 101,4124 }, { 102,4124 }, { 103,4124 },
- { 104,4124 }, { 105,4124 }, { 106,4124 }, { 107,4124 }, { 108,4124 },
- { 109,4124 }, { 110,4124 }, { 111,4124 }, { 112,4124 }, { 113,4124 },
- { 114,4124 }, { 115,4124 }, { 116,4124 }, { 117,4124 }, { 118,4124 },
- { 119,4124 }, { 120,4124 }, { 121,4124 }, { 122,4124 }, { 123,4124 },
-
- { 124,4124 }, { 125,4124 }, { 126,4124 }, { 127,4124 }, { 128,4124 },
- { 129,4124 }, { 130,4124 }, { 131,4124 }, { 132,4124 }, { 133,4124 },
- { 134,4124 }, { 135,4124 }, { 136,4124 }, { 137,4124 }, { 138,4124 },
- { 139,4124 }, { 140,4124 }, { 141,4124 }, { 142,4124 }, { 143,4124 },
- { 144,4124 }, { 145,4124 }, { 146,4124 }, { 147,4124 }, { 148,4124 },
- { 149,4124 }, { 150,4124 }, { 151,4124 }, { 152,4124 }, { 153,4124 },
- { 154,4124 }, { 155,4124 }, { 156,4124 }, { 157,4124 }, { 158,4124 },
- { 159,4124 }, { 160,4124 }, { 161,4124 }, { 162,4124 }, { 163,4124 },
- { 164,4124 }, { 165,4124 }, { 166,4124 }, { 167,4124 }, { 168,4124 },
- { 169,4124 }, { 170,4124 }, { 171,4124 }, { 172,4124 }, { 173,4124 },
-
- { 174,4124 }, { 175,4124 }, { 176,4124 }, { 177,4124 }, { 178,4124 },
- { 179,4124 }, { 180,4124 }, { 181,4124 }, { 182,4124 }, { 183,4124 },
- { 184,4124 }, { 185,4124 }, { 186,4124 }, { 187,4124 }, { 188,4124 },
- { 189,4124 }, { 190,4124 }, { 191,4124 }, { 192,4124 }, { 193,4124 },
- { 194,4124 }, { 195,4124 }, { 196,4124 }, { 197,4124 }, { 198,4124 },
- { 199,4124 }, { 200,4124 }, { 201,4124 }, { 202,4124 }, { 203,4124 },
- { 204,4124 }, { 205,4124 }, { 206,4124 }, { 207,4124 }, { 208,4124 },
- { 209,4124 }, { 210,4124 }, { 211,4124 }, { 212,4124 }, { 213,4124 },
- { 214,4124 }, { 215,4124 }, { 216,4124 }, { 217,4124 }, { 218,4124 },
- { 219,4124 }, { 220,4124 }, { 221,4124 }, { 222,4124 }, { 223,4124 },
-
- { 224,4124 }, { 225,4124 }, { 226,4124 }, { 227,4124 }, { 228,4124 },
- { 229,4124 }, { 230,4124 }, { 231,4124 }, { 232,4124 }, { 233,4124 },
- { 234,4124 }, { 235,4124 }, { 236,4124 }, { 237,4124 }, { 238,4124 },
- { 239,4124 }, { 240,4124 }, { 241,4124 }, { 242,4124 }, { 243,4124 },
- { 244,4124 }, { 245,4124 }, { 246,4124 }, { 247,4124 }, { 248,4124 },
- { 249,4124 }, { 250,4124 }, { 251,4124 }, { 252,4124 }, { 253,4124 },
- { 254,4124 }, { 255,4124 }, { 256,4124 }, {   0,  26 }, {   0,17316 },
- {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 },
- {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9,   0 }, {   0,   0 },
- {  11,   0 }, {  12,   0 }, {   0,   0 }, {  14,   0 }, {  15,   0 },
-
- {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 },
- {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 },
- {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 },
- {  31,   0 }, {  32,   0 }, {  33,   0 }, {  34,   0 }, {  35,   0 },
- {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 },
- {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45,   0 },
- {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
- {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
- {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 },
- {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 },
-
- {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 },
- {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 },
- {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 },
- {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 },
- {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 },
- {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 },
- {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
- { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 },
- { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 },
- { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 },
-
- { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 },
- { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 },
- { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
- { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 },
- { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 },
- { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 },
- { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 },
- { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 },
- { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 },
- { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 },
-
- { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 },
- { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 },
- { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 },
- { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 },
- { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 },
- { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 },
- { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 },
- { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 },
- { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 },
- { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 },
-
- { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 },
- { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 },
- { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 },
- { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 },
- { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 },
- { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 },
- { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 },
- { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 },
- { 256,   0 }, {   0,  37 }, {   0,17058 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  28 },
+ {   0,2883 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  48,1652 }, {  49,1652 }, {  50,1652 },
+ {  51,1652 }, {  52,1652 }, {  53,1652 }, {  54,1652 }, {  55,1652 },
+ {  48,1676 }, {  49,1676 }, {  50,1676 }, {  51,1676 }, {  52,1676 },
+ {  53,1676 }, {  54,1676 }, {  55,1676 }, {  56,1676 }, {  57,1676 },
+ {   0,   0 }, {   0,   0 }, {   0,  29 }, {   0,2845 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  65,1676 }, {  66,1676 }, {  67,1676 },
+ {  68,1676 }, {  69,1676 }, {  70,1676 }, {  48,1691 }, {  49,1691 },
+ {  50,1691 }, {  51,1691 }, {  52,1691 }, {  53,1691 }, {  54,1691 },
+ {  55,1691 }, {  56,1691 }, {  57,1691 }, {   0,   0 }, {   0,   0 },
+
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  37 },
- {   0,17035 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65,1691 }, {  66,1691 }, {  67,1691 }, {  68,1691 }, {  69,1691 },
+ {  70,1691 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,1676 },
+ {  98,1676 }, {  99,1676 }, { 100,1676 }, { 101,1676 }, { 102,1676 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  48,1676 }, {  49,1676 }, {  50,1676 }, {  51,1676 },
+ {  52,1676 }, {  53,1676 }, {  54,1676 }, {  55,1676 }, {  56,1676 },
+ {  57,1676 }, {   0,   0 }, {  97,1691 }, {  98,1691 }, {  99,1691 },
+ { 100,1691 }, { 101,1691 }, { 102,1691 }, {  65,1676 }, {  66,1676 },
+ {  67,1676 }, {  68,1676 }, {  69,1676 }, {  70,1676 }, {   0,   0 },
+
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  48,4382 }, {  49,4382 }, {  50,4382 }, {  51,4382 }, {  52,4382 },
- {  53,4382 }, {  54,4382 }, {  55,4382 }, {  56,4382 }, {  57,4382 },
-
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,4382 }, {  66,4382 }, {  67,4382 },
- {  68,4382 }, {  69,4382 }, {  70,4382 }, {  48,4382 }, {  49,4382 },
- {  50,4382 }, {  51,4382 }, {  52,4382 }, {  53,4382 }, {  54,4382 },
- {  55,4382 }, {  56,4382 }, {  57,4382 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  65,4382 }, {  66,4382 }, {  67,4382 }, {  68,4382 }, {  69,4382 },
- {  70,4382 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,4382 },
- {  98,4382 }, {  99,4382 }, { 100,4382 }, { 101,4382 }, { 102,4382 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  97,4382 }, {  98,4382 }, {  99,4382 },
- { 100,4382 }, { 101,4382 }, { 102,4382 }, {   0,   9 }, {   0,16931 },
- {   1,4382 }, {   2,4382 }, {   3,4382 }, {   4,4382 }, {   5,4382 },
- {   6,4382 }, {   7,4382 }, {   8,4382 }, {   9,4640 }, {  10,4898 },
- {  11,4382 }, {  12,4640 }, {  13,4898 }, {  14,4382 }, {  15,4382 },
- {  16,4382 }, {  17,4382 }, {  18,4382 }, {  19,4382 }, {  20,4382 },
- {  21,4382 }, {  22,4382 }, {  23,4382 }, {  24,4382 }, {  25,4382 },
- {  26,4382 }, {  27,4382 }, {  28,4382 }, {  29,4382 }, {  30,4382 },
-
- {  31,4382 }, {  32,4640 }, {  33,4382 }, {  34,4382 }, {  35,4382 },
- {  36,4382 }, {  37,4382 }, {  38,4382 }, {  39,4382 }, {  40,4382 },
- {  41,4382 }, {  42,4382 }, {  43,4382 }, {  44,4382 }, {  45,4945 },
- {  46,4382 }, {  47,4382 }, {  48,4382 }, {  49,4382 }, {  50,4382 },
- {  51,4382 }, {  52,4382 }, {  53,4382 }, {  54,4382 }, {  55,4382 },
- {  56,4382 }, {  57,4382 }, {  58,4382 }, {  59,4382 }, {  60,4382 },
- {  61,4382 }, {  62,4382 }, {  63,4382 }, {  64,4382 }, {  65,4382 },
- {  66,4382 }, {  67,4382 }, {  68,4382 }, {  69,4382 }, {  70,4382 },
- {  71,4382 }, {  72,4382 }, {  73,4382 }, {  74,4382 }, {  75,4382 },
- {  76,4382 }, {  77,4382 }, {  78,4382 }, {  79,4382 }, {  80,4382 },
-
- {  81,4382 }, {  82,4382 }, {  83,4382 }, {  84,4382 }, {  85,4382 },
- {  86,4382 }, {  87,4382 }, {  88,4382 }, {  89,4382 }, {  90,4382 },
- {  91,4382 }, {  92,4382 }, {  93,4382 }, {  94,4382 }, {  95,4382 },
- {  96,4382 }, {  97,4382 }, {  98,4382 }, {  99,4382 }, { 100,4382 },
- { 101,4382 }, { 102,4382 }, { 103,4382 }, { 104,4382 }, { 105,4382 },
- { 106,4382 }, { 107,4382 }, { 108,4382 }, { 109,4382 }, { 110,4382 },
- { 111,4382 }, { 112,4382 }, { 113,4382 }, { 114,4382 }, { 115,4382 },
- { 116,4382 }, { 117,4382 }, { 118,4382 }, { 119,4382 }, { 120,4382 },
- { 121,4382 }, { 122,4382 }, { 123,4382 }, { 124,4382 }, { 125,4382 },
- { 126,4382 }, { 127,4382 }, { 128,4382 }, { 129,4382 }, { 130,4382 },
-
- { 131,4382 }, { 132,4382 }, { 133,4382 }, { 134,4382 }, { 135,4382 },
- { 136,4382 }, { 137,4382 }, { 138,4382 }, { 139,4382 }, { 140,4382 },
- { 141,4382 }, { 142,4382 }, { 143,4382 }, { 144,4382 }, { 145,4382 },
- { 146,4382 }, { 147,4382 }, { 148,4382 }, { 149,4382 }, { 150,4382 },
- { 151,4382 }, { 152,4382 }, { 153,4382 }, { 154,4382 }, { 155,4382 },
- { 156,4382 }, { 157,4382 }, { 158,4382 }, { 159,4382 }, { 160,4382 },
- { 161,4382 }, { 162,4382 }, { 163,4382 }, { 164,4382 }, { 165,4382 },
- { 166,4382 }, { 167,4382 }, { 168,4382 }, { 169,4382 }, { 170,4382 },
- { 171,4382 }, { 172,4382 }, { 173,4382 }, { 174,4382 }, { 175,4382 },
- { 176,4382 }, { 177,4382 }, { 178,4382 }, { 179,4382 }, { 180,4382 },
-
- { 181,4382 }, { 182,4382 }, { 183,4382 }, { 184,4382 }, { 185,4382 },
- { 186,4382 }, { 187,4382 }, { 188,4382 }, { 189,4382 }, { 190,4382 },
- { 191,4382 }, { 192,4382 }, { 193,4382 }, { 194,4382 }, { 195,4382 },
- { 196,4382 }, { 197,4382 }, { 198,4382 }, { 199,4382 }, { 200,4382 },
- { 201,4382 }, { 202,4382 }, { 203,4382 }, { 204,4382 }, { 205,4382 },
- { 206,4382 }, { 207,4382 }, { 208,4382 }, { 209,4382 }, { 210,4382 },
- { 211,4382 }, { 212,4382 }, { 213,4382 }, { 214,4382 }, { 215,4382 },
- { 216,4382 }, { 217,4382 }, { 218,4382 }, { 219,4382 }, { 220,4382 },
- { 221,4382 }, { 222,4382 }, { 223,4382 }, { 224,4382 }, { 225,4382 },
- { 226,4382 }, { 227,4382 }, { 228,4382 }, { 229,4382 }, { 230,4382 },
-
- { 231,4382 }, { 232,4382 }, { 233,4382 }, { 234,4382 }, { 235,4382 },
- { 236,4382 }, { 237,4382 }, { 238,4382 }, { 239,4382 }, { 240,4382 },
- { 241,4382 }, { 242,4382 }, { 243,4382 }, { 244,4382 }, { 245,4382 },
- { 246,4382 }, { 247,4382 }, { 248,4382 }, { 249,4382 }, { 250,4382 },
- { 251,4382 }, { 252,4382 }, { 253,4382 }, { 254,4382 }, { 255,4382 },
- { 256,4382 }, {   0,   9 }, {   0,16673 }, {   1,   0 }, {   2,   0 },
+ {  97,1676 }, {  98,1676 }, {  99,1676 }, { 100,1676 }, { 101,1676 },
+ { 102,1676 }, {   0,  36 }, {   0,2741 }, {   1,   0 }, {   2,   0 },
  {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 },
- {   8,   0 }, {   9, 258 }, {  10,-6341 }, {  11,   0 }, {  12, 258 },
- {  13,-6341 }, {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 },
- {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 },
+ {   8,   0 }, {   9,   0 }, {  10,   0 }, {  11,   0 }, {  12,   0 },
+ {  13,   0 }, {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 },
 
+ {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 },
  {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 },
- {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32, 258 },
- {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 },
+ {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32,   0 },
+ {  33,   0 }, {  34,   0 }, {  35,   0 }, {   0,   0 }, {  37,   0 },
  {  38,   0 }, {  39,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 },
- {  43,   0 }, {  44,   0 }, {  45, 516 }, {  46,   0 }, {  47,   0 },
+ {  43,   0 }, {  44,   0 }, {  45,   0 }, {  46,   0 }, {  47,   0 },
  {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 },
  {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 },
  {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 },
  {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 },
- {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 },
 
+ {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 },
  {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 },
  {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 },
  {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 },
@@ -4891,8 +3924,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 },
  { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 },
  { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 },
- { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 },
 
+ { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 },
  { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 },
  { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 },
  { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 },
@@ -4902,8 +3935,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 153,   0 }, { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 },
  { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 },
  { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 },
- { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 },
 
+ { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 },
  { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 },
  { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 },
  { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 },
@@ -4913,427 +3946,161 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 203,   0 }, { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 },
  { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 },
  { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 },
- { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 },
 
+ { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 },
  { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 },
  { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 },
  { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 },
  { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 },
  { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 },
  { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 },
- { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,   9 },
- {   0,16415 }, {   1,-258 }, {   2,-258 }, {   3,-258 }, {   4,-258 },
- {   5,-258 }, {   6,-258 }, {   7,-258 }, {   8,-258 }, {   9,   0 },
- {  10,-6599 }, {  11,-258 }, {  12,   0 }, {  13,-6599 }, {  14,-258 },
+ { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  37 },
+ {   0,2483 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
- {  15,-258 }, {  16,-258 }, {  17,-258 }, {  18,-258 }, {  19,-258 },
- {  20,-258 }, {  21,-258 }, {  22,-258 }, {  23,-258 }, {  24,-258 },
- {  25,-258 }, {  26,-258 }, {  27,-258 }, {  28,-258 }, {  29,-258 },
- {  30,-258 }, {  31,-258 }, {  32,   0 }, {  33,-258 }, {  34,-258 },
- {  35,-258 }, {  36,-258 }, {  37,-258 }, {  38,-258 }, {  39,-258 },
- {  40,-258 }, {  41,-258 }, {  42,-258 }, {  43,-258 }, {  44,-258 },
- {  45, 258 }, {  46,-258 }, {  47,-258 }, {  48,-258 }, {  49,-258 },
- {  50,-258 }, {  51,-258 }, {  52,-258 }, {  53,-258 }, {  54,-258 },
- {  55,-258 }, {  56,-258 }, {  57,-258 }, {  58,-258 }, {  59,-258 },
- {  60,-258 }, {  61,-258 }, {  62,-258 }, {  63,-258 }, {  64,-258 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  36,-8348 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,1373 }, {  49,1373 },
+ {  50,1373 }, {  51,1373 }, {  52,1373 }, {  53,1373 }, {  54,1373 },
+ {  55,1373 }, {  56,1373 }, {  57,1373 }, {   0,   0 }, {   0,   0 },
 
- {  65,-258 }, {  66,-258 }, {  67,-258 }, {  68,-258 }, {  69,-258 },
- {  70,-258 }, {  71,-258 }, {  72,-258 }, {  73,-258 }, {  74,-258 },
- {  75,-258 }, {  76,-258 }, {  77,-258 }, {  78,-258 }, {  79,-258 },
- {  80,-258 }, {  81,-258 }, {  82,-258 }, {  83,-258 }, {  84,-258 },
- {  85,-258 }, {  86,-258 }, {  87,-258 }, {  88,-258 }, {  89,-258 },
- {  90,-258 }, {  91,-258 }, {  92,-258 }, {  93,-258 }, {  94,-258 },
- {  95,-258 }, {  96,-258 }, {  97,-258 }, {  98,-258 }, {  99,-258 },
- { 100,-258 }, { 101,-258 }, { 102,-258 }, { 103,-258 }, { 104,-258 },
- { 105,-258 }, { 106,-258 }, { 107,-258 }, { 108,-258 }, { 109,-258 },
- { 110,-258 }, { 111,-258 }, { 112,-258 }, { 113,-258 }, { 114,-258 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65,1373 }, {  66,1373 }, {  67,1373 }, {  68,1373 }, {  69,1373 },
+ {  70,1373 }, {  71,1373 }, {  72,1373 }, {  73,1373 }, {  74,1373 },
+ {  75,1373 }, {  76,1373 }, {  77,1373 }, {  78,1373 }, {  79,1373 },
+ {  80,1373 }, {  81,1373 }, {  82,1373 }, {  83,1373 }, {  84,1373 },
+ {  85,1373 }, {  86,1373 }, {  87,1373 }, {  88,1373 }, {  89,1373 },
+ {  90,1373 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  95,1373 }, {   0,   0 }, {  97,1373 }, {  98,1373 }, {  99,1373 },
+ { 100,1373 }, { 101,1373 }, { 102,1373 }, { 103,1373 }, { 104,1373 },
+ { 105,1373 }, { 106,1373 }, { 107,1373 }, { 108,1373 }, { 109,1373 },
 
- { 115,-258 }, { 116,-258 }, { 117,-258 }, { 118,-258 }, { 119,-258 },
- { 120,-258 }, { 121,-258 }, { 122,-258 }, { 123,-258 }, { 124,-258 },
- { 125,-258 }, { 126,-258 }, { 127,-258 }, { 128,-258 }, { 129,-258 },
- { 130,-258 }, { 131,-258 }, { 132,-258 }, { 133,-258 }, { 134,-258 },
- { 135,-258 }, { 136,-258 }, { 137,-258 }, { 138,-258 }, { 139,-258 },
- { 140,-258 }, { 141,-258 }, { 142,-258 }, { 143,-258 }, { 144,-258 },
- { 145,-258 }, { 146,-258 }, { 147,-258 }, { 148,-258 }, { 149,-258 },
- { 150,-258 }, { 151,-258 }, { 152,-258 }, { 153,-258 }, { 154,-258 },
- { 155,-258 }, { 156,-258 }, { 157,-258 }, { 158,-258 }, { 159,-258 },
- { 160,-258 }, { 161,-258 }, { 162,-258 }, { 163,-258 }, { 164,-258 },
+ { 110,1373 }, { 111,1373 }, { 112,1373 }, { 113,1373 }, { 114,1373 },
+ { 115,1373 }, { 116,1373 }, { 117,1373 }, { 118,1373 }, { 119,1373 },
+ { 120,1373 }, { 121,1373 }, { 122,1373 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 128,1373 }, { 129,1373 },
+ { 130,1373 }, { 131,1373 }, { 132,1373 }, { 133,1373 }, { 134,1373 },
+ { 135,1373 }, { 136,1373 }, { 137,1373 }, { 138,1373 }, { 139,1373 },
+ { 140,1373 }, { 141,1373 }, { 142,1373 }, { 143,1373 }, { 144,1373 },
+ { 145,1373 }, { 146,1373 }, { 147,1373 }, { 148,1373 }, { 149,1373 },
+ { 150,1373 }, { 151,1373 }, { 152,1373 }, { 153,1373 }, { 154,1373 },
+ { 155,1373 }, { 156,1373 }, { 157,1373 }, { 158,1373 }, { 159,1373 },
 
- { 165,-258 }, { 166,-258 }, { 167,-258 }, { 168,-258 }, { 169,-258 },
- { 170,-258 }, { 171,-258 }, { 172,-258 }, { 173,-258 }, { 174,-258 },
- { 175,-258 }, { 176,-258 }, { 177,-258 }, { 178,-258 }, { 179,-258 },
- { 180,-258 }, { 181,-258 }, { 182,-258 }, { 183,-258 }, { 184,-258 },
- { 185,-258 }, { 186,-258 }, { 187,-258 }, { 188,-258 }, { 189,-258 },
- { 190,-258 }, { 191,-258 }, { 192,-258 }, { 193,-258 }, { 194,-258 },
- { 195,-258 }, { 196,-258 }, { 197,-258 }, { 198,-258 }, { 199,-258 },
- { 200,-258 }, { 201,-258 }, { 202,-258 }, { 203,-258 }, { 204,-258 },
- { 205,-258 }, { 206,-258 }, { 207,-258 }, { 208,-258 }, { 209,-258 },
- { 210,-258 }, { 211,-258 }, { 212,-258 }, { 213,-258 }, { 214,-258 },
+ { 160,1373 }, { 161,1373 }, { 162,1373 }, { 163,1373 }, { 164,1373 },
+ { 165,1373 }, { 166,1373 }, { 167,1373 }, { 168,1373 }, { 169,1373 },
+ { 170,1373 }, { 171,1373 }, { 172,1373 }, { 173,1373 }, { 174,1373 },
+ { 175,1373 }, { 176,1373 }, { 177,1373 }, { 178,1373 }, { 179,1373 },
+ { 180,1373 }, { 181,1373 }, { 182,1373 }, { 183,1373 }, { 184,1373 },
+ { 185,1373 }, { 186,1373 }, { 187,1373 }, { 188,1373 }, { 189,1373 },
+ { 190,1373 }, { 191,1373 }, { 192,1373 }, { 193,1373 }, { 194,1373 },
+ { 195,1373 }, { 196,1373 }, { 197,1373 }, { 198,1373 }, { 199,1373 },
+ { 200,1373 }, { 201,1373 }, { 202,1373 }, { 203,1373 }, { 204,1373 },
+ { 205,1373 }, { 206,1373 }, { 207,1373 }, { 208,1373 }, { 209,1373 },
 
- { 215,-258 }, { 216,-258 }, { 217,-258 }, { 218,-258 }, { 219,-258 },
- { 220,-258 }, { 221,-258 }, { 222,-258 }, { 223,-258 }, { 224,-258 },
- { 225,-258 }, { 226,-258 }, { 227,-258 }, { 228,-258 }, { 229,-258 },
- { 230,-258 }, { 231,-258 }, { 232,-258 }, { 233,-258 }, { 234,-258 },
- { 235,-258 }, { 236,-258 }, { 237,-258 }, { 238,-258 }, { 239,-258 },
- { 240,-258 }, { 241,-258 }, { 242,-258 }, { 243,-258 }, { 244,-258 },
- { 245,-258 }, { 246,-258 }, { 247,-258 }, { 248,-258 }, { 249,-258 },
- { 250,-258 }, { 251,-258 }, { 252,-258 }, { 253,-258 }, { 254,-258 },
- { 255,-258 }, { 256,-258 }, {   0,   9 }, {   0,16157 }, {   1,-516 },
- {   2,-516 }, {   3,-516 }, {   4,-516 }, {   5,-516 }, {   6,-516 },
+ { 210,1373 }, { 211,1373 }, { 212,1373 }, { 213,1373 }, { 214,1373 },
+ { 215,1373 }, { 216,1373 }, { 217,1373 }, { 218,1373 }, { 219,1373 },
+ { 220,1373 }, { 221,1373 }, { 222,1373 }, { 223,1373 }, { 224,1373 },
+ { 225,1373 }, { 226,1373 }, { 227,1373 }, { 228,1373 }, { 229,1373 },
+ { 230,1373 }, { 231,1373 }, { 232,1373 }, { 233,1373 }, { 234,1373 },
+ { 235,1373 }, { 236,1373 }, { 237,1373 }, { 238,1373 }, { 239,1373 },
+ { 240,1373 }, { 241,1373 }, { 242,1373 }, { 243,1373 }, { 244,1373 },
+ { 245,1373 }, { 246,1373 }, { 247,1373 }, { 248,1373 }, { 249,1373 },
+ { 250,1373 }, { 251,1373 }, { 252,1373 }, { 253,1373 }, { 254,1373 },
+ { 255,1373 }, {   0,  28 }, {   0,2226 }, {   0,   0 }, {   0,   0 },
 
- {   7,-516 }, {   8,-516 }, {   9,-258 }, {  10,-6857 }, {  11,-516 },
- {  12,-258 }, {  13,-6857 }, {  14,-516 }, {  15,-516 }, {  16,-516 },
- {  17,-516 }, {  18,-516 }, {  19,-516 }, {  20,-516 }, {  21,-516 },
- {  22,-516 }, {  23,-516 }, {  24,-516 }, {  25,-516 }, {  26,-516 },
- {  27,-516 }, {  28,-516 }, {  29,-516 }, {  30,-516 }, {  31,-516 },
- {  32,-258 }, {  33,-516 }, {  34,-516 }, {  35,-516 }, {  36,-516 },
- {  37,-516 }, {  38,-516 }, {  39,-516 }, {  40,-516 }, {  41,-516 },
- {  42,-516 }, {  43,-516 }, {  44,-516 }, {  45,4429 }, {  46,-516 },
- {  47,-516 }, {  48,-516 }, {  49,-516 }, {  50,-516 }, {  51,-516 },
- {  52,-516 }, {  53,-516 }, {  54,-516 }, {  55,-516 }, {  56,-516 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  28 },
+ {   0,2203 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  48,1373 }, {  49,1373 }, {  50,1373 }, {  51,1373 }, {  52,1373 },
 
- {  57,-516 }, {  58,-516 }, {  59,-516 }, {  60,-516 }, {  61,-516 },
- {  62,-516 }, {  63,-516 }, {  64,-516 }, {  65,-516 }, {  66,-516 },
- {  67,-516 }, {  68,-516 }, {  69,-516 }, {  70,-516 }, {  71,-516 },
- {  72,-516 }, {  73,-516 }, {  74,-516 }, {  75,-516 }, {  76,-516 },
- {  77,-516 }, {  78,-516 }, {  79,-516 }, {  80,-516 }, {  81,-516 },
- {  82,-516 }, {  83,-516 }, {  84,-516 }, {  85,-516 }, {  86,-516 },
- {  87,-516 }, {  88,-516 }, {  89,-516 }, {  90,-516 }, {  91,-516 },
- {  92,-516 }, {  93,-516 }, {  94,-516 }, {  95,-516 }, {  96,-516 },
- {  97,-516 }, {  98,-516 }, {  99,-516 }, { 100,-516 }, { 101,-516 },
- { 102,-516 }, { 103,-516 }, { 104,-516 }, { 105,-516 }, { 106,-516 },
+ {  53,1373 }, {  54,1373 }, {  55,1373 }, {  56,1373 }, {  57,1373 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  65,1373 }, {  66,1373 }, {  67,1373 },
+ {  68,1373 }, {  69,1373 }, {  70,1373 }, {  48,1373 }, {  49,1373 },
+ {  50,1373 }, {  51,1373 }, {  52,1373 }, {  53,1373 }, {  54,1373 },
+ {  55,1373 }, {  56,1373 }, {  57,1373 }, {   0,  34 }, {   0,2144 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65,1373 }, {  66,1373 }, {  67,1373 }, {  68,1373 }, {  69,1373 },
+ {  70,1373 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,1373 },
+ {  98,1373 }, {  99,1373 }, { 100,1373 }, { 101,1373 }, { 102,1373 },
 
- { 107,-516 }, { 108,-516 }, { 109,-516 }, { 110,-516 }, { 111,-516 },
- { 112,-516 }, { 113,-516 }, { 114,-516 }, { 115,-516 }, { 116,-516 },
- { 117,-516 }, { 118,-516 }, { 119,-516 }, { 120,-516 }, { 121,-516 },
- { 122,-516 }, { 123,-516 }, { 124,-516 }, { 125,-516 }, { 126,-516 },
- { 127,-516 }, { 128,-516 }, { 129,-516 }, { 130,-516 }, { 131,-516 },
- { 132,-516 }, { 133,-516 }, { 134,-516 }, { 135,-516 }, { 136,-516 },
- { 137,-516 }, { 138,-516 }, { 139,-516 }, { 140,-516 }, { 141,-516 },
- { 142,-516 }, { 143,-516 }, { 144,-516 }, { 145,-516 }, { 146,-516 },
- { 147,-516 }, { 148,-516 }, { 149,-516 }, { 150,-516 }, { 151,-516 },
- { 152,-516 }, { 153,-516 }, { 154,-516 }, { 155,-516 }, { 156,-516 },
-
- { 157,-516 }, { 158,-516 }, { 159,-516 }, { 160,-516 }, { 161,-516 },
- { 162,-516 }, { 163,-516 }, { 164,-516 }, { 165,-516 }, { 166,-516 },
- { 167,-516 }, { 168,-516 }, { 169,-516 }, { 170,-516 }, { 171,-516 },
- { 172,-516 }, { 173,-516 }, { 174,-516 }, { 175,-516 }, { 176,-516 },
- { 177,-516 }, { 178,-516 }, { 179,-516 }, { 180,-516 }, { 181,-516 },
- { 182,-516 }, { 183,-516 }, { 184,-516 }, { 185,-516 }, { 186,-516 },
- { 187,-516 }, { 188,-516 }, { 189,-516 }, { 190,-516 }, { 191,-516 },
- { 192,-516 }, { 193,-516 }, { 194,-516 }, { 195,-516 }, { 196,-516 },
- { 197,-516 }, { 198,-516 }, { 199,-516 }, { 200,-516 }, { 201,-516 },
- { 202,-516 }, { 203,-516 }, { 204,-516 }, { 205,-516 }, { 206,-516 },
-
- { 207,-516 }, { 208,-516 }, { 209,-516 }, { 210,-516 }, { 211,-516 },
- { 212,-516 }, { 213,-516 }, { 214,-516 }, { 215,-516 }, { 216,-516 },
- { 217,-516 }, { 218,-516 }, { 219,-516 }, { 220,-516 }, { 221,-516 },
- { 222,-516 }, { 223,-516 }, { 224,-516 }, { 225,-516 }, { 226,-516 },
- { 227,-516 }, { 228,-516 }, { 229,-516 }, { 230,-516 }, { 231,-516 },
- { 232,-516 }, { 233,-516 }, { 234,-516 }, { 235,-516 }, { 236,-516 },
- { 237,-516 }, { 238,-516 }, { 239,-516 }, { 240,-516 }, { 241,-516 },
- { 242,-516 }, { 243,-516 }, { 244,-516 }, { 245,-516 }, { 246,-516 },
- { 247,-516 }, { 248,-516 }, { 249,-516 }, { 250,-516 }, { 251,-516 },
- { 252,-516 }, { 253,-516 }, { 254,-516 }, { 255,-516 }, { 256,-516 },
-
- {   0,  16 }, {   0,15899 }, {   1,4429 }, {   2,4429 }, {   3,4429 },
- {   4,4429 }, {   5,4429 }, {   6,4429 }, {   7,4429 }, {   8,4429 },
- {   9,4687 }, {  10,4945 }, {  11,4429 }, {  12,4687 }, {  13,4945 },
- {  14,4429 }, {  15,4429 }, {  16,4429 }, {  17,4429 }, {  18,4429 },
- {  19,4429 }, {  20,4429 }, {  21,4429 }, {  22,4429 }, {  23,4429 },
- {  24,4429 }, {  25,4429 }, {  26,4429 }, {  27,4429 }, {  28,4429 },
- {  29,4429 }, {  30,4429 }, {  31,4429 }, {  32,4687 }, {  33,4429 },
- {  34,4429 }, {  35,4429 }, {  36,4429 }, {  37,4429 }, {  38,4429 },
- {  39,4429 }, {  40,4429 }, {  41,4429 }, {  42,4429 }, {  43,4429 },
- {  44,4429 }, {  45,4992 }, {  46,4429 }, {  47,4429 }, {  48,4429 },
-
- {  49,4429 }, {  50,4429 }, {  51,4429 }, {  52,4429 }, {  53,4429 },
- {  54,4429 }, {  55,4429 }, {  56,4429 }, {  57,4429 }, {  58,4429 },
- {  59,4429 }, {  60,4429 }, {  61,4429 }, {  62,4429 }, {  63,4429 },
- {  64,4429 }, {  65,4429 }, {  66,4429 }, {  67,4429 }, {  68,4429 },
- {  69,4429 }, {  70,4429 }, {  71,4429 }, {  72,4429 }, {  73,4429 },
- {  74,4429 }, {  75,4429 }, {  76,4429 }, {  77,4429 }, {  78,4429 },
- {  79,4429 }, {  80,4429 }, {  81,4429 }, {  82,4429 }, {  83,4429 },
- {  84,4429 }, {  85,4429 }, {  86,4429 }, {  87,4429 }, {  88,4429 },
- {  89,4429 }, {  90,4429 }, {  91,4429 }, {  92,4429 }, {  93,4429 },
- {  94,4429 }, {  95,4429 }, {  96,4429 }, {  97,4429 }, {  98,4429 },
-
- {  99,4429 }, { 100,4429 }, { 101,4429 }, { 102,4429 }, { 103,4429 },
- { 104,4429 }, { 105,4429 }, { 106,4429 }, { 107,4429 }, { 108,4429 },
- { 109,4429 }, { 110,4429 }, { 111,4429 }, { 112,4429 }, { 113,4429 },
- { 114,4429 }, { 115,4429 }, { 116,4429 }, { 117,4429 }, { 118,4429 },
- { 119,4429 }, { 120,4429 }, { 121,4429 }, { 122,4429 }, { 123,4429 },
- { 124,4429 }, { 125,4429 }, { 126,4429 }, { 127,4429 }, { 128,4429 },
- { 129,4429 }, { 130,4429 }, { 131,4429 }, { 132,4429 }, { 133,4429 },
- { 134,4429 }, { 135,4429 }, { 136,4429 }, { 137,4429 }, { 138,4429 },
- { 139,4429 }, { 140,4429 }, { 141,4429 }, { 142,4429 }, { 143,4429 },
- { 144,4429 }, { 145,4429 }, { 146,4429 }, { 147,4429 }, { 148,4429 },
-
- { 149,4429 }, { 150,4429 }, { 151,4429 }, { 152,4429 }, { 153,4429 },
- { 154,4429 }, { 155,4429 }, { 156,4429 }, { 157,4429 }, { 158,4429 },
- { 159,4429 }, { 160,4429 }, { 161,4429 }, { 162,4429 }, { 163,4429 },
- { 164,4429 }, { 165,4429 }, { 166,4429 }, { 167,4429 }, { 168,4429 },
- { 169,4429 }, { 170,4429 }, { 171,4429 }, { 172,4429 }, { 173,4429 },
- { 174,4429 }, { 175,4429 }, { 176,4429 }, { 177,4429 }, { 178,4429 },
- { 179,4429 }, { 180,4429 }, { 181,4429 }, { 182,4429 }, { 183,4429 },
- { 184,4429 }, { 185,4429 }, { 186,4429 }, { 187,4429 }, { 188,4429 },
- { 189,4429 }, { 190,4429 }, { 191,4429 }, { 192,4429 }, { 193,4429 },
- { 194,4429 }, { 195,4429 }, { 196,4429 }, { 197,4429 }, { 198,4429 },
-
- { 199,4429 }, { 200,4429 }, { 201,4429 }, { 202,4429 }, { 203,4429 },
- { 204,4429 }, { 205,4429 }, { 206,4429 }, { 207,4429 }, { 208,4429 },
- { 209,4429 }, { 210,4429 }, { 211,4429 }, { 212,4429 }, { 213,4429 },
- { 214,4429 }, { 215,4429 }, { 216,4429 }, { 217,4429 }, { 218,4429 },
- { 219,4429 }, { 220,4429 }, { 221,4429 }, { 222,4429 }, { 223,4429 },
- { 224,4429 }, { 225,4429 }, { 226,4429 }, { 227,4429 }, { 228,4429 },
- { 229,4429 }, { 230,4429 }, { 231,4429 }, { 232,4429 }, { 233,4429 },
- { 234,4429 }, { 235,4429 }, { 236,4429 }, { 237,4429 }, { 238,4429 },
- { 239,4429 }, { 240,4429 }, { 241,4429 }, { 242,4429 }, { 243,4429 },
- { 244,4429 }, { 245,4429 }, { 246,4429 }, { 247,4429 }, { 248,4429 },
-
- { 249,4429 }, { 250,4429 }, { 251,4429 }, { 252,4429 }, { 253,4429 },
- { 254,4429 }, { 255,4429 }, { 256,4429 }, {   0,  16 }, {   0,15641 },
- {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 },
- {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9, 258 }, {  10,-6419 },
- {  11,   0 }, {  12, 258 }, {  13,-6419 }, {  14,   0 }, {  15,   0 },
- {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 },
- {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 },
- {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 },
- {  31,   0 }, {  32, 258 }, {  33,   0 }, {  34,   0 }, {  35,   0 },
- {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 },
-
- {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45, 516 },
- {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  36,-8961 }, {   0,   0 }, {  97,1373 }, {  98,1373 }, {  99,1373 },
+ { 100,1373 }, { 101,1373 }, { 102,1373 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
  {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
- {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 },
- {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 },
+ {  56,   0 }, {  57,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,   0 },
  {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 },
+
  {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 },
  {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 },
  {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 },
  {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 },
-
- {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 },
- {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,   0 },
+ {   0,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
  { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 },
  { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 },
  { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 },
  { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 },
- { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 },
- { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
+
+ { 121,   0 }, { 122,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
  { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 },
  { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 },
-
  { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 },
  { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 },
  { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 },
  { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 },
  { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 },
  { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 },
+
  { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 },
  { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 },
  { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 },
  { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 },
-
  { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 },
  { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 },
  { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 },
  { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 },
  { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 },
  { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 },
+
  { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 },
  { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 },
  { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 },
  { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 },
-
  { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 },
  { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 },
  { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 },
- { 256,   0 }, {   0,  16 }, {   0,15383 }, {   1,-258 }, {   2,-258 },
- {   3,-258 }, {   4,-258 }, {   5,-258 }, {   6,-258 }, {   7,-258 },
- {   8,-258 }, {   9,   0 }, {  10,-6677 }, {  11,-258 }, {  12,   0 },
- {  13,-6677 }, {  14,-258 }, {  15,-258 }, {  16,-258 }, {  17,-258 },
- {  18,-258 }, {  19,-258 }, {  20,-258 }, {  21,-258 }, {  22,-258 },
- {  23,-258 }, {  24,-258 }, {  25,-258 }, {  26,-258 }, {  27,-258 },
- {  28,-258 }, {  29,-258 }, {  30,-258 }, {  31,-258 }, {  32,   0 },
-
- {  33,-258 }, {  34,-258 }, {  35,-258 }, {  36,-258 }, {  37,-258 },
- {  38,-258 }, {  39,-258 }, {  40,-258 }, {  41,-258 }, {  42,-258 },
- {  43,-258 }, {  44,-258 }, {  45, 258 }, {  46,-258 }, {  47,-258 },
- {  48,-258 }, {  49,-258 }, {  50,-258 }, {  51,-258 }, {  52,-258 },
- {  53,-258 }, {  54,-258 }, {  55,-258 }, {  56,-258 }, {  57,-258 },
- {  58,-258 }, {  59,-258 }, {  60,-258 }, {  61,-258 }, {  62,-258 },
- {  63,-258 }, {  64,-258 }, {  65,-258 }, {  66,-258 }, {  67,-258 },
- {  68,-258 }, {  69,-258 }, {  70,-258 }, {  71,-258 }, {  72,-258 },
- {  73,-258 }, {  74,-258 }, {  75,-258 }, {  76,-258 }, {  77,-258 },
- {  78,-258 }, {  79,-258 }, {  80,-258 }, {  81,-258 }, {  82,-258 },
-
- {  83,-258 }, {  84,-258 }, {  85,-258 }, {  86,-258 }, {  87,-258 },
- {  88,-258 }, {  89,-258 }, {  90,-258 }, {  91,-258 }, {  92,-258 },
- {  93,-258 }, {  94,-258 }, {  95,-258 }, {  96,-258 }, {  97,-258 },
- {  98,-258 }, {  99,-258 }, { 100,-258 }, { 101,-258 }, { 102,-258 },
- { 103,-258 }, { 104,-258 }, { 105,-258 }, { 106,-258 }, { 107,-258 },
- { 108,-258 }, { 109,-258 }, { 110,-258 }, { 111,-258 }, { 112,-258 },
- { 113,-258 }, { 114,-258 }, { 115,-258 }, { 116,-258 }, { 117,-258 },
- { 118,-258 }, { 119,-258 }, { 120,-258 }, { 121,-258 }, { 122,-258 },
- { 123,-258 }, { 124,-258 }, { 125,-258 }, { 126,-258 }, { 127,-258 },
- { 128,-258 }, { 129,-258 }, { 130,-258 }, { 131,-258 }, { 132,-258 },
-
- { 133,-258 }, { 134,-258 }, { 135,-258 }, { 136,-258 }, { 137,-258 },
- { 138,-258 }, { 139,-258 }, { 140,-258 }, { 141,-258 }, { 142,-258 },
- { 143,-258 }, { 144,-258 }, { 145,-258 }, { 146,-258 }, { 147,-258 },
- { 148,-258 }, { 149,-258 }, { 150,-258 }, { 151,-258 }, { 152,-258 },
- { 153,-258 }, { 154,-258 }, { 155,-258 }, { 156,-258 }, { 157,-258 },
- { 158,-258 }, { 159,-258 }, { 160,-258 }, { 161,-258 }, { 162,-258 },
- { 163,-258 }, { 164,-258 }, { 165,-258 }, { 166,-258 }, { 167,-258 },
- { 168,-258 }, { 169,-258 }, { 170,-258 }, { 171,-258 }, { 172,-258 },
- { 173,-258 }, { 174,-258 }, { 175,-258 }, { 176,-258 }, { 177,-258 },
- { 178,-258 }, { 179,-258 }, { 180,-258 }, { 181,-258 }, { 182,-258 },
-
- { 183,-258 }, { 184,-258 }, { 185,-258 }, { 186,-258 }, { 187,-258 },
- { 188,-258 }, { 189,-258 }, { 190,-258 }, { 191,-258 }, { 192,-258 },
- { 193,-258 }, { 194,-258 }, { 195,-258 }, { 196,-258 }, { 197,-258 },
- { 198,-258 }, { 199,-258 }, { 200,-258 }, { 201,-258 }, { 202,-258 },
- { 203,-258 }, { 204,-258 }, { 205,-258 }, { 206,-258 }, { 207,-258 },
- { 208,-258 }, { 209,-258 }, { 210,-258 }, { 211,-258 }, { 212,-258 },
- { 213,-258 }, { 214,-258 }, { 215,-258 }, { 216,-258 }, { 217,-258 },
- { 218,-258 }, { 219,-258 }, { 220,-258 }, { 221,-258 }, { 222,-258 },
- { 223,-258 }, { 224,-258 }, { 225,-258 }, { 226,-258 }, { 227,-258 },
- { 228,-258 }, { 229,-258 }, { 230,-258 }, { 231,-258 }, { 232,-258 },
-
- { 233,-258 }, { 234,-258 }, { 235,-258 }, { 236,-258 }, { 237,-258 },
- { 238,-258 }, { 239,-258 }, { 240,-258 }, { 241,-258 }, { 242,-258 },
- { 243,-258 }, { 244,-258 }, { 245,-258 }, { 246,-258 }, { 247,-258 },
- { 248,-258 }, { 249,-258 }, { 250,-258 }, { 251,-258 }, { 252,-258 },
- { 253,-258 }, { 254,-258 }, { 255,-258 }, { 256,-258 }, {   0,  16 },
- {   0,15125 }, {   1,-516 }, {   2,-516 }, {   3,-516 }, {   4,-516 },
- {   5,-516 }, {   6,-516 }, {   7,-516 }, {   8,-516 }, {   9,-258 },
- {  10,-6935 }, {  11,-516 }, {  12,-258 }, {  13,-6935 }, {  14,-516 },
- {  15,-516 }, {  16,-516 }, {  17,-516 }, {  18,-516 }, {  19,-516 },
- {  20,-516 }, {  21,-516 }, {  22,-516 }, {  23,-516 }, {  24,-516 },
-
- {  25,-516 }, {  26,-516 }, {  27,-516 }, {  28,-516 }, {  29,-516 },
- {  30,-516 }, {  31,-516 }, {  32,-258 }, {  33,-516 }, {  34,-516 },
- {  35,-516 }, {  36,-516 }, {  37,-516 }, {  38,-516 }, {  39,-516 },
- {  40,-516 }, {  41,-516 }, {  42,-516 }, {  43,-516 }, {  44,-516 },
- {  45,4476 }, {  46,-516 }, {  47,-516 }, {  48,-516 }, {  49,-516 },
- {  50,-516 }, {  51,-516 }, {  52,-516 }, {  53,-516 }, {  54,-516 },
- {  55,-516 }, {  56,-516 }, {  57,-516 }, {  58,-516 }, {  59,-516 },
- {  60,-516 }, {  61,-516 }, {  62,-516 }, {  63,-516 }, {  64,-516 },
- {  65,-516 }, {  66,-516 }, {  67,-516 }, {  68,-516 }, {  69,-516 },
- {  70,-516 }, {  71,-516 }, {  72,-516 }, {  73,-516 }, {  74,-516 },
-
- {  75,-516 }, {  76,-516 }, {  77,-516 }, {  78,-516 }, {  79,-516 },
- {  80,-516 }, {  81,-516 }, {  82,-516 }, {  83,-516 }, {  84,-516 },
- {  85,-516 }, {  86,-516 }, {  87,-516 }, {  88,-516 }, {  89,-516 },
- {  90,-516 }, {  91,-516 }, {  92,-516 }, {  93,-516 }, {  94,-516 },
- {  95,-516 }, {  96,-516 }, {  97,-516 }, {  98,-516 }, {  99,-516 },
- { 100,-516 }, { 101,-516 }, { 102,-516 }, { 103,-516 }, { 104,-516 },
- { 105,-516 }, { 106,-516 }, { 107,-516 }, { 108,-516 }, { 109,-516 },
- { 110,-516 }, { 111,-516 }, { 112,-516 }, { 113,-516 }, { 114,-516 },
- { 115,-516 }, { 116,-516 }, { 117,-516 }, { 118,-516 }, { 119,-516 },
- { 120,-516 }, { 121,-516 }, { 122,-516 }, { 123,-516 }, { 124,-516 },
-
- { 125,-516 }, { 126,-516 }, { 127,-516 }, { 128,-516 }, { 129,-516 },
- { 130,-516 }, { 131,-516 }, { 132,-516 }, { 133,-516 }, { 134,-516 },
- { 135,-516 }, { 136,-516 }, { 137,-516 }, { 138,-516 }, { 139,-516 },
- { 140,-516 }, { 141,-516 }, { 142,-516 }, { 143,-516 }, { 144,-516 },
- { 145,-516 }, { 146,-516 }, { 147,-516 }, { 148,-516 }, { 149,-516 },
- { 150,-516 }, { 151,-516 }, { 152,-516 }, { 153,-516 }, { 154,-516 },
- { 155,-516 }, { 156,-516 }, { 157,-516 }, { 158,-516 }, { 159,-516 },
- { 160,-516 }, { 161,-516 }, { 162,-516 }, { 163,-516 }, { 164,-516 },
- { 165,-516 }, { 166,-516 }, { 167,-516 }, { 168,-516 }, { 169,-516 },
- { 170,-516 }, { 171,-516 }, { 172,-516 }, { 173,-516 }, { 174,-516 },
-
- { 175,-516 }, { 176,-516 }, { 177,-516 }, { 178,-516 }, { 179,-516 },
- { 180,-516 }, { 181,-516 }, { 182,-516 }, { 183,-516 }, { 184,-516 },
- { 185,-516 }, { 186,-516 }, { 187,-516 }, { 188,-516 }, { 189,-516 },
- { 190,-516 }, { 191,-516 }, { 192,-516 }, { 193,-516 }, { 194,-516 },
- { 195,-516 }, { 196,-516 }, { 197,-516 }, { 198,-516 }, { 199,-516 },
- { 200,-516 }, { 201,-516 }, { 202,-516 }, { 203,-516 }, { 204,-516 },
- { 205,-516 }, { 206,-516 }, { 207,-516 }, { 208,-516 }, { 209,-516 },
- { 210,-516 }, { 211,-516 }, { 212,-516 }, { 213,-516 }, { 214,-516 },
- { 215,-516 }, { 216,-516 }, { 217,-516 }, { 218,-516 }, { 219,-516 },
- { 220,-516 }, { 221,-516 }, { 222,-516 }, { 223,-516 }, { 224,-516 },
-
- { 225,-516 }, { 226,-516 }, { 227,-516 }, { 228,-516 }, { 229,-516 },
- { 230,-516 }, { 231,-516 }, { 232,-516 }, { 233,-516 }, { 234,-516 },
- { 235,-516 }, { 236,-516 }, { 237,-516 }, { 238,-516 }, { 239,-516 },
- { 240,-516 }, { 241,-516 }, { 242,-516 }, { 243,-516 }, { 244,-516 },
- { 245,-516 }, { 246,-516 }, { 247,-516 }, { 248,-516 }, { 249,-516 },
- { 250,-516 }, { 251,-516 }, { 252,-516 }, { 253,-516 }, { 254,-516 },
- { 255,-516 }, { 256,-516 }, {   0,  22 }, {   0,14867 }, {   1,4476 },
- {   2,4476 }, {   3,4476 }, {   4,4476 }, {   5,4476 }, {   6,4476 },
- {   7,4476 }, {   8,4476 }, {   9,4734 }, {  10,4992 }, {  11,4476 },
- {  12,4734 }, {  13,4992 }, {  14,4476 }, {  15,4476 }, {  16,4476 },
-
- {  17,4476 }, {  18,4476 }, {  19,4476 }, {  20,4476 }, {  21,4476 },
- {  22,4476 }, {  23,4476 }, {  24,4476 }, {  25,4476 }, {  26,4476 },
- {  27,4476 }, {  28,4476 }, {  29,4476 }, {  30,4476 }, {  31,4476 },
- {  32,4734 }, {  33,4476 }, {  34,4476 }, {  35,4476 }, {  36,4476 },
- {  37,4476 }, {  38,4476 }, {  39,4476 }, {  40,4476 }, {  41,4476 },
- {  42,4476 }, {  43,4476 }, {  44,4476 }, {  45,5039 }, {  46,4476 },
- {  47,4476 }, {  48,4476 }, {  49,4476 }, {  50,4476 }, {  51,4476 },
- {  52,4476 }, {  53,4476 }, {  54,4476 }, {  55,4476 }, {  56,4476 },
- {  57,4476 }, {  58,4476 }, {  59,4476 }, {  60,4476 }, {  61,4476 },
- {  62,4476 }, {  63,4476 }, {  64,4476 }, {  65,4476 }, {  66,4476 },
-
- {  67,4476 }, {  68,4476 }, {  69,4476 }, {  70,4476 }, {  71,4476 },
- {  72,4476 }, {  73,4476 }, {  74,4476 }, {  75,4476 }, {  76,4476 },
- {  77,4476 }, {  78,4476 }, {  79,4476 }, {  80,4476 }, {  81,4476 },
- {  82,4476 }, {  83,4476 }, {  84,4476 }, {  85,4476 }, {  86,4476 },
- {  87,4476 }, {  88,4476 }, {  89,4476 }, {  90,4476 }, {  91,4476 },
- {  92,4476 }, {  93,4476 }, {  94,4476 }, {  95,4476 }, {  96,4476 },
- {  97,4476 }, {  98,4476 }, {  99,4476 }, { 100,4476 }, { 101,4476 },
- { 102,4476 }, { 103,4476 }, { 104,4476 }, { 105,4476 }, { 106,4476 },
- { 107,4476 }, { 108,4476 }, { 109,4476 }, { 110,4476 }, { 111,4476 },
- { 112,4476 }, { 113,4476 }, { 114,4476 }, { 115,4476 }, { 116,4476 },
-
- { 117,4476 }, { 118,4476 }, { 119,4476 }, { 120,4476 }, { 121,4476 },
- { 122,4476 }, { 123,4476 }, { 124,4476 }, { 125,4476 }, { 126,4476 },
- { 127,4476 }, { 128,4476 }, { 129,4476 }, { 130,4476 }, { 131,4476 },
- { 132,4476 }, { 133,4476 }, { 134,4476 }, { 135,4476 }, { 136,4476 },
- { 137,4476 }, { 138,4476 }, { 139,4476 }, { 140,4476 }, { 141,4476 },
- { 142,4476 }, { 143,4476 }, { 144,4476 }, { 145,4476 }, { 146,4476 },
- { 147,4476 }, { 148,4476 }, { 149,4476 }, { 150,4476 }, { 151,4476 },
- { 152,4476 }, { 153,4476 }, { 154,4476 }, { 155,4476 }, { 156,4476 },
- { 157,4476 }, { 158,4476 }, { 159,4476 }, { 160,4476 }, { 161,4476 },
- { 162,4476 }, { 163,4476 }, { 164,4476 }, { 165,4476 }, { 166,4476 },
-
- { 167,4476 }, { 168,4476 }, { 169,4476 }, { 170,4476 }, { 171,4476 },
- { 172,4476 }, { 173,4476 }, { 174,4476 }, { 175,4476 }, { 176,4476 },
- { 177,4476 }, { 178,4476 }, { 179,4476 }, { 180,4476 }, { 181,4476 },
- { 182,4476 }, { 183,4476 }, { 184,4476 }, { 185,4476 }, { 186,4476 },
- { 187,4476 }, { 188,4476 }, { 189,4476 }, { 190,4476 }, { 191,4476 },
- { 192,4476 }, { 193,4476 }, { 194,4476 }, { 195,4476 }, { 196,4476 },
- { 197,4476 }, { 198,4476 }, { 199,4476 }, { 200,4476 }, { 201,4476 },
- { 202,4476 }, { 203,4476 }, { 204,4476 }, { 205,4476 }, { 206,4476 },
- { 207,4476 }, { 208,4476 }, { 209,4476 }, { 210,4476 }, { 211,4476 },
- { 212,4476 }, { 213,4476 }, { 214,4476 }, { 215,4476 }, { 216,4476 },
-
- { 217,4476 }, { 218,4476 }, { 219,4476 }, { 220,4476 }, { 221,4476 },
- { 222,4476 }, { 223,4476 }, { 224,4476 }, { 225,4476 }, { 226,4476 },
- { 227,4476 }, { 228,4476 }, { 229,4476 }, { 230,4476 }, { 231,4476 },
- { 232,4476 }, { 233,4476 }, { 234,4476 }, { 235,4476 }, { 236,4476 },
- { 237,4476 }, { 238,4476 }, { 239,4476 }, { 240,4476 }, { 241,4476 },
- { 242,4476 }, { 243,4476 }, { 244,4476 }, { 245,4476 }, { 246,4476 },
- { 247,4476 }, { 248,4476 }, { 249,4476 }, { 250,4476 }, { 251,4476 },
- { 252,4476 }, { 253,4476 }, { 254,4476 }, { 255,4476 }, { 256,4476 },
- {   0,  22 }, {   0,14609 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
+ {   0,   2 }, {   0,1887 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
  {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 },
+ {   9,   0 }, {   0,   0 }, {  11,   0 }, {  12,   0 }, {   0,   0 },
 
- {   9, 258 }, {  10,-7141 }, {  11,   0 }, {  12, 258 }, {  13,-7141 },
  {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 },
  {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 },
  {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 },
- {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 },
+ {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32,   0 }, {  33,   0 },
  {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 },
  {  39,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 },
- {  44,   0 }, {  45, 516 }, {  46,   0 }, {  47,   0 }, {  48,   0 },
+ {  44,   0 }, {  45,   0 }, {  46,   0 }, {  47,   0 }, {  48,   0 },
  {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
  {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 },
-
  {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 },
+
  {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
  {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
  {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
@@ -5343,8 +4110,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 },
  {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
  { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
-
  { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
+
  { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
  { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 },
  { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 },
@@ -5354,8 +4121,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
  { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
  { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
-
  { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
+
  { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
  { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
  { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
@@ -5365,8 +4132,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
  { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
  { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
-
  { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
+
  { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
  { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
  { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
@@ -5375,42 +4142,42 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
  { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
  { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
- { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  22 }, {   0,14351 },
-
+ { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,   2 }, {   0,1629 },
  {   1,-258 }, {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 },
- {   6,-258 }, {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10,-7399 },
- {  11,-258 }, {  12,   0 }, {  13,-7399 }, {  14,-258 }, {  15,-258 },
+
+ {   6,-258 }, {   7,-258 }, {   8,-258 }, {   9,-258 }, {   0,   0 },
+ {  11,-258 }, {  12,-258 }, {   0,   0 }, {  14,-258 }, {  15,-258 },
  {  16,-258 }, {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 },
  {  21,-258 }, {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 },
  {  26,-258 }, {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 },
- {  31,-258 }, {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 },
- {  36,-258 }, {  37,-258 }, {  38,-258 }, {  39,-258 }, {  40,-258 },
- {  41,-258 }, {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 258 },
- {  46,-258 }, {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 },
-
+ {  31,-258 }, {  32,-258 }, {  33,   0 }, {  34,-258 }, {  35,   0 },
+ {  36,-258 }, {  37,   0 }, {  38,   0 }, {  39,-258 }, {  40,-258 },
+ {  41,-258 }, {  42,   0 }, {  43,   0 }, {  44,-258 }, {  45,   0 },
+ {  46,-258 }, {  47,   0 }, {  48,-258 }, {  49,-258 }, {  50,-258 },
  {  51,-258 }, {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 },
- {  56,-258 }, {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 },
- {  61,-258 }, {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 },
+
+ {  56,-258 }, {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,   0 },
+ {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,-258 },
  {  66,-258 }, {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 },
  {  71,-258 }, {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 },
  {  76,-258 }, {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 },
  {  81,-258 }, {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 },
  {  86,-258 }, {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 },
- {  91,-258 }, {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 },
- {  96,-258 }, {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 },
-
+ {  91,-258 }, {  92,-258 }, {  93,-258 }, {  94,   0 }, {  95,-258 },
+ {  96,   0 }, {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 },
  { 101,-258 }, { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 },
+
  { 106,-258 }, { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 },
  { 111,-258 }, { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 },
  { 116,-258 }, { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 },
- { 121,-258 }, { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 },
- { 126,-258 }, { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 },
+ { 121,-258 }, { 122,-258 }, { 123,-258 }, { 124,   0 }, { 125,-258 },
+ { 126,   0 }, { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 },
  { 131,-258 }, { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 },
  { 136,-258 }, { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 },
  { 141,-258 }, { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 },
  { 146,-258 }, { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 },
-
  { 151,-258 }, { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 },
+
  { 156,-258 }, { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 },
  { 161,-258 }, { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 },
  { 166,-258 }, { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 },
@@ -5420,8 +4187,8 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 186,-258 }, { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 },
  { 191,-258 }, { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 },
  { 196,-258 }, { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 },
-
  { 201,-258 }, { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 },
+
  { 206,-258 }, { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 },
  { 211,-258 }, { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 },
  { 216,-258 }, { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 },
@@ -5431,2210 +4198,96 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 236,-258 }, { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 },
  { 241,-258 }, { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 },
  { 246,-258 }, { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 },
-
  { 251,-258 }, { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 },
- { 256,-258 }, {   0,  22 }, {   0,14093 }, {   1,-516 }, {   2,-516 },
- {   3,-516 }, {   4,-516 }, {   5,-516 }, {   6,-516 }, {   7,-516 },
- {   8,-516 }, {   9,-258 }, {  10,-7657 }, {  11,-516 }, {  12,-258 },
- {  13,-7657 }, {  14,-516 }, {  15,-516 }, {  16,-516 }, {  17,-516 },
- {  18,-516 }, {  19,-516 }, {  20,-516 }, {  21,-516 }, {  22,-516 },
- {  23,-516 }, {  24,-516 }, {  25,-516 }, {  26,-516 }, {  27,-516 },
- {  28,-516 }, {  29,-516 }, {  30,-516 }, {  31,-516 }, {  32,-258 },
- {  33,-516 }, {  34,-516 }, {  35,-516 }, {  36,-516 }, {  37,-516 },
- {  38,-516 }, {  39,-516 }, {  40,-516 }, {  41,-516 }, {  42,-516 },
 
- {  43,-516 }, {  44,-516 }, {  45,4523 }, {  46,-516 }, {  47,-516 },
- {  48,-516 }, {  49,-516 }, {  50,-516 }, {  51,-516 }, {  52,-516 },
- {  53,-516 }, {  54,-516 }, {  55,-516 }, {  56,-516 }, {  57,-516 },
- {  58,-516 }, {  59,-516 }, {  60,-516 }, {  61,-516 }, {  62,-516 },
- {  63,-516 }, {  64,-516 }, {  65,-516 }, {  66,-516 }, {  67,-516 },
- {  68,-516 }, {  69,-516 }, {  70,-516 }, {  71,-516 }, {  72,-516 },
- {  73,-516 }, {  74,-516 }, {  75,-516 }, {  76,-516 }, {  77,-516 },
- {  78,-516 }, {  79,-516 }, {  80,-516 }, {  81,-516 }, {  82,-516 },
- {  83,-516 }, {  84,-516 }, {  85,-516 }, {  86,-516 }, {  87,-516 },
- {  88,-516 }, {  89,-516 }, {  90,-516 }, {  91,-516 }, {  92,-516 },
-
- {  93,-516 }, {  94,-516 }, {  95,-516 }, {  96,-516 }, {  97,-516 },
- {  98,-516 }, {  99,-516 }, { 100,-516 }, { 101,-516 }, { 102,-516 },
- { 103,-516 }, { 104,-516 }, { 105,-516 }, { 106,-516 }, { 107,-516 },
- { 108,-516 }, { 109,-516 }, { 110,-516 }, { 111,-516 }, { 112,-516 },
- { 113,-516 }, { 114,-516 }, { 115,-516 }, { 116,-516 }, { 117,-516 },
- { 118,-516 }, { 119,-516 }, { 120,-516 }, { 121,-516 }, { 122,-516 },
- { 123,-516 }, { 124,-516 }, { 125,-516 }, { 126,-516 }, { 127,-516 },
- { 128,-516 }, { 129,-516 }, { 130,-516 }, { 131,-516 }, { 132,-516 },
- { 133,-516 }, { 134,-516 }, { 135,-516 }, { 136,-516 }, { 137,-516 },
- { 138,-516 }, { 139,-516 }, { 140,-516 }, { 141,-516 }, { 142,-516 },
-
- { 143,-516 }, { 144,-516 }, { 145,-516 }, { 146,-516 }, { 147,-516 },
- { 148,-516 }, { 149,-516 }, { 150,-516 }, { 151,-516 }, { 152,-516 },
- { 153,-516 }, { 154,-516 }, { 155,-516 }, { 156,-516 }, { 157,-516 },
- { 158,-516 }, { 159,-516 }, { 160,-516 }, { 161,-516 }, { 162,-516 },
- { 163,-516 }, { 164,-516 }, { 165,-516 }, { 166,-516 }, { 167,-516 },
- { 168,-516 }, { 169,-516 }, { 170,-516 }, { 171,-516 }, { 172,-516 },
- { 173,-516 }, { 174,-516 }, { 175,-516 }, { 176,-516 }, { 177,-516 },
- { 178,-516 }, { 179,-516 }, { 180,-516 }, { 181,-516 }, { 182,-516 },
- { 183,-516 }, { 184,-516 }, { 185,-516 }, { 186,-516 }, { 187,-516 },
- { 188,-516 }, { 189,-516 }, { 190,-516 }, { 191,-516 }, { 192,-516 },
-
- { 193,-516 }, { 194,-516 }, { 195,-516 }, { 196,-516 }, { 197,-516 },
- { 198,-516 }, { 199,-516 }, { 200,-516 }, { 201,-516 }, { 202,-516 },
- { 203,-516 }, { 204,-516 }, { 205,-516 }, { 206,-516 }, { 207,-516 },
- { 208,-516 }, { 209,-516 }, { 210,-516 }, { 211,-516 }, { 212,-516 },
- { 213,-516 }, { 214,-516 }, { 215,-516 }, { 216,-516 }, { 217,-516 },
- { 218,-516 }, { 219,-516 }, { 220,-516 }, { 221,-516 }, { 222,-516 },
- { 223,-516 }, { 224,-516 }, { 225,-516 }, { 226,-516 }, { 227,-516 },
- { 228,-516 }, { 229,-516 }, { 230,-516 }, { 231,-516 }, { 232,-516 },
- { 233,-516 }, { 234,-516 }, { 235,-516 }, { 236,-516 }, { 237,-516 },
- { 238,-516 }, { 239,-516 }, { 240,-516 }, { 241,-516 }, { 242,-516 },
-
- { 243,-516 }, { 244,-516 }, { 245,-516 }, { 246,-516 }, { 247,-516 },
- { 248,-516 }, { 249,-516 }, { 250,-516 }, { 251,-516 }, { 252,-516 },
- { 253,-516 }, { 254,-516 }, { 255,-516 }, { 256,-516 }, {   0,  37 },
- {   0,13835 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,  37 }, {   0,13812 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,4523 }, {  49,4523 },
- {  50,4523 }, {  51,4523 }, {  52,4523 }, {  53,4523 }, {  54,4523 },
- {  55,4523 }, {  56,4523 }, {  57,4523 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  65,4523 }, {  66,4523 }, {  67,4523 }, {  68,4523 }, {  69,4523 },
- {  70,4523 }, {  48,4523 }, {  49,4523 }, {  50,4523 }, {  51,4523 },
- {  52,4523 }, {  53,4523 }, {  54,4523 }, {  55,4523 }, {  56,4523 },
- {  57,4523 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,4523 }, {  66,4523 },
- {  67,4523 }, {  68,4523 }, {  69,4523 }, {  70,4523 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  97,4523 }, {  98,4523 }, {  99,4523 },
- { 100,4523 }, { 101,4523 }, { 102,4523 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  97,4523 }, {  98,4523 }, {  99,4523 }, { 100,4523 }, { 101,4523 },
- { 102,4523 }, {   0,  24 }, {   0,13708 }, {   1,4523 }, {   2,4523 },
- {   3,4523 }, {   4,4523 }, {   5,4523 }, {   6,4523 }, {   7,4523 },
-
- {   8,4523 }, {   9,4781 }, {  10,5039 }, {  11,4523 }, {  12,4781 },
- {  13,5039 }, {  14,4523 }, {  15,4523 }, {  16,4523 }, {  17,4523 },
- {  18,4523 }, {  19,4523 }, {  20,4523 }, {  21,4523 }, {  22,4523 },
- {  23,4523 }, {  24,4523 }, {  25,4523 }, {  26,4523 }, {  27,4523 },
- {  28,4523 }, {  29,4523 }, {  30,4523 }, {  31,4523 }, {  32,4781 },
- {  33,4523 }, {  34,4523 }, {  35,4523 }, {  36,4523 }, {  37,4523 },
- {  38,4523 }, {  39,4523 }, {  40,4523 }, {  41,4523 }, {  42,4523 },
- {  43,4523 }, {  44,4523 }, {  45,5086 }, {  46,4523 }, {  47,4523 },
- {  48,4523 }, {  49,4523 }, {  50,4523 }, {  51,4523 }, {  52,4523 },
- {  53,4523 }, {  54,4523 }, {  55,4523 }, {  56,4523 }, {  57,4523 },
-
- {  58,4523 }, {  59,4523 }, {  60,4523 }, {  61,4523 }, {  62,4523 },
- {  63,4523 }, {  64,4523 }, {  65,4523 }, {  66,4523 }, {  67,4523 },
- {  68,4523 }, {  69,4523 }, {  70,4523 }, {  71,4523 }, {  72,4523 },
- {  73,4523 }, {  74,4523 }, {  75,4523 }, {  76,4523 }, {  77,4523 },
- {  78,4523 }, {  79,4523 }, {  80,4523 }, {  81,4523 }, {  82,4523 },
- {  83,4523 }, {  84,4523 }, {  85,4523 }, {  86,4523 }, {  87,4523 },
- {  88,4523 }, {  89,4523 }, {  90,4523 }, {  91,4523 }, {  92,4523 },
- {  93,4523 }, {  94,4523 }, {  95,4523 }, {  96,4523 }, {  97,4523 },
- {  98,4523 }, {  99,4523 }, { 100,4523 }, { 101,4523 }, { 102,4523 },
- { 103,4523 }, { 104,4523 }, { 105,4523 }, { 106,4523 }, { 107,4523 },
-
- { 108,4523 }, { 109,4523 }, { 110,4523 }, { 111,4523 }, { 112,4523 },
- { 113,4523 }, { 114,4523 }, { 115,4523 }, { 116,4523 }, { 117,4523 },
- { 118,4523 }, { 119,4523 }, { 120,4523 }, { 121,4523 }, { 122,4523 },
- { 123,4523 }, { 124,4523 }, { 125,4523 }, { 126,4523 }, { 127,4523 },
- { 128,4523 }, { 129,4523 }, { 130,4523 }, { 131,4523 }, { 132,4523 },
- { 133,4523 }, { 134,4523 }, { 135,4523 }, { 136,4523 }, { 137,4523 },
- { 138,4523 }, { 139,4523 }, { 140,4523 }, { 141,4523 }, { 142,4523 },
- { 143,4523 }, { 144,4523 }, { 145,4523 }, { 146,4523 }, { 147,4523 },
- { 148,4523 }, { 149,4523 }, { 150,4523 }, { 151,4523 }, { 152,4523 },
- { 153,4523 }, { 154,4523 }, { 155,4523 }, { 156,4523 }, { 157,4523 },
-
- { 158,4523 }, { 159,4523 }, { 160,4523 }, { 161,4523 }, { 162,4523 },
- { 163,4523 }, { 164,4523 }, { 165,4523 }, { 166,4523 }, { 167,4523 },
- { 168,4523 }, { 169,4523 }, { 170,4523 }, { 171,4523 }, { 172,4523 },
- { 173,4523 }, { 174,4523 }, { 175,4523 }, { 176,4523 }, { 177,4523 },
- { 178,4523 }, { 179,4523 }, { 180,4523 }, { 181,4523 }, { 182,4523 },
- { 183,4523 }, { 184,4523 }, { 185,4523 }, { 186,4523 }, { 187,4523 },
- { 188,4523 }, { 189,4523 }, { 190,4523 }, { 191,4523 }, { 192,4523 },
- { 193,4523 }, { 194,4523 }, { 195,4523 }, { 196,4523 }, { 197,4523 },
- { 198,4523 }, { 199,4523 }, { 200,4523 }, { 201,4523 }, { 202,4523 },
- { 203,4523 }, { 204,4523 }, { 205,4523 }, { 206,4523 }, { 207,4523 },
-
- { 208,4523 }, { 209,4523 }, { 210,4523 }, { 211,4523 }, { 212,4523 },
- { 213,4523 }, { 214,4523 }, { 215,4523 }, { 216,4523 }, { 217,4523 },
- { 218,4523 }, { 219,4523 }, { 220,4523 }, { 221,4523 }, { 222,4523 },
- { 223,4523 }, { 224,4523 }, { 225,4523 }, { 226,4523 }, { 227,4523 },
- { 228,4523 }, { 229,4523 }, { 230,4523 }, { 231,4523 }, { 232,4523 },
- { 233,4523 }, { 234,4523 }, { 235,4523 }, { 236,4523 }, { 237,4523 },
- { 238,4523 }, { 239,4523 }, { 240,4523 }, { 241,4523 }, { 242,4523 },
- { 243,4523 }, { 244,4523 }, { 245,4523 }, { 246,4523 }, { 247,4523 },
- { 248,4523 }, { 249,4523 }, { 250,4523 }, { 251,4523 }, { 252,4523 },
- { 253,4523 }, { 254,4523 }, { 255,4523 }, { 256,4523 }, {   0,  24 },
-
- {   0,13450 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
- {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9, 258 },
- {  10,-7084 }, {  11,   0 }, {  12, 258 }, {  13,-7084 }, {  14,   0 },
- {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 },
- {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 },
- {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 },
- {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 }, {  34,   0 },
- {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 },
- {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 },
- {  45, 516 }, {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 },
-
- {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
- {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 },
- {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
- {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 },
- {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 },
- {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 },
- {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 },
- {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 },
- {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 },
- {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 },
-
- { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 },
- { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 },
- { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 },
- { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 },
- { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 },
- { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 },
- { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 },
- { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 },
- { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 },
- { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 },
-
- { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 },
- { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 },
- { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 },
- { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 },
- { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 },
- { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 },
- { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 },
- { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 },
- { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 },
- { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 },
-
- { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 },
- { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 },
- { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 },
- { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 },
- { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 },
- { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 },
- { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 },
- { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 },
- { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 },
- { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 },
-
- { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 },
- { 255,   0 }, { 256,   0 }, {   0,  24 }, {   0,13192 }, {   1,-258 },
- {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 }, {   6,-258 },
- {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10,-7342 }, {  11,-258 },
- {  12,   0 }, {  13,-7342 }, {  14,-258 }, {  15,-258 }, {  16,-258 },
- {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 }, {  21,-258 },
- {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 }, {  26,-258 },
- {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 }, {  31,-258 },
- {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 }, {  36,-258 },
- {  37,-258 }, {  38,-258 }, {  39,-258 }, {  40,-258 }, {  41,-258 },
-
- {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 258 }, {  46,-258 },
- {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 }, {  51,-258 },
- {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 }, {  56,-258 },
- {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 }, {  61,-258 },
- {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 }, {  66,-258 },
- {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 }, {  71,-258 },
- {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 }, {  76,-258 },
- {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 }, {  81,-258 },
- {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 }, {  86,-258 },
- {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 }, {  91,-258 },
-
- {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 }, {  96,-258 },
- {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 }, { 101,-258 },
- { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 }, { 106,-258 },
- { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 }, { 111,-258 },
- { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 }, { 116,-258 },
- { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 }, { 121,-258 },
- { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 }, { 126,-258 },
- { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 }, { 131,-258 },
- { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 }, { 136,-258 },
- { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 }, { 141,-258 },
-
- { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 }, { 146,-258 },
- { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 }, { 151,-258 },
- { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 }, { 156,-258 },
- { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 }, { 161,-258 },
- { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 }, { 166,-258 },
- { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 }, { 171,-258 },
- { 172,-258 }, { 173,-258 }, { 174,-258 }, { 175,-258 }, { 176,-258 },
- { 177,-258 }, { 178,-258 }, { 179,-258 }, { 180,-258 }, { 181,-258 },
- { 182,-258 }, { 183,-258 }, { 184,-258 }, { 185,-258 }, { 186,-258 },
- { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 }, { 191,-258 },
-
- { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 }, { 196,-258 },
- { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 }, { 201,-258 },
- { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 }, { 206,-258 },
- { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 }, { 211,-258 },
- { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 }, { 216,-258 },
- { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 }, { 221,-258 },
- { 222,-258 }, { 223,-258 }, { 224,-258 }, { 225,-258 }, { 226,-258 },
- { 227,-258 }, { 228,-258 }, { 229,-258 }, { 230,-258 }, { 231,-258 },
- { 232,-258 }, { 233,-258 }, { 234,-258 }, { 235,-258 }, { 236,-258 },
- { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 }, { 241,-258 },
-
- { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 }, { 246,-258 },
- { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 }, { 251,-258 },
- { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 }, { 256,-258 },
- {   0,  24 }, {   0,12934 }, {   1,-516 }, {   2,-516 }, {   3,-516 },
- {   4,-516 }, {   5,-516 }, {   6,-516 }, {   7,-516 }, {   8,-516 },
- {   9,-258 }, {  10,-7600 }, {  11,-516 }, {  12,-258 }, {  13,-7600 },
- {  14,-516 }, {  15,-516 }, {  16,-516 }, {  17,-516 }, {  18,-516 },
- {  19,-516 }, {  20,-516 }, {  21,-516 }, {  22,-516 }, {  23,-516 },
- {  24,-516 }, {  25,-516 }, {  26,-516 }, {  27,-516 }, {  28,-516 },
- {  29,-516 }, {  30,-516 }, {  31,-516 }, {  32,-258 }, {  33,-516 },
-
- {  34,-516 }, {  35,-516 }, {  36,-516 }, {  37,-516 }, {  38,-516 },
- {  39,-516 }, {  40,-516 }, {  41,-516 }, {  42,-516 }, {  43,-516 },
- {  44,-516 }, {  45,4570 }, {  46,-516 }, {  47,-516 }, {  48,-516 },
- {  49,-516 }, {  50,-516 }, {  51,-516 }, {  52,-516 }, {  53,-516 },
- {  54,-516 }, {  55,-516 }, {  56,-516 }, {  57,-516 }, {  58,-516 },
- {  59,-516 }, {  60,-516 }, {  61,-516 }, {  62,-516 }, {  63,-516 },
- {  64,-516 }, {  65,-516 }, {  66,-516 }, {  67,-516 }, {  68,-516 },
- {  69,-516 }, {  70,-516 }, {  71,-516 }, {  72,-516 }, {  73,-516 },
- {  74,-516 }, {  75,-516 }, {  76,-516 }, {  77,-516 }, {  78,-516 },
- {  79,-516 }, {  80,-516 }, {  81,-516 }, {  82,-516 }, {  83,-516 },
-
- {  84,-516 }, {  85,-516 }, {  86,-516 }, {  87,-516 }, {  88,-516 },
- {  89,-516 }, {  90,-516 }, {  91,-516 }, {  92,-516 }, {  93,-516 },
- {  94,-516 }, {  95,-516 }, {  96,-516 }, {  97,-516 }, {  98,-516 },
- {  99,-516 }, { 100,-516 }, { 101,-516 }, { 102,-516 }, { 103,-516 },
- { 104,-516 }, { 105,-516 }, { 106,-516 }, { 107,-516 }, { 108,-516 },
- { 109,-516 }, { 110,-516 }, { 111,-516 }, { 112,-516 }, { 113,-516 },
- { 114,-516 }, { 115,-516 }, { 116,-516 }, { 117,-516 }, { 118,-516 },
- { 119,-516 }, { 120,-516 }, { 121,-516 }, { 122,-516 }, { 123,-516 },
- { 124,-516 }, { 125,-516 }, { 126,-516 }, { 127,-516 }, { 128,-516 },
- { 129,-516 }, { 130,-516 }, { 131,-516 }, { 132,-516 }, { 133,-516 },
-
- { 134,-516 }, { 135,-516 }, { 136,-516 }, { 137,-516 }, { 138,-516 },
- { 139,-516 }, { 140,-516 }, { 141,-516 }, { 142,-516 }, { 143,-516 },
- { 144,-516 }, { 145,-516 }, { 146,-516 }, { 147,-516 }, { 148,-516 },
- { 149,-516 }, { 150,-516 }, { 151,-516 }, { 152,-516 }, { 153,-516 },
- { 154,-516 }, { 155,-516 }, { 156,-516 }, { 157,-516 }, { 158,-516 },
- { 159,-516 }, { 160,-516 }, { 161,-516 }, { 162,-516 }, { 163,-516 },
- { 164,-516 }, { 165,-516 }, { 166,-516 }, { 167,-516 }, { 168,-516 },
- { 169,-516 }, { 170,-516 }, { 171,-516 }, { 172,-516 }, { 173,-516 },
- { 174,-516 }, { 175,-516 }, { 176,-516 }, { 177,-516 }, { 178,-516 },
- { 179,-516 }, { 180,-516 }, { 181,-516 }, { 182,-516 }, { 183,-516 },
-
- { 184,-516 }, { 185,-516 }, { 186,-516 }, { 187,-516 }, { 188,-516 },
- { 189,-516 }, { 190,-516 }, { 191,-516 }, { 192,-516 }, { 193,-516 },
- { 194,-516 }, { 195,-516 }, { 196,-516 }, { 197,-516 }, { 198,-516 },
- { 199,-516 }, { 200,-516 }, { 201,-516 }, { 202,-516 }, { 203,-516 },
- { 204,-516 }, { 205,-516 }, { 206,-516 }, { 207,-516 }, { 208,-516 },
- { 209,-516 }, { 210,-516 }, { 211,-516 }, { 212,-516 }, { 213,-516 },
- { 214,-516 }, { 215,-516 }, { 216,-516 }, { 217,-516 }, { 218,-516 },
- { 219,-516 }, { 220,-516 }, { 221,-516 }, { 222,-516 }, { 223,-516 },
- { 224,-516 }, { 225,-516 }, { 226,-516 }, { 227,-516 }, { 228,-516 },
- { 229,-516 }, { 230,-516 }, { 231,-516 }, { 232,-516 }, { 233,-516 },
-
- { 234,-516 }, { 235,-516 }, { 236,-516 }, { 237,-516 }, { 238,-516 },
- { 239,-516 }, { 240,-516 }, { 241,-516 }, { 242,-516 }, { 243,-516 },
- { 244,-516 }, { 245,-516 }, { 246,-516 }, { 247,-516 }, { 248,-516 },
- { 249,-516 }, { 250,-516 }, { 251,-516 }, { 252,-516 }, { 253,-516 },
- { 254,-516 }, { 255,-516 }, { 256,-516 }, {   0,  37 }, {   0,12676 },
+ { 256,-258 }, {   0,   3 }, {   0,1371 }, {   0,  59 }, {   0,1369 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  37 }, {   0,12653 }, {   0,   0 }, {   0,   0 },
-
+ {   0,  63 }, {   0,1347 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48,4570 }, {  49,4570 }, {  50,4570 },
- {  51,4570 }, {  52,4570 }, {  53,4570 }, {  54,4570 }, {  55,4570 },
- {  56,4570 }, {  57,4570 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,4570 },
- {  66,4570 }, {  67,4570 }, {  68,4570 }, {  69,4570 }, {  70,4570 },
- {  48,4570 }, {  49,4570 }, {  50,4570 }, {  51,4570 }, {  52,4570 },
+ {  33,   0 }, {   0,   0 }, {  35,   0 }, {   0,   0 }, {  37,   0 },
+ {  38,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  42,   0 },
+ {  43,   0 }, {   0,   0 }, {  45,   0 }, {   0,   0 }, {  47,   0 },
 
- {  53,4570 }, {  54,4570 }, {  55,4570 }, {  56,4570 }, {  57,4570 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,4570 }, {  66,4570 }, {  67,4570 },
- {  68,4570 }, {  69,4570 }, {  70,4570 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  97,4570 }, {  98,4570 }, {  99,4570 }, { 100,4570 },
- { 101,4570 }, { 102,4570 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,4570 },
- {  98,4570 }, {  99,4570 }, { 100,4570 }, { 101,4570 }, { 102,4570 },
-
- {   0,   9 }, {   0,12549 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
- {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 },
- {   9, 258 }, {  10, 516 }, {  11,   0 }, {  12, 258 }, {  13, 516 },
- {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 },
- {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 },
- {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 },
- {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 },
- {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 },
- {  39,   0 }, {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 },
- {  44,   0 }, {  45, 563 }, {  46,   0 }, {  47,   0 }, {  48,   0 },
-
- {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
- {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 },
- {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 },
- {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
- {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
- {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
- {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 },
- {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 },
- {  89,   0 }, {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 },
- {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 },
-
- {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
- { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
- { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
- { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
- { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 },
- { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 },
- { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 },
- { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 },
- { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 },
- { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
-
- { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
- { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
- { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
- { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
- { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
- { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
- { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 },
- { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 },
- { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 },
- { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
-
- { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
- { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
- { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
- { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
- { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
- { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
- { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 },
- { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 },
- { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
- { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
-
- { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
- { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,   9 }, {   0,12291 },
- {   1,-258 }, {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 },
- {   6,-258 }, {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10, 258 },
- {  11,-258 }, {  12,   0 }, {  13, 258 }, {  14,-258 }, {  15,-258 },
- {  16,-258 }, {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 },
- {  21,-258 }, {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 },
- {  26,-258 }, {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 },
- {  31,-258 }, {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 },
- {  36,-258 }, {  37,-258 }, {  38,-258 }, {  39,-258 }, {  40,-258 },
-
- {  41,-258 }, {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 305 },
- {  46,-258 }, {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 },
- {  51,-258 }, {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 },
- {  56,-258 }, {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 },
- {  61,-258 }, {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 },
- {  66,-258 }, {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 },
- {  71,-258 }, {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 },
- {  76,-258 }, {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 },
- {  81,-258 }, {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 },
- {  86,-258 }, {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 },
-
- {  91,-258 }, {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 },
- {  96,-258 }, {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 },
- { 101,-258 }, { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 },
- { 106,-258 }, { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 },
- { 111,-258 }, { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 },
- { 116,-258 }, { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 },
- { 121,-258 }, { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 },
- { 126,-258 }, { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 },
- { 131,-258 }, { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 },
- { 136,-258 }, { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 },
-
- { 141,-258 }, { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 },
- { 146,-258 }, { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 },
- { 151,-258 }, { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 },
- { 156,-258 }, { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 },
- { 161,-258 }, { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 },
- { 166,-258 }, { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 },
- { 171,-258 }, { 172,-258 }, { 173,-258 }, { 174,-258 }, { 175,-258 },
- { 176,-258 }, { 177,-258 }, { 178,-258 }, { 179,-258 }, { 180,-258 },
- { 181,-258 }, { 182,-258 }, { 183,-258 }, { 184,-258 }, { 185,-258 },
- { 186,-258 }, { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 },
-
- { 191,-258 }, { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 },
- { 196,-258 }, { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 },
- { 201,-258 }, { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 },
- { 206,-258 }, { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 },
- { 211,-258 }, { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 },
- { 216,-258 }, { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 },
- { 221,-258 }, { 222,-258 }, { 223,-258 }, { 224,-258 }, { 225,-258 },
- { 226,-258 }, { 227,-258 }, { 228,-258 }, { 229,-258 }, { 230,-258 },
- { 231,-258 }, { 232,-258 }, { 233,-258 }, { 234,-258 }, { 235,-258 },
- { 236,-258 }, { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 },
-
- { 241,-258 }, { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 },
- { 246,-258 }, { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 },
- { 251,-258 }, { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 },
- { 256,-258 }, {   0,   9 }, {   0,12033 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   9,-7240 }, {  10,-7240 }, {   0,   0 }, {  12,-7240 },
- {  13,-7240 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,-7240 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  39,-17444 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  45,-17442 }, {   0,   9 }, {   0,11986 },
- {   1,-563 }, {   2,-563 }, {   3,-563 }, {   4,-563 }, {   5,-563 },
- {   6,-563 }, {   7,-563 }, {   8,-563 }, {   9,-305 }, {  10, -47 },
- {  11,-563 }, {  12,-305 }, {  13, -47 }, {  14,-563 }, {  15,-563 },
- {  16,-563 }, {  17,-563 }, {  18,-563 }, {  19,-563 }, {  20,-563 },
- {  21,-563 }, {  22,-563 }, {  23,-563 }, {  24,-563 }, {  25,-563 },
- {  26,-563 }, {  27,-563 }, {  28,-563 }, {  29,-563 }, {  30,-563 },
- {  31,-563 }, {  32,-305 }, {  33,-563 }, {  34,-563 }, {  35,-563 },
-
- {  36,-563 }, {  37,-563 }, {  38,-563 }, {  39,-563 }, {  40,-563 },
- {  41,-563 }, {  42,-563 }, {  43,-563 }, {  44,-563 }, {  45,4007 },
- {  46,-563 }, {  47,-563 }, {  48,-563 }, {  49,-563 }, {  50,-563 },
- {  51,-563 }, {  52,-563 }, {  53,-563 }, {  54,-563 }, {  55,-563 },
- {  56,-563 }, {  57,-563 }, {  58,-563 }, {  59,-563 }, {  60,-563 },
- {  61,-563 }, {  62,-563 }, {  63,-563 }, {  64,-563 }, {  65,-563 },
- {  66,-563 }, {  67,-563 }, {  68,-563 }, {  69,-563 }, {  70,-563 },
- {  71,-563 }, {  72,-563 }, {  73,-563 }, {  74,-563 }, {  75,-563 },
- {  76,-563 }, {  77,-563 }, {  78,-563 }, {  79,-563 }, {  80,-563 },
- {  81,-563 }, {  82,-563 }, {  83,-563 }, {  84,-563 }, {  85,-563 },
-
- {  86,-563 }, {  87,-563 }, {  88,-563 }, {  89,-563 }, {  90,-563 },
- {  91,-563 }, {  92,-563 }, {  93,-563 }, {  94,-563 }, {  95,-563 },
- {  96,-563 }, {  97,-563 }, {  98,-563 }, {  99,-563 }, { 100,-563 },
- { 101,-563 }, { 102,-563 }, { 103,-563 }, { 104,-563 }, { 105,-563 },
- { 106,-563 }, { 107,-563 }, { 108,-563 }, { 109,-563 }, { 110,-563 },
- { 111,-563 }, { 112,-563 }, { 113,-563 }, { 114,-563 }, { 115,-563 },
- { 116,-563 }, { 117,-563 }, { 118,-563 }, { 119,-563 }, { 120,-563 },
- { 121,-563 }, { 122,-563 }, { 123,-563 }, { 124,-563 }, { 125,-563 },
- { 126,-563 }, { 127,-563 }, { 128,-563 }, { 129,-563 }, { 130,-563 },
- { 131,-563 }, { 132,-563 }, { 133,-563 }, { 134,-563 }, { 135,-563 },
-
- { 136,-563 }, { 137,-563 }, { 138,-563 }, { 139,-563 }, { 140,-563 },
- { 141,-563 }, { 142,-563 }, { 143,-563 }, { 144,-563 }, { 145,-563 },
- { 146,-563 }, { 147,-563 }, { 148,-563 }, { 149,-563 }, { 150,-563 },
- { 151,-563 }, { 152,-563 }, { 153,-563 }, { 154,-563 }, { 155,-563 },
- { 156,-563 }, { 157,-563 }, { 158,-563 }, { 159,-563 }, { 160,-563 },
- { 161,-563 }, { 162,-563 }, { 163,-563 }, { 164,-563 }, { 165,-563 },
- { 166,-563 }, { 167,-563 }, { 168,-563 }, { 169,-563 }, { 170,-563 },
- { 171,-563 }, { 172,-563 }, { 173,-563 }, { 174,-563 }, { 175,-563 },
- { 176,-563 }, { 177,-563 }, { 178,-563 }, { 179,-563 }, { 180,-563 },
- { 181,-563 }, { 182,-563 }, { 183,-563 }, { 184,-563 }, { 185,-563 },
-
- { 186,-563 }, { 187,-563 }, { 188,-563 }, { 189,-563 }, { 190,-563 },
- { 191,-563 }, { 192,-563 }, { 193,-563 }, { 194,-563 }, { 195,-563 },
- { 196,-563 }, { 197,-563 }, { 198,-563 }, { 199,-563 }, { 200,-563 },
- { 201,-563 }, { 202,-563 }, { 203,-563 }, { 204,-563 }, { 205,-563 },
- { 206,-563 }, { 207,-563 }, { 208,-563 }, { 209,-563 }, { 210,-563 },
- { 211,-563 }, { 212,-563 }, { 213,-563 }, { 214,-563 }, { 215,-563 },
- { 216,-563 }, { 217,-563 }, { 218,-563 }, { 219,-563 }, { 220,-563 },
- { 221,-563 }, { 222,-563 }, { 223,-563 }, { 224,-563 }, { 225,-563 },
- { 226,-563 }, { 227,-563 }, { 228,-563 }, { 229,-563 }, { 230,-563 },
- { 231,-563 }, { 232,-563 }, { 233,-563 }, { 234,-563 }, { 235,-563 },
-
- { 236,-563 }, { 237,-563 }, { 238,-563 }, { 239,-563 }, { 240,-563 },
- { 241,-563 }, { 242,-563 }, { 243,-563 }, { 244,-563 }, { 245,-563 },
- { 246,-563 }, { 247,-563 }, { 248,-563 }, { 249,-563 }, { 250,-563 },
- { 251,-563 }, { 252,-563 }, { 253,-563 }, { 254,-563 }, { 255,-563 },
- { 256,-563 }, {   0,   9 }, {   0,11728 }, {   1,-4945 }, {   2,-4945 },
- {   3,-4945 }, {   4,-4945 }, {   5,-4945 }, {   6,-4945 }, {   7,-4945 },
- {   8,-4945 }, {   9,-4687 }, {  10,-11286 }, {  11,-4945 }, {  12,-4687 },
- {  13,-11286 }, {  14,-4945 }, {  15,-4945 }, {  16,-4945 }, {  17,-4945 },
- {  18,-4945 }, {  19,-4945 }, {  20,-4945 }, {  21,-4945 }, {  22,-4945 },
- {  23,-4945 }, {  24,-4945 }, {  25,-4945 }, {  26,-4945 }, {  27,-4945 },
-
- {  28,-4945 }, {  29,-4945 }, {  30,-4945 }, {  31,-4945 }, {  32,-4687 },
- {  33,-4945 }, {  34,-4945 }, {  35,-4945 }, {  36,-4945 }, {  37,-4945 },
- {  38,-4945 }, {  39,-4945 }, {  40,-4945 }, {  41,-4945 }, {  42,-4945 },
- {  43,-4945 }, {  44,-4945 }, {  45,   0 }, {  46,-4945 }, {  47,-4945 },
- {  48,-4945 }, {  49,-4945 }, {  50,-4945 }, {  51,-4945 }, {  52,-4945 },
- {  53,-4945 }, {  54,-4945 }, {  55,-4945 }, {  56,-4945 }, {  57,-4945 },
- {  58,-4945 }, {  59,-4945 }, {  60,-4945 }, {  61,-4945 }, {  62,-4945 },
- {  63,-4945 }, {  64,-4945 }, {  65,-4945 }, {  66,-4945 }, {  67,-4945 },
- {  68,-4945 }, {  69,-4945 }, {  70,-4945 }, {  71,-4945 }, {  72,-4945 },
- {  73,-4945 }, {  74,-4945 }, {  75,-4945 }, {  76,-4945 }, {  77,-4945 },
-
- {  78,-4945 }, {  79,-4945 }, {  80,-4945 }, {  81,-4945 }, {  82,-4945 },
- {  83,-4945 }, {  84,-4945 }, {  85,-4945 }, {  86,-4945 }, {  87,-4945 },
- {  88,-4945 }, {  89,-4945 }, {  90,-4945 }, {  91,-4945 }, {  92,-4945 },
- {  93,-4945 }, {  94,-4945 }, {  95,-4945 }, {  96,-4945 }, {  97,-4945 },
- {  98,-4945 }, {  99,-4945 }, { 100,-4945 }, { 101,-4945 }, { 102,-4945 },
- { 103,-4945 }, { 104,-4945 }, { 105,-4945 }, { 106,-4945 }, { 107,-4945 },
- { 108,-4945 }, { 109,-4945 }, { 110,-4945 }, { 111,-4945 }, { 112,-4945 },
- { 113,-4945 }, { 114,-4945 }, { 115,-4945 }, { 116,-4945 }, { 117,-4945 },
- { 118,-4945 }, { 119,-4945 }, { 120,-4945 }, { 121,-4945 }, { 122,-4945 },
- { 123,-4945 }, { 124,-4945 }, { 125,-4945 }, { 126,-4945 }, { 127,-4945 },
-
- { 128,-4945 }, { 129,-4945 }, { 130,-4945 }, { 131,-4945 }, { 132,-4945 },
- { 133,-4945 }, { 134,-4945 }, { 135,-4945 }, { 136,-4945 }, { 137,-4945 },
- { 138,-4945 }, { 139,-4945 }, { 140,-4945 }, { 141,-4945 }, { 142,-4945 },
- { 143,-4945 }, { 144,-4945 }, { 145,-4945 }, { 146,-4945 }, { 147,-4945 },
- { 148,-4945 }, { 149,-4945 }, { 150,-4945 }, { 151,-4945 }, { 152,-4945 },
- { 153,-4945 }, { 154,-4945 }, { 155,-4945 }, { 156,-4945 }, { 157,-4945 },
- { 158,-4945 }, { 159,-4945 }, { 160,-4945 }, { 161,-4945 }, { 162,-4945 },
- { 163,-4945 }, { 164,-4945 }, { 165,-4945 }, { 166,-4945 }, { 167,-4945 },
- { 168,-4945 }, { 169,-4945 }, { 170,-4945 }, { 171,-4945 }, { 172,-4945 },
- { 173,-4945 }, { 174,-4945 }, { 175,-4945 }, { 176,-4945 }, { 177,-4945 },
-
- { 178,-4945 }, { 179,-4945 }, { 180,-4945 }, { 181,-4945 }, { 182,-4945 },
- { 183,-4945 }, { 184,-4945 }, { 185,-4945 }, { 186,-4945 }, { 187,-4945 },
- { 188,-4945 }, { 189,-4945 }, { 190,-4945 }, { 191,-4945 }, { 192,-4945 },
- { 193,-4945 }, { 194,-4945 }, { 195,-4945 }, { 196,-4945 }, { 197,-4945 },
- { 198,-4945 }, { 199,-4945 }, { 200,-4945 }, { 201,-4945 }, { 202,-4945 },
- { 203,-4945 }, { 204,-4945 }, { 205,-4945 }, { 206,-4945 }, { 207,-4945 },
- { 208,-4945 }, { 209,-4945 }, { 210,-4945 }, { 211,-4945 }, { 212,-4945 },
- { 213,-4945 }, { 214,-4945 }, { 215,-4945 }, { 216,-4945 }, { 217,-4945 },
- { 218,-4945 }, { 219,-4945 }, { 220,-4945 }, { 221,-4945 }, { 222,-4945 },
- { 223,-4945 }, { 224,-4945 }, { 225,-4945 }, { 226,-4945 }, { 227,-4945 },
-
- { 228,-4945 }, { 229,-4945 }, { 230,-4945 }, { 231,-4945 }, { 232,-4945 },
- { 233,-4945 }, { 234,-4945 }, { 235,-4945 }, { 236,-4945 }, { 237,-4945 },
- { 238,-4945 }, { 239,-4945 }, { 240,-4945 }, { 241,-4945 }, { 242,-4945 },
- { 243,-4945 }, { 244,-4945 }, { 245,-4945 }, { 246,-4945 }, { 247,-4945 },
- { 248,-4945 }, { 249,-4945 }, { 250,-4945 }, { 251,-4945 }, { 252,-4945 },
- { 253,-4945 }, { 254,-4945 }, { 255,-4945 }, { 256,-4945 }, {   0,  16 },
- {   0,11470 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
- {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9, 258 },
- {  10, 516 }, {  11,   0 }, {  12, 258 }, {  13, 516 }, {  14,   0 },
- {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 },
-
- {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 },
- {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 },
- {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 }, {  34,   0 },
- {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 },
- {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 },
- {  45, 563 }, {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 },
- {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
- {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 },
- {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
- {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 },
-
- {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 },
- {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 },
- {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 },
- {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 },
- {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 },
- {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 },
- { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 },
- { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 },
- { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 },
- { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 },
-
- { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 },
- { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 },
- { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 },
- { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 },
- { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 },
- { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 },
- { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 },
- { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 },
- { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 },
- { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 },
-
- { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 },
- { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 },
- { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 },
- { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 },
- { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 },
- { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 },
- { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 },
- { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 },
- { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 },
- { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 },
-
- { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 },
- { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 },
- { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 },
- { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 },
- { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 },
- { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 },
- { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 },
- { 255,   0 }, { 256,   0 }, {   0,  16 }, {   0,11212 }, {   1,-258 },
- {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 }, {   6,-258 },
- {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10, 258 }, {  11,-258 },
-
- {  12,   0 }, {  13, 258 }, {  14,-258 }, {  15,-258 }, {  16,-258 },
- {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 }, {  21,-258 },
- {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 }, {  26,-258 },
- {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 }, {  31,-258 },
- {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 }, {  36,-258 },
- {  37,-258 }, {  38,-258 }, {  39,-258 }, {  40,-258 }, {  41,-258 },
- {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 305 }, {  46,-258 },
- {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 }, {  51,-258 },
- {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 }, {  56,-258 },
- {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 }, {  61,-258 },
-
- {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 }, {  66,-258 },
- {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 }, {  71,-258 },
- {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 }, {  76,-258 },
- {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 }, {  81,-258 },
- {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 }, {  86,-258 },
- {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 }, {  91,-258 },
- {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 }, {  96,-258 },
- {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 }, { 101,-258 },
- { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 }, { 106,-258 },
- { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 }, { 111,-258 },
-
- { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 }, { 116,-258 },
- { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 }, { 121,-258 },
- { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 }, { 126,-258 },
- { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 }, { 131,-258 },
- { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 }, { 136,-258 },
- { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 }, { 141,-258 },
- { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 }, { 146,-258 },
- { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 }, { 151,-258 },
- { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 }, { 156,-258 },
- { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 }, { 161,-258 },
-
- { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 }, { 166,-258 },
- { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 }, { 171,-258 },
- { 172,-258 }, { 173,-258 }, { 174,-258 }, { 175,-258 }, { 176,-258 },
- { 177,-258 }, { 178,-258 }, { 179,-258 }, { 180,-258 }, { 181,-258 },
- { 182,-258 }, { 183,-258 }, { 184,-258 }, { 185,-258 }, { 186,-258 },
- { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 }, { 191,-258 },
- { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 }, { 196,-258 },
- { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 }, { 201,-258 },
- { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 }, { 206,-258 },
- { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 }, { 211,-258 },
-
- { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 }, { 216,-258 },
- { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 }, { 221,-258 },
- { 222,-258 }, { 223,-258 }, { 224,-258 }, { 225,-258 }, { 226,-258 },
- { 227,-258 }, { 228,-258 }, { 229,-258 }, { 230,-258 }, { 231,-258 },
- { 232,-258 }, { 233,-258 }, { 234,-258 }, { 235,-258 }, { 236,-258 },
- { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 }, { 241,-258 },
- { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 }, { 246,-258 },
- { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 }, { 251,-258 },
- { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 }, { 256,-258 },
- {   0,  16 }, {   0,10954 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,-8007 }, {  10,-8007 }, {   0,   0 }, {  12,-8007 }, {  13,-8007 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,-8007 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,-18519 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-18514 }, {   0,  16 }, {   0,10907 }, {   1,-563 },
- {   2,-563 }, {   3,-563 }, {   4,-563 }, {   5,-563 }, {   6,-563 },
-
- {   7,-563 }, {   8,-563 }, {   9,-305 }, {  10, -47 }, {  11,-563 },
- {  12,-305 }, {  13, -47 }, {  14,-563 }, {  15,-563 }, {  16,-563 },
- {  17,-563 }, {  18,-563 }, {  19,-563 }, {  20,-563 }, {  21,-563 },
- {  22,-563 }, {  23,-563 }, {  24,-563 }, {  25,-563 }, {  26,-563 },
- {  27,-563 }, {  28,-563 }, {  29,-563 }, {  30,-563 }, {  31,-563 },
- {  32,-305 }, {  33,-563 }, {  34,-563 }, {  35,-563 }, {  36,-563 },
- {  37,-563 }, {  38,-563 }, {  39,-563 }, {  40,-563 }, {  41,-563 },
- {  42,-563 }, {  43,-563 }, {  44,-563 }, {  45,3186 }, {  46,-563 },
- {  47,-563 }, {  48,-563 }, {  49,-563 }, {  50,-563 }, {  51,-563 },
- {  52,-563 }, {  53,-563 }, {  54,-563 }, {  55,-563 }, {  56,-563 },
-
- {  57,-563 }, {  58,-563 }, {  59,-563 }, {  60,-563 }, {  61,-563 },
- {  62,-563 }, {  63,-563 }, {  64,-563 }, {  65,-563 }, {  66,-563 },
- {  67,-563 }, {  68,-563 }, {  69,-563 }, {  70,-563 }, {  71,-563 },
- {  72,-563 }, {  73,-563 }, {  74,-563 }, {  75,-563 }, {  76,-563 },
- {  77,-563 }, {  78,-563 }, {  79,-563 }, {  80,-563 }, {  81,-563 },
- {  82,-563 }, {  83,-563 }, {  84,-563 }, {  85,-563 }, {  86,-563 },
- {  87,-563 }, {  88,-563 }, {  89,-563 }, {  90,-563 }, {  91,-563 },
- {  92,-563 }, {  93,-563 }, {  94,-563 }, {  95,-563 }, {  96,-563 },
- {  97,-563 }, {  98,-563 }, {  99,-563 }, { 100,-563 }, { 101,-563 },
- { 102,-563 }, { 103,-563 }, { 104,-563 }, { 105,-563 }, { 106,-563 },
-
- { 107,-563 }, { 108,-563 }, { 109,-563 }, { 110,-563 }, { 111,-563 },
- { 112,-563 }, { 113,-563 }, { 114,-563 }, { 115,-563 }, { 116,-563 },
- { 117,-563 }, { 118,-563 }, { 119,-563 }, { 120,-563 }, { 121,-563 },
- { 122,-563 }, { 123,-563 }, { 124,-563 }, { 125,-563 }, { 126,-563 },
- { 127,-563 }, { 128,-563 }, { 129,-563 }, { 130,-563 }, { 131,-563 },
- { 132,-563 }, { 133,-563 }, { 134,-563 }, { 135,-563 }, { 136,-563 },
- { 137,-563 }, { 138,-563 }, { 139,-563 }, { 140,-563 }, { 141,-563 },
- { 142,-563 }, { 143,-563 }, { 144,-563 }, { 145,-563 }, { 146,-563 },
- { 147,-563 }, { 148,-563 }, { 149,-563 }, { 150,-563 }, { 151,-563 },
- { 152,-563 }, { 153,-563 }, { 154,-563 }, { 155,-563 }, { 156,-563 },
-
- { 157,-563 }, { 158,-563 }, { 159,-563 }, { 160,-563 }, { 161,-563 },
- { 162,-563 }, { 163,-563 }, { 164,-563 }, { 165,-563 }, { 166,-563 },
- { 167,-563 }, { 168,-563 }, { 169,-563 }, { 170,-563 }, { 171,-563 },
- { 172,-563 }, { 173,-563 }, { 174,-563 }, { 175,-563 }, { 176,-563 },
- { 177,-563 }, { 178,-563 }, { 179,-563 }, { 180,-563 }, { 181,-563 },
- { 182,-563 }, { 183,-563 }, { 184,-563 }, { 185,-563 }, { 186,-563 },
- { 187,-563 }, { 188,-563 }, { 189,-563 }, { 190,-563 }, { 191,-563 },
- { 192,-563 }, { 193,-563 }, { 194,-563 }, { 195,-563 }, { 196,-563 },
- { 197,-563 }, { 198,-563 }, { 199,-563 }, { 200,-563 }, { 201,-563 },
- { 202,-563 }, { 203,-563 }, { 204,-563 }, { 205,-563 }, { 206,-563 },
-
- { 207,-563 }, { 208,-563 }, { 209,-563 }, { 210,-563 }, { 211,-563 },
- { 212,-563 }, { 213,-563 }, { 214,-563 }, { 215,-563 }, { 216,-563 },
- { 217,-563 }, { 218,-563 }, { 219,-563 }, { 220,-563 }, { 221,-563 },
- { 222,-563 }, { 223,-563 }, { 224,-563 }, { 225,-563 }, { 226,-563 },
- { 227,-563 }, { 228,-563 }, { 229,-563 }, { 230,-563 }, { 231,-563 },
- { 232,-563 }, { 233,-563 }, { 234,-563 }, { 235,-563 }, { 236,-563 },
- { 237,-563 }, { 238,-563 }, { 239,-563 }, { 240,-563 }, { 241,-563 },
- { 242,-563 }, { 243,-563 }, { 244,-563 }, { 245,-563 }, { 246,-563 },
- { 247,-563 }, { 248,-563 }, { 249,-563 }, { 250,-563 }, { 251,-563 },
- { 252,-563 }, { 253,-563 }, { 254,-563 }, { 255,-563 }, { 256,-563 },
-
- {   0,  16 }, {   0,10649 }, {   1,-4992 }, {   2,-4992 }, {   3,-4992 },
- {   4,-4992 }, {   5,-4992 }, {   6,-4992 }, {   7,-4992 }, {   8,-4992 },
- {   9,-4734 }, {  10,-11411 }, {  11,-4992 }, {  12,-4734 }, {  13,-11411 },
- {  14,-4992 }, {  15,-4992 }, {  16,-4992 }, {  17,-4992 }, {  18,-4992 },
- {  19,-4992 }, {  20,-4992 }, {  21,-4992 }, {  22,-4992 }, {  23,-4992 },
- {  24,-4992 }, {  25,-4992 }, {  26,-4992 }, {  27,-4992 }, {  28,-4992 },
- {  29,-4992 }, {  30,-4992 }, {  31,-4992 }, {  32,-4734 }, {  33,-4992 },
- {  34,-4992 }, {  35,-4992 }, {  36,-4992 }, {  37,-4992 }, {  38,-4992 },
- {  39,-4992 }, {  40,-4992 }, {  41,-4992 }, {  42,-4992 }, {  43,-4992 },
- {  44,-4992 }, {  45,   0 }, {  46,-4992 }, {  47,-4992 }, {  48,-4992 },
-
- {  49,-4992 }, {  50,-4992 }, {  51,-4992 }, {  52,-4992 }, {  53,-4992 },
- {  54,-4992 }, {  55,-4992 }, {  56,-4992 }, {  57,-4992 }, {  58,-4992 },
- {  59,-4992 }, {  60,-4992 }, {  61,-4992 }, {  62,-4992 }, {  63,-4992 },
- {  64,-4992 }, {  65,-4992 }, {  66,-4992 }, {  67,-4992 }, {  68,-4992 },
- {  69,-4992 }, {  70,-4992 }, {  71,-4992 }, {  72,-4992 }, {  73,-4992 },
- {  74,-4992 }, {  75,-4992 }, {  76,-4992 }, {  77,-4992 }, {  78,-4992 },
- {  79,-4992 }, {  80,-4992 }, {  81,-4992 }, {  82,-4992 }, {  83,-4992 },
- {  84,-4992 }, {  85,-4992 }, {  86,-4992 }, {  87,-4992 }, {  88,-4992 },
- {  89,-4992 }, {  90,-4992 }, {  91,-4992 }, {  92,-4992 }, {  93,-4992 },
- {  94,-4992 }, {  95,-4992 }, {  96,-4992 }, {  97,-4992 }, {  98,-4992 },
-
- {  99,-4992 }, { 100,-4992 }, { 101,-4992 }, { 102,-4992 }, { 103,-4992 },
- { 104,-4992 }, { 105,-4992 }, { 106,-4992 }, { 107,-4992 }, { 108,-4992 },
- { 109,-4992 }, { 110,-4992 }, { 111,-4992 }, { 112,-4992 }, { 113,-4992 },
- { 114,-4992 }, { 115,-4992 }, { 116,-4992 }, { 117,-4992 }, { 118,-4992 },
- { 119,-4992 }, { 120,-4992 }, { 121,-4992 }, { 122,-4992 }, { 123,-4992 },
- { 124,-4992 }, { 125,-4992 }, { 126,-4992 }, { 127,-4992 }, { 128,-4992 },
- { 129,-4992 }, { 130,-4992 }, { 131,-4992 }, { 132,-4992 }, { 133,-4992 },
- { 134,-4992 }, { 135,-4992 }, { 136,-4992 }, { 137,-4992 }, { 138,-4992 },
- { 139,-4992 }, { 140,-4992 }, { 141,-4992 }, { 142,-4992 }, { 143,-4992 },
- { 144,-4992 }, { 145,-4992 }, { 146,-4992 }, { 147,-4992 }, { 148,-4992 },
-
- { 149,-4992 }, { 150,-4992 }, { 151,-4992 }, { 152,-4992 }, { 153,-4992 },
- { 154,-4992 }, { 155,-4992 }, { 156,-4992 }, { 157,-4992 }, { 158,-4992 },
- { 159,-4992 }, { 160,-4992 }, { 161,-4992 }, { 162,-4992 }, { 163,-4992 },
- { 164,-4992 }, { 165,-4992 }, { 166,-4992 }, { 167,-4992 }, { 168,-4992 },
- { 169,-4992 }, { 170,-4992 }, { 171,-4992 }, { 172,-4992 }, { 173,-4992 },
- { 174,-4992 }, { 175,-4992 }, { 176,-4992 }, { 177,-4992 }, { 178,-4992 },
- { 179,-4992 }, { 180,-4992 }, { 181,-4992 }, { 182,-4992 }, { 183,-4992 },
- { 184,-4992 }, { 185,-4992 }, { 186,-4992 }, { 187,-4992 }, { 188,-4992 },
- { 189,-4992 }, { 190,-4992 }, { 191,-4992 }, { 192,-4992 }, { 193,-4992 },
- { 194,-4992 }, { 195,-4992 }, { 196,-4992 }, { 197,-4992 }, { 198,-4992 },
-
- { 199,-4992 }, { 200,-4992 }, { 201,-4992 }, { 202,-4992 }, { 203,-4992 },
- { 204,-4992 }, { 205,-4992 }, { 206,-4992 }, { 207,-4992 }, { 208,-4992 },
- { 209,-4992 }, { 210,-4992 }, { 211,-4992 }, { 212,-4992 }, { 213,-4992 },
- { 214,-4992 }, { 215,-4992 }, { 216,-4992 }, { 217,-4992 }, { 218,-4992 },
- { 219,-4992 }, { 220,-4992 }, { 221,-4992 }, { 222,-4992 }, { 223,-4992 },
- { 224,-4992 }, { 225,-4992 }, { 226,-4992 }, { 227,-4992 }, { 228,-4992 },
- { 229,-4992 }, { 230,-4992 }, { 231,-4992 }, { 232,-4992 }, { 233,-4992 },
- { 234,-4992 }, { 235,-4992 }, { 236,-4992 }, { 237,-4992 }, { 238,-4992 },
- { 239,-4992 }, { 240,-4992 }, { 241,-4992 }, { 242,-4992 }, { 243,-4992 },
- { 244,-4992 }, { 245,-4992 }, { 246,-4992 }, { 247,-4992 }, { 248,-4992 },
-
- { 249,-4992 }, { 250,-4992 }, { 251,-4992 }, { 252,-4992 }, { 253,-4992 },
- { 254,-4992 }, { 255,-4992 }, { 256,-4992 }, {   0,  22 }, {   0,10391 },
- {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 },
- {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9, 258 }, {  10, 516 },
- {  11,   0 }, {  12, 258 }, {  13, 516 }, {  14,   0 }, {  15,   0 },
- {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 },
- {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 },
- {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 },
- {  31,   0 }, {  32, 258 }, {  33,   0 }, {  34,   0 }, {  35,   0 },
- {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 }, {  40,   0 },
-
- {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45, 563 },
- {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
+ {   0,   0 }, {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 },
  {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 },
- {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 },
- {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 },
- {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 },
- {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 },
- {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 },
- {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 },
- {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 },
-
- {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 },
- {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 },
- { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 },
- { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 },
- { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 },
- { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 },
- { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 },
- { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 },
- { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 },
- { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 },
-
- { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 },
- { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 },
- { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 }, { 155,   0 },
- { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 },
- { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 },
- { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 },
- { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 },
- { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 },
- { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 },
- { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 },
-
- { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 },
- { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 },
- { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 }, { 205,   0 },
- { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 },
- { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 },
- { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 },
- { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 },
- { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 },
- { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 },
- { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 },
-
- { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 },
- { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 },
- { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 },
- { 256,   0 }, {   0,  22 }, {   0,10133 }, {   1,-258 }, {   2,-258 },
- {   3,-258 }, {   4,-258 }, {   5,-258 }, {   6,-258 }, {   7,-258 },
- {   8,-258 }, {   9,   0 }, {  10, 258 }, {  11,-258 }, {  12,   0 },
- {  13, 258 }, {  14,-258 }, {  15,-258 }, {  16,-258 }, {  17,-258 },
- {  18,-258 }, {  19,-258 }, {  20,-258 }, {  21,-258 }, {  22,-258 },
- {  23,-258 }, {  24,-258 }, {  25,-258 }, {  26,-258 }, {  27,-258 },
- {  28,-258 }, {  29,-258 }, {  30,-258 }, {  31,-258 }, {  32,   0 },
-
- {  33,-258 }, {  34,-258 }, {  35,-258 }, {  36,-258 }, {  37,-258 },
- {  38,-258 }, {  39,-258 }, {  40,-258 }, {  41,-258 }, {  42,-258 },
- {  43,-258 }, {  44,-258 }, {  45, 305 }, {  46,-258 }, {  47,-258 },
- {  48,-258 }, {  49,-258 }, {  50,-258 }, {  51,-258 }, {  52,-258 },
- {  53,-258 }, {  54,-258 }, {  55,-258 }, {  56,-258 }, {  57,-258 },
- {  58,-258 }, {  59,-258 }, {  60,-258 }, {  61,-258 }, {  62,-258 },
- {  63,-258 }, {  64,-258 }, {  65,-258 }, {  66,-258 }, {  67,-258 },
- {  68,-258 }, {  69,-258 }, {  70,-258 }, {  71,-258 }, {  72,-258 },
- {  73,-258 }, {  74,-258 }, {  75,-258 }, {  76,-258 }, {  77,-258 },
- {  78,-258 }, {  79,-258 }, {  80,-258 }, {  81,-258 }, {  82,-258 },
-
- {  83,-258 }, {  84,-258 }, {  85,-258 }, {  86,-258 }, {  87,-258 },
- {  88,-258 }, {  89,-258 }, {  90,-258 }, {  91,-258 }, {  92,-258 },
- {  93,-258 }, {  94,-258 }, {  95,-258 }, {  96,-258 }, {  97,-258 },
- {  98,-258 }, {  99,-258 }, { 100,-258 }, { 101,-258 }, { 102,-258 },
- { 103,-258 }, { 104,-258 }, { 105,-258 }, { 106,-258 }, { 107,-258 },
- { 108,-258 }, { 109,-258 }, { 110,-258 }, { 111,-258 }, { 112,-258 },
- { 113,-258 }, { 114,-258 }, { 115,-258 }, { 116,-258 }, { 117,-258 },
- { 118,-258 }, { 119,-258 }, { 120,-258 }, { 121,-258 }, { 122,-258 },
- { 123,-258 }, { 124,-258 }, { 125,-258 }, { 126,-258 }, { 127,-258 },
- { 128,-258 }, { 129,-258 }, { 130,-258 }, { 131,-258 }, { 132,-258 },
-
- { 133,-258 }, { 134,-258 }, { 135,-258 }, { 136,-258 }, { 137,-258 },
- { 138,-258 }, { 139,-258 }, { 140,-258 }, { 141,-258 }, { 142,-258 },
- { 143,-258 }, { 144,-258 }, { 145,-258 }, { 146,-258 }, { 147,-258 },
- { 148,-258 }, { 149,-258 }, { 150,-258 }, { 151,-258 }, { 152,-258 },
- { 153,-258 }, { 154,-258 }, { 155,-258 }, { 156,-258 }, { 157,-258 },
- { 158,-258 }, { 159,-258 }, { 160,-258 }, { 161,-258 }, { 162,-258 },
- { 163,-258 }, { 164,-258 }, { 165,-258 }, { 166,-258 }, { 167,-258 },
- { 168,-258 }, { 169,-258 }, { 170,-258 }, { 171,-258 }, { 172,-258 },
- { 173,-258 }, { 174,-258 }, { 175,-258 }, { 176,-258 }, { 177,-258 },
- { 178,-258 }, { 179,-258 }, { 180,-258 }, { 181,-258 }, { 182,-258 },
-
- { 183,-258 }, { 184,-258 }, { 185,-258 }, { 186,-258 }, { 187,-258 },
- { 188,-258 }, { 189,-258 }, { 190,-258 }, { 191,-258 }, { 192,-258 },
- { 193,-258 }, { 194,-258 }, { 195,-258 }, { 196,-258 }, { 197,-258 },
- { 198,-258 }, { 199,-258 }, { 200,-258 }, { 201,-258 }, { 202,-258 },
- { 203,-258 }, { 204,-258 }, { 205,-258 }, { 206,-258 }, { 207,-258 },
- { 208,-258 }, { 209,-258 }, { 210,-258 }, { 211,-258 }, { 212,-258 },
- { 213,-258 }, { 214,-258 }, { 215,-258 }, { 216,-258 }, { 217,-258 },
- { 218,-258 }, { 219,-258 }, { 220,-258 }, { 221,-258 }, { 222,-258 },
- { 223,-258 }, { 224,-258 }, { 225,-258 }, { 226,-258 }, { 227,-258 },
- { 228,-258 }, { 229,-258 }, { 230,-258 }, { 231,-258 }, { 232,-258 },
-
- { 233,-258 }, { 234,-258 }, { 235,-258 }, { 236,-258 }, { 237,-258 },
- { 238,-258 }, { 239,-258 }, { 240,-258 }, { 241,-258 }, { 242,-258 },
- { 243,-258 }, { 244,-258 }, { 245,-258 }, { 246,-258 }, { 247,-258 },
- { 248,-258 }, { 249,-258 }, { 250,-258 }, { 251,-258 }, { 252,-258 },
- { 253,-258 }, { 254,-258 }, { 255,-258 }, { 256,-258 }, {   0,  22 },
- {   0,9875 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,-8707 },
- {  10,-8707 }, {   0,   0 }, {  12,-8707 }, {  13,-8707 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,-8707 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,-19584 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  45,-19557 }, {   0,  22 }, {   0,9828 }, {   1,-563 }, {   2,-563 },
- {   3,-563 }, {   4,-563 }, {   5,-563 }, {   6,-563 }, {   7,-563 },
- {   8,-563 }, {   9,-305 }, {  10, -47 }, {  11,-563 }, {  12,-305 },
- {  13, -47 }, {  14,-563 }, {  15,-563 }, {  16,-563 }, {  17,-563 },
- {  18,-563 }, {  19,-563 }, {  20,-563 }, {  21,-563 }, {  22,-563 },
- {  23,-563 }, {  24,-563 }, {  25,-563 }, {  26,-563 }, {  27,-563 },
-
- {  28,-563 }, {  29,-563 }, {  30,-563 }, {  31,-563 }, {  32,-305 },
- {  33,-563 }, {  34,-563 }, {  35,-563 }, {  36,-563 }, {  37,-563 },
- {  38,-563 }, {  39,-563 }, {  40,-563 }, {  41,-563 }, {  42,-563 },
- {  43,-563 }, {  44,-563 }, {  45,2365 }, {  46,-563 }, {  47,-563 },
- {  48,-563 }, {  49,-563 }, {  50,-563 }, {  51,-563 }, {  52,-563 },
- {  53,-563 }, {  54,-563 }, {  55,-563 }, {  56,-563 }, {  57,-563 },
- {  58,-563 }, {  59,-563 }, {  60,-563 }, {  61,-563 }, {  62,-563 },
- {  63,-563 }, {  64,-563 }, {  65,-563 }, {  66,-563 }, {  67,-563 },
- {  68,-563 }, {  69,-563 }, {  70,-563 }, {  71,-563 }, {  72,-563 },
- {  73,-563 }, {  74,-563 }, {  75,-563 }, {  76,-563 }, {  77,-563 },
-
- {  78,-563 }, {  79,-563 }, {  80,-563 }, {  81,-563 }, {  82,-563 },
- {  83,-563 }, {  84,-563 }, {  85,-563 }, {  86,-563 }, {  87,-563 },
- {  88,-563 }, {  89,-563 }, {  90,-563 }, {  91,-563 }, {  92,-563 },
- {  93,-563 }, {  94,-563 }, {  95,-563 }, {  96,-563 }, {  97,-563 },
- {  98,-563 }, {  99,-563 }, { 100,-563 }, { 101,-563 }, { 102,-563 },
- { 103,-563 }, { 104,-563 }, { 105,-563 }, { 106,-563 }, { 107,-563 },
- { 108,-563 }, { 109,-563 }, { 110,-563 }, { 111,-563 }, { 112,-563 },
- { 113,-563 }, { 114,-563 }, { 115,-563 }, { 116,-563 }, { 117,-563 },
- { 118,-563 }, { 119,-563 }, { 120,-563 }, { 121,-563 }, { 122,-563 },
- { 123,-563 }, { 124,-563 }, { 125,-563 }, { 126,-563 }, { 127,-563 },
-
- { 128,-563 }, { 129,-563 }, { 130,-563 }, { 131,-563 }, { 132,-563 },
- { 133,-563 }, { 134,-563 }, { 135,-563 }, { 136,-563 }, { 137,-563 },
- { 138,-563 }, { 139,-563 }, { 140,-563 }, { 141,-563 }, { 142,-563 },
- { 143,-563 }, { 144,-563 }, { 145,-563 }, { 146,-563 }, { 147,-563 },
- { 148,-563 }, { 149,-563 }, { 150,-563 }, { 151,-563 }, { 152,-563 },
- { 153,-563 }, { 154,-563 }, { 155,-563 }, { 156,-563 }, { 157,-563 },
- { 158,-563 }, { 159,-563 }, { 160,-563 }, { 161,-563 }, { 162,-563 },
- { 163,-563 }, { 164,-563 }, { 165,-563 }, { 166,-563 }, { 167,-563 },
- { 168,-563 }, { 169,-563 }, { 170,-563 }, { 171,-563 }, { 172,-563 },
- { 173,-563 }, { 174,-563 }, { 175,-563 }, { 176,-563 }, { 177,-563 },
-
- { 178,-563 }, { 179,-563 }, { 180,-563 }, { 181,-563 }, { 182,-563 },
- { 183,-563 }, { 184,-563 }, { 185,-563 }, { 186,-563 }, { 187,-563 },
- { 188,-563 }, { 189,-563 }, { 190,-563 }, { 191,-563 }, { 192,-563 },
- { 193,-563 }, { 194,-563 }, { 195,-563 }, { 196,-563 }, { 197,-563 },
- { 198,-563 }, { 199,-563 }, { 200,-563 }, { 201,-563 }, { 202,-563 },
- { 203,-563 }, { 204,-563 }, { 205,-563 }, { 206,-563 }, { 207,-563 },
- { 208,-563 }, { 209,-563 }, { 210,-563 }, { 211,-563 }, { 212,-563 },
- { 213,-563 }, { 214,-563 }, { 215,-563 }, { 216,-563 }, { 217,-563 },
- { 218,-563 }, { 219,-563 }, { 220,-563 }, { 221,-563 }, { 222,-563 },
- { 223,-563 }, { 224,-563 }, { 225,-563 }, { 226,-563 }, { 227,-563 },
-
- { 228,-563 }, { 229,-563 }, { 230,-563 }, { 231,-563 }, { 232,-563 },
- { 233,-563 }, { 234,-563 }, { 235,-563 }, { 236,-563 }, { 237,-563 },
- { 238,-563 }, { 239,-563 }, { 240,-563 }, { 241,-563 }, { 242,-563 },
- { 243,-563 }, { 244,-563 }, { 245,-563 }, { 246,-563 }, { 247,-563 },
- { 248,-563 }, { 249,-563 }, { 250,-563 }, { 251,-563 }, { 252,-563 },
- { 253,-563 }, { 254,-563 }, { 255,-563 }, { 256,-563 }, {   0,  22 },
- {   0,9570 }, {   1,-5039 }, {   2,-5039 }, {   3,-5039 }, {   4,-5039 },
- {   5,-5039 }, {   6,-5039 }, {   7,-5039 }, {   8,-5039 }, {   9,-4781 },
- {  10,-12180 }, {  11,-5039 }, {  12,-4781 }, {  13,-12180 }, {  14,-5039 },
- {  15,-5039 }, {  16,-5039 }, {  17,-5039 }, {  18,-5039 }, {  19,-5039 },
-
- {  20,-5039 }, {  21,-5039 }, {  22,-5039 }, {  23,-5039 }, {  24,-5039 },
- {  25,-5039 }, {  26,-5039 }, {  27,-5039 }, {  28,-5039 }, {  29,-5039 },
- {  30,-5039 }, {  31,-5039 }, {  32,-4781 }, {  33,-5039 }, {  34,-5039 },
- {  35,-5039 }, {  36,-5039 }, {  37,-5039 }, {  38,-5039 }, {  39,-5039 },
- {  40,-5039 }, {  41,-5039 }, {  42,-5039 }, {  43,-5039 }, {  44,-5039 },
- {  45,   0 }, {  46,-5039 }, {  47,-5039 }, {  48,-5039 }, {  49,-5039 },
- {  50,-5039 }, {  51,-5039 }, {  52,-5039 }, {  53,-5039 }, {  54,-5039 },
- {  55,-5039 }, {  56,-5039 }, {  57,-5039 }, {  58,-5039 }, {  59,-5039 },
- {  60,-5039 }, {  61,-5039 }, {  62,-5039 }, {  63,-5039 }, {  64,-5039 },
- {  65,-5039 }, {  66,-5039 }, {  67,-5039 }, {  68,-5039 }, {  69,-5039 },
-
- {  70,-5039 }, {  71,-5039 }, {  72,-5039 }, {  73,-5039 }, {  74,-5039 },
- {  75,-5039 }, {  76,-5039 }, {  77,-5039 }, {  78,-5039 }, {  79,-5039 },
- {  80,-5039 }, {  81,-5039 }, {  82,-5039 }, {  83,-5039 }, {  84,-5039 },
- {  85,-5039 }, {  86,-5039 }, {  87,-5039 }, {  88,-5039 }, {  89,-5039 },
- {  90,-5039 }, {  91,-5039 }, {  92,-5039 }, {  93,-5039 }, {  94,-5039 },
- {  95,-5039 }, {  96,-5039 }, {  97,-5039 }, {  98,-5039 }, {  99,-5039 },
- { 100,-5039 }, { 101,-5039 }, { 102,-5039 }, { 103,-5039 }, { 104,-5039 },
- { 105,-5039 }, { 106,-5039 }, { 107,-5039 }, { 108,-5039 }, { 109,-5039 },
- { 110,-5039 }, { 111,-5039 }, { 112,-5039 }, { 113,-5039 }, { 114,-5039 },
- { 115,-5039 }, { 116,-5039 }, { 117,-5039 }, { 118,-5039 }, { 119,-5039 },
-
- { 120,-5039 }, { 121,-5039 }, { 122,-5039 }, { 123,-5039 }, { 124,-5039 },
- { 125,-5039 }, { 126,-5039 }, { 127,-5039 }, { 128,-5039 }, { 129,-5039 },
- { 130,-5039 }, { 131,-5039 }, { 132,-5039 }, { 133,-5039 }, { 134,-5039 },
- { 135,-5039 }, { 136,-5039 }, { 137,-5039 }, { 138,-5039 }, { 139,-5039 },
- { 140,-5039 }, { 141,-5039 }, { 142,-5039 }, { 143,-5039 }, { 144,-5039 },
- { 145,-5039 }, { 146,-5039 }, { 147,-5039 }, { 148,-5039 }, { 149,-5039 },
- { 150,-5039 }, { 151,-5039 }, { 152,-5039 }, { 153,-5039 }, { 154,-5039 },
- { 155,-5039 }, { 156,-5039 }, { 157,-5039 }, { 158,-5039 }, { 159,-5039 },
- { 160,-5039 }, { 161,-5039 }, { 162,-5039 }, { 163,-5039 }, { 164,-5039 },
- { 165,-5039 }, { 166,-5039 }, { 167,-5039 }, { 168,-5039 }, { 169,-5039 },
-
- { 170,-5039 }, { 171,-5039 }, { 172,-5039 }, { 173,-5039 }, { 174,-5039 },
- { 175,-5039 }, { 176,-5039 }, { 177,-5039 }, { 178,-5039 }, { 179,-5039 },
- { 180,-5039 }, { 181,-5039 }, { 182,-5039 }, { 183,-5039 }, { 184,-5039 },
- { 185,-5039 }, { 186,-5039 }, { 187,-5039 }, { 188,-5039 }, { 189,-5039 },
- { 190,-5039 }, { 191,-5039 }, { 192,-5039 }, { 193,-5039 }, { 194,-5039 },
- { 195,-5039 }, { 196,-5039 }, { 197,-5039 }, { 198,-5039 }, { 199,-5039 },
- { 200,-5039 }, { 201,-5039 }, { 202,-5039 }, { 203,-5039 }, { 204,-5039 },
- { 205,-5039 }, { 206,-5039 }, { 207,-5039 }, { 208,-5039 }, { 209,-5039 },
- { 210,-5039 }, { 211,-5039 }, { 212,-5039 }, { 213,-5039 }, { 214,-5039 },
- { 215,-5039 }, { 216,-5039 }, { 217,-5039 }, { 218,-5039 }, { 219,-5039 },
-
- { 220,-5039 }, { 221,-5039 }, { 222,-5039 }, { 223,-5039 }, { 224,-5039 },
- { 225,-5039 }, { 226,-5039 }, { 227,-5039 }, { 228,-5039 }, { 229,-5039 },
- { 230,-5039 }, { 231,-5039 }, { 232,-5039 }, { 233,-5039 }, { 234,-5039 },
- { 235,-5039 }, { 236,-5039 }, { 237,-5039 }, { 238,-5039 }, { 239,-5039 },
- { 240,-5039 }, { 241,-5039 }, { 242,-5039 }, { 243,-5039 }, { 244,-5039 },
- { 245,-5039 }, { 246,-5039 }, { 247,-5039 }, { 248,-5039 }, { 249,-5039 },
- { 250,-5039 }, { 251,-5039 }, { 252,-5039 }, { 253,-5039 }, { 254,-5039 },
- { 255,-5039 }, { 256,-5039 }, {   0,  37 }, {   0,9312 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  37 }, {   0,9289 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  48,2107 }, {  49,2107 }, {  50,2107 }, {  51,2107 },
- {  52,2107 }, {  53,2107 }, {  54,2107 }, {  55,2107 }, {  56,2107 },
- {  57,2107 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,2107 }, {  66,2107 },
- {  67,2107 }, {  68,2107 }, {  69,2107 }, {  70,2107 }, {  48,-19314 },
- {  49,-19314 }, {  50,-19314 }, {  51,-19314 }, {  52,-19314 }, {  53,-19314 },
- {  54,-19314 }, {  55,-19314 }, {  56,-19314 }, {  57,-19314 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  65,-19314 }, {  66,-19314 }, {  67,-19314 }, {  68,-19314 },
- {  69,-19314 }, {  70,-19314 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  97,2107 }, {  98,2107 }, {  99,2107 }, { 100,2107 }, { 101,2107 },
- { 102,2107 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-19314 }, {  98,-19314 },
- {  99,-19314 }, { 100,-19314 }, { 101,-19314 }, { 102,-19314 }, {   0,  24 },
- {   0,9185 }, {   1,   0 }, {   2,   0 }, {   3,   0 }, {   4,   0 },
- {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 }, {   9, 258 },
- {  10, 516 }, {  11,   0 }, {  12, 258 }, {  13, 516 }, {  14,   0 },
- {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 }, {  19,   0 },
- {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 }, {  24,   0 },
- {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 }, {  29,   0 },
- {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 }, {  34,   0 },
-
- {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 }, {  39,   0 },
- {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 }, {  44,   0 },
- {  45, 563 }, {  46,   0 }, {  47,   0 }, {  48,   0 }, {  49,   0 },
- {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 }, {  54,   0 },
- {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 }, {  59,   0 },
- {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 },
- {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 }, {  69,   0 },
- {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 }, {  74,   0 },
- {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 }, {  79,   0 },
- {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 }, {  84,   0 },
-
- {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 }, {  89,   0 },
- {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 }, {  94,   0 },
- {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 }, {  99,   0 },
- { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 }, { 104,   0 },
- { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 }, { 109,   0 },
- { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 }, { 114,   0 },
- { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 }, { 119,   0 },
- { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 }, { 124,   0 },
- { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 }, { 129,   0 },
- { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 }, { 134,   0 },
-
- { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 }, { 139,   0 },
- { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 }, { 144,   0 },
- { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 }, { 149,   0 },
- { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 }, { 154,   0 },
- { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 }, { 159,   0 },
- { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 }, { 164,   0 },
- { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 }, { 169,   0 },
- { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 }, { 174,   0 },
- { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 }, { 179,   0 },
- { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 }, { 184,   0 },
-
- { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 }, { 189,   0 },
- { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 }, { 194,   0 },
- { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 }, { 199,   0 },
- { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 }, { 204,   0 },
- { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 }, { 209,   0 },
- { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 }, { 214,   0 },
- { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 }, { 219,   0 },
- { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 }, { 224,   0 },
- { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 }, { 229,   0 },
- { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 }, { 234,   0 },
-
- { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 }, { 239,   0 },
- { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 }, { 244,   0 },
- { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 }, { 249,   0 },
- { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 }, { 254,   0 },
- { 255,   0 }, { 256,   0 }, {   0,  24 }, {   0,8927 }, {   1,-258 },
- {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 }, {   6,-258 },
- {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10, 258 }, {  11,-258 },
- {  12,   0 }, {  13, 258 }, {  14,-258 }, {  15,-258 }, {  16,-258 },
- {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 }, {  21,-258 },
- {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 }, {  26,-258 },
-
- {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 }, {  31,-258 },
- {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 }, {  36,-258 },
- {  37,-258 }, {  38,-258 }, {  39,-258 }, {  40,-258 }, {  41,-258 },
- {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 305 }, {  46,-258 },
- {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 }, {  51,-258 },
- {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 }, {  56,-258 },
- {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 }, {  61,-258 },
- {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 }, {  66,-258 },
- {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 }, {  71,-258 },
- {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 }, {  76,-258 },
-
- {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 }, {  81,-258 },
- {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 }, {  86,-258 },
- {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 }, {  91,-258 },
- {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 }, {  96,-258 },
- {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 }, { 101,-258 },
- { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 }, { 106,-258 },
- { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 }, { 111,-258 },
- { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 }, { 116,-258 },
- { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 }, { 121,-258 },
- { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 }, { 126,-258 },
-
- { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 }, { 131,-258 },
- { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 }, { 136,-258 },
- { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 }, { 141,-258 },
- { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 }, { 146,-258 },
- { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 }, { 151,-258 },
- { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 }, { 156,-258 },
- { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 }, { 161,-258 },
- { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 }, { 166,-258 },
- { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 }, { 171,-258 },
- { 172,-258 }, { 173,-258 }, { 174,-258 }, { 175,-258 }, { 176,-258 },
-
- { 177,-258 }, { 178,-258 }, { 179,-258 }, { 180,-258 }, { 181,-258 },
- { 182,-258 }, { 183,-258 }, { 184,-258 }, { 185,-258 }, { 186,-258 },
- { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 }, { 191,-258 },
- { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 }, { 196,-258 },
- { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 }, { 201,-258 },
- { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 }, { 206,-258 },
- { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 }, { 211,-258 },
- { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 }, { 216,-258 },
- { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 }, { 221,-258 },
- { 222,-258 }, { 223,-258 }, { 224,-258 }, { 225,-258 }, { 226,-258 },
-
- { 227,-258 }, { 228,-258 }, { 229,-258 }, { 230,-258 }, { 231,-258 },
- { 232,-258 }, { 233,-258 }, { 234,-258 }, { 235,-258 }, { 236,-258 },
- { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 }, { 241,-258 },
- { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 }, { 246,-258 },
- { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 }, { 251,-258 },
- { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 }, { 256,-258 },
- {   0,  24 }, {   0,8669 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,-8952 }, {  10,-8952 }, {   0,   0 }, {  12,-8952 }, {  13,-8952 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,-8952 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,-20790 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-20726 }, {   0,  24 }, {   0,8622 }, {   1,-563 },
- {   2,-563 }, {   3,-563 }, {   4,-563 }, {   5,-563 }, {   6,-563 },
- {   7,-563 }, {   8,-563 }, {   9,-305 }, {  10, -47 }, {  11,-563 },
- {  12,-305 }, {  13, -47 }, {  14,-563 }, {  15,-563 }, {  16,-563 },
- {  17,-563 }, {  18,-563 }, {  19,-563 }, {  20,-563 }, {  21,-563 },
-
- {  22,-563 }, {  23,-563 }, {  24,-563 }, {  25,-563 }, {  26,-563 },
- {  27,-563 }, {  28,-563 }, {  29,-563 }, {  30,-563 }, {  31,-563 },
- {  32,-305 }, {  33,-563 }, {  34,-563 }, {  35,-563 }, {  36,-563 },
- {  37,-563 }, {  38,-563 }, {  39,-563 }, {  40,-563 }, {  41,-563 },
- {  42,-563 }, {  43,-563 }, {  44,-563 }, {  45,1521 }, {  46,-563 },
- {  47,-563 }, {  48,-563 }, {  49,-563 }, {  50,-563 }, {  51,-563 },
- {  52,-563 }, {  53,-563 }, {  54,-563 }, {  55,-563 }, {  56,-563 },
- {  57,-563 }, {  58,-563 }, {  59,-563 }, {  60,-563 }, {  61,-563 },
- {  62,-563 }, {  63,-563 }, {  64,-563 }, {  65,-563 }, {  66,-563 },
- {  67,-563 }, {  68,-563 }, {  69,-563 }, {  70,-563 }, {  71,-563 },
-
- {  72,-563 }, {  73,-563 }, {  74,-563 }, {  75,-563 }, {  76,-563 },
- {  77,-563 }, {  78,-563 }, {  79,-563 }, {  80,-563 }, {  81,-563 },
- {  82,-563 }, {  83,-563 }, {  84,-563 }, {  85,-563 }, {  86,-563 },
- {  87,-563 }, {  88,-563 }, {  89,-563 }, {  90,-563 }, {  91,-563 },
- {  92,-563 }, {  93,-563 }, {  94,-563 }, {  95,-563 }, {  96,-563 },
- {  97,-563 }, {  98,-563 }, {  99,-563 }, { 100,-563 }, { 101,-563 },
- { 102,-563 }, { 103,-563 }, { 104,-563 }, { 105,-563 }, { 106,-563 },
- { 107,-563 }, { 108,-563 }, { 109,-563 }, { 110,-563 }, { 111,-563 },
- { 112,-563 }, { 113,-563 }, { 114,-563 }, { 115,-563 }, { 116,-563 },
- { 117,-563 }, { 118,-563 }, { 119,-563 }, { 120,-563 }, { 121,-563 },
-
- { 122,-563 }, { 123,-563 }, { 124,-563 }, { 125,-563 }, { 126,-563 },
- { 127,-563 }, { 128,-563 }, { 129,-563 }, { 130,-563 }, { 131,-563 },
- { 132,-563 }, { 133,-563 }, { 134,-563 }, { 135,-563 }, { 136,-563 },
- { 137,-563 }, { 138,-563 }, { 139,-563 }, { 140,-563 }, { 141,-563 },
- { 142,-563 }, { 143,-563 }, { 144,-563 }, { 145,-563 }, { 146,-563 },
- { 147,-563 }, { 148,-563 }, { 149,-563 }, { 150,-563 }, { 151,-563 },
- { 152,-563 }, { 153,-563 }, { 154,-563 }, { 155,-563 }, { 156,-563 },
- { 157,-563 }, { 158,-563 }, { 159,-563 }, { 160,-563 }, { 161,-563 },
- { 162,-563 }, { 163,-563 }, { 164,-563 }, { 165,-563 }, { 166,-563 },
- { 167,-563 }, { 168,-563 }, { 169,-563 }, { 170,-563 }, { 171,-563 },
-
- { 172,-563 }, { 173,-563 }, { 174,-563 }, { 175,-563 }, { 176,-563 },
- { 177,-563 }, { 178,-563 }, { 179,-563 }, { 180,-563 }, { 181,-563 },
- { 182,-563 }, { 183,-563 }, { 184,-563 }, { 185,-563 }, { 186,-563 },
- { 187,-563 }, { 188,-563 }, { 189,-563 }, { 190,-563 }, { 191,-563 },
- { 192,-563 }, { 193,-563 }, { 194,-563 }, { 195,-563 }, { 196,-563 },
- { 197,-563 }, { 198,-563 }, { 199,-563 }, { 200,-563 }, { 201,-563 },
- { 202,-563 }, { 203,-563 }, { 204,-563 }, { 205,-563 }, { 206,-563 },
- { 207,-563 }, { 208,-563 }, { 209,-563 }, { 210,-563 }, { 211,-563 },
- { 212,-563 }, { 213,-563 }, { 214,-563 }, { 215,-563 }, { 216,-563 },
- { 217,-563 }, { 218,-563 }, { 219,-563 }, { 220,-563 }, { 221,-563 },
-
- { 222,-563 }, { 223,-563 }, { 224,-563 }, { 225,-563 }, { 226,-563 },
- { 227,-563 }, { 228,-563 }, { 229,-563 }, { 230,-563 }, { 231,-563 },
- { 232,-563 }, { 233,-563 }, { 234,-563 }, { 235,-563 }, { 236,-563 },
- { 237,-563 }, { 238,-563 }, { 239,-563 }, { 240,-563 }, { 241,-563 },
- { 242,-563 }, { 243,-563 }, { 244,-563 }, { 245,-563 }, { 246,-563 },
- { 247,-563 }, { 248,-563 }, { 249,-563 }, { 250,-563 }, { 251,-563 },
- { 252,-563 }, { 253,-563 }, { 254,-563 }, { 255,-563 }, { 256,-563 },
- {   0,  24 }, {   0,8364 }, {   1,-5086 }, {   2,-5086 }, {   3,-5086 },
- {   4,-5086 }, {   5,-5086 }, {   6,-5086 }, {   7,-5086 }, {   8,-5086 },
- {   9,-4828 }, {  10,-12170 }, {  11,-5086 }, {  12,-4828 }, {  13,-12170 },
-
- {  14,-5086 }, {  15,-5086 }, {  16,-5086 }, {  17,-5086 }, {  18,-5086 },
- {  19,-5086 }, {  20,-5086 }, {  21,-5086 }, {  22,-5086 }, {  23,-5086 },
- {  24,-5086 }, {  25,-5086 }, {  26,-5086 }, {  27,-5086 }, {  28,-5086 },
- {  29,-5086 }, {  30,-5086 }, {  31,-5086 }, {  32,-4828 }, {  33,-5086 },
- {  34,-5086 }, {  35,-5086 }, {  36,-5086 }, {  37,-5086 }, {  38,-5086 },
- {  39,-5086 }, {  40,-5086 }, {  41,-5086 }, {  42,-5086 }, {  43,-5086 },
- {  44,-5086 }, {  45,   0 }, {  46,-5086 }, {  47,-5086 }, {  48,-5086 },
- {  49,-5086 }, {  50,-5086 }, {  51,-5086 }, {  52,-5086 }, {  53,-5086 },
- {  54,-5086 }, {  55,-5086 }, {  56,-5086 }, {  57,-5086 }, {  58,-5086 },
- {  59,-5086 }, {  60,-5086 }, {  61,-5086 }, {  62,-5086 }, {  63,-5086 },
-
- {  64,-5086 }, {  65,-5086 }, {  66,-5086 }, {  67,-5086 }, {  68,-5086 },
- {  69,-5086 }, {  70,-5086 }, {  71,-5086 }, {  72,-5086 }, {  73,-5086 },
- {  74,-5086 }, {  75,-5086 }, {  76,-5086 }, {  77,-5086 }, {  78,-5086 },
- {  79,-5086 }, {  80,-5086 }, {  81,-5086 }, {  82,-5086 }, {  83,-5086 },
- {  84,-5086 }, {  85,-5086 }, {  86,-5086 }, {  87,-5086 }, {  88,-5086 },
- {  89,-5086 }, {  90,-5086 }, {  91,-5086 }, {  92,-5086 }, {  93,-5086 },
- {  94,-5086 }, {  95,-5086 }, {  96,-5086 }, {  97,-5086 }, {  98,-5086 },
- {  99,-5086 }, { 100,-5086 }, { 101,-5086 }, { 102,-5086 }, { 103,-5086 },
- { 104,-5086 }, { 105,-5086 }, { 106,-5086 }, { 107,-5086 }, { 108,-5086 },
- { 109,-5086 }, { 110,-5086 }, { 111,-5086 }, { 112,-5086 }, { 113,-5086 },
-
- { 114,-5086 }, { 115,-5086 }, { 116,-5086 }, { 117,-5086 }, { 118,-5086 },
- { 119,-5086 }, { 120,-5086 }, { 121,-5086 }, { 122,-5086 }, { 123,-5086 },
- { 124,-5086 }, { 125,-5086 }, { 126,-5086 }, { 127,-5086 }, { 128,-5086 },
- { 129,-5086 }, { 130,-5086 }, { 131,-5086 }, { 132,-5086 }, { 133,-5086 },
- { 134,-5086 }, { 135,-5086 }, { 136,-5086 }, { 137,-5086 }, { 138,-5086 },
- { 139,-5086 }, { 140,-5086 }, { 141,-5086 }, { 142,-5086 }, { 143,-5086 },
- { 144,-5086 }, { 145,-5086 }, { 146,-5086 }, { 147,-5086 }, { 148,-5086 },
- { 149,-5086 }, { 150,-5086 }, { 151,-5086 }, { 152,-5086 }, { 153,-5086 },
- { 154,-5086 }, { 155,-5086 }, { 156,-5086 }, { 157,-5086 }, { 158,-5086 },
- { 159,-5086 }, { 160,-5086 }, { 161,-5086 }, { 162,-5086 }, { 163,-5086 },
-
- { 164,-5086 }, { 165,-5086 }, { 166,-5086 }, { 167,-5086 }, { 168,-5086 },
- { 169,-5086 }, { 170,-5086 }, { 171,-5086 }, { 172,-5086 }, { 173,-5086 },
- { 174,-5086 }, { 175,-5086 }, { 176,-5086 }, { 177,-5086 }, { 178,-5086 },
- { 179,-5086 }, { 180,-5086 }, { 181,-5086 }, { 182,-5086 }, { 183,-5086 },
- { 184,-5086 }, { 185,-5086 }, { 186,-5086 }, { 187,-5086 }, { 188,-5086 },
- { 189,-5086 }, { 190,-5086 }, { 191,-5086 }, { 192,-5086 }, { 193,-5086 },
- { 194,-5086 }, { 195,-5086 }, { 196,-5086 }, { 197,-5086 }, { 198,-5086 },
- { 199,-5086 }, { 200,-5086 }, { 201,-5086 }, { 202,-5086 }, { 203,-5086 },
- { 204,-5086 }, { 205,-5086 }, { 206,-5086 }, { 207,-5086 }, { 208,-5086 },
- { 209,-5086 }, { 210,-5086 }, { 211,-5086 }, { 212,-5086 }, { 213,-5086 },
-
- { 214,-5086 }, { 215,-5086 }, { 216,-5086 }, { 217,-5086 }, { 218,-5086 },
- { 219,-5086 }, { 220,-5086 }, { 221,-5086 }, { 222,-5086 }, { 223,-5086 },
- { 224,-5086 }, { 225,-5086 }, { 226,-5086 }, { 227,-5086 }, { 228,-5086 },
- { 229,-5086 }, { 230,-5086 }, { 231,-5086 }, { 232,-5086 }, { 233,-5086 },
- { 234,-5086 }, { 235,-5086 }, { 236,-5086 }, { 237,-5086 }, { 238,-5086 },
- { 239,-5086 }, { 240,-5086 }, { 241,-5086 }, { 242,-5086 }, { 243,-5086 },
- { 244,-5086 }, { 245,-5086 }, { 246,-5086 }, { 247,-5086 }, { 248,-5086 },
- { 249,-5086 }, { 250,-5086 }, { 251,-5086 }, { 252,-5086 }, { 253,-5086 },
- { 254,-5086 }, { 255,-5086 }, { 256,-5086 }, {   0,  37 }, {   0,8106 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  37 }, {   0,8083 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48,1263 }, {  49,1263 }, {  50,1263 },
- {  51,1263 }, {  52,1263 }, {  53,1263 }, {  54,1263 }, {  55,1263 },
-
- {  56,1263 }, {  57,1263 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,1263 },
- {  66,1263 }, {  67,1263 }, {  68,1263 }, {  69,1263 }, {  70,1263 },
- {  48,-20508 }, {  49,-20508 }, {  50,-20508 }, {  51,-20508 }, {  52,-20508 },
- {  53,-20508 }, {  54,-20508 }, {  55,-20508 }, {  56,-20508 }, {  57,-20508 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,-20508 }, {  66,-20508 }, {  67,-20508 },
- {  68,-20508 }, {  69,-20508 }, {  70,-20508 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  97,1263 }, {  98,1263 }, {  99,1263 }, { 100,1263 },
- { 101,1263 }, { 102,1263 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-20508 },
- {  98,-20508 }, {  99,-20508 }, { 100,-20508 }, { 101,-20508 }, { 102,-20508 },
- {   0,   9 }, {   0,7979 }, {   1,-4570 }, {   2,-4570 }, {   3,-4570 },
- {   4,-4570 }, {   5,-4570 }, {   6,-4570 }, {   7,-4570 }, {   8,-4570 },
- {   9,-4312 }, {  10,-4054 }, {  11,-4570 }, {  12,-4312 }, {  13,-4054 },
- {  14,-4570 }, {  15,-4570 }, {  16,-4570 }, {  17,-4570 }, {  18,-4570 },
- {  19,-4570 }, {  20,-4570 }, {  21,-4570 }, {  22,-4570 }, {  23,-4570 },
- {  24,-4570 }, {  25,-4570 }, {  26,-4570 }, {  27,-4570 }, {  28,-4570 },
-
- {  29,-4570 }, {  30,-4570 }, {  31,-4570 }, {  32,-4312 }, {  33,-4570 },
- {  34,-4570 }, {  35,-4570 }, {  36,-4570 }, {  37,-4570 }, {  38,-4570 },
- {  39,-4570 }, {  40,-4570 }, {  41,-4570 }, {  42,-4570 }, {  43,-4570 },
- {  44,-4570 }, {  45,   0 }, {  46,-4570 }, {  47,-4570 }, {  48,-4570 },
- {  49,-4570 }, {  50,-4570 }, {  51,-4570 }, {  52,-4570 }, {  53,-4570 },
- {  54,-4570 }, {  55,-4570 }, {  56,-4570 }, {  57,-4570 }, {  58,-4570 },
- {  59,-4570 }, {  60,-4570 }, {  61,-4570 }, {  62,-4570 }, {  63,-4570 },
- {  64,-4570 }, {  65,-4570 }, {  66,-4570 }, {  67,-4570 }, {  68,-4570 },
- {  69,-4570 }, {  70,-4570 }, {  71,-4570 }, {  72,-4570 }, {  73,-4570 },
- {  74,-4570 }, {  75,-4570 }, {  76,-4570 }, {  77,-4570 }, {  78,-4570 },
-
- {  79,-4570 }, {  80,-4570 }, {  81,-4570 }, {  82,-4570 }, {  83,-4570 },
- {  84,-4570 }, {  85,-4570 }, {  86,-4570 }, {  87,-4570 }, {  88,-4570 },
- {  89,-4570 }, {  90,-4570 }, {  91,-4570 }, {  92,-4570 }, {  93,-4570 },
- {  94,-4570 }, {  95,-4570 }, {  96,-4570 }, {  97,-4570 }, {  98,-4570 },
- {  99,-4570 }, { 100,-4570 }, { 101,-4570 }, { 102,-4570 }, { 103,-4570 },
- { 104,-4570 }, { 105,-4570 }, { 106,-4570 }, { 107,-4570 }, { 108,-4570 },
- { 109,-4570 }, { 110,-4570 }, { 111,-4570 }, { 112,-4570 }, { 113,-4570 },
- { 114,-4570 }, { 115,-4570 }, { 116,-4570 }, { 117,-4570 }, { 118,-4570 },
- { 119,-4570 }, { 120,-4570 }, { 121,-4570 }, { 122,-4570 }, { 123,-4570 },
- { 124,-4570 }, { 125,-4570 }, { 126,-4570 }, { 127,-4570 }, { 128,-4570 },
-
- { 129,-4570 }, { 130,-4570 }, { 131,-4570 }, { 132,-4570 }, { 133,-4570 },
- { 134,-4570 }, { 135,-4570 }, { 136,-4570 }, { 137,-4570 }, { 138,-4570 },
- { 139,-4570 }, { 140,-4570 }, { 141,-4570 }, { 142,-4570 }, { 143,-4570 },
- { 144,-4570 }, { 145,-4570 }, { 146,-4570 }, { 147,-4570 }, { 148,-4570 },
- { 149,-4570 }, { 150,-4570 }, { 151,-4570 }, { 152,-4570 }, { 153,-4570 },
- { 154,-4570 }, { 155,-4570 }, { 156,-4570 }, { 157,-4570 }, { 158,-4570 },
- { 159,-4570 }, { 160,-4570 }, { 161,-4570 }, { 162,-4570 }, { 163,-4570 },
- { 164,-4570 }, { 165,-4570 }, { 166,-4570 }, { 167,-4570 }, { 168,-4570 },
- { 169,-4570 }, { 170,-4570 }, { 171,-4570 }, { 172,-4570 }, { 173,-4570 },
- { 174,-4570 }, { 175,-4570 }, { 176,-4570 }, { 177,-4570 }, { 178,-4570 },
-
- { 179,-4570 }, { 180,-4570 }, { 181,-4570 }, { 182,-4570 }, { 183,-4570 },
- { 184,-4570 }, { 185,-4570 }, { 186,-4570 }, { 187,-4570 }, { 188,-4570 },
- { 189,-4570 }, { 190,-4570 }, { 191,-4570 }, { 192,-4570 }, { 193,-4570 },
- { 194,-4570 }, { 195,-4570 }, { 196,-4570 }, { 197,-4570 }, { 198,-4570 },
- { 199,-4570 }, { 200,-4570 }, { 201,-4570 }, { 202,-4570 }, { 203,-4570 },
- { 204,-4570 }, { 205,-4570 }, { 206,-4570 }, { 207,-4570 }, { 208,-4570 },
- { 209,-4570 }, { 210,-4570 }, { 211,-4570 }, { 212,-4570 }, { 213,-4570 },
- { 214,-4570 }, { 215,-4570 }, { 216,-4570 }, { 217,-4570 }, { 218,-4570 },
- { 219,-4570 }, { 220,-4570 }, { 221,-4570 }, { 222,-4570 }, { 223,-4570 },
- { 224,-4570 }, { 225,-4570 }, { 226,-4570 }, { 227,-4570 }, { 228,-4570 },
-
- { 229,-4570 }, { 230,-4570 }, { 231,-4570 }, { 232,-4570 }, { 233,-4570 },
- { 234,-4570 }, { 235,-4570 }, { 236,-4570 }, { 237,-4570 }, { 238,-4570 },
- { 239,-4570 }, { 240,-4570 }, { 241,-4570 }, { 242,-4570 }, { 243,-4570 },
- { 244,-4570 }, { 245,-4570 }, { 246,-4570 }, { 247,-4570 }, { 248,-4570 },
- { 249,-4570 }, { 250,-4570 }, { 251,-4570 }, { 252,-4570 }, { 253,-4570 },
- { 254,-4570 }, { 255,-4570 }, { 256,-4570 }, {   0,  16 }, {   0,7721 },
- {   1,-3749 }, {   2,-3749 }, {   3,-3749 }, {   4,-3749 }, {   5,-3749 },
- {   6,-3749 }, {   7,-3749 }, {   8,-3749 }, {   9,-3491 }, {  10,-3233 },
- {  11,-3749 }, {  12,-3491 }, {  13,-3233 }, {  14,-3749 }, {  15,-3749 },
- {  16,-3749 }, {  17,-3749 }, {  18,-3749 }, {  19,-3749 }, {  20,-3749 },
-
- {  21,-3749 }, {  22,-3749 }, {  23,-3749 }, {  24,-3749 }, {  25,-3749 },
- {  26,-3749 }, {  27,-3749 }, {  28,-3749 }, {  29,-3749 }, {  30,-3749 },
- {  31,-3749 }, {  32,-3491 }, {  33,-3749 }, {  34,-3749 }, {  35,-3749 },
- {  36,-3749 }, {  37,-3749 }, {  38,-3749 }, {  39,-3749 }, {  40,-3749 },
- {  41,-3749 }, {  42,-3749 }, {  43,-3749 }, {  44,-3749 }, {  45,   0 },
- {  46,-3749 }, {  47,-3749 }, {  48,-3749 }, {  49,-3749 }, {  50,-3749 },
- {  51,-3749 }, {  52,-3749 }, {  53,-3749 }, {  54,-3749 }, {  55,-3749 },
- {  56,-3749 }, {  57,-3749 }, {  58,-3749 }, {  59,-3749 }, {  60,-3749 },
- {  61,-3749 }, {  62,-3749 }, {  63,-3749 }, {  64,-3749 }, {  65,-3749 },
- {  66,-3749 }, {  67,-3749 }, {  68,-3749 }, {  69,-3749 }, {  70,-3749 },
-
- {  71,-3749 }, {  72,-3749 }, {  73,-3749 }, {  74,-3749 }, {  75,-3749 },
- {  76,-3749 }, {  77,-3749 }, {  78,-3749 }, {  79,-3749 }, {  80,-3749 },
- {  81,-3749 }, {  82,-3749 }, {  83,-3749 }, {  84,-3749 }, {  85,-3749 },
- {  86,-3749 }, {  87,-3749 }, {  88,-3749 }, {  89,-3749 }, {  90,-3749 },
- {  91,-3749 }, {  92,-3749 }, {  93,-3749 }, {  94,-3749 }, {  95,-3749 },
- {  96,-3749 }, {  97,-3749 }, {  98,-3749 }, {  99,-3749 }, { 100,-3749 },
- { 101,-3749 }, { 102,-3749 }, { 103,-3749 }, { 104,-3749 }, { 105,-3749 },
- { 106,-3749 }, { 107,-3749 }, { 108,-3749 }, { 109,-3749 }, { 110,-3749 },
- { 111,-3749 }, { 112,-3749 }, { 113,-3749 }, { 114,-3749 }, { 115,-3749 },
- { 116,-3749 }, { 117,-3749 }, { 118,-3749 }, { 119,-3749 }, { 120,-3749 },
-
- { 121,-3749 }, { 122,-3749 }, { 123,-3749 }, { 124,-3749 }, { 125,-3749 },
- { 126,-3749 }, { 127,-3749 }, { 128,-3749 }, { 129,-3749 }, { 130,-3749 },
- { 131,-3749 }, { 132,-3749 }, { 133,-3749 }, { 134,-3749 }, { 135,-3749 },
- { 136,-3749 }, { 137,-3749 }, { 138,-3749 }, { 139,-3749 }, { 140,-3749 },
- { 141,-3749 }, { 142,-3749 }, { 143,-3749 }, { 144,-3749 }, { 145,-3749 },
- { 146,-3749 }, { 147,-3749 }, { 148,-3749 }, { 149,-3749 }, { 150,-3749 },
- { 151,-3749 }, { 152,-3749 }, { 153,-3749 }, { 154,-3749 }, { 155,-3749 },
- { 156,-3749 }, { 157,-3749 }, { 158,-3749 }, { 159,-3749 }, { 160,-3749 },
- { 161,-3749 }, { 162,-3749 }, { 163,-3749 }, { 164,-3749 }, { 165,-3749 },
- { 166,-3749 }, { 167,-3749 }, { 168,-3749 }, { 169,-3749 }, { 170,-3749 },
-
- { 171,-3749 }, { 172,-3749 }, { 173,-3749 }, { 174,-3749 }, { 175,-3749 },
- { 176,-3749 }, { 177,-3749 }, { 178,-3749 }, { 179,-3749 }, { 180,-3749 },
- { 181,-3749 }, { 182,-3749 }, { 183,-3749 }, { 184,-3749 }, { 185,-3749 },
- { 186,-3749 }, { 187,-3749 }, { 188,-3749 }, { 189,-3749 }, { 190,-3749 },
- { 191,-3749 }, { 192,-3749 }, { 193,-3749 }, { 194,-3749 }, { 195,-3749 },
- { 196,-3749 }, { 197,-3749 }, { 198,-3749 }, { 199,-3749 }, { 200,-3749 },
- { 201,-3749 }, { 202,-3749 }, { 203,-3749 }, { 204,-3749 }, { 205,-3749 },
- { 206,-3749 }, { 207,-3749 }, { 208,-3749 }, { 209,-3749 }, { 210,-3749 },
- { 211,-3749 }, { 212,-3749 }, { 213,-3749 }, { 214,-3749 }, { 215,-3749 },
- { 216,-3749 }, { 217,-3749 }, { 218,-3749 }, { 219,-3749 }, { 220,-3749 },
-
- { 221,-3749 }, { 222,-3749 }, { 223,-3749 }, { 224,-3749 }, { 225,-3749 },
- { 226,-3749 }, { 227,-3749 }, { 228,-3749 }, { 229,-3749 }, { 230,-3749 },
- { 231,-3749 }, { 232,-3749 }, { 233,-3749 }, { 234,-3749 }, { 235,-3749 },
- { 236,-3749 }, { 237,-3749 }, { 238,-3749 }, { 239,-3749 }, { 240,-3749 },
- { 241,-3749 }, { 242,-3749 }, { 243,-3749 }, { 244,-3749 }, { 245,-3749 },
- { 246,-3749 }, { 247,-3749 }, { 248,-3749 }, { 249,-3749 }, { 250,-3749 },
- { 251,-3749 }, { 252,-3749 }, { 253,-3749 }, { 254,-3749 }, { 255,-3749 },
- { 256,-3749 }, {   0,  22 }, {   0,7463 }, {   1,-2928 }, {   2,-2928 },
- {   3,-2928 }, {   4,-2928 }, {   5,-2928 }, {   6,-2928 }, {   7,-2928 },
- {   8,-2928 }, {   9,-2670 }, {  10,-2412 }, {  11,-2928 }, {  12,-2670 },
-
- {  13,-2412 }, {  14,-2928 }, {  15,-2928 }, {  16,-2928 }, {  17,-2928 },
- {  18,-2928 }, {  19,-2928 }, {  20,-2928 }, {  21,-2928 }, {  22,-2928 },
- {  23,-2928 }, {  24,-2928 }, {  25,-2928 }, {  26,-2928 }, {  27,-2928 },
- {  28,-2928 }, {  29,-2928 }, {  30,-2928 }, {  31,-2928 }, {  32,-2670 },
- {  33,-2928 }, {  34,-2928 }, {  35,-2928 }, {  36,-2928 }, {  37,-2928 },
- {  38,-2928 }, {  39,-2928 }, {  40,-2928 }, {  41,-2928 }, {  42,-2928 },
- {  43,-2928 }, {  44,-2928 }, {  45,   0 }, {  46,-2928 }, {  47,-2928 },
- {  48,-2928 }, {  49,-2928 }, {  50,-2928 }, {  51,-2928 }, {  52,-2928 },
- {  53,-2928 }, {  54,-2928 }, {  55,-2928 }, {  56,-2928 }, {  57,-2928 },
- {  58,-2928 }, {  59,-2928 }, {  60,-2928 }, {  61,-2928 }, {  62,-2928 },
-
- {  63,-2928 }, {  64,-2928 }, {  65,-2928 }, {  66,-2928 }, {  67,-2928 },
- {  68,-2928 }, {  69,-2928 }, {  70,-2928 }, {  71,-2928 }, {  72,-2928 },
- {  73,-2928 }, {  74,-2928 }, {  75,-2928 }, {  76,-2928 }, {  77,-2928 },
- {  78,-2928 }, {  79,-2928 }, {  80,-2928 }, {  81,-2928 }, {  82,-2928 },
- {  83,-2928 }, {  84,-2928 }, {  85,-2928 }, {  86,-2928 }, {  87,-2928 },
- {  88,-2928 }, {  89,-2928 }, {  90,-2928 }, {  91,-2928 }, {  92,-2928 },
- {  93,-2928 }, {  94,-2928 }, {  95,-2928 }, {  96,-2928 }, {  97,-2928 },
- {  98,-2928 }, {  99,-2928 }, { 100,-2928 }, { 101,-2928 }, { 102,-2928 },
- { 103,-2928 }, { 104,-2928 }, { 105,-2928 }, { 106,-2928 }, { 107,-2928 },
- { 108,-2928 }, { 109,-2928 }, { 110,-2928 }, { 111,-2928 }, { 112,-2928 },
-
- { 113,-2928 }, { 114,-2928 }, { 115,-2928 }, { 116,-2928 }, { 117,-2928 },
- { 118,-2928 }, { 119,-2928 }, { 120,-2928 }, { 121,-2928 }, { 122,-2928 },
- { 123,-2928 }, { 124,-2928 }, { 125,-2928 }, { 126,-2928 }, { 127,-2928 },
- { 128,-2928 }, { 129,-2928 }, { 130,-2928 }, { 131,-2928 }, { 132,-2928 },
- { 133,-2928 }, { 134,-2928 }, { 135,-2928 }, { 136,-2928 }, { 137,-2928 },
- { 138,-2928 }, { 139,-2928 }, { 140,-2928 }, { 141,-2928 }, { 142,-2928 },
- { 143,-2928 }, { 144,-2928 }, { 145,-2928 }, { 146,-2928 }, { 147,-2928 },
- { 148,-2928 }, { 149,-2928 }, { 150,-2928 }, { 151,-2928 }, { 152,-2928 },
- { 153,-2928 }, { 154,-2928 }, { 155,-2928 }, { 156,-2928 }, { 157,-2928 },
- { 158,-2928 }, { 159,-2928 }, { 160,-2928 }, { 161,-2928 }, { 162,-2928 },
-
- { 163,-2928 }, { 164,-2928 }, { 165,-2928 }, { 166,-2928 }, { 167,-2928 },
- { 168,-2928 }, { 169,-2928 }, { 170,-2928 }, { 171,-2928 }, { 172,-2928 },
- { 173,-2928 }, { 174,-2928 }, { 175,-2928 }, { 176,-2928 }, { 177,-2928 },
- { 178,-2928 }, { 179,-2928 }, { 180,-2928 }, { 181,-2928 }, { 182,-2928 },
- { 183,-2928 }, { 184,-2928 }, { 185,-2928 }, { 186,-2928 }, { 187,-2928 },
- { 188,-2928 }, { 189,-2928 }, { 190,-2928 }, { 191,-2928 }, { 192,-2928 },
- { 193,-2928 }, { 194,-2928 }, { 195,-2928 }, { 196,-2928 }, { 197,-2928 },
- { 198,-2928 }, { 199,-2928 }, { 200,-2928 }, { 201,-2928 }, { 202,-2928 },
- { 203,-2928 }, { 204,-2928 }, { 205,-2928 }, { 206,-2928 }, { 207,-2928 },
- { 208,-2928 }, { 209,-2928 }, { 210,-2928 }, { 211,-2928 }, { 212,-2928 },
-
- { 213,-2928 }, { 214,-2928 }, { 215,-2928 }, { 216,-2928 }, { 217,-2928 },
- { 218,-2928 }, { 219,-2928 }, { 220,-2928 }, { 221,-2928 }, { 222,-2928 },
- { 223,-2928 }, { 224,-2928 }, { 225,-2928 }, { 226,-2928 }, { 227,-2928 },
- { 228,-2928 }, { 229,-2928 }, { 230,-2928 }, { 231,-2928 }, { 232,-2928 },
- { 233,-2928 }, { 234,-2928 }, { 235,-2928 }, { 236,-2928 }, { 237,-2928 },
- { 238,-2928 }, { 239,-2928 }, { 240,-2928 }, { 241,-2928 }, { 242,-2928 },
- { 243,-2928 }, { 244,-2928 }, { 245,-2928 }, { 246,-2928 }, { 247,-2928 },
- { 248,-2928 }, { 249,-2928 }, { 250,-2928 }, { 251,-2928 }, { 252,-2928 },
- { 253,-2928 }, { 254,-2928 }, { 255,-2928 }, { 256,-2928 }, {   0,  37 },
- {   0,7205 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48, 385 }, {  49, 385 },
- {  50, 385 }, {  51, 385 }, {  52, 385 }, {  53, 385 }, {  54, 385 },
-
- {  55, 385 }, {  56, 385 }, {  57, 385 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  65, 385 }, {  66, 385 }, {  67, 385 }, {  68, 385 }, {  69, 385 },
- {  70, 385 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  97, 385 }, {  98, 385 }, {  99, 385 },
- { 100, 385 }, { 101, 385 }, { 102, 385 }, {   0,  24 }, {   0,7101 },
-
- {   1,-2084 }, {   2,-2084 }, {   3,-2084 }, {   4,-2084 }, {   5,-2084 },
- {   6,-2084 }, {   7,-2084 }, {   8,-2084 }, {   9,-1826 }, {  10,-1568 },
- {  11,-2084 }, {  12,-1826 }, {  13,-1568 }, {  14,-2084 }, {  15,-2084 },
- {  16,-2084 }, {  17,-2084 }, {  18,-2084 }, {  19,-2084 }, {  20,-2084 },
- {  21,-2084 }, {  22,-2084 }, {  23,-2084 }, {  24,-2084 }, {  25,-2084 },
- {  26,-2084 }, {  27,-2084 }, {  28,-2084 }, {  29,-2084 }, {  30,-2084 },
- {  31,-2084 }, {  32,-1826 }, {  33,-2084 }, {  34,-2084 }, {  35,-2084 },
- {  36,-2084 }, {  37,-2084 }, {  38,-2084 }, {  39,-2084 }, {  40,-2084 },
- {  41,-2084 }, {  42,-2084 }, {  43,-2084 }, {  44,-2084 }, {  45,   0 },
- {  46,-2084 }, {  47,-2084 }, {  48,-2084 }, {  49,-2084 }, {  50,-2084 },
-
- {  51,-2084 }, {  52,-2084 }, {  53,-2084 }, {  54,-2084 }, {  55,-2084 },
- {  56,-2084 }, {  57,-2084 }, {  58,-2084 }, {  59,-2084 }, {  60,-2084 },
- {  61,-2084 }, {  62,-2084 }, {  63,-2084 }, {  64,-2084 }, {  65,-2084 },
- {  66,-2084 }, {  67,-2084 }, {  68,-2084 }, {  69,-2084 }, {  70,-2084 },
- {  71,-2084 }, {  72,-2084 }, {  73,-2084 }, {  74,-2084 }, {  75,-2084 },
- {  76,-2084 }, {  77,-2084 }, {  78,-2084 }, {  79,-2084 }, {  80,-2084 },
- {  81,-2084 }, {  82,-2084 }, {  83,-2084 }, {  84,-2084 }, {  85,-2084 },
- {  86,-2084 }, {  87,-2084 }, {  88,-2084 }, {  89,-2084 }, {  90,-2084 },
- {  91,-2084 }, {  92,-2084 }, {  93,-2084 }, {  94,-2084 }, {  95,-2084 },
- {  96,-2084 }, {  97,-2084 }, {  98,-2084 }, {  99,-2084 }, { 100,-2084 },
-
- { 101,-2084 }, { 102,-2084 }, { 103,-2084 }, { 104,-2084 }, { 105,-2084 },
- { 106,-2084 }, { 107,-2084 }, { 108,-2084 }, { 109,-2084 }, { 110,-2084 },
- { 111,-2084 }, { 112,-2084 }, { 113,-2084 }, { 114,-2084 }, { 115,-2084 },
- { 116,-2084 }, { 117,-2084 }, { 118,-2084 }, { 119,-2084 }, { 120,-2084 },
- { 121,-2084 }, { 122,-2084 }, { 123,-2084 }, { 124,-2084 }, { 125,-2084 },
- { 126,-2084 }, { 127,-2084 }, { 128,-2084 }, { 129,-2084 }, { 130,-2084 },
- { 131,-2084 }, { 132,-2084 }, { 133,-2084 }, { 134,-2084 }, { 135,-2084 },
- { 136,-2084 }, { 137,-2084 }, { 138,-2084 }, { 139,-2084 }, { 140,-2084 },
- { 141,-2084 }, { 142,-2084 }, { 143,-2084 }, { 144,-2084 }, { 145,-2084 },
- { 146,-2084 }, { 147,-2084 }, { 148,-2084 }, { 149,-2084 }, { 150,-2084 },
-
- { 151,-2084 }, { 152,-2084 }, { 153,-2084 }, { 154,-2084 }, { 155,-2084 },
- { 156,-2084 }, { 157,-2084 }, { 158,-2084 }, { 159,-2084 }, { 160,-2084 },
- { 161,-2084 }, { 162,-2084 }, { 163,-2084 }, { 164,-2084 }, { 165,-2084 },
- { 166,-2084 }, { 167,-2084 }, { 168,-2084 }, { 169,-2084 }, { 170,-2084 },
- { 171,-2084 }, { 172,-2084 }, { 173,-2084 }, { 174,-2084 }, { 175,-2084 },
- { 176,-2084 }, { 177,-2084 }, { 178,-2084 }, { 179,-2084 }, { 180,-2084 },
- { 181,-2084 }, { 182,-2084 }, { 183,-2084 }, { 184,-2084 }, { 185,-2084 },
- { 186,-2084 }, { 187,-2084 }, { 188,-2084 }, { 189,-2084 }, { 190,-2084 },
- { 191,-2084 }, { 192,-2084 }, { 193,-2084 }, { 194,-2084 }, { 195,-2084 },
- { 196,-2084 }, { 197,-2084 }, { 198,-2084 }, { 199,-2084 }, { 200,-2084 },
-
- { 201,-2084 }, { 202,-2084 }, { 203,-2084 }, { 204,-2084 }, { 205,-2084 },
- { 206,-2084 }, { 207,-2084 }, { 208,-2084 }, { 209,-2084 }, { 210,-2084 },
- { 211,-2084 }, { 212,-2084 }, { 213,-2084 }, { 214,-2084 }, { 215,-2084 },
- { 216,-2084 }, { 217,-2084 }, { 218,-2084 }, { 219,-2084 }, { 220,-2084 },
- { 221,-2084 }, { 222,-2084 }, { 223,-2084 }, { 224,-2084 }, { 225,-2084 },
- { 226,-2084 }, { 227,-2084 }, { 228,-2084 }, { 229,-2084 }, { 230,-2084 },
- { 231,-2084 }, { 232,-2084 }, { 233,-2084 }, { 234,-2084 }, { 235,-2084 },
- { 236,-2084 }, { 237,-2084 }, { 238,-2084 }, { 239,-2084 }, { 240,-2084 },
- { 241,-2084 }, { 242,-2084 }, { 243,-2084 }, { 244,-2084 }, { 245,-2084 },
- { 246,-2084 }, { 247,-2084 }, { 248,-2084 }, { 249,-2084 }, { 250,-2084 },
-
- { 251,-2084 }, { 252,-2084 }, { 253,-2084 }, { 254,-2084 }, { 255,-2084 },
- { 256,-2084 }, {   0,  37 }, {   0,6843 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,  37 },
- {   0,6820 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  48, 136 }, {  49, 136 }, {  50, 136 }, {  51, 136 }, {  52, 136 },
- {  53, 136 }, {  54, 136 }, {  55, 136 }, {  56, 136 }, {  57, 136 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65, 136 }, {  66, 136 }, {  67, 136 },
- {  68, 136 }, {  69, 136 }, {  70, 136 }, {  48, 137 }, {  49, 137 },
- {  50, 137 }, {  51, 137 }, {  52, 137 }, {  53, 137 }, {  54, 137 },
- {  55, 137 }, {  56, 137 }, {  57, 137 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  65, 137 }, {  66, 137 }, {  67, 137 }, {  68, 137 }, {  69, 137 },
-
- {  70, 137 }, {   0,  55 }, {   0,6748 }, {   0,   0 }, {  97, 136 },
- {  98, 136 }, {  99, 136 }, { 100, 136 }, { 101, 136 }, { 102, 136 },
- {   0,   0 }, {   9, 137 }, {  10, 137 }, {   0,   0 }, {  12, 137 },
- {  13, 137 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,  28 }, {   0,6724 }, {  97, 137 }, {  98, 137 }, {  99, 137 },
- { 100, 137 }, { 101, 137 }, { 102, 137 }, {   0,   0 }, {  32, 137 },
- {   9, 418 }, {  10, 418 }, {   0,   0 }, {  12, 418 }, {  13, 418 },
- {   0,   0 }, {  39, 184 }, {   0,  37 }, {   0,6707 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  45,-21611 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32, 418 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39, 465 }, {   0,  37 }, {   0,6683 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-21624 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  48, 706 }, {  49, 706 }, {  50, 706 }, {  51, 706 },
- {  52, 706 }, {  53, 706 }, {  54, 706 }, {  55, 706 }, {  56, 706 },
-
- {  57, 706 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 706 }, {  66, 706 },
- {  67, 706 }, {  68, 706 }, {  69, 706 }, {  70, 706 }, {   0,   0 },
- {  48, 705 }, {  49, 705 }, {  50, 705 }, {  51, 705 }, {  52, 705 },
- {  53, 705 }, {  54, 705 }, {  55, 705 }, {  56, 705 }, {  57, 705 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65, 705 }, {  66, 705 }, {  67, 705 },
- {  68, 705 }, {  69, 705 }, {  70, 705 }, {   0,  55 }, {   0,6611 },
- {  97, 706 }, {  98, 706 }, {  99, 706 }, { 100, 706 }, { 101, 706 },
- { 102, 706 }, {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 },
-
- {   0,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97, 705 },
- {  98, 705 }, {  99, 705 }, { 100, 705 }, { 101, 705 }, { 102, 705 },
- {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,  47 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-21748 },
- {   0,  55 }, {   0,6564 }, {   1,-21777 }, {   2,-21777 }, {   3,-21777 },
- {   4,-21777 }, {   5,-21777 }, {   6,-21777 }, {   7,-21777 }, {   8,-21777 },
- {   9,-21777 }, {  10,-21777 }, {  11,-21777 }, {  12,-21777 }, {  13,-21777 },
-
- {  14,-21777 }, {  15,-21777 }, {  16,-21777 }, {  17,-21777 }, {  18,-21777 },
- {  19,-21777 }, {  20,-21777 }, {  21,-21777 }, {  22,-21777 }, {  23,-21777 },
- {  24,-21777 }, {  25,-21777 }, {  26,-21777 }, {  27,-21777 }, {  28,-21777 },
- {  29,-21777 }, {  30,-21777 }, {  31,-21777 }, {  32,-21777 }, {  33,-21777 },
- {  34,-21777 }, {  35,-21777 }, {  36,-21777 }, {  37,-21777 }, {  38,-21777 },
- {   0,   0 }, {  40,-21777 }, {  41,-21777 }, {  42,-21777 }, {  43,-21777 },
- {  44,-21777 }, {  45,-21777 }, {  46,-21777 }, {  47,-21777 }, {  48,-21777 },
- {  49,-21777 }, {  50,-21777 }, {  51,-21777 }, {  52,-21777 }, {  53,-21777 },
- {  54,-21777 }, {  55,-21777 }, {  56,-21777 }, {  57,-21777 }, {  58,-21777 },
- {  59,-21777 }, {  60,-21777 }, {  61,-21777 }, {  62,-21777 }, {  63,-21777 },
-
- {  64,-21777 }, {  65,-21777 }, {  66,-21777 }, {  67,-21777 }, {  68,-21777 },
- {  69,-21777 }, {  70,-21777 }, {  71,-21777 }, {  72,-21777 }, {  73,-21777 },
- {  74,-21777 }, {  75,-21777 }, {  76,-21777 }, {  77,-21777 }, {  78,-21777 },
- {  79,-21777 }, {  80,-21777 }, {  81,-21777 }, {  82,-21777 }, {  83,-21777 },
- {  84,-21777 }, {  85,-21777 }, {  86,-21777 }, {  87,-21777 }, {  88,-21777 },
- {  89,-21777 }, {  90,-21777 }, {  91,-21777 }, {  92,-21777 }, {  93,-21777 },
- {  94,-21777 }, {  95,-21777 }, {  96,-21777 }, {  97,-21777 }, {  98,-21777 },
- {  99,-21777 }, { 100,-21777 }, { 101,-21777 }, { 102,-21777 }, { 103,-21777 },
- { 104,-21777 }, { 105,-21777 }, { 106,-21777 }, { 107,-21777 }, { 108,-21777 },
- { 109,-21777 }, { 110,-21777 }, { 111,-21777 }, { 112,-21777 }, { 113,-21777 },
-
- { 114,-21777 }, { 115,-21777 }, { 116,-21777 }, { 117,-21777 }, { 118,-21777 },
- { 119,-21777 }, { 120,-21777 }, { 121,-21777 }, { 122,-21777 }, { 123,-21777 },
- { 124,-21777 }, { 125,-21777 }, { 126,-21777 }, { 127,-21777 }, { 128,-21777 },
- { 129,-21777 }, { 130,-21777 }, { 131,-21777 }, { 132,-21777 }, { 133,-21777 },
- { 134,-21777 }, { 135,-21777 }, { 136,-21777 }, { 137,-21777 }, { 138,-21777 },
- { 139,-21777 }, { 140,-21777 }, { 141,-21777 }, { 142,-21777 }, { 143,-21777 },
- { 144,-21777 }, { 145,-21777 }, { 146,-21777 }, { 147,-21777 }, { 148,-21777 },
- { 149,-21777 }, { 150,-21777 }, { 151,-21777 }, { 152,-21777 }, { 153,-21777 },
- { 154,-21777 }, { 155,-21777 }, { 156,-21777 }, { 157,-21777 }, { 158,-21777 },
- { 159,-21777 }, { 160,-21777 }, { 161,-21777 }, { 162,-21777 }, { 163,-21777 },
-
- { 164,-21777 }, { 165,-21777 }, { 166,-21777 }, { 167,-21777 }, { 168,-21777 },
- { 169,-21777 }, { 170,-21777 }, { 171,-21777 }, { 172,-21777 }, { 173,-21777 },
- { 174,-21777 }, { 175,-21777 }, { 176,-21777 }, { 177,-21777 }, { 178,-21777 },
- { 179,-21777 }, { 180,-21777 }, { 181,-21777 }, { 182,-21777 }, { 183,-21777 },
- { 184,-21777 }, { 185,-21777 }, { 186,-21777 }, { 187,-21777 }, { 188,-21777 },
- { 189,-21777 }, { 190,-21777 }, { 191,-21777 }, { 192,-21777 }, { 193,-21777 },
- { 194,-21777 }, { 195,-21777 }, { 196,-21777 }, { 197,-21777 }, { 198,-21777 },
- { 199,-21777 }, { 200,-21777 }, { 201,-21777 }, { 202,-21777 }, { 203,-21777 },
- { 204,-21777 }, { 205,-21777 }, { 206,-21777 }, { 207,-21777 }, { 208,-21777 },
- { 209,-21777 }, { 210,-21777 }, { 211,-21777 }, { 212,-21777 }, { 213,-21777 },
-
- { 214,-21777 }, { 215,-21777 }, { 216,-21777 }, { 217,-21777 }, { 218,-21777 },
- { 219,-21777 }, { 220,-21777 }, { 221,-21777 }, { 222,-21777 }, { 223,-21777 },
- { 224,-21777 }, { 225,-21777 }, { 226,-21777 }, { 227,-21777 }, { 228,-21777 },
- { 229,-21777 }, { 230,-21777 }, { 231,-21777 }, { 232,-21777 }, { 233,-21777 },
- { 234,-21777 }, { 235,-21777 }, { 236,-21777 }, { 237,-21777 }, { 238,-21777 },
- { 239,-21777 }, { 240,-21777 }, { 241,-21777 }, { 242,-21777 }, { 243,-21777 },
- { 244,-21777 }, { 245,-21777 }, { 246,-21777 }, { 247,-21777 }, { 248,-21777 },
- { 249,-21777 }, { 250,-21777 }, { 251,-21777 }, { 252,-21777 }, { 253,-21777 },
- { 254,-21777 }, { 255,-21777 }, { 256,-21777 }, {   0,  28 }, {   0,6306 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,   0 }, {  10,   0 },
- {   0,   0 }, {  12,   0 }, {  13,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  32,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,  47 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  45,-22042 },
- {   0,  28 }, {   0,6259 }, {   1,-22080 }, {   2,-22080 }, {   3,-22080 },
- {   4,-22080 }, {   5,-22080 }, {   6,-22080 }, {   7,-22080 }, {   8,-22080 },
-
- {   9,-22080 }, {  10,-22080 }, {  11,-22080 }, {  12,-22080 }, {  13,-22080 },
- {  14,-22080 }, {  15,-22080 }, {  16,-22080 }, {  17,-22080 }, {  18,-22080 },
- {  19,-22080 }, {  20,-22080 }, {  21,-22080 }, {  22,-22080 }, {  23,-22080 },
- {  24,-22080 }, {  25,-22080 }, {  26,-22080 }, {  27,-22080 }, {  28,-22080 },
- {  29,-22080 }, {  30,-22080 }, {  31,-22080 }, {  32,-22080 }, {  33,-22080 },
- {  34,-22080 }, {  35,-22080 }, {  36,-22080 }, {  37,-22080 }, {  38,-22080 },
- {   0,   0 }, {  40,-22080 }, {  41,-22080 }, {  42,-22080 }, {  43,-22080 },
- {  44,-22080 }, {  45,-22080 }, {  46,-22080 }, {  47,-22080 }, {  48,-22080 },
- {  49,-22080 }, {  50,-22080 }, {  51,-22080 }, {  52,-22080 }, {  53,-22080 },
- {  54,-22080 }, {  55,-22080 }, {  56,-22080 }, {  57,-22080 }, {  58,-22080 },
-
- {  59,-22080 }, {  60,-22080 }, {  61,-22080 }, {  62,-22080 }, {  63,-22080 },
- {  64,-22080 }, {  65,-22080 }, {  66,-22080 }, {  67,-22080 }, {  68,-22080 },
- {  69,-22080 }, {  70,-22080 }, {  71,-22080 }, {  72,-22080 }, {  73,-22080 },
- {  74,-22080 }, {  75,-22080 }, {  76,-22080 }, {  77,-22080 }, {  78,-22080 },
- {  79,-22080 }, {  80,-22080 }, {  81,-22080 }, {  82,-22080 }, {  83,-22080 },
- {  84,-22080 }, {  85,-22080 }, {  86,-22080 }, {  87,-22080 }, {  88,-22080 },
- {  89,-22080 }, {  90,-22080 }, {  91,-22080 }, {  92,-22080 }, {  93,-22080 },
- {  94,-22080 }, {  95,-22080 }, {  96,-22080 }, {  97,-22080 }, {  98,-22080 },
- {  99,-22080 }, { 100,-22080 }, { 101,-22080 }, { 102,-22080 }, { 103,-22080 },
- { 104,-22080 }, { 105,-22080 }, { 106,-22080 }, { 107,-22080 }, { 108,-22080 },
-
- { 109,-22080 }, { 110,-22080 }, { 111,-22080 }, { 112,-22080 }, { 113,-22080 },
- { 114,-22080 }, { 115,-22080 }, { 116,-22080 }, { 117,-22080 }, { 118,-22080 },
- { 119,-22080 }, { 120,-22080 }, { 121,-22080 }, { 122,-22080 }, { 123,-22080 },
- { 124,-22080 }, { 125,-22080 }, { 126,-22080 }, { 127,-22080 }, { 128,-22080 },
- { 129,-22080 }, { 130,-22080 }, { 131,-22080 }, { 132,-22080 }, { 133,-22080 },
- { 134,-22080 }, { 135,-22080 }, { 136,-22080 }, { 137,-22080 }, { 138,-22080 },
- { 139,-22080 }, { 140,-22080 }, { 141,-22080 }, { 142,-22080 }, { 143,-22080 },
- { 144,-22080 }, { 145,-22080 }, { 146,-22080 }, { 147,-22080 }, { 148,-22080 },
- { 149,-22080 }, { 150,-22080 }, { 151,-22080 }, { 152,-22080 }, { 153,-22080 },
- { 154,-22080 }, { 155,-22080 }, { 156,-22080 }, { 157,-22080 }, { 158,-22080 },
-
- { 159,-22080 }, { 160,-22080 }, { 161,-22080 }, { 162,-22080 }, { 163,-22080 },
- { 164,-22080 }, { 165,-22080 }, { 166,-22080 }, { 167,-22080 }, { 168,-22080 },
- { 169,-22080 }, { 170,-22080 }, { 171,-22080 }, { 172,-22080 }, { 173,-22080 },
- { 174,-22080 }, { 175,-22080 }, { 176,-22080 }, { 177,-22080 }, { 178,-22080 },
- { 179,-22080 }, { 180,-22080 }, { 181,-22080 }, { 182,-22080 }, { 183,-22080 },
- { 184,-22080 }, { 185,-22080 }, { 186,-22080 }, { 187,-22080 }, { 188,-22080 },
- { 189,-22080 }, { 190,-22080 }, { 191,-22080 }, { 192,-22080 }, { 193,-22080 },
- { 194,-22080 }, { 195,-22080 }, { 196,-22080 }, { 197,-22080 }, { 198,-22080 },
- { 199,-22080 }, { 200,-22080 }, { 201,-22080 }, { 202,-22080 }, { 203,-22080 },
- { 204,-22080 }, { 205,-22080 }, { 206,-22080 }, { 207,-22080 }, { 208,-22080 },
-
- { 209,-22080 }, { 210,-22080 }, { 211,-22080 }, { 212,-22080 }, { 213,-22080 },
- { 214,-22080 }, { 215,-22080 }, { 216,-22080 }, { 217,-22080 }, { 218,-22080 },
- { 219,-22080 }, { 220,-22080 }, { 221,-22080 }, { 222,-22080 }, { 223,-22080 },
- { 224,-22080 }, { 225,-22080 }, { 226,-22080 }, { 227,-22080 }, { 228,-22080 },
- { 229,-22080 }, { 230,-22080 }, { 231,-22080 }, { 232,-22080 }, { 233,-22080 },
- { 234,-22080 }, { 235,-22080 }, { 236,-22080 }, { 237,-22080 }, { 238,-22080 },
- { 239,-22080 }, { 240,-22080 }, { 241,-22080 }, { 242,-22080 }, { 243,-22080 },
- { 244,-22080 }, { 245,-22080 }, { 246,-22080 }, { 247,-22080 }, { 248,-22080 },
- { 249,-22080 }, { 250,-22080 }, { 251,-22080 }, { 252,-22080 }, { 253,-22080 },
- { 254,-22080 }, { 255,-22080 }, { 256,-22080 }, {   0,  37 }, {   0,6001 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,  37 }, {   0,5978 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  48, 643 }, {  49, 643 }, {  50, 643 },
-
- {  51, 643 }, {  52, 643 }, {  53, 643 }, {  54, 643 }, {  55, 643 },
- {  56, 643 }, {  57, 643 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 643 },
- {  66, 643 }, {  67, 643 }, {  68, 643 }, {  69, 643 }, {  70, 643 },
- {  48,-22625 }, {  49,-22625 }, {  50,-22625 }, {  51,-22625 }, {  52,-22625 },
- {  53,-22625 }, {  54,-22625 }, {  55,-22625 }, {  56,-22625 }, {  57,-22625 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,-22625 }, {  66,-22625 }, {  67,-22625 },
- {  68,-22625 }, {  69,-22625 }, {  70,-22625 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  97, 643 }, {  98, 643 }, {  99, 643 }, { 100, 643 },
-
- { 101, 643 }, { 102, 643 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-22625 },
- {  98,-22625 }, {  99,-22625 }, { 100,-22625 }, { 101,-22625 }, { 102,-22625 },
- {   0,  55 }, {   0,5874 }, {   1, 620 }, {   2, 620 }, {   3, 620 },
- {   4, 620 }, {   5, 620 }, {   6, 620 }, {   7, 620 }, {   8, 620 },
- {   9, 878 }, {  10,-737 }, {  11, 620 }, {  12, 878 }, {  13,-737 },
- {  14, 620 }, {  15, 620 }, {  16, 620 }, {  17, 620 }, {  18, 620 },
- {  19, 620 }, {  20, 620 }, {  21, 620 }, {  22, 620 }, {  23, 620 },
-
- {  24, 620 }, {  25, 620 }, {  26, 620 }, {  27, 620 }, {  28, 620 },
- {  29, 620 }, {  30, 620 }, {  31, 620 }, {  32, 878 }, {  33, 620 },
- {  34, 620 }, {  35, 620 }, {  36, 620 }, {  37, 620 }, {  38, 620 },
- {  39,1136 }, {  40, 620 }, {  41, 620 }, {  42, 620 }, {  43, 620 },
- {  44, 620 }, {  45,1394 }, {  46, 620 }, {  47, 620 }, {  48, 620 },
- {  49, 620 }, {  50, 620 }, {  51, 620 }, {  52, 620 }, {  53, 620 },
- {  54, 620 }, {  55, 620 }, {  56, 620 }, {  57, 620 }, {  58, 620 },
- {  59, 620 }, {  60, 620 }, {  61, 620 }, {  62, 620 }, {  63, 620 },
- {  64, 620 }, {  65, 620 }, {  66, 620 }, {  67, 620 }, {  68, 620 },
- {  69, 620 }, {  70, 620 }, {  71, 620 }, {  72, 620 }, {  73, 620 },
-
- {  74, 620 }, {  75, 620 }, {  76, 620 }, {  77, 620 }, {  78, 620 },
- {  79, 620 }, {  80, 620 }, {  81, 620 }, {  82, 620 }, {  83, 620 },
- {  84, 620 }, {  85, 620 }, {  86, 620 }, {  87, 620 }, {  88, 620 },
- {  89, 620 }, {  90, 620 }, {  91, 620 }, {  92, 620 }, {  93, 620 },
- {  94, 620 }, {  95, 620 }, {  96, 620 }, {  97, 620 }, {  98, 620 },
- {  99, 620 }, { 100, 620 }, { 101, 620 }, { 102, 620 }, { 103, 620 },
- { 104, 620 }, { 105, 620 }, { 106, 620 }, { 107, 620 }, { 108, 620 },
- { 109, 620 }, { 110, 620 }, { 111, 620 }, { 112, 620 }, { 113, 620 },
- { 114, 620 }, { 115, 620 }, { 116, 620 }, { 117, 620 }, { 118, 620 },
- { 119, 620 }, { 120, 620 }, { 121, 620 }, { 122, 620 }, { 123, 620 },
-
- { 124, 620 }, { 125, 620 }, { 126, 620 }, { 127, 620 }, { 128, 620 },
- { 129, 620 }, { 130, 620 }, { 131, 620 }, { 132, 620 }, { 133, 620 },
- { 134, 620 }, { 135, 620 }, { 136, 620 }, { 137, 620 }, { 138, 620 },
- { 139, 620 }, { 140, 620 }, { 141, 620 }, { 142, 620 }, { 143, 620 },
- { 144, 620 }, { 145, 620 }, { 146, 620 }, { 147, 620 }, { 148, 620 },
- { 149, 620 }, { 150, 620 }, { 151, 620 }, { 152, 620 }, { 153, 620 },
- { 154, 620 }, { 155, 620 }, { 156, 620 }, { 157, 620 }, { 158, 620 },
- { 159, 620 }, { 160, 620 }, { 161, 620 }, { 162, 620 }, { 163, 620 },
- { 164, 620 }, { 165, 620 }, { 166, 620 }, { 167, 620 }, { 168, 620 },
- { 169, 620 }, { 170, 620 }, { 171, 620 }, { 172, 620 }, { 173, 620 },
-
- { 174, 620 }, { 175, 620 }, { 176, 620 }, { 177, 620 }, { 178, 620 },
- { 179, 620 }, { 180, 620 }, { 181, 620 }, { 182, 620 }, { 183, 620 },
- { 184, 620 }, { 185, 620 }, { 186, 620 }, { 187, 620 }, { 188, 620 },
- { 189, 620 }, { 190, 620 }, { 191, 620 }, { 192, 620 }, { 193, 620 },
- { 194, 620 }, { 195, 620 }, { 196, 620 }, { 197, 620 }, { 198, 620 },
- { 199, 620 }, { 200, 620 }, { 201, 620 }, { 202, 620 }, { 203, 620 },
- { 204, 620 }, { 205, 620 }, { 206, 620 }, { 207, 620 }, { 208, 620 },
- { 209, 620 }, { 210, 620 }, { 211, 620 }, { 212, 620 }, { 213, 620 },
- { 214, 620 }, { 215, 620 }, { 216, 620 }, { 217, 620 }, { 218, 620 },
- { 219, 620 }, { 220, 620 }, { 221, 620 }, { 222, 620 }, { 223, 620 },
-
- { 224, 620 }, { 225, 620 }, { 226, 620 }, { 227, 620 }, { 228, 620 },
- { 229, 620 }, { 230, 620 }, { 231, 620 }, { 232, 620 }, { 233, 620 },
- { 234, 620 }, { 235, 620 }, { 236, 620 }, { 237, 620 }, { 238, 620 },
- { 239, 620 }, { 240, 620 }, { 241, 620 }, { 242, 620 }, { 243, 620 },
- { 244, 620 }, { 245, 620 }, { 246, 620 }, { 247, 620 }, { 248, 620 },
- { 249, 620 }, { 250, 620 }, { 251, 620 }, { 252, 620 }, { 253, 620 },
- { 254, 620 }, { 255, 620 }, { 256, 620 }, {   0,  28 }, {   0,5616 },
- {   1,1394 }, {   2,1394 }, {   3,1394 }, {   4,1394 }, {   5,1394 },
- {   6,1394 }, {   7,1394 }, {   8,1394 }, {   9,1652 }, {  10,-690 },
- {  11,1394 }, {  12,1652 }, {  13,-690 }, {  14,1394 }, {  15,1394 },
-
- {  16,1394 }, {  17,1394 }, {  18,1394 }, {  19,1394 }, {  20,1394 },
- {  21,1394 }, {  22,1394 }, {  23,1394 }, {  24,1394 }, {  25,1394 },
- {  26,1394 }, {  27,1394 }, {  28,1394 }, {  29,1394 }, {  30,1394 },
- {  31,1394 }, {  32,1652 }, {  33,1394 }, {  34,1394 }, {  35,1394 },
- {  36,1394 }, {  37,1394 }, {  38,1394 }, {  39,1910 }, {  40,1394 },
- {  41,1394 }, {  42,1394 }, {  43,1394 }, {  44,1394 }, {  45,2168 },
- {  46,1394 }, {  47,1394 }, {  48,1394 }, {  49,1394 }, {  50,1394 },
- {  51,1394 }, {  52,1394 }, {  53,1394 }, {  54,1394 }, {  55,1394 },
- {  56,1394 }, {  57,1394 }, {  58,1394 }, {  59,1394 }, {  60,1394 },
- {  61,1394 }, {  62,1394 }, {  63,1394 }, {  64,1394 }, {  65,1394 },
-
- {  66,1394 }, {  67,1394 }, {  68,1394 }, {  69,1394 }, {  70,1394 },
- {  71,1394 }, {  72,1394 }, {  73,1394 }, {  74,1394 }, {  75,1394 },
- {  76,1394 }, {  77,1394 }, {  78,1394 }, {  79,1394 }, {  80,1394 },
- {  81,1394 }, {  82,1394 }, {  83,1394 }, {  84,1394 }, {  85,1394 },
- {  86,1394 }, {  87,1394 }, {  88,1394 }, {  89,1394 }, {  90,1394 },
- {  91,1394 }, {  92,1394 }, {  93,1394 }, {  94,1394 }, {  95,1394 },
- {  96,1394 }, {  97,1394 }, {  98,1394 }, {  99,1394 }, { 100,1394 },
- { 101,1394 }, { 102,1394 }, { 103,1394 }, { 104,1394 }, { 105,1394 },
- { 106,1394 }, { 107,1394 }, { 108,1394 }, { 109,1394 }, { 110,1394 },
- { 111,1394 }, { 112,1394 }, { 113,1394 }, { 114,1394 }, { 115,1394 },
-
- { 116,1394 }, { 117,1394 }, { 118,1394 }, { 119,1394 }, { 120,1394 },
- { 121,1394 }, { 122,1394 }, { 123,1394 }, { 124,1394 }, { 125,1394 },
- { 126,1394 }, { 127,1394 }, { 128,1394 }, { 129,1394 }, { 130,1394 },
- { 131,1394 }, { 132,1394 }, { 133,1394 }, { 134,1394 }, { 135,1394 },
- { 136,1394 }, { 137,1394 }, { 138,1394 }, { 139,1394 }, { 140,1394 },
- { 141,1394 }, { 142,1394 }, { 143,1394 }, { 144,1394 }, { 145,1394 },
- { 146,1394 }, { 147,1394 }, { 148,1394 }, { 149,1394 }, { 150,1394 },
- { 151,1394 }, { 152,1394 }, { 153,1394 }, { 154,1394 }, { 155,1394 },
- { 156,1394 }, { 157,1394 }, { 158,1394 }, { 159,1394 }, { 160,1394 },
- { 161,1394 }, { 162,1394 }, { 163,1394 }, { 164,1394 }, { 165,1394 },
-
- { 166,1394 }, { 167,1394 }, { 168,1394 }, { 169,1394 }, { 170,1394 },
- { 171,1394 }, { 172,1394 }, { 173,1394 }, { 174,1394 }, { 175,1394 },
- { 176,1394 }, { 177,1394 }, { 178,1394 }, { 179,1394 }, { 180,1394 },
- { 181,1394 }, { 182,1394 }, { 183,1394 }, { 184,1394 }, { 185,1394 },
- { 186,1394 }, { 187,1394 }, { 188,1394 }, { 189,1394 }, { 190,1394 },
- { 191,1394 }, { 192,1394 }, { 193,1394 }, { 194,1394 }, { 195,1394 },
- { 196,1394 }, { 197,1394 }, { 198,1394 }, { 199,1394 }, { 200,1394 },
- { 201,1394 }, { 202,1394 }, { 203,1394 }, { 204,1394 }, { 205,1394 },
- { 206,1394 }, { 207,1394 }, { 208,1394 }, { 209,1394 }, { 210,1394 },
- { 211,1394 }, { 212,1394 }, { 213,1394 }, { 214,1394 }, { 215,1394 },
-
- { 216,1394 }, { 217,1394 }, { 218,1394 }, { 219,1394 }, { 220,1394 },
- { 221,1394 }, { 222,1394 }, { 223,1394 }, { 224,1394 }, { 225,1394 },
- { 226,1394 }, { 227,1394 }, { 228,1394 }, { 229,1394 }, { 230,1394 },
- { 231,1394 }, { 232,1394 }, { 233,1394 }, { 234,1394 }, { 235,1394 },
- { 236,1394 }, { 237,1394 }, { 238,1394 }, { 239,1394 }, { 240,1394 },
- { 241,1394 }, { 242,1394 }, { 243,1394 }, { 244,1394 }, { 245,1394 },
- { 246,1394 }, { 247,1394 }, { 248,1394 }, { 249,1394 }, { 250,1394 },
- { 251,1394 }, { 252,1394 }, { 253,1394 }, { 254,1394 }, { 255,1394 },
- { 256,1394 }, {   0,  37 }, {   0,5358 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  48,-23233 }, {  49,-23233 }, {  50,-23233 }, {  51,-23233 }, {  52,-23233 },
- {  53,-23233 }, {  54,-23233 }, {  55,-23233 }, {  56,-23233 }, {  57,-23233 },
-
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  65,-23233 }, {  66,-23233 }, {  67,-23233 },
- {  68,-23233 }, {  69,-23233 }, {  70,-23233 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-23233 },
- {  98,-23233 }, {  99,-23233 }, { 100,-23233 }, { 101,-23233 }, { 102,-23233 },
- {   0,  55 }, {   0,5254 }, {   1,   0 }, {   2,   0 }, {   3,   0 },
-
- {   4,   0 }, {   5,   0 }, {   6,   0 }, {   7,   0 }, {   8,   0 },
- {   9, 258 }, {  10,-1357 }, {  11,   0 }, {  12, 258 }, {  13,-1357 },
- {  14,   0 }, {  15,   0 }, {  16,   0 }, {  17,   0 }, {  18,   0 },
- {  19,   0 }, {  20,   0 }, {  21,   0 }, {  22,   0 }, {  23,   0 },
- {  24,   0 }, {  25,   0 }, {  26,   0 }, {  27,   0 }, {  28,   0 },
- {  29,   0 }, {  30,   0 }, {  31,   0 }, {  32, 258 }, {  33,   0 },
- {  34,   0 }, {  35,   0 }, {  36,   0 }, {  37,   0 }, {  38,   0 },
- {  39, 516 }, {  40,   0 }, {  41,   0 }, {  42,   0 }, {  43,   0 },
- {  44,   0 }, {  45, 774 }, {  46,   0 }, {  47,   0 }, {  48,   0 },
- {  49,   0 }, {  50,   0 }, {  51,   0 }, {  52,   0 }, {  53,   0 },
-
- {  54,   0 }, {  55,   0 }, {  56,   0 }, {  57,   0 }, {  58,   0 },
- {  59,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 }, {  63,   0 },
- {  64,   0 }, {  65,   0 }, {  66,   0 }, {  67,   0 }, {  68,   0 },
- {  69,   0 }, {  70,   0 }, {  71,   0 }, {  72,   0 }, {  73,   0 },
- {  74,   0 }, {  75,   0 }, {  76,   0 }, {  77,   0 }, {  78,   0 },
- {  79,   0 }, {  80,   0 }, {  81,   0 }, {  82,   0 }, {  83,   0 },
- {  84,   0 }, {  85,   0 }, {  86,   0 }, {  87,   0 }, {  88,   0 },
- {  89,   0 }, {  90,   0 }, {  91,   0 }, {  92,   0 }, {  93,   0 },
- {  94,   0 }, {  95,   0 }, {  96,   0 }, {  97,   0 }, {  98,   0 },
- {  99,   0 }, { 100,   0 }, { 101,   0 }, { 102,   0 }, { 103,   0 },
-
- { 104,   0 }, { 105,   0 }, { 106,   0 }, { 107,   0 }, { 108,   0 },
- { 109,   0 }, { 110,   0 }, { 111,   0 }, { 112,   0 }, { 113,   0 },
- { 114,   0 }, { 115,   0 }, { 116,   0 }, { 117,   0 }, { 118,   0 },
- { 119,   0 }, { 120,   0 }, { 121,   0 }, { 122,   0 }, { 123,   0 },
- { 124,   0 }, { 125,   0 }, { 126,   0 }, { 127,   0 }, { 128,   0 },
- { 129,   0 }, { 130,   0 }, { 131,   0 }, { 132,   0 }, { 133,   0 },
- { 134,   0 }, { 135,   0 }, { 136,   0 }, { 137,   0 }, { 138,   0 },
- { 139,   0 }, { 140,   0 }, { 141,   0 }, { 142,   0 }, { 143,   0 },
- { 144,   0 }, { 145,   0 }, { 146,   0 }, { 147,   0 }, { 148,   0 },
- { 149,   0 }, { 150,   0 }, { 151,   0 }, { 152,   0 }, { 153,   0 },
-
- { 154,   0 }, { 155,   0 }, { 156,   0 }, { 157,   0 }, { 158,   0 },
- { 159,   0 }, { 160,   0 }, { 161,   0 }, { 162,   0 }, { 163,   0 },
- { 164,   0 }, { 165,   0 }, { 166,   0 }, { 167,   0 }, { 168,   0 },
- { 169,   0 }, { 170,   0 }, { 171,   0 }, { 172,   0 }, { 173,   0 },
- { 174,   0 }, { 175,   0 }, { 176,   0 }, { 177,   0 }, { 178,   0 },
- { 179,   0 }, { 180,   0 }, { 181,   0 }, { 182,   0 }, { 183,   0 },
- { 184,   0 }, { 185,   0 }, { 186,   0 }, { 187,   0 }, { 188,   0 },
- { 189,   0 }, { 190,   0 }, { 191,   0 }, { 192,   0 }, { 193,   0 },
- { 194,   0 }, { 195,   0 }, { 196,   0 }, { 197,   0 }, { 198,   0 },
- { 199,   0 }, { 200,   0 }, { 201,   0 }, { 202,   0 }, { 203,   0 },
-
- { 204,   0 }, { 205,   0 }, { 206,   0 }, { 207,   0 }, { 208,   0 },
- { 209,   0 }, { 210,   0 }, { 211,   0 }, { 212,   0 }, { 213,   0 },
- { 214,   0 }, { 215,   0 }, { 216,   0 }, { 217,   0 }, { 218,   0 },
- { 219,   0 }, { 220,   0 }, { 221,   0 }, { 222,   0 }, { 223,   0 },
- { 224,   0 }, { 225,   0 }, { 226,   0 }, { 227,   0 }, { 228,   0 },
- { 229,   0 }, { 230,   0 }, { 231,   0 }, { 232,   0 }, { 233,   0 },
- { 234,   0 }, { 235,   0 }, { 236,   0 }, { 237,   0 }, { 238,   0 },
- { 239,   0 }, { 240,   0 }, { 241,   0 }, { 242,   0 }, { 243,   0 },
- { 244,   0 }, { 245,   0 }, { 246,   0 }, { 247,   0 }, { 248,   0 },
- { 249,   0 }, { 250,   0 }, { 251,   0 }, { 252,   0 }, { 253,   0 },
-
- { 254,   0 }, { 255,   0 }, { 256,   0 }, {   0,  55 }, {   0,4996 },
- {   1,-258 }, {   2,-258 }, {   3,-258 }, {   4,-258 }, {   5,-258 },
- {   6,-258 }, {   7,-258 }, {   8,-258 }, {   9,   0 }, {  10,-1615 },
- {  11,-258 }, {  12,   0 }, {  13,-1615 }, {  14,-258 }, {  15,-258 },
- {  16,-258 }, {  17,-258 }, {  18,-258 }, {  19,-258 }, {  20,-258 },
- {  21,-258 }, {  22,-258 }, {  23,-258 }, {  24,-258 }, {  25,-258 },
- {  26,-258 }, {  27,-258 }, {  28,-258 }, {  29,-258 }, {  30,-258 },
- {  31,-258 }, {  32,   0 }, {  33,-258 }, {  34,-258 }, {  35,-258 },
- {  36,-258 }, {  37,-258 }, {  38,-258 }, {  39, 258 }, {  40,-258 },
- {  41,-258 }, {  42,-258 }, {  43,-258 }, {  44,-258 }, {  45, 516 },
-
- {  46,-258 }, {  47,-258 }, {  48,-258 }, {  49,-258 }, {  50,-258 },
- {  51,-258 }, {  52,-258 }, {  53,-258 }, {  54,-258 }, {  55,-258 },
- {  56,-258 }, {  57,-258 }, {  58,-258 }, {  59,-258 }, {  60,-258 },
- {  61,-258 }, {  62,-258 }, {  63,-258 }, {  64,-258 }, {  65,-258 },
- {  66,-258 }, {  67,-258 }, {  68,-258 }, {  69,-258 }, {  70,-258 },
- {  71,-258 }, {  72,-258 }, {  73,-258 }, {  74,-258 }, {  75,-258 },
- {  76,-258 }, {  77,-258 }, {  78,-258 }, {  79,-258 }, {  80,-258 },
- {  81,-258 }, {  82,-258 }, {  83,-258 }, {  84,-258 }, {  85,-258 },
- {  86,-258 }, {  87,-258 }, {  88,-258 }, {  89,-258 }, {  90,-258 },
- {  91,-258 }, {  92,-258 }, {  93,-258 }, {  94,-258 }, {  95,-258 },
-
- {  96,-258 }, {  97,-258 }, {  98,-258 }, {  99,-258 }, { 100,-258 },
- { 101,-258 }, { 102,-258 }, { 103,-258 }, { 104,-258 }, { 105,-258 },
- { 106,-258 }, { 107,-258 }, { 108,-258 }, { 109,-258 }, { 110,-258 },
- { 111,-258 }, { 112,-258 }, { 113,-258 }, { 114,-258 }, { 115,-258 },
- { 116,-258 }, { 117,-258 }, { 118,-258 }, { 119,-258 }, { 120,-258 },
- { 121,-258 }, { 122,-258 }, { 123,-258 }, { 124,-258 }, { 125,-258 },
- { 126,-258 }, { 127,-258 }, { 128,-258 }, { 129,-258 }, { 130,-258 },
- { 131,-258 }, { 132,-258 }, { 133,-258 }, { 134,-258 }, { 135,-258 },
- { 136,-258 }, { 137,-258 }, { 138,-258 }, { 139,-258 }, { 140,-258 },
- { 141,-258 }, { 142,-258 }, { 143,-258 }, { 144,-258 }, { 145,-258 },
-
- { 146,-258 }, { 147,-258 }, { 148,-258 }, { 149,-258 }, { 150,-258 },
- { 151,-258 }, { 152,-258 }, { 153,-258 }, { 154,-258 }, { 155,-258 },
- { 156,-258 }, { 157,-258 }, { 158,-258 }, { 159,-258 }, { 160,-258 },
- { 161,-258 }, { 162,-258 }, { 163,-258 }, { 164,-258 }, { 165,-258 },
- { 166,-258 }, { 167,-258 }, { 168,-258 }, { 169,-258 }, { 170,-258 },
- { 171,-258 }, { 172,-258 }, { 173,-258 }, { 174,-258 }, { 175,-258 },
- { 176,-258 }, { 177,-258 }, { 178,-258 }, { 179,-258 }, { 180,-258 },
- { 181,-258 }, { 182,-258 }, { 183,-258 }, { 184,-258 }, { 185,-258 },
- { 186,-258 }, { 187,-258 }, { 188,-258 }, { 189,-258 }, { 190,-258 },
- { 191,-258 }, { 192,-258 }, { 193,-258 }, { 194,-258 }, { 195,-258 },
-
- { 196,-258 }, { 197,-258 }, { 198,-258 }, { 199,-258 }, { 200,-258 },
- { 201,-258 }, { 202,-258 }, { 203,-258 }, { 204,-258 }, { 205,-258 },
- { 206,-258 }, { 207,-258 }, { 208,-258 }, { 209,-258 }, { 210,-258 },
- { 211,-258 }, { 212,-258 }, { 213,-258 }, { 214,-258 }, { 215,-258 },
- { 216,-258 }, { 217,-258 }, { 218,-258 }, { 219,-258 }, { 220,-258 },
- { 221,-258 }, { 222,-258 }, { 223,-258 }, { 224,-258 }, { 225,-258 },
- { 226,-258 }, { 227,-258 }, { 228,-258 }, { 229,-258 }, { 230,-258 },
- { 231,-258 }, { 232,-258 }, { 233,-258 }, { 234,-258 }, { 235,-258 },
- { 236,-258 }, { 237,-258 }, { 238,-258 }, { 239,-258 }, { 240,-258 },
- { 241,-258 }, { 242,-258 }, { 243,-258 }, { 244,-258 }, { 245,-258 },
-
- { 246,-258 }, { 247,-258 }, { 248,-258 }, { 249,-258 }, { 250,-258 },
- { 251,-258 }, { 252,-258 }, { 253,-258 }, { 254,-258 }, { 255,-258 },
- { 256,-258 }, {   0,  55 }, {   0,4738 }, {   1,1548 }, {   2,1548 },
- {   3,1548 }, {   4,1548 }, {   5,1548 }, {   6,1548 }, {   7,1548 },
- {   8,1548 }, {   9,1806 }, {  10,2064 }, {  11,1548 }, {  12,1806 },
- {  13,2064 }, {  14,1548 }, {  15,1548 }, {  16,1548 }, {  17,1548 },
- {  18,1548 }, {  19,1548 }, {  20,1548 }, {  21,1548 }, {  22,1548 },
- {  23,1548 }, {  24,1548 }, {  25,1548 }, {  26,1548 }, {  27,1548 },
- {  28,1548 }, {  29,1548 }, {  30,1548 }, {  31,1548 }, {  32,1806 },
- {  33,1548 }, {  34,1548 }, {  35,1548 }, {  36,1548 }, {  37,1548 },
-
- {  38,1548 }, {  39,   0 }, {  40,1548 }, {  41,1548 }, {  42,1548 },
- {  43,1548 }, {  44,1548 }, {  45,2111 }, {  46,1548 }, {  47,1548 },
- {  48,1548 }, {  49,1548 }, {  50,1548 }, {  51,1548 }, {  52,1548 },
- {  53,1548 }, {  54,1548 }, {  55,1548 }, {  56,1548 }, {  57,1548 },
- {  58,1548 }, {  59,1548 }, {  60,1548 }, {  61,1548 }, {  62,1548 },
- {  63,1548 }, {  64,1548 }, {  65,1548 }, {  66,1548 }, {  67,1548 },
- {  68,1548 }, {  69,1548 }, {  70,1548 }, {  71,1548 }, {  72,1548 },
- {  73,1548 }, {  74,1548 }, {  75,1548 }, {  76,1548 }, {  77,1548 },
- {  78,1548 }, {  79,1548 }, {  80,1548 }, {  81,1548 }, {  82,1548 },
- {  83,1548 }, {  84,1548 }, {  85,1548 }, {  86,1548 }, {  87,1548 },
-
- {  88,1548 }, {  89,1548 }, {  90,1548 }, {  91,1548 }, {  92,1548 },
- {  93,1548 }, {  94,1548 }, {  95,1548 }, {  96,1548 }, {  97,1548 },
- {  98,1548 }, {  99,1548 }, { 100,1548 }, { 101,1548 }, { 102,1548 },
- { 103,1548 }, { 104,1548 }, { 105,1548 }, { 106,1548 }, { 107,1548 },
- { 108,1548 }, { 109,1548 }, { 110,1548 }, { 111,1548 }, { 112,1548 },
- { 113,1548 }, { 114,1548 }, { 115,1548 }, { 116,1548 }, { 117,1548 },
- { 118,1548 }, { 119,1548 }, { 120,1548 }, { 121,1548 }, { 122,1548 },
- { 123,1548 }, { 124,1548 }, { 125,1548 }, { 126,1548 }, { 127,1548 },
- { 128,1548 }, { 129,1548 }, { 130,1548 }, { 131,1548 }, { 132,1548 },
- { 133,1548 }, { 134,1548 }, { 135,1548 }, { 136,1548 }, { 137,1548 },
-
- { 138,1548 }, { 139,1548 }, { 140,1548 }, { 141,1548 }, { 142,1548 },
- { 143,1548 }, { 144,1548 }, { 145,1548 }, { 146,1548 }, { 147,1548 },
- { 148,1548 }, { 149,1548 }, { 150,1548 }, { 151,1548 }, { 152,1548 },
- { 153,1548 }, { 154,1548 }, { 155,1548 }, { 156,1548 }, { 157,1548 },
- { 158,1548 }, { 159,1548 }, { 160,1548 }, { 161,1548 }, { 162,1548 },
- { 163,1548 }, { 164,1548 }, { 165,1548 }, { 166,1548 }, { 167,1548 },
- { 168,1548 }, { 169,1548 }, { 170,1548 }, { 171,1548 }, { 172,1548 },
- { 173,1548 }, { 174,1548 }, { 175,1548 }, { 176,1548 }, { 177,1548 },
- { 178,1548 }, { 179,1548 }, { 180,1548 }, { 181,1548 }, { 182,1548 },
- { 183,1548 }, { 184,1548 }, { 185,1548 }, { 186,1548 }, { 187,1548 },
-
- { 188,1548 }, { 189,1548 }, { 190,1548 }, { 191,1548 }, { 192,1548 },
- { 193,1548 }, { 194,1548 }, { 195,1548 }, { 196,1548 }, { 197,1548 },
- { 198,1548 }, { 199,1548 }, { 200,1548 }, { 201,1548 }, { 202,1548 },
- { 203,1548 }, { 204,1548 }, { 205,1548 }, { 206,1548 }, { 207,1548 },
- { 208,1548 }, { 209,1548 }, { 210,1548 }, { 211,1548 }, { 212,1548 },
- { 213,1548 }, { 214,1548 }, { 215,1548 }, { 216,1548 }, { 217,1548 },
- { 218,1548 }, { 219,1548 }, { 220,1548 }, { 221,1548 }, { 222,1548 },
- { 223,1548 }, { 224,1548 }, { 225,1548 }, { 226,1548 }, { 227,1548 },
- { 228,1548 }, { 229,1548 }, { 230,1548 }, { 231,1548 }, { 232,1548 },
- { 233,1548 }, { 234,1548 }, { 235,1548 }, { 236,1548 }, { 237,1548 },
-
- { 238,1548 }, { 239,1548 }, { 240,1548 }, { 241,1548 }, { 242,1548 },
- { 243,1548 }, { 244,1548 }, { 245,1548 }, { 246,1548 }, { 247,1548 },
- { 248,1548 }, { 249,1548 }, { 250,1548 }, { 251,1548 }, { 252,1548 },
- { 253,1548 }, { 254,1548 }, { 255,1548 }, { 256,1548 }, {   0,  55 },
- {   0,4480 }, {   1,-774 }, {   2,-774 }, {   3,-774 }, {   4,-774 },
- {   5,-774 }, {   6,-774 }, {   7,-774 }, {   8,-774 }, {   9,-516 },
- {  10,-2131 }, {  11,-774 }, {  12,-516 }, {  13,-2131 }, {  14,-774 },
- {  15,-774 }, {  16,-774 }, {  17,-774 }, {  18,-774 }, {  19,-774 },
- {  20,-774 }, {  21,-774 }, {  22,-774 }, {  23,-774 }, {  24,-774 },
- {  25,-774 }, {  26,-774 }, {  27,-774 }, {  28,-774 }, {  29,-774 },
-
- {  30,-774 }, {  31,-774 }, {  32,-516 }, {  33,-774 }, {  34,-774 },
- {  35,-774 }, {  36,-774 }, {  37,-774 }, {  38,-774 }, {  39,-258 },
- {  40,-774 }, {  41,-774 }, {  42,-774 }, {  43,-774 }, {  44,-774 },
- {  45,2111 }, {  46,-774 }, {  47,-774 }, {  48,-774 }, {  49,-774 },
- {  50,-774 }, {  51,-774 }, {  52,-774 }, {  53,-774 }, {  54,-774 },
- {  55,-774 }, {  56,-774 }, {  57,-774 }, {  58,-774 }, {  59,-774 },
- {  60,-774 }, {  61,-774 }, {  62,-774 }, {  63,-774 }, {  64,-774 },
- {  65,-774 }, {  66,-774 }, {  67,-774 }, {  68,-774 }, {  69,-774 },
- {  70,-774 }, {  71,-774 }, {  72,-774 }, {  73,-774 }, {  74,-774 },
- {  75,-774 }, {  76,-774 }, {  77,-774 }, {  78,-774 }, {  79,-774 },
-
- {  80,-774 }, {  81,-774 }, {  82,-774 }, {  83,-774 }, {  84,-774 },
- {  85,-774 }, {  86,-774 }, {  87,-774 }, {  88,-774 }, {  89,-774 },
- {  90,-774 }, {  91,-774 }, {  92,-774 }, {  93,-774 }, {  94,-774 },
- {  95,-774 }, {  96,-774 }, {  97,-774 }, {  98,-774 }, {  99,-774 },
- { 100,-774 }, { 101,-774 }, { 102,-774 }, { 103,-774 }, { 104,-774 },
- { 105,-774 }, { 106,-774 }, { 107,-774 }, { 108,-774 }, { 109,-774 },
- { 110,-774 }, { 111,-774 }, { 112,-774 }, { 113,-774 }, { 114,-774 },
- { 115,-774 }, { 116,-774 }, { 117,-774 }, { 118,-774 }, { 119,-774 },
- { 120,-774 }, { 121,-774 }, { 122,-774 }, { 123,-774 }, { 124,-774 },
- { 125,-774 }, { 126,-774 }, { 127,-774 }, { 128,-774 }, { 129,-774 },
-
- { 130,-774 }, { 131,-774 }, { 132,-774 }, { 133,-774 }, { 134,-774 },
- { 135,-774 }, { 136,-774 }, { 137,-774 }, { 138,-774 }, { 139,-774 },
- { 140,-774 }, { 141,-774 }, { 142,-774 }, { 143,-774 }, { 144,-774 },
- { 145,-774 }, { 146,-774 }, { 147,-774 }, { 148,-774 }, { 149,-774 },
- { 150,-774 }, { 151,-774 }, { 152,-774 }, { 153,-774 }, { 154,-774 },
- { 155,-774 }, { 156,-774 }, { 157,-774 }, { 158,-774 }, { 159,-774 },
- { 160,-774 }, { 161,-774 }, { 162,-774 }, { 163,-774 }, { 164,-774 },
- { 165,-774 }, { 166,-774 }, { 167,-774 }, { 168,-774 }, { 169,-774 },
- { 170,-774 }, { 171,-774 }, { 172,-774 }, { 173,-774 }, { 174,-774 },
- { 175,-774 }, { 176,-774 }, { 177,-774 }, { 178,-774 }, { 179,-774 },
-
- { 180,-774 }, { 181,-774 }, { 182,-774 }, { 183,-774 }, { 184,-774 },
- { 185,-774 }, { 186,-774 }, { 187,-774 }, { 188,-774 }, { 189,-774 },
- { 190,-774 }, { 191,-774 }, { 192,-774 }, { 193,-774 }, { 194,-774 },
- { 195,-774 }, { 196,-774 }, { 197,-774 }, { 198,-774 }, { 199,-774 },
- { 200,-774 }, { 201,-774 }, { 202,-774 }, { 203,-774 }, { 204,-774 },
- { 205,-774 }, { 206,-774 }, { 207,-774 }, { 208,-774 }, { 209,-774 },
- { 210,-774 }, { 211,-774 }, { 212,-774 }, { 213,-774 }, { 214,-774 },
- { 215,-774 }, { 216,-774 }, { 217,-774 }, { 218,-774 }, { 219,-774 },
- { 220,-774 }, { 221,-774 }, { 222,-774 }, { 223,-774 }, { 224,-774 },
- { 225,-774 }, { 226,-774 }, { 227,-774 }, { 228,-774 }, { 229,-774 },
-
- { 230,-774 }, { 231,-774 }, { 232,-774 }, { 233,-774 }, { 234,-774 },
- { 235,-774 }, { 236,-774 }, { 237,-774 }, { 238,-774 }, { 239,-774 },
- { 240,-774 }, { 241,-774 }, { 242,-774 }, { 243,-774 }, { 244,-774 },
- { 245,-774 }, { 246,-774 }, { 247,-774 }, { 248,-774 }, { 249,-774 },
- { 250,-774 }, { 251,-774 }, { 252,-774 }, { 253,-774 }, { 254,-774 },
- { 255,-774 }, { 256,-774 }, {   0,  28 }, {   0,4222 }, {   1,   0 },
- {   2,   0 }, {   3,   0 }, {   4,   0 }, {   5,   0 }, {   6,   0 },
- {   7,   0 }, {   8,   0 }, {   9, 258 }, {  10,-2084 }, {  11,   0 },
- {  12, 258 }, {  13,-2084 }, {  14,   0 }, {  15,   0 }, {  16,   0 },
- {  17,   0 }, {  18,   0 }, {  19,   0 }, {  20,   0 }, {  21,   0 },
-
- {  22,   0 }, {  23,   0 }, {  24,   0 }, {  25,   0 }, {  26,   0 },
- {  27,   0 }, {  28,   0 }, {  29,   0 }, {  30,   0 }, {  31,   0 },
- {  32, 258 }, {  33,   0 }, {  34,   0 }, {  35,   0 }, {  36,   0 },
- {  37,   0 }, {  38,   0 }, {  39, 516 }, {  40,   0 }, {  41,   0 },
- {  42,   0 }, {  43,   0 }, {  44,   0 }, {  45, 774 }, {  46,   0 },
- {  47,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
+ {  56,   0 }, {  57,   0 }, {  60,   0 }, {  61,   0 }, {  62,   0 },
+ {  63,   0 }, {  64,   0 }, {   0,  61 }, {   0,1305 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  69,-3785 }, {  48,  42 },
+ {  49,  42 }, {  50,  42 }, {  51,  42 }, {  52,  42 }, {  53,  42 },
+ {  54,  42 }, {  55,  42 }, {  56,  42 }, {  57,  42 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   4 }, {   0,1279 },
+ {   0,   0 }, {  94,   0 }, {   0,   0 }, {  96,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ { 101,-3785 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,  30 }, {   0,1262 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
  {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
- {  57,   0 }, {  58,   0 }, {  59,   0 }, {  60,   0 }, {  61,   0 },
- {  62,   0 }, {  63,   0 }, {  64,   0 }, {  65,   0 }, {  66,   0 },
- {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
+ {  57,   0 }, { 124,   0 }, {  33,   0 }, { 126,   0 }, {  35,   0 },
+ {   0,   0 }, {  37,   0 }, {  38,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  42,   0 }, {  43,   0 }, {   0,   0 }, {  45,   0 },
+ {   0,   0 }, {  47,   0 }, {   0,  28 }, {   0,1230 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  60,   0 },
+ {  61,   0 }, {  62,   0 }, {  63,   0 }, {  64,   0 }, {  48,-9542 },
+ {  49,-9542 }, {  50,-9542 }, {  51,-9542 }, {  52,-9542 }, {  53,-9542 },
+ {  54,-9542 }, {  55,-9542 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,  28 }, {   0,1192 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  94,   0 }, {   0,   0 },
+ {  96,   0 }, {  48, 438 }, {  49, 438 }, {  50, 438 }, {  51, 438 },
+ {  52, 438 }, {  53, 438 }, {  54, 438 }, {  55, 438 }, {  56, 438 },
+
+ {  57, 438 }, {   0,   0 }, {   0,   0 }, {   0,  31 }, {   0,1169 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 438 }, {  66, 438 },
+ {  67, 438 }, {  68, 438 }, {  69, 438 }, {  70, 438 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, { 124,   0 }, {   0,   0 },
+ { 126,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48, 423 },
+ {  49, 423 }, {  50, 423 }, {  51, 423 }, {  52, 423 }, {  53, 423 },
+ {  54, 423 }, {  55, 423 }, {  56, 423 }, {  57, 423 }, {   0,   0 },
+ {  97, 438 }, {  98, 438 }, {  99, 438 }, { 100, 438 }, { 101, 438 },
+ { 102, 438 }, {  65, 423 }, {  66, 423 }, {  67, 423 }, {  68, 423 },
+
+ {  69, 423 }, {  70, 423 }, {  48,-9621 }, {  49,-9621 }, {  50,-9621 },
+ {  51,-9621 }, {  52,-9621 }, {  53,-9621 }, {  54,-9621 }, {  55,-9621 },
+ {  56,-9621 }, {  57,-9621 }, {   0,  37 }, {   0,1110 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,-9621 },
+ {  66,-9621 }, {  67,-9621 }, {  68,-9621 }, {  69,-9621 }, {  70,-9621 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97, 423 }, {  98, 423 },
+ {  99, 423 }, { 100, 423 }, { 101, 423 }, { 102, 423 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  36,-9721 },
+
+ {   0,   0 }, {  97,-9621 }, {  98,-9621 }, {  99,-9621 }, { 100,-9621 },
+ { 101,-9621 }, { 102,-9621 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  48,   0 }, {  49,   0 }, {  50,   0 }, {  51,   0 },
+ {  52,   0 }, {  53,   0 }, {  54,   0 }, {  55,   0 }, {  56,   0 },
+ {  57,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,   0 }, {  66,   0 },
+ {  67,   0 }, {  68,   0 }, {  69,   0 }, {  70,   0 }, {  71,   0 },
  {  72,   0 }, {  73,   0 }, {  74,   0 }, {  75,   0 }, {  76,   0 },
  {  77,   0 }, {  78,   0 }, {  79,   0 }, {  80,   0 }, {  81,   0 },
  {  82,   0 }, {  83,   0 }, {  84,   0 }, {  85,   0 }, {  86,   0 },
- {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {  91,   0 },
- {  92,   0 }, {  93,   0 }, {  94,   0 }, {  95,   0 }, {  96,   0 },
+
+ {  87,   0 }, {  88,   0 }, {  89,   0 }, {  90,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  95,   0 }, {   0,   0 },
  {  97,   0 }, {  98,   0 }, {  99,   0 }, { 100,   0 }, { 101,   0 },
  { 102,   0 }, { 103,   0 }, { 104,   0 }, { 105,   0 }, { 106,   0 },
  { 107,   0 }, { 108,   0 }, { 109,   0 }, { 110,   0 }, { 111,   0 },
  { 112,   0 }, { 113,   0 }, { 114,   0 }, { 115,   0 }, { 116,   0 },
  { 117,   0 }, { 118,   0 }, { 119,   0 }, { 120,   0 }, { 121,   0 },
-
- { 122,   0 }, { 123,   0 }, { 124,   0 }, { 125,   0 }, { 126,   0 },
- { 127,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
+ { 122,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, { 128,   0 }, { 129,   0 }, { 130,   0 }, { 131,   0 },
  { 132,   0 }, { 133,   0 }, { 134,   0 }, { 135,   0 }, { 136,   0 },
+
  { 137,   0 }, { 138,   0 }, { 139,   0 }, { 140,   0 }, { 141,   0 },
  { 142,   0 }, { 143,   0 }, { 144,   0 }, { 145,   0 }, { 146,   0 },
  { 147,   0 }, { 148,   0 }, { 149,   0 }, { 150,   0 }, { 151,   0 },
@@ -7642,10 +4295,10 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 157,   0 }, { 158,   0 }, { 159,   0 }, { 160,   0 }, { 161,   0 },
  { 162,   0 }, { 163,   0 }, { 164,   0 }, { 165,   0 }, { 166,   0 },
  { 167,   0 }, { 168,   0 }, { 169,   0 }, { 170,   0 }, { 171,   0 },
-
  { 172,   0 }, { 173,   0 }, { 174,   0 }, { 175,   0 }, { 176,   0 },
  { 177,   0 }, { 178,   0 }, { 179,   0 }, { 180,   0 }, { 181,   0 },
  { 182,   0 }, { 183,   0 }, { 184,   0 }, { 185,   0 }, { 186,   0 },
+
  { 187,   0 }, { 188,   0 }, { 189,   0 }, { 190,   0 }, { 191,   0 },
  { 192,   0 }, { 193,   0 }, { 194,   0 }, { 195,   0 }, { 196,   0 },
  { 197,   0 }, { 198,   0 }, { 199,   0 }, { 200,   0 }, { 201,   0 },
@@ -7653,890 +4306,204 @@ static yyconst struct yy_trans_info yy_transition[37005] =
  { 207,   0 }, { 208,   0 }, { 209,   0 }, { 210,   0 }, { 211,   0 },
  { 212,   0 }, { 213,   0 }, { 214,   0 }, { 215,   0 }, { 216,   0 },
  { 217,   0 }, { 218,   0 }, { 219,   0 }, { 220,   0 }, { 221,   0 },
-
  { 222,   0 }, { 223,   0 }, { 224,   0 }, { 225,   0 }, { 226,   0 },
  { 227,   0 }, { 228,   0 }, { 229,   0 }, { 230,   0 }, { 231,   0 },
  { 232,   0 }, { 233,   0 }, { 234,   0 }, { 235,   0 }, { 236,   0 },
+
  { 237,   0 }, { 238,   0 }, { 239,   0 }, { 240,   0 }, { 241,   0 },
  { 242,   0 }, { 243,   0 }, { 244,   0 }, { 245,   0 }, { 246,   0 },
  { 247,   0 }, { 248,   0 }, { 249,   0 }, { 250,   0 }, { 251,   0 },
- { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, { 256,   0 },
- {   0,  28 }, {   0,3964 }, {   1,-258 }, {   2,-258 }, {   3,-258 },
- {   4,-258 }, {   5,-258 }, {   6,-258 }, {   7,-258 }, {   8,-258 },
- {   9,   0 }, {  10,-2342 }, {  11,-258 }, {  12,   0 }, {  13,-2342 },
-
- {  14,-258 }, {  15,-258 }, {  16,-258 }, {  17,-258 }, {  18,-258 },
- {  19,-258 }, {  20,-258 }, {  21,-258 }, {  22,-258 }, {  23,-258 },
- {  24,-258 }, {  25,-258 }, {  26,-258 }, {  27,-258 }, {  28,-258 },
- {  29,-258 }, {  30,-258 }, {  31,-258 }, {  32,   0 }, {  33,-258 },
- {  34,-258 }, {  35,-258 }, {  36,-258 }, {  37,-258 }, {  38,-258 },
- {  39, 258 }, {  40,-258 }, {  41,-258 }, {  42,-258 }, {  43,-258 },
- {  44,-258 }, {  45, 516 }, {  46,-258 }, {  47,-258 }, {  48,-258 },
- {  49,-258 }, {  50,-258 }, {  51,-258 }, {  52,-258 }, {  53,-258 },
- {  54,-258 }, {  55,-258 }, {  56,-258 }, {  57,-258 }, {  58,-258 },
- {  59,-258 }, {  60,-258 }, {  61,-258 }, {  62,-258 }, {  63,-258 },
-
- {  64,-258 }, {  65,-258 }, {  66,-258 }, {  67,-258 }, {  68,-258 },
- {  69,-258 }, {  70,-258 }, {  71,-258 }, {  72,-258 }, {  73,-258 },
- {  74,-258 }, {  75,-258 }, {  76,-258 }, {  77,-258 }, {  78,-258 },
- {  79,-258 }, {  80,-258 }, {  81,-258 }, {  82,-258 }, {  83,-258 },
- {  84,-258 }, {  85,-258 }, {  86,-258 }, {  87,-258 }, {  88,-258 },
- {  89,-258 }, {  90,-258 }, {  91,-258 }, {  92,-258 }, {  93,-258 },
- {  94,-258 }, {  95,-258 }, {  96,-258 }, {  97,-258 }, {  98,-258 },
- {  99,-258 }, { 100,-258 }, { 101,-258 }, { 102,-258 }, { 103,-258 },
- { 104,-258 }, { 105,-258 }, { 106,-258 }, { 107,-258 }, { 108,-258 },
- { 109,-258 }, { 110,-258 }, { 111,-258 }, { 112,-258 }, { 113,-258 },
-
- { 114,-258 }, { 115,-258 }, { 116,-258 }, { 117,-258 }, { 118,-258 },
- { 119,-258 }, { 120,-258 }, { 121,-258 }, { 122,-258 }, { 123,-258 },
- { 124,-258 }, { 125,-258 }, { 126,-258 }, { 127,-258 }, { 128,-258 },
- { 129,-258 }, { 130,-258 }, { 131,-258 }, { 132,-258 }, { 133,-258 },
- { 134,-258 }, { 135,-258 }, { 136,-258 }, { 137,-258 }, { 138,-258 },
- { 139,-258 }, { 140,-258 }, { 141,-258 }, { 142,-258 }, { 143,-258 },
- { 144,-258 }, { 145,-258 }, { 146,-258 }, { 147,-258 }, { 148,-258 },
- { 149,-258 }, { 150,-258 }, { 151,-258 }, { 152,-258 }, { 153,-258 },
- { 154,-258 }, { 155,-258 }, { 156,-258 }, { 157,-258 }, { 158,-258 },
- { 159,-258 }, { 160,-258 }, { 161,-258 }, { 162,-258 }, { 163,-258 },
-
- { 164,-258 }, { 165,-258 }, { 166,-258 }, { 167,-258 }, { 168,-258 },
- { 169,-258 }, { 170,-258 }, { 171,-258 }, { 172,-258 }, { 173,-258 },
- { 174,-258 }, { 175,-258 }, { 176,-258 }, { 177,-258 }, { 178,-258 },
- { 179,-258 }, { 180,-258 }, { 181,-258 }, { 182,-258 }, { 183,-258 },
- { 184,-258 }, { 185,-258 }, { 186,-258 }, { 187,-258 }, { 188,-258 },
- { 189,-258 }, { 190,-258 }, { 191,-258 }, { 192,-258 }, { 193,-258 },
- { 194,-258 }, { 195,-258 }, { 196,-258 }, { 197,-258 }, { 198,-258 },
- { 199,-258 }, { 200,-258 }, { 201,-258 }, { 202,-258 }, { 203,-258 },
- { 204,-258 }, { 205,-258 }, { 206,-258 }, { 207,-258 }, { 208,-258 },
- { 209,-258 }, { 210,-258 }, { 211,-258 }, { 212,-258 }, { 213,-258 },
-
- { 214,-258 }, { 215,-258 }, { 216,-258 }, { 217,-258 }, { 218,-258 },
- { 219,-258 }, { 220,-258 }, { 221,-258 }, { 222,-258 }, { 223,-258 },
- { 224,-258 }, { 225,-258 }, { 226,-258 }, { 227,-258 }, { 228,-258 },
- { 229,-258 }, { 230,-258 }, { 231,-258 }, { 232,-258 }, { 233,-258 },
- { 234,-258 }, { 235,-258 }, { 236,-258 }, { 237,-258 }, { 238,-258 },
- { 239,-258 }, { 240,-258 }, { 241,-258 }, { 242,-258 }, { 243,-258 },
- { 244,-258 }, { 245,-258 }, { 246,-258 }, { 247,-258 }, { 248,-258 },
- { 249,-258 }, { 250,-258 }, { 251,-258 }, { 252,-258 }, { 253,-258 },
- { 254,-258 }, { 255,-258 }, { 256,-258 }, {   0,  28 }, {   0,3706 },
- {   1,1595 }, {   2,1595 }, {   3,1595 }, {   4,1595 }, {   5,1595 },
-
- {   6,1595 }, {   7,1595 }, {   8,1595 }, {   9,1853 }, {  10,2111 },
- {  11,1595 }, {  12,1853 }, {  13,2111 }, {  14,1595 }, {  15,1595 },
- {  16,1595 }, {  17,1595 }, {  18,1595 }, {  19,1595 }, {  20,1595 },
- {  21,1595 }, {  22,1595 }, {  23,1595 }, {  24,1595 }, {  25,1595 },
- {  26,1595 }, {  27,1595 }, {  28,1595 }, {  29,1595 }, {  30,1595 },
- {  31,1595 }, {  32,1853 }, {  33,1595 }, {  34,1595 }, {  35,1595 },
- {  36,1595 }, {  37,1595 }, {  38,1595 }, {  39,   0 }, {  40,1595 },
- {  41,1595 }, {  42,1595 }, {  43,1595 }, {  44,1595 }, {  45,2158 },
- {  46,1595 }, {  47,1595 }, {  48,1595 }, {  49,1595 }, {  50,1595 },
- {  51,1595 }, {  52,1595 }, {  53,1595 }, {  54,1595 }, {  55,1595 },
-
- {  56,1595 }, {  57,1595 }, {  58,1595 }, {  59,1595 }, {  60,1595 },
- {  61,1595 }, {  62,1595 }, {  63,1595 }, {  64,1595 }, {  65,1595 },
- {  66,1595 }, {  67,1595 }, {  68,1595 }, {  69,1595 }, {  70,1595 },
- {  71,1595 }, {  72,1595 }, {  73,1595 }, {  74,1595 }, {  75,1595 },
- {  76,1595 }, {  77,1595 }, {  78,1595 }, {  79,1595 }, {  80,1595 },
- {  81,1595 }, {  82,1595 }, {  83,1595 }, {  84,1595 }, {  85,1595 },
- {  86,1595 }, {  87,1595 }, {  88,1595 }, {  89,1595 }, {  90,1595 },
- {  91,1595 }, {  92,1595 }, {  93,1595 }, {  94,1595 }, {  95,1595 },
- {  96,1595 }, {  97,1595 }, {  98,1595 }, {  99,1595 }, { 100,1595 },
- { 101,1595 }, { 102,1595 }, { 103,1595 }, { 104,1595 }, { 105,1595 },
-
- { 106,1595 }, { 107,1595 }, { 108,1595 }, { 109,1595 }, { 110,1595 },
- { 111,1595 }, { 112,1595 }, { 113,1595 }, { 114,1595 }, { 115,1595 },
- { 116,1595 }, { 117,1595 }, { 118,1595 }, { 119,1595 }, { 120,1595 },
- { 121,1595 }, { 122,1595 }, { 123,1595 }, { 124,1595 }, { 125,1595 },
- { 126,1595 }, { 127,1595 }, { 128,1595 }, { 129,1595 }, { 130,1595 },
- { 131,1595 }, { 132,1595 }, { 133,1595 }, { 134,1595 }, { 135,1595 },
- { 136,1595 }, { 137,1595 }, { 138,1595 }, { 139,1595 }, { 140,1595 },
- { 141,1595 }, { 142,1595 }, { 143,1595 }, { 144,1595 }, { 145,1595 },
- { 146,1595 }, { 147,1595 }, { 148,1595 }, { 149,1595 }, { 150,1595 },
- { 151,1595 }, { 152,1595 }, { 153,1595 }, { 154,1595 }, { 155,1595 },
-
- { 156,1595 }, { 157,1595 }, { 158,1595 }, { 159,1595 }, { 160,1595 },
- { 161,1595 }, { 162,1595 }, { 163,1595 }, { 164,1595 }, { 165,1595 },
- { 166,1595 }, { 167,1595 }, { 168,1595 }, { 169,1595 }, { 170,1595 },
- { 171,1595 }, { 172,1595 }, { 173,1595 }, { 174,1595 }, { 175,1595 },
- { 176,1595 }, { 177,1595 }, { 178,1595 }, { 179,1595 }, { 180,1595 },
- { 181,1595 }, { 182,1595 }, { 183,1595 }, { 184,1595 }, { 185,1595 },
- { 186,1595 }, { 187,1595 }, { 188,1595 }, { 189,1595 }, { 190,1595 },
- { 191,1595 }, { 192,1595 }, { 193,1595 }, { 194,1595 }, { 195,1595 },
- { 196,1595 }, { 197,1595 }, { 198,1595 }, { 199,1595 }, { 200,1595 },
- { 201,1595 }, { 202,1595 }, { 203,1595 }, { 204,1595 }, { 205,1595 },
-
- { 206,1595 }, { 207,1595 }, { 208,1595 }, { 209,1595 }, { 210,1595 },
- { 211,1595 }, { 212,1595 }, { 213,1595 }, { 214,1595 }, { 215,1595 },
- { 216,1595 }, { 217,1595 }, { 218,1595 }, { 219,1595 }, { 220,1595 },
- { 221,1595 }, { 222,1595 }, { 223,1595 }, { 224,1595 }, { 225,1595 },
- { 226,1595 }, { 227,1595 }, { 228,1595 }, { 229,1595 }, { 230,1595 },
- { 231,1595 }, { 232,1595 }, { 233,1595 }, { 234,1595 }, { 235,1595 },
- { 236,1595 }, { 237,1595 }, { 238,1595 }, { 239,1595 }, { 240,1595 },
- { 241,1595 }, { 242,1595 }, { 243,1595 }, { 244,1595 }, { 245,1595 },
- { 246,1595 }, { 247,1595 }, { 248,1595 }, { 249,1595 }, { 250,1595 },
- { 251,1595 }, { 252,1595 }, { 253,1595 }, { 254,1595 }, { 255,1595 },
-
- { 256,1595 }, {   0,  28 }, {   0,3448 }, {   1,-774 }, {   2,-774 },
- {   3,-774 }, {   4,-774 }, {   5,-774 }, {   6,-774 }, {   7,-774 },
- {   8,-774 }, {   9,-516 }, {  10,-2858 }, {  11,-774 }, {  12,-516 },
- {  13,-2858 }, {  14,-774 }, {  15,-774 }, {  16,-774 }, {  17,-774 },
- {  18,-774 }, {  19,-774 }, {  20,-774 }, {  21,-774 }, {  22,-774 },
- {  23,-774 }, {  24,-774 }, {  25,-774 }, {  26,-774 }, {  27,-774 },
- {  28,-774 }, {  29,-774 }, {  30,-774 }, {  31,-774 }, {  32,-516 },
- {  33,-774 }, {  34,-774 }, {  35,-774 }, {  36,-774 }, {  37,-774 },
- {  38,-774 }, {  39,-258 }, {  40,-774 }, {  41,-774 }, {  42,-774 },
- {  43,-774 }, {  44,-774 }, {  45,2158 }, {  46,-774 }, {  47,-774 },
-
- {  48,-774 }, {  49,-774 }, {  50,-774 }, {  51,-774 }, {  52,-774 },
- {  53,-774 }, {  54,-774 }, {  55,-774 }, {  56,-774 }, {  57,-774 },
- {  58,-774 }, {  59,-774 }, {  60,-774 }, {  61,-774 }, {  62,-774 },
- {  63,-774 }, {  64,-774 }, {  65,-774 }, {  66,-774 }, {  67,-774 },
- {  68,-774 }, {  69,-774 }, {  70,-774 }, {  71,-774 }, {  72,-774 },
- {  73,-774 }, {  74,-774 }, {  75,-774 }, {  76,-774 }, {  77,-774 },
- {  78,-774 }, {  79,-774 }, {  80,-774 }, {  81,-774 }, {  82,-774 },
- {  83,-774 }, {  84,-774 }, {  85,-774 }, {  86,-774 }, {  87,-774 },
- {  88,-774 }, {  89,-774 }, {  90,-774 }, {  91,-774 }, {  92,-774 },
- {  93,-774 }, {  94,-774 }, {  95,-774 }, {  96,-774 }, {  97,-774 },
-
- {  98,-774 }, {  99,-774 }, { 100,-774 }, { 101,-774 }, { 102,-774 },
- { 103,-774 }, { 104,-774 }, { 105,-774 }, { 106,-774 }, { 107,-774 },
- { 108,-774 }, { 109,-774 }, { 110,-774 }, { 111,-774 }, { 112,-774 },
- { 113,-774 }, { 114,-774 }, { 115,-774 }, { 116,-774 }, { 117,-774 },
- { 118,-774 }, { 119,-774 }, { 120,-774 }, { 121,-774 }, { 122,-774 },
- { 123,-774 }, { 124,-774 }, { 125,-774 }, { 126,-774 }, { 127,-774 },
- { 128,-774 }, { 129,-774 }, { 130,-774 }, { 131,-774 }, { 132,-774 },
- { 133,-774 }, { 134,-774 }, { 135,-774 }, { 136,-774 }, { 137,-774 },
- { 138,-774 }, { 139,-774 }, { 140,-774 }, { 141,-774 }, { 142,-774 },
- { 143,-774 }, { 144,-774 }, { 145,-774 }, { 146,-774 }, { 147,-774 },
-
- { 148,-774 }, { 149,-774 }, { 150,-774 }, { 151,-774 }, { 152,-774 },
- { 153,-774 }, { 154,-774 }, { 155,-774 }, { 156,-774 }, { 157,-774 },
- { 158,-774 }, { 159,-774 }, { 160,-774 }, { 161,-774 }, { 162,-774 },
- { 163,-774 }, { 164,-774 }, { 165,-774 }, { 166,-774 }, { 167,-774 },
- { 168,-774 }, { 169,-774 }, { 170,-774 }, { 171,-774 }, { 172,-774 },
- { 173,-774 }, { 174,-774 }, { 175,-774 }, { 176,-774 }, { 177,-774 },
- { 178,-774 }, { 179,-774 }, { 180,-774 }, { 181,-774 }, { 182,-774 },
- { 183,-774 }, { 184,-774 }, { 185,-774 }, { 186,-774 }, { 187,-774 },
- { 188,-774 }, { 189,-774 }, { 190,-774 }, { 191,-774 }, { 192,-774 },
- { 193,-774 }, { 194,-774 }, { 195,-774 }, { 196,-774 }, { 197,-774 },
-
- { 198,-774 }, { 199,-774 }, { 200,-774 }, { 201,-774 }, { 202,-774 },
- { 203,-774 }, { 204,-774 }, { 205,-774 }, { 206,-774 }, { 207,-774 },
- { 208,-774 }, { 209,-774 }, { 210,-774 }, { 211,-774 }, { 212,-774 },
- { 213,-774 }, { 214,-774 }, { 215,-774 }, { 216,-774 }, { 217,-774 },
- { 218,-774 }, { 219,-774 }, { 220,-774 }, { 221,-774 }, { 222,-774 },
- { 223,-774 }, { 224,-774 }, { 225,-774 }, { 226,-774 }, { 227,-774 },
- { 228,-774 }, { 229,-774 }, { 230,-774 }, { 231,-774 }, { 232,-774 },
- { 233,-774 }, { 234,-774 }, { 235,-774 }, { 236,-774 }, { 237,-774 },
- { 238,-774 }, { 239,-774 }, { 240,-774 }, { 241,-774 }, { 242,-774 },
- { 243,-774 }, { 244,-774 }, { 245,-774 }, { 246,-774 }, { 247,-774 },
-
- { 248,-774 }, { 249,-774 }, { 250,-774 }, { 251,-774 }, { 252,-774 },
- { 253,-774 }, { 254,-774 }, { 255,-774 }, { 256,-774 }, {   0,  55 },
- {   0,3190 }, {   1,-2064 }, {   2,-2064 }, {   3,-2064 }, {   4,-2064 },
- {   5,-2064 }, {   6,-2064 }, {   7,-2064 }, {   8,-2064 }, {   9,-1806 },
- {  10,-3421 }, {  11,-2064 }, {  12,-1806 }, {  13,-3421 }, {  14,-2064 },
- {  15,-2064 }, {  16,-2064 }, {  17,-2064 }, {  18,-2064 }, {  19,-2064 },
- {  20,-2064 }, {  21,-2064 }, {  22,-2064 }, {  23,-2064 }, {  24,-2064 },
- {  25,-2064 }, {  26,-2064 }, {  27,-2064 }, {  28,-2064 }, {  29,-2064 },
- {  30,-2064 }, {  31,-2064 }, {  32,-1806 }, {  33,-2064 }, {  34,-2064 },
- {  35,-2064 }, {  36,-2064 }, {  37,-2064 }, {  38,-2064 }, {  39,2158 },
-
- {  40,-2064 }, {  41,-2064 }, {  42,-2064 }, {  43,-2064 }, {  44,-2064 },
- {  45,-1290 }, {  46,-2064 }, {  47,-2064 }, {  48,-2064 }, {  49,-2064 },
- {  50,-2064 }, {  51,-2064 }, {  52,-2064 }, {  53,-2064 }, {  54,-2064 },
- {  55,-2064 }, {  56,-2064 }, {  57,-2064 }, {  58,-2064 }, {  59,-2064 },
- {  60,-2064 }, {  61,-2064 }, {  62,-2064 }, {  63,-2064 }, {  64,-2064 },
- {  65,-2064 }, {  66,-2064 }, {  67,-2064 }, {  68,-2064 }, {  69,-2064 },
- {  70,-2064 }, {  71,-2064 }, {  72,-2064 }, {  73,-2064 }, {  74,-2064 },
- {  75,-2064 }, {  76,-2064 }, {  77,-2064 }, {  78,-2064 }, {  79,-2064 },
- {  80,-2064 }, {  81,-2064 }, {  82,-2064 }, {  83,-2064 }, {  84,-2064 },
- {  85,-2064 }, {  86,-2064 }, {  87,-2064 }, {  88,-2064 }, {  89,-2064 },
-
- {  90,-2064 }, {  91,-2064 }, {  92,-2064 }, {  93,-2064 }, {  94,-2064 },
- {  95,-2064 }, {  96,-2064 }, {  97,-2064 }, {  98,-2064 }, {  99,-2064 },
- { 100,-2064 }, { 101,-2064 }, { 102,-2064 }, { 103,-2064 }, { 104,-2064 },
- { 105,-2064 }, { 106,-2064 }, { 107,-2064 }, { 108,-2064 }, { 109,-2064 },
- { 110,-2064 }, { 111,-2064 }, { 112,-2064 }, { 113,-2064 }, { 114,-2064 },
- { 115,-2064 }, { 116,-2064 }, { 117,-2064 }, { 118,-2064 }, { 119,-2064 },
- { 120,-2064 }, { 121,-2064 }, { 122,-2064 }, { 123,-2064 }, { 124,-2064 },
- { 125,-2064 }, { 126,-2064 }, { 127,-2064 }, { 128,-2064 }, { 129,-2064 },
- { 130,-2064 }, { 131,-2064 }, { 132,-2064 }, { 133,-2064 }, { 134,-2064 },
- { 135,-2064 }, { 136,-2064 }, { 137,-2064 }, { 138,-2064 }, { 139,-2064 },
-
- { 140,-2064 }, { 141,-2064 }, { 142,-2064 }, { 143,-2064 }, { 144,-2064 },
- { 145,-2064 }, { 146,-2064 }, { 147,-2064 }, { 148,-2064 }, { 149,-2064 },
- { 150,-2064 }, { 151,-2064 }, { 152,-2064 }, { 153,-2064 }, { 154,-2064 },
- { 155,-2064 }, { 156,-2064 }, { 157,-2064 }, { 158,-2064 }, { 159,-2064 },
- { 160,-2064 }, { 161,-2064 }, { 162,-2064 }, { 163,-2064 }, { 164,-2064 },
- { 165,-2064 }, { 166,-2064 }, { 167,-2064 }, { 168,-2064 }, { 169,-2064 },
- { 170,-2064 }, { 171,-2064 }, { 172,-2064 }, { 173,-2064 }, { 174,-2064 },
- { 175,-2064 }, { 176,-2064 }, { 177,-2064 }, { 178,-2064 }, { 179,-2064 },
- { 180,-2064 }, { 181,-2064 }, { 182,-2064 }, { 183,-2064 }, { 184,-2064 },
- { 185,-2064 }, { 186,-2064 }, { 187,-2064 }, { 188,-2064 }, { 189,-2064 },
-
- { 190,-2064 }, { 191,-2064 }, { 192,-2064 }, { 193,-2064 }, { 194,-2064 },
- { 195,-2064 }, { 196,-2064 }, { 197,-2064 }, { 198,-2064 }, { 199,-2064 },
- { 200,-2064 }, { 201,-2064 }, { 202,-2064 }, { 203,-2064 }, { 204,-2064 },
- { 205,-2064 }, { 206,-2064 }, { 207,-2064 }, { 208,-2064 }, { 209,-2064 },
- { 210,-2064 }, { 211,-2064 }, { 212,-2064 }, { 213,-2064 }, { 214,-2064 },
- { 215,-2064 }, { 216,-2064 }, { 217,-2064 }, { 218,-2064 }, { 219,-2064 },
- { 220,-2064 }, { 221,-2064 }, { 222,-2064 }, { 223,-2064 }, { 224,-2064 },
- { 225,-2064 }, { 226,-2064 }, { 227,-2064 }, { 228,-2064 }, { 229,-2064 },
- { 230,-2064 }, { 231,-2064 }, { 232,-2064 }, { 233,-2064 }, { 234,-2064 },
- { 235,-2064 }, { 236,-2064 }, { 237,-2064 }, { 238,-2064 }, { 239,-2064 },
-
- { 240,-2064 }, { 241,-2064 }, { 242,-2064 }, { 243,-2064 }, { 244,-2064 },
- { 245,-2064 }, { 246,-2064 }, { 247,-2064 }, { 248,-2064 }, { 249,-2064 },
- { 250,-2064 }, { 251,-2064 }, { 252,-2064 }, { 253,-2064 }, { 254,-2064 },
- { 255,-2064 }, { 256,-2064 }, {   0,  55 }, {   0,2932 }, {   1,-2322 },
- {   2,-2322 }, {   3,-2322 }, {   4,-2322 }, {   5,-2322 }, {   6,-2322 },
- {   7,-2322 }, {   8,-2322 }, {   9,-2064 }, {  10,-3679 }, {  11,-2322 },
- {  12,-2064 }, {  13,-3679 }, {  14,-2322 }, {  15,-2322 }, {  16,-2322 },
- {  17,-2322 }, {  18,-2322 }, {  19,-2322 }, {  20,-2322 }, {  21,-2322 },
- {  22,-2322 }, {  23,-2322 }, {  24,-2322 }, {  25,-2322 }, {  26,-2322 },
- {  27,-2322 }, {  28,-2322 }, {  29,-2322 }, {  30,-2322 }, {  31,-2322 },
-
- {  32,-2064 }, {  33,-2322 }, {  34,-2322 }, {  35,-2322 }, {  36,-2322 },
- {  37,-2322 }, {  38,-2322 }, {  39,1900 }, {  40,-2322 }, {  41,-2322 },
- {  42,-2322 }, {  43,-2322 }, {  44,-2322 }, {  45,-1548 }, {  46,-2322 },
- {  47,-2322 }, {  48,-2322 }, {  49,-2322 }, {  50,-2322 }, {  51,-2322 },
- {  52,-2322 }, {  53,-2322 }, {  54,-2322 }, {  55,-2322 }, {  56,-2322 },
- {  57,-2322 }, {  58,-2322 }, {  59,-2322 }, {  60,-2322 }, {  61,-2322 },
- {  62,-2322 }, {  63,-2322 }, {  64,-2322 }, {  65,-2322 }, {  66,-2322 },
- {  67,-2322 }, {  68,-2322 }, {  69,-2322 }, {  70,-2322 }, {  71,-2322 },
- {  72,-2322 }, {  73,-2322 }, {  74,-2322 }, {  75,-2322 }, {  76,-2322 },
- {  77,-2322 }, {  78,-2322 }, {  79,-2322 }, {  80,-2322 }, {  81,-2322 },
-
- {  82,-2322 }, {  83,-2322 }, {  84,-2322 }, {  85,-2322 }, {  86,-2322 },
- {  87,-2322 }, {  88,-2322 }, {  89,-2322 }, {  90,-2322 }, {  91,-2322 },
- {  92,-2322 }, {  93,-2322 }, {  94,-2322 }, {  95,-2322 }, {  96,-2322 },
- {  97,-2322 }, {  98,-2322 }, {  99,-2322 }, { 100,-2322 }, { 101,-2322 },
- { 102,-2322 }, { 103,-2322 }, { 104,-2322 }, { 105,-2322 }, { 106,-2322 },
- { 107,-2322 }, { 108,-2322 }, { 109,-2322 }, { 110,-2322 }, { 111,-2322 },
- { 112,-2322 }, { 113,-2322 }, { 114,-2322 }, { 115,-2322 }, { 116,-2322 },
- { 117,-2322 }, { 118,-2322 }, { 119,-2322 }, { 120,-2322 }, { 121,-2322 },
- { 122,-2322 }, { 123,-2322 }, { 124,-2322 }, { 125,-2322 }, { 126,-2322 },
- { 127,-2322 }, { 128,-2322 }, { 129,-2322 }, { 130,-2322 }, { 131,-2322 },
-
- { 132,-2322 }, { 133,-2322 }, { 134,-2322 }, { 135,-2322 }, { 136,-2322 },
- { 137,-2322 }, { 138,-2322 }, { 139,-2322 }, { 140,-2322 }, { 141,-2322 },
- { 142,-2322 }, { 143,-2322 }, { 144,-2322 }, { 145,-2322 }, { 146,-2322 },
- { 147,-2322 }, { 148,-2322 }, { 149,-2322 }, { 150,-2322 }, { 151,-2322 },
- { 152,-2322 }, { 153,-2322 }, { 154,-2322 }, { 155,-2322 }, { 156,-2322 },
- { 157,-2322 }, { 158,-2322 }, { 159,-2322 }, { 160,-2322 }, { 161,-2322 },
- { 162,-2322 }, { 163,-2322 }, { 164,-2322 }, { 165,-2322 }, { 166,-2322 },
- { 167,-2322 }, { 168,-2322 }, { 169,-2322 }, { 170,-2322 }, { 171,-2322 },
- { 172,-2322 }, { 173,-2322 }, { 174,-2322 }, { 175,-2322 }, { 176,-2322 },
- { 177,-2322 }, { 178,-2322 }, { 179,-2322 }, { 180,-2322 }, { 181,-2322 },
-
- { 182,-2322 }, { 183,-2322 }, { 184,-2322 }, { 185,-2322 }, { 186,-2322 },
- { 187,-2322 }, { 188,-2322 }, { 189,-2322 }, { 190,-2322 }, { 191,-2322 },
- { 192,-2322 }, { 193,-2322 }, { 194,-2322 }, { 195,-2322 }, { 196,-2322 },
- { 197,-2322 }, { 198,-2322 }, { 199,-2322 }, { 200,-2322 }, { 201,-2322 },
- { 202,-2322 }, { 203,-2322 }, { 204,-2322 }, { 205,-2322 }, { 206,-2322 },
- { 207,-2322 }, { 208,-2322 }, { 209,-2322 }, { 210,-2322 }, { 211,-2322 },
- { 212,-2322 }, { 213,-2322 }, { 214,-2322 }, { 215,-2322 }, { 216,-2322 },
- { 217,-2322 }, { 218,-2322 }, { 219,-2322 }, { 220,-2322 }, { 221,-2322 },
- { 222,-2322 }, { 223,-2322 }, { 224,-2322 }, { 225,-2322 }, { 226,-2322 },
- { 227,-2322 }, { 228,-2322 }, { 229,-2322 }, { 230,-2322 }, { 231,-2322 },
-
- { 232,-2322 }, { 233,-2322 }, { 234,-2322 }, { 235,-2322 }, { 236,-2322 },
- { 237,-2322 }, { 238,-2322 }, { 239,-2322 }, { 240,-2322 }, { 241,-2322 },
- { 242,-2322 }, { 243,-2322 }, { 244,-2322 }, { 245,-2322 }, { 246,-2322 },
- { 247,-2322 }, { 248,-2322 }, { 249,-2322 }, { 250,-2322 }, { 251,-2322 },
- { 252,-2322 }, { 253,-2322 }, { 254,-2322 }, { 255,-2322 }, { 256,-2322 },
- {   0,  55 }, {   0,2674 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ { 252,   0 }, { 253,   0 }, { 254,   0 }, { 255,   0 }, {   0,  28 },
+ {   0, 853 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   9,-3937 }, {  10,-3937 }, {   0,   0 }, {  12,-3937 }, {  13,-3937 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,  28 }, {   0, 830 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48, 143 }, {  49, 143 },
+ {  50, 143 }, {  51, 143 }, {  52, 143 }, {  53, 143 }, {  54, 143 },
+ {  55, 143 }, {  56, 143 }, {  57, 143 }, {   0,   0 }, {   0,   0 },
+ {   0,  28 }, {   0, 792 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65, 143 }, {  66, 143 }, {  67, 143 }, {  68, 143 }, {  69, 143 },
+ {  70, 143 }, {  48, 143 }, {  49, 143 }, {  50, 143 }, {  51, 143 },
+ {  52, 143 }, {  53, 143 }, {  54, 143 }, {  55, 143 }, {  56, 143 },
+
+ {  57, 143 }, {   0,   0 }, {   0,   0 }, {   0,  28 }, {   0, 769 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 143 }, {  66, 143 },
+ {  67, 143 }, {  68, 143 }, {  69, 143 }, {  70, 143 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  97, 143 }, {  98, 143 }, {  99, 143 },
+ { 100, 143 }, { 101, 143 }, { 102, 143 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48, 143 },
+ {  49, 143 }, {  50, 143 }, {  51, 143 }, {  52, 143 }, {  53, 143 },
+ {  54, 143 }, {  55, 143 }, {  56, 143 }, {  57, 143 }, {   0,   0 },
+ {  97, 143 }, {  98, 143 }, {  99, 143 }, { 100, 143 }, { 101, 143 },
+ { 102, 143 }, {  65, 143 }, {  66, 143 }, {  67, 143 }, {  68, 143 },
+
+ {  69, 143 }, {  70, 143 }, {  48, 143 }, {  49, 143 }, {  50, 143 },
+ {  51, 143 }, {  52, 143 }, {  53, 143 }, {  54, 143 }, {  55, 143 },
+ {  56, 143 }, {  57, 143 }, {   0,  28 }, {   0, 710 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 143 },
+ {  66, 143 }, {  67, 143 }, {  68, 143 }, {  69, 143 }, {  70, 143 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97, 143 }, {  98, 143 },
+ {  99, 143 }, { 100, 143 }, { 101, 143 }, { 102, 143 }, {   0,   0 },
+ {   0,  28 }, {   0, 687 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {  97, 143 }, {  98, 143 }, {  99, 143 }, { 100, 143 },
+ { 101, 143 }, { 102, 143 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  48, 143 }, {  49, 143 }, {  50, 143 }, {  51, 143 },
+ {  52, 143 }, {  53, 143 }, {  54, 143 }, {  55, 143 }, {  56, 143 },
+ {  57, 143 }, {   0,   0 }, {   0,   0 }, {   0,  28 }, {   0, 649 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65, 143 }, {  66, 143 },
+ {  67, 143 }, {  68, 143 }, {  69, 143 }, {  70, 143 }, {  48, 143 },
+ {  49, 143 }, {  50, 143 }, {  51, 143 }, {  52, 143 }, {  53, 143 },
+ {  54, 143 }, {  55, 143 }, {  56, 143 }, {  57, 143 }, {   0,   0 },
+ {   0,   0 }, {   0,  28 }, {   0, 626 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {  65, 143 }, {  66, 143 }, {  67, 143 }, {  68, 143 },
+ {  69, 143 }, {  70, 143 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  97, 143 }, {  98, 143 }, {  99, 143 }, { 100, 143 }, { 101, 143 },
+ { 102, 143 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  48, 143 }, {  49, 143 }, {  50, 143 },
+ {  51, 143 }, {  52, 143 }, {  53, 143 }, {  54, 143 }, {  55, 143 },
+ {  56, 143 }, {  57, 143 }, {   0,   0 }, {  97, 143 }, {  98, 143 },
+ {  99, 143 }, { 100, 143 }, { 101, 143 }, { 102, 143 }, {  65, 143 },
+ {  66, 143 }, {  67, 143 }, {  68, 143 }, {  69, 143 }, {  70, 143 },
+ {  48,-10162 }, {  49,-10162 }, {  50,-10162 }, {  51,-10162 }, {  52,-10162 },
+
+ {  53,-10162 }, {  54,-10162 }, {  55,-10162 }, {  56,-10162 }, {  57,-10162 },
+ {   0,  28 }, {   0, 567 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  65,-10162 }, {  66,-10162 }, {  67,-10162 },
+ {  68,-10162 }, {  69,-10162 }, {  70,-10162 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  97, 143 }, {  98, 143 }, {  99, 143 }, { 100, 143 },
+ { 101, 143 }, { 102, 143 }, {   0,   0 }, {   0,  28 }, {   0, 544 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-10162 },
+ {  98,-10162 }, {  99,-10162 }, { 100,-10162 }, { 101,-10162 }, { 102,-10162 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,  84 },
+ {  49,  84 }, {  50,  84 }, {  51,  84 }, {  52,  84 }, {  53,  84 },
+ {  54,  84 }, {  55,  84 }, {  56,  84 }, {  57,  84 }, {   0,   0 },
+ {   0,   0 }, {   0,  28 }, {   0, 506 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  65,  84 }, {  66,  84 }, {  67,  84 }, {  68,  84 },
+ {  69,  84 }, {  70,  84 }, {  48,-10242 }, {  49,-10242 }, {  50,-10242 },
+ {  51,-10242 }, {  52,-10242 }, {  53,-10242 }, {  54,-10242 }, {  55,-10242 },
+ {  56,-10242 }, {  57,-10242 }, {   0,   0 }, {   0,   0 }, {   0,  28 },
+ {   0, 483 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,-10242 },
+ {  66,-10242 }, {  67,-10242 }, {  68,-10242 }, {  69,-10242 }, {  70,-10242 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,  84 }, {  98,  84 },
+ {  99,  84 }, { 100,  84 }, { 101,  84 }, { 102,  84 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  48,  82 }, {  49,  82 }, {  50,  82 }, {  51,  82 }, {  52,  82 },
+ {  53,  82 }, {  54,  82 }, {  55,  82 }, {  56,  82 }, {  57,  82 },
+ {   0,   0 }, {  97,-10242 }, {  98,-10242 }, {  99,-10242 }, { 100,-10242 },
+ { 101,-10242 }, { 102,-10242 }, {  65,  82 }, {  66,  82 }, {  67,  82 },
+ {  68,  82 }, {  69,  82 }, {  70,  82 }, {  48,  82 }, {  49,  82 },
+ {  50,  82 }, {  51,  82 }, {  52,  82 }, {  53,  82 }, {  54,  82 },
+ {  55,  82 }, {  56,  82 }, {  57,  82 }, {   0,  28 }, {   0, 424 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65,  82 }, {  66,  82 }, {  67,  82 }, {  68,  82 }, {  69,  82 },
+ {  70,  82 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,  82 },
+ {  98,  82 }, {  99,  82 }, { 100,  82 }, { 101,  82 }, { 102,  82 },
+ {   0,   0 }, {   0,  28 }, {   0, 401 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  97,  82 }, {  98,  82 }, {  99,  82 },
+ { 100,  82 }, { 101,  82 }, { 102,  82 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  48,  61 }, {  49,  61 }, {  50,  61 },
+
+ {  51,  61 }, {  52,  61 }, {  53,  61 }, {  54,  61 }, {  55,  61 },
+ {  56,  61 }, {  57,  61 }, {   0,   0 }, {   0,   0 }, {   0,  28 },
+ {   0, 363 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,  61 },
+ {  66,  61 }, {  67,  61 }, {  68,  61 }, {  69,  61 }, {  70,  61 },
+ {  48,  61 }, {  49,  61 }, {  50,  61 }, {  51,  61 }, {  52,  61 },
+ {  53,  61 }, {  54,  61 }, {  55,  61 }, {  56,  61 }, {  57,  61 },
+ {   0,   0 }, {   0,   0 }, {   0,  28 }, {   0, 340 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  65,  61 }, {  66,  61 }, {  67,  61 },
+ {  68,  61 }, {  69,  61 }, {  70,  61 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {  97,  61 }, {  98,  61 }, {  99,  61 }, { 100,  61 },
+
+ { 101,  61 }, { 102,  61 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  48,  82 }, {  49,  82 },
+ {  50,  82 }, {  51,  82 }, {  52,  82 }, {  53,  82 }, {  54,  82 },
+ {  55,  82 }, {  56,  82 }, {  57,  82 }, {   0,   0 }, {  97,  61 },
+ {  98,  61 }, {  99,  61 }, { 100,  61 }, { 101,  61 }, { 102,  61 },
+ {  65,  82 }, {  66,  82 }, {  67,  82 }, {  68,  82 }, {  69,  82 },
+ {  70,  82 }, {  48,  82 }, {  49,  82 }, {  50,  82 }, {  51,  82 },
+ {  52,  82 }, {  53,  82 }, {  54,  82 }, {  55,  82 }, {  56,  82 },
+ {  57,  82 }, {   0,  28 }, {   0, 281 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {  65,  82 }, {  66,  82 },
+
+ {  67,  82 }, {  68,  82 }, {  69,  82 }, {  70,  82 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  97,  82 }, {  98,  82 }, {  99,  82 },
+ { 100,  82 }, { 101,  82 }, { 102,  82 }, {   0,   0 }, {   0,  28 },
+ {   0, 258 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  97,  82 }, {  98,  82 }, {  99,  82 }, { 100,  82 }, { 101,  82 },
+ { 102,  82 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  48,-10507 }, {  49,-10507 }, {  50,-10507 }, {  51,-10507 }, {  52,-10507 },
+ {  53,-10507 }, {  54,-10507 }, {  55,-10507 }, {  56,-10507 }, {  57,-10507 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  65,-10507 }, {  66,-10507 }, {  67,-10507 },
+ {  68,-10507 }, {  69,-10507 }, {  70,-10507 }, {  48,-10528 }, {  49,-10528 },
+ {  50,-10528 }, {  51,-10528 }, {  52,-10528 }, {  53,-10528 }, {  54,-10528 },
+ {  55,-10528 }, {  56,-10528 }, {  57,-10528 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {  65,-10528 }, {  66,-10528 }, {  67,-10528 }, {  68,-10528 }, {  69,-10528 },
+ {  70,-10528 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  97,-10507 },
+ {  98,-10507 }, {  99,-10507 }, { 100,-10507 }, { 101,-10507 }, { 102,-10507 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {  97,-10528 }, {  98,-10528 }, {  99,-10528 },
+ { 100,-10528 }, { 101,-10528 }, { 102,-10528 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {  32,-3937 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {  39,1900 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {  45,-25685 }, {   0,  55 }, {   0,2627 }, {   1,-2627 },
- {   2,-2627 }, {   3,-2627 }, {   4,-2627 }, {   5,-2627 }, {   6,-2627 },
- {   7,-2627 }, {   8,-2627 }, {   9,-2369 }, {  10,-3984 }, {  11,-2627 },
- {  12,-2369 }, {  13,-3984 }, {  14,-2627 }, {  15,-2627 }, {  16,-2627 },
- {  17,-2627 }, {  18,-2627 }, {  19,-2627 }, {  20,-2627 }, {  21,-2627 },
- {  22,-2627 }, {  23,-2627 }, {  24,-2627 }, {  25,-2627 }, {  26,-2627 },
-
- {  27,-2627 }, {  28,-2627 }, {  29,-2627 }, {  30,-2627 }, {  31,-2627 },
- {  32,-2369 }, {  33,-2627 }, {  34,-2627 }, {  35,-2627 }, {  36,-2627 },
- {  37,-2627 }, {  38,-2627 }, {  39,1595 }, {  40,-2627 }, {  41,-2627 },
- {  42,-2627 }, {  43,-2627 }, {  44,-2627 }, {  45, 258 }, {  46,-2627 },
- {  47,-2627 }, {  48,-2627 }, {  49,-2627 }, {  50,-2627 }, {  51,-2627 },
- {  52,-2627 }, {  53,-2627 }, {  54,-2627 }, {  55,-2627 }, {  56,-2627 },
- {  57,-2627 }, {  58,-2627 }, {  59,-2627 }, {  60,-2627 }, {  61,-2627 },
- {  62,-2627 }, {  63,-2627 }, {  64,-2627 }, {  65,-2627 }, {  66,-2627 },
- {  67,-2627 }, {  68,-2627 }, {  69,-2627 }, {  70,-2627 }, {  71,-2627 },
- {  72,-2627 }, {  73,-2627 }, {  74,-2627 }, {  75,-2627 }, {  76,-2627 },
-
- {  77,-2627 }, {  78,-2627 }, {  79,-2627 }, {  80,-2627 }, {  81,-2627 },
- {  82,-2627 }, {  83,-2627 }, {  84,-2627 }, {  85,-2627 }, {  86,-2627 },
- {  87,-2627 }, {  88,-2627 }, {  89,-2627 }, {  90,-2627 }, {  91,-2627 },
- {  92,-2627 }, {  93,-2627 }, {  94,-2627 }, {  95,-2627 }, {  96,-2627 },
- {  97,-2627 }, {  98,-2627 }, {  99,-2627 }, { 100,-2627 }, { 101,-2627 },
- { 102,-2627 }, { 103,-2627 }, { 104,-2627 }, { 105,-2627 }, { 106,-2627 },
- { 107,-2627 }, { 108,-2627 }, { 109,-2627 }, { 110,-2627 }, { 111,-2627 },
- { 112,-2627 }, { 113,-2627 }, { 114,-2627 }, { 115,-2627 }, { 116,-2627 },
- { 117,-2627 }, { 118,-2627 }, { 119,-2627 }, { 120,-2627 }, { 121,-2627 },
- { 122,-2627 }, { 123,-2627 }, { 124,-2627 }, { 125,-2627 }, { 126,-2627 },
-
- { 127,-2627 }, { 128,-2627 }, { 129,-2627 }, { 130,-2627 }, { 131,-2627 },
- { 132,-2627 }, { 133,-2627 }, { 134,-2627 }, { 135,-2627 }, { 136,-2627 },
- { 137,-2627 }, { 138,-2627 }, { 139,-2627 }, { 140,-2627 }, { 141,-2627 },
- { 142,-2627 }, { 143,-2627 }, { 144,-2627 }, { 145,-2627 }, { 146,-2627 },
- { 147,-2627 }, { 148,-2627 }, { 149,-2627 }, { 150,-2627 }, { 151,-2627 },
- { 152,-2627 }, { 153,-2627 }, { 154,-2627 }, { 155,-2627 }, { 156,-2627 },
- { 157,-2627 }, { 158,-2627 }, { 159,-2627 }, { 160,-2627 }, { 161,-2627 },
- { 162,-2627 }, { 163,-2627 }, { 164,-2627 }, { 165,-2627 }, { 166,-2627 },
- { 167,-2627 }, { 168,-2627 }, { 169,-2627 }, { 170,-2627 }, { 171,-2627 },
- { 172,-2627 }, { 173,-2627 }, { 174,-2627 }, { 175,-2627 }, { 176,-2627 },
-
- { 177,-2627 }, { 178,-2627 }, { 179,-2627 }, { 180,-2627 }, { 181,-2627 },
- { 182,-2627 }, { 183,-2627 }, { 184,-2627 }, { 185,-2627 }, { 186,-2627 },
- { 187,-2627 }, { 188,-2627 }, { 189,-2627 }, { 190,-2627 }, { 191,-2627 },
- { 192,-2627 }, { 193,-2627 }, { 194,-2627 }, { 195,-2627 }, { 196,-2627 },
- { 197,-2627 }, { 198,-2627 }, { 199,-2627 }, { 200,-2627 }, { 201,-2627 },
- { 202,-2627 }, { 203,-2627 }, { 204,-2627 }, { 205,-2627 }, { 206,-2627 },
- { 207,-2627 }, { 208,-2627 }, { 209,-2627 }, { 210,-2627 }, { 211,-2627 },
- { 212,-2627 }, { 213,-2627 }, { 214,-2627 }, { 215,-2627 }, { 216,-2627 },
- { 217,-2627 }, { 218,-2627 }, { 219,-2627 }, { 220,-2627 }, { 221,-2627 },
- { 222,-2627 }, { 223,-2627 }, { 224,-2627 }, { 225,-2627 }, { 226,-2627 },
-
- { 227,-2627 }, { 228,-2627 }, { 229,-2627 }, { 230,-2627 }, { 231,-2627 },
- { 232,-2627 }, { 233,-2627 }, { 234,-2627 }, { 235,-2627 }, { 236,-2627 },
- { 237,-2627 }, { 238,-2627 }, { 239,-2627 }, { 240,-2627 }, { 241,-2627 },
- { 242,-2627 }, { 243,-2627 }, { 244,-2627 }, { 245,-2627 }, { 246,-2627 },
- { 247,-2627 }, { 248,-2627 }, { 249,-2627 }, { 250,-2627 }, { 251,-2627 },
- { 252,-2627 }, { 253,-2627 }, { 254,-2627 }, { 255,-2627 }, { 256,-2627 },
- {   0,  55 }, {   0,2369 }, {   1,-2885 }, {   2,-2885 }, {   3,-2885 },
- {   4,-2885 }, {   5,-2885 }, {   6,-2885 }, {   7,-2885 }, {   8,-2885 },
- {   9,-2627 }, {  10,-4242 }, {  11,-2885 }, {  12,-2627 }, {  13,-4242 },
- {  14,-2885 }, {  15,-2885 }, {  16,-2885 }, {  17,-2885 }, {  18,-2885 },
-
- {  19,-2885 }, {  20,-2885 }, {  21,-2885 }, {  22,-2885 }, {  23,-2885 },
- {  24,-2885 }, {  25,-2885 }, {  26,-2885 }, {  27,-2885 }, {  28,-2885 },
- {  29,-2885 }, {  30,-2885 }, {  31,-2885 }, {  32,-2627 }, {  33,-2885 },
- {  34,-2885 }, {  35,-2885 }, {  36,-2885 }, {  37,-2885 }, {  38,-2885 },
- {  39,-2369 }, {  40,-2885 }, {  41,-2885 }, {  42,-2885 }, {  43,-2885 },
- {  44,-2885 }, {  45,   0 }, {  46,-2885 }, {  47,-2885 }, {  48,-2885 },
- {  49,-2885 }, {  50,-2885 }, {  51,-2885 }, {  52,-2885 }, {  53,-2885 },
- {  54,-2885 }, {  55,-2885 }, {  56,-2885 }, {  57,-2885 }, {  58,-2885 },
- {  59,-2885 }, {  60,-2885 }, {  61,-2885 }, {  62,-2885 }, {  63,-2885 },
- {  64,-2885 }, {  65,-2885 }, {  66,-2885 }, {  67,-2885 }, {  68,-2885 },
-
- {  69,-2885 }, {  70,-2885 }, {  71,-2885 }, {  72,-2885 }, {  73,-2885 },
- {  74,-2885 }, {  75,-2885 }, {  76,-2885 }, {  77,-2885 }, {  78,-2885 },
- {  79,-2885 }, {  80,-2885 }, {  81,-2885 }, {  82,-2885 }, {  83,-2885 },
- {  84,-2885 }, {  85,-2885 }, {  86,-2885 }, {  87,-2885 }, {  88,-2885 },
- {  89,-2885 }, {  90,-2885 }, {  91,-2885 }, {  92,-2885 }, {  93,-2885 },
- {  94,-2885 }, {  95,-2885 }, {  96,-2885 }, {  97,-2885 }, {  98,-2885 },
- {  99,-2885 }, { 100,-2885 }, { 101,-2885 }, { 102,-2885 }, { 103,-2885 },
- { 104,-2885 }, { 105,-2885 }, { 106,-2885 }, { 107,-2885 }, { 108,-2885 },
- { 109,-2885 }, { 110,-2885 }, { 111,-2885 }, { 112,-2885 }, { 113,-2885 },
- { 114,-2885 }, { 115,-2885 }, { 116,-2885 }, { 117,-2885 }, { 118,-2885 },
-
- { 119,-2885 }, { 120,-2885 }, { 121,-2885 }, { 122,-2885 }, { 123,-2885 },
- { 124,-2885 }, { 125,-2885 }, { 126,-2885 }, { 127,-2885 }, { 128,-2885 },
- { 129,-2885 }, { 130,-2885 }, { 131,-2885 }, { 132,-2885 }, { 133,-2885 },
- { 134,-2885 }, { 135,-2885 }, { 136,-2885 }, { 137,-2885 }, { 138,-2885 },
- { 139,-2885 }, { 140,-2885 }, { 141,-2885 }, { 142,-2885 }, { 143,-2885 },
- { 144,-2885 }, { 145,-2885 }, { 146,-2885 }, { 147,-2885 }, { 148,-2885 },
- { 149,-2885 }, { 150,-2885 }, { 151,-2885 }, { 152,-2885 }, { 153,-2885 },
- { 154,-2885 }, { 155,-2885 }, { 156,-2885 }, { 157,-2885 }, { 158,-2885 },
- { 159,-2885 }, { 160,-2885 }, { 161,-2885 }, { 162,-2885 }, { 163,-2885 },
- { 164,-2885 }, { 165,-2885 }, { 166,-2885 }, { 167,-2885 }, { 168,-2885 },
-
- { 169,-2885 }, { 170,-2885 }, { 171,-2885 }, { 172,-2885 }, { 173,-2885 },
- { 174,-2885 }, { 175,-2885 }, { 176,-2885 }, { 177,-2885 }, { 178,-2885 },
- { 179,-2885 }, { 180,-2885 }, { 181,-2885 }, { 182,-2885 }, { 183,-2885 },
- { 184,-2885 }, { 185,-2885 }, { 186,-2885 }, { 187,-2885 }, { 188,-2885 },
- { 189,-2885 }, { 190,-2885 }, { 191,-2885 }, { 192,-2885 }, { 193,-2885 },
- { 194,-2885 }, { 195,-2885 }, { 196,-2885 }, { 197,-2885 }, { 198,-2885 },
- { 199,-2885 }, { 200,-2885 }, { 201,-2885 }, { 202,-2885 }, { 203,-2885 },
- { 204,-2885 }, { 205,-2885 }, { 206,-2885 }, { 207,-2885 }, { 208,-2885 },
- { 209,-2885 }, { 210,-2885 }, { 211,-2885 }, { 212,-2885 }, { 213,-2885 },
- { 214,-2885 }, { 215,-2885 }, { 216,-2885 }, { 217,-2885 }, { 218,-2885 },
-
- { 219,-2885 }, { 220,-2885 }, { 221,-2885 }, { 222,-2885 }, { 223,-2885 },
- { 224,-2885 }, { 225,-2885 }, { 226,-2885 }, { 227,-2885 }, { 228,-2885 },
- { 229,-2885 }, { 230,-2885 }, { 231,-2885 }, { 232,-2885 }, { 233,-2885 },
- { 234,-2885 }, { 235,-2885 }, { 236,-2885 }, { 237,-2885 }, { 238,-2885 },
- { 239,-2885 }, { 240,-2885 }, { 241,-2885 }, { 242,-2885 }, { 243,-2885 },
- { 244,-2885 }, { 245,-2885 }, { 246,-2885 }, { 247,-2885 }, { 248,-2885 },
- { 249,-2885 }, { 250,-2885 }, { 251,-2885 }, { 252,-2885 }, { 253,-2885 },
- { 254,-2885 }, { 255,-2885 }, { 256,-2885 }, {   0,  28 }, {   0,2111 },
- {   1,-2111 }, {   2,-2111 }, {   3,-2111 }, {   4,-2111 }, {   5,-2111 },
- {   6,-2111 }, {   7,-2111 }, {   8,-2111 }, {   9,-1853 }, {  10,-4195 },
-
- {  11,-2111 }, {  12,-1853 }, {  13,-4195 }, {  14,-2111 }, {  15,-2111 },
- {  16,-2111 }, {  17,-2111 }, {  18,-2111 }, {  19,-2111 }, {  20,-2111 },
- {  21,-2111 }, {  22,-2111 }, {  23,-2111 }, {  24,-2111 }, {  25,-2111 },
- {  26,-2111 }, {  27,-2111 }, {  28,-2111 }, {  29,-2111 }, {  30,-2111 },
- {  31,-2111 }, {  32,-1853 }, {  33,-2111 }, {  34,-2111 }, {  35,-2111 },
- {  36,-2111 }, {  37,-2111 }, {  38,-2111 }, {  39,1595 }, {  40,-2111 },
- {  41,-2111 }, {  42,-2111 }, {  43,-2111 }, {  44,-2111 }, {  45,-1337 },
- {  46,-2111 }, {  47,-2111 }, {  48,-2111 }, {  49,-2111 }, {  50,-2111 },
- {  51,-2111 }, {  52,-2111 }, {  53,-2111 }, {  54,-2111 }, {  55,-2111 },
- {  56,-2111 }, {  57,-2111 }, {  58,-2111 }, {  59,-2111 }, {  60,-2111 },
-
- {  61,-2111 }, {  62,-2111 }, {  63,-2111 }, {  64,-2111 }, {  65,-2111 },
- {  66,-2111 }, {  67,-2111 }, {  68,-2111 }, {  69,-2111 }, {  70,-2111 },
- {  71,-2111 }, {  72,-2111 }, {  73,-2111 }, {  74,-2111 }, {  75,-2111 },
- {  76,-2111 }, {  77,-2111 }, {  78,-2111 }, {  79,-2111 }, {  80,-2111 },
- {  81,-2111 }, {  82,-2111 }, {  83,-2111 }, {  84,-2111 }, {  85,-2111 },
- {  86,-2111 }, {  87,-2111 }, {  88,-2111 }, {  89,-2111 }, {  90,-2111 },
- {  91,-2111 }, {  92,-2111 }, {  93,-2111 }, {  94,-2111 }, {  95,-2111 },
- {  96,-2111 }, {  97,-2111 }, {  98,-2111 }, {  99,-2111 }, { 100,-2111 },
- { 101,-2111 }, { 102,-2111 }, { 103,-2111 }, { 104,-2111 }, { 105,-2111 },
- { 106,-2111 }, { 107,-2111 }, { 108,-2111 }, { 109,-2111 }, { 110,-2111 },
-
- { 111,-2111 }, { 112,-2111 }, { 113,-2111 }, { 114,-2111 }, { 115,-2111 },
- { 116,-2111 }, { 117,-2111 }, { 118,-2111 }, { 119,-2111 }, { 120,-2111 },
- { 121,-2111 }, { 122,-2111 }, { 123,-2111 }, { 124,-2111 }, { 125,-2111 },
- { 126,-2111 }, { 127,-2111 }, { 128,-2111 }, { 129,-2111 }, { 130,-2111 },
- { 131,-2111 }, { 132,-2111 }, { 133,-2111 }, { 134,-2111 }, { 135,-2111 },
- { 136,-2111 }, { 137,-2111 }, { 138,-2111 }, { 139,-2111 }, { 140,-2111 },
- { 141,-2111 }, { 142,-2111 }, { 143,-2111 }, { 144,-2111 }, { 145,-2111 },
- { 146,-2111 }, { 147,-2111 }, { 148,-2111 }, { 149,-2111 }, { 150,-2111 },
- { 151,-2111 }, { 152,-2111 }, { 153,-2111 }, { 154,-2111 }, { 155,-2111 },
- { 156,-2111 }, { 157,-2111 }, { 158,-2111 }, { 159,-2111 }, { 160,-2111 },
-
- { 161,-2111 }, { 162,-2111 }, { 163,-2111 }, { 164,-2111 }, { 165,-2111 },
- { 166,-2111 }, { 167,-2111 }, { 168,-2111 }, { 169,-2111 }, { 170,-2111 },
- { 171,-2111 }, { 172,-2111 }, { 173,-2111 }, { 174,-2111 }, { 175,-2111 },
- { 176,-2111 }, { 177,-2111 }, { 178,-2111 }, { 179,-2111 }, { 180,-2111 },
- { 181,-2111 }, { 182,-2111 }, { 183,-2111 }, { 184,-2111 }, { 185,-2111 },
- { 186,-2111 }, { 187,-2111 }, { 188,-2111 }, { 189,-2111 }, { 190,-2111 },
- { 191,-2111 }, { 192,-2111 }, { 193,-2111 }, { 194,-2111 }, { 195,-2111 },
- { 196,-2111 }, { 197,-2111 }, { 198,-2111 }, { 199,-2111 }, { 200,-2111 },
- { 201,-2111 }, { 202,-2111 }, { 203,-2111 }, { 204,-2111 }, { 205,-2111 },
- { 206,-2111 }, { 207,-2111 }, { 208,-2111 }, { 209,-2111 }, { 210,-2111 },
-
- { 211,-2111 }, { 212,-2111 }, { 213,-2111 }, { 214,-2111 }, { 215,-2111 },
- { 216,-2111 }, { 217,-2111 }, { 218,-2111 }, { 219,-2111 }, { 220,-2111 },
- { 221,-2111 }, { 222,-2111 }, { 223,-2111 }, { 224,-2111 }, { 225,-2111 },
- { 226,-2111 }, { 227,-2111 }, { 228,-2111 }, { 229,-2111 }, { 230,-2111 },
- { 231,-2111 }, { 232,-2111 }, { 233,-2111 }, { 234,-2111 }, { 235,-2111 },
- { 236,-2111 }, { 237,-2111 }, { 238,-2111 }, { 239,-2111 }, { 240,-2111 },
- { 241,-2111 }, { 242,-2111 }, { 243,-2111 }, { 244,-2111 }, { 245,-2111 },
- { 246,-2111 }, { 247,-2111 }, { 248,-2111 }, { 249,-2111 }, { 250,-2111 },
- { 251,-2111 }, { 252,-2111 }, { 253,-2111 }, { 254,-2111 }, { 255,-2111 },
- { 256,-2111 }, {   0,  28 }, {   0,1853 }, {   1,-2369 }, {   2,-2369 },
-
- {   3,-2369 }, {   4,-2369 }, {   5,-2369 }, {   6,-2369 }, {   7,-2369 },
- {   8,-2369 }, {   9,-2111 }, {  10,-4453 }, {  11,-2369 }, {  12,-2111 },
- {  13,-4453 }, {  14,-2369 }, {  15,-2369 }, {  16,-2369 }, {  17,-2369 },
- {  18,-2369 }, {  19,-2369 }, {  20,-2369 }, {  21,-2369 }, {  22,-2369 },
- {  23,-2369 }, {  24,-2369 }, {  25,-2369 }, {  26,-2369 }, {  27,-2369 },
- {  28,-2369 }, {  29,-2369 }, {  30,-2369 }, {  31,-2369 }, {  32,-2111 },
- {  33,-2369 }, {  34,-2369 }, {  35,-2369 }, {  36,-2369 }, {  37,-2369 },
- {  38,-2369 }, {  39,1337 }, {  40,-2369 }, {  41,-2369 }, {  42,-2369 },
- {  43,-2369 }, {  44,-2369 }, {  45,-1595 }, {  46,-2369 }, {  47,-2369 },
- {  48,-2369 }, {  49,-2369 }, {  50,-2369 }, {  51,-2369 }, {  52,-2369 },
-
- {  53,-2369 }, {  54,-2369 }, {  55,-2369 }, {  56,-2369 }, {  57,-2369 },
- {  58,-2369 }, {  59,-2369 }, {  60,-2369 }, {  61,-2369 }, {  62,-2369 },
- {  63,-2369 }, {  64,-2369 }, {  65,-2369 }, {  66,-2369 }, {  67,-2369 },
- {  68,-2369 }, {  69,-2369 }, {  70,-2369 }, {  71,-2369 }, {  72,-2369 },
- {  73,-2369 }, {  74,-2369 }, {  75,-2369 }, {  76,-2369 }, {  77,-2369 },
- {  78,-2369 }, {  79,-2369 }, {  80,-2369 }, {  81,-2369 }, {  82,-2369 },
- {  83,-2369 }, {  84,-2369 }, {  85,-2369 }, {  86,-2369 }, {  87,-2369 },
- {  88,-2369 }, {  89,-2369 }, {  90,-2369 }, {  91,-2369 }, {  92,-2369 },
- {  93,-2369 }, {  94,-2369 }, {  95,-2369 }, {  96,-2369 }, {  97,-2369 },
- {  98,-2369 }, {  99,-2369 }, { 100,-2369 }, { 101,-2369 }, { 102,-2369 },
-
- { 103,-2369 }, { 104,-2369 }, { 105,-2369 }, { 106,-2369 }, { 107,-2369 },
- { 108,-2369 }, { 109,-2369 }, { 110,-2369 }, { 111,-2369 }, { 112,-2369 },
- { 113,-2369 }, { 114,-2369 }, { 115,-2369 }, { 116,-2369 }, { 117,-2369 },
- { 118,-2369 }, { 119,-2369 }, { 120,-2369 }, { 121,-2369 }, { 122,-2369 },
- { 123,-2369 }, { 124,-2369 }, { 125,-2369 }, { 126,-2369 }, { 127,-2369 },
- { 128,-2369 }, { 129,-2369 }, { 130,-2369 }, { 131,-2369 }, { 132,-2369 },
- { 133,-2369 }, { 134,-2369 }, { 135,-2369 }, { 136,-2369 }, { 137,-2369 },
- { 138,-2369 }, { 139,-2369 }, { 140,-2369 }, { 141,-2369 }, { 142,-2369 },
- { 143,-2369 }, { 144,-2369 }, { 145,-2369 }, { 146,-2369 }, { 147,-2369 },
- { 148,-2369 }, { 149,-2369 }, { 150,-2369 }, { 151,-2369 }, { 152,-2369 },
-
- { 153,-2369 }, { 154,-2369 }, { 155,-2369 }, { 156,-2369 }, { 157,-2369 },
- { 158,-2369 }, { 159,-2369 }, { 160,-2369 }, { 161,-2369 }, { 162,-2369 },
- { 163,-2369 }, { 164,-2369 }, { 165,-2369 }, { 166,-2369 }, { 167,-2369 },
- { 168,-2369 }, { 169,-2369 }, { 170,-2369 }, { 171,-2369 }, { 172,-2369 },
- { 173,-2369 }, { 174,-2369 }, { 175,-2369 }, { 176,-2369 }, { 177,-2369 },
- { 178,-2369 }, { 179,-2369 }, { 180,-2369 }, { 181,-2369 }, { 182,-2369 },
- { 183,-2369 }, { 184,-2369 }, { 185,-2369 }, { 186,-2369 }, { 187,-2369 },
- { 188,-2369 }, { 189,-2369 }, { 190,-2369 }, { 191,-2369 }, { 192,-2369 },
- { 193,-2369 }, { 194,-2369 }, { 195,-2369 }, { 196,-2369 }, { 197,-2369 },
- { 198,-2369 }, { 199,-2369 }, { 200,-2369 }, { 201,-2369 }, { 202,-2369 },
-
- { 203,-2369 }, { 204,-2369 }, { 205,-2369 }, { 206,-2369 }, { 207,-2369 },
- { 208,-2369 }, { 209,-2369 }, { 210,-2369 }, { 211,-2369 }, { 212,-2369 },
- { 213,-2369 }, { 214,-2369 }, { 215,-2369 }, { 216,-2369 }, { 217,-2369 },
- { 218,-2369 }, { 219,-2369 }, { 220,-2369 }, { 221,-2369 }, { 222,-2369 },
- { 223,-2369 }, { 224,-2369 }, { 225,-2369 }, { 226,-2369 }, { 227,-2369 },
- { 228,-2369 }, { 229,-2369 }, { 230,-2369 }, { 231,-2369 }, { 232,-2369 },
- { 233,-2369 }, { 234,-2369 }, { 235,-2369 }, { 236,-2369 }, { 237,-2369 },
- { 238,-2369 }, { 239,-2369 }, { 240,-2369 }, { 241,-2369 }, { 242,-2369 },
- { 243,-2369 }, { 244,-2369 }, { 245,-2369 }, { 246,-2369 }, { 247,-2369 },
- { 248,-2369 }, { 249,-2369 }, { 250,-2369 }, { 251,-2369 }, { 252,-2369 },
-
- { 253,-2369 }, { 254,-2369 }, { 255,-2369 }, { 256,-2369 }, {   0,  28 },
- {   0,1595 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   9,-4711 },
- {  10,-4711 }, {   0,   0 }, {  12,-4711 }, {  13,-4711 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {  32,-4711 }, {   0,   0 }, {   0,   0 },
- {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {  39,1337 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
  {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
- {  45,-26753 }, {   0,  28 }, {   0,1548 }, {   1,-2674 }, {   2,-2674 },
- {   3,-2674 }, {   4,-2674 }, {   5,-2674 }, {   6,-2674 }, {   7,-2674 },
- {   8,-2674 }, {   9,-2416 }, {  10,-4758 }, {  11,-2674 }, {  12,-2416 },
- {  13,-4758 }, {  14,-2674 }, {  15,-2674 }, {  16,-2674 }, {  17,-2674 },
- {  18,-2674 }, {  19,-2674 }, {  20,-2674 }, {  21,-2674 }, {  22,-2674 },
- {  23,-2674 }, {  24,-2674 }, {  25,-2674 }, {  26,-2674 }, {  27,-2674 },
- {  28,-2674 }, {  29,-2674 }, {  30,-2674 }, {  31,-2674 }, {  32,-2416 },
- {  33,-2674 }, {  34,-2674 }, {  35,-2674 }, {  36,-2674 }, {  37,-2674 },
- {  38,-2674 }, {  39,1032 }, {  40,-2674 }, {  41,-2674 }, {  42,-2674 },
- {  43,-2674 }, {  44,-2674 }, {  45, 258 }, {  46,-2674 }, {  47,-2674 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
 
- {  48,-2674 }, {  49,-2674 }, {  50,-2674 }, {  51,-2674 }, {  52,-2674 },
- {  53,-2674 }, {  54,-2674 }, {  55,-2674 }, {  56,-2674 }, {  57,-2674 },
- {  58,-2674 }, {  59,-2674 }, {  60,-2674 }, {  61,-2674 }, {  62,-2674 },
- {  63,-2674 }, {  64,-2674 }, {  65,-2674 }, {  66,-2674 }, {  67,-2674 },
- {  68,-2674 }, {  69,-2674 }, {  70,-2674 }, {  71,-2674 }, {  72,-2674 },
- {  73,-2674 }, {  74,-2674 }, {  75,-2674 }, {  76,-2674 }, {  77,-2674 },
- {  78,-2674 }, {  79,-2674 }, {  80,-2674 }, {  81,-2674 }, {  82,-2674 },
- {  83,-2674 }, {  84,-2674 }, {  85,-2674 }, {  86,-2674 }, {  87,-2674 },
- {  88,-2674 }, {  89,-2674 }, {  90,-2674 }, {  91,-2674 }, {  92,-2674 },
- {  93,-2674 }, {  94,-2674 }, {  95,-2674 }, {  96,-2674 }, {  97,-2674 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 }, {   0,   0 },
+ {   0,   0 }, {   0,   0 }, { 257,  67 }, {   1,   0 },    };
 
- {  98,-2674 }, {  99,-2674 }, { 100,-2674 }, { 101,-2674 }, { 102,-2674 },
- { 103,-2674 }, { 104,-2674 }, { 105,-2674 }, { 106,-2674 }, { 107,-2674 },
- { 108,-2674 }, { 109,-2674 }, { 110,-2674 }, { 111,-2674 }, { 112,-2674 },
- { 113,-2674 }, { 114,-2674 }, { 115,-2674 }, { 116,-2674 }, { 117,-2674 },
- { 118,-2674 }, { 119,-2674 }, { 120,-2674 }, { 121,-2674 }, { 122,-2674 },
- { 123,-2674 }, { 124,-2674 }, { 125,-2674 }, { 126,-2674 }, { 127,-2674 },
- { 128,-2674 }, { 129,-2674 }, { 130,-2674 }, { 131,-2674 }, { 132,-2674 },
- { 133,-2674 }, { 134,-2674 }, { 135,-2674 }, { 136,-2674 }, { 137,-2674 },
- { 138,-2674 }, { 139,-2674 }, { 140,-2674 }, { 141,-2674 }, { 142,-2674 },
- { 143,-2674 }, { 144,-2674 }, { 145,-2674 }, { 146,-2674 }, { 147,-2674 },
-
- { 148,-2674 }, { 149,-2674 }, { 150,-2674 }, { 151,-2674 }, { 152,-2674 },
- { 153,-2674 }, { 154,-2674 }, { 155,-2674 }, { 156,-2674 }, { 157,-2674 },
- { 158,-2674 }, { 159,-2674 }, { 160,-2674 }, { 161,-2674 }, { 162,-2674 },
- { 163,-2674 }, { 164,-2674 }, { 165,-2674 }, { 166,-2674 }, { 167,-2674 },
- { 168,-2674 }, { 169,-2674 }, { 170,-2674 }, { 171,-2674 }, { 172,-2674 },
- { 173,-2674 }, { 174,-2674 }, { 175,-2674 }, { 176,-2674 }, { 177,-2674 },
- { 178,-2674 }, { 179,-2674 }, { 180,-2674 }, { 181,-2674 }, { 182,-2674 },
- { 183,-2674 }, { 184,-2674 }, { 185,-2674 }, { 186,-2674 }, { 187,-2674 },
- { 188,-2674 }, { 189,-2674 }, { 190,-2674 }, { 191,-2674 }, { 192,-2674 },
- { 193,-2674 }, { 194,-2674 }, { 195,-2674 }, { 196,-2674 }, { 197,-2674 },
-
- { 198,-2674 }, { 199,-2674 }, { 200,-2674 }, { 201,-2674 }, { 202,-2674 },
- { 203,-2674 }, { 204,-2674 }, { 205,-2674 }, { 206,-2674 }, { 207,-2674 },
- { 208,-2674 }, { 209,-2674 }, { 210,-2674 }, { 211,-2674 }, { 212,-2674 },
- { 213,-2674 }, { 214,-2674 }, { 215,-2674 }, { 216,-2674 }, { 217,-2674 },
- { 218,-2674 }, { 219,-2674 }, { 220,-2674 }, { 221,-2674 }, { 222,-2674 },
- { 223,-2674 }, { 224,-2674 }, { 225,-2674 }, { 226,-2674 }, { 227,-2674 },
- { 228,-2674 }, { 229,-2674 }, { 230,-2674 }, { 231,-2674 }, { 232,-2674 },
- { 233,-2674 }, { 234,-2674 }, { 235,-2674 }, { 236,-2674 }, { 237,-2674 },
- { 238,-2674 }, { 239,-2674 }, { 240,-2674 }, { 241,-2674 }, { 242,-2674 },
- { 243,-2674 }, { 244,-2674 }, { 245,-2674 }, { 246,-2674 }, { 247,-2674 },
-
- { 248,-2674 }, { 249,-2674 }, { 250,-2674 }, { 251,-2674 }, { 252,-2674 },
- { 253,-2674 }, { 254,-2674 }, { 255,-2674 }, { 256,-2674 }, {   0,  28 },
- {   0,1290 }, {   1,-2932 }, {   2,-2932 }, {   3,-2932 }, {   4,-2932 },
- {   5,-2932 }, {   6,-2932 }, {   7,-2932 }, {   8,-2932 }, {   9,-2674 },
- {  10,-5016 }, {  11,-2932 }, {  12,-2674 }, {  13,-5016 }, {  14,-2932 },
- {  15,-2932 }, {  16,-2932 }, {  17,-2932 }, {  18,-2932 }, {  19,-2932 },
- {  20,-2932 }, {  21,-2932 }, {  22,-2932 }, {  23,-2932 }, {  24,-2932 },
- {  25,-2932 }, {  26,-2932 }, {  27,-2932 }, {  28,-2932 }, {  29,-2932 },
- {  30,-2932 }, {  31,-2932 }, {  32,-2674 }, {  33,-2932 }, {  34,-2932 },
- {  35,-2932 }, {  36,-2932 }, {  37,-2932 }, {  38,-2932 }, {  39,-2416 },
-
- {  40,-2932 }, {  41,-2932 }, {  42,-2932 }, {  43,-2932 }, {  44,-2932 },
- {  45,   0 }, {  46,-2932 }, {  47,-2932 }, {  48,-2932 }, {  49,-2932 },
- {  50,-2932 }, {  51,-2932 }, {  52,-2932 }, {  53,-2932 }, {  54,-2932 },
- {  55,-2932 }, {  56,-2932 }, {  57,-2932 }, {  58,-2932 }, {  59,-2932 },
- {  60,-2932 }, {  61,-2932 }, {  62,-2932 }, {  63,-2932 }, {  64,-2932 },
- {  65,-2932 }, {  66,-2932 }, {  67,-2932 }, {  68,-2932 }, {  69,-2932 },
- {  70,-2932 }, {  71,-2932 }, {  72,-2932 }, {  73,-2932 }, {  74,-2932 },
- {  75,-2932 }, {  76,-2932 }, {  77,-2932 }, {  78,-2932 }, {  79,-2932 },
- {  80,-2932 }, {  81,-2932 }, {  82,-2932 }, {  83,-2932 }, {  84,-2932 },
- {  85,-2932 }, {  86,-2932 }, {  87,-2932 }, {  88,-2932 }, {  89,-2932 },
-
- {  90,-2932 }, {  91,-2932 }, {  92,-2932 }, {  93,-2932 }, {  94,-2932 },
- {  95,-2932 }, {  96,-2932 }, {  97,-2932 }, {  98,-2932 }, {  99,-2932 },
- { 100,-2932 }, { 101,-2932 }, { 102,-2932 }, { 103,-2932 }, { 104,-2932 },
- { 105,-2932 }, { 106,-2932 }, { 107,-2932 }, { 108,-2932 }, { 109,-2932 },
- { 110,-2932 }, { 111,-2932 }, { 112,-2932 }, { 113,-2932 }, { 114,-2932 },
- { 115,-2932 }, { 116,-2932 }, { 117,-2932 }, { 118,-2932 }, { 119,-2932 },
- { 120,-2932 }, { 121,-2932 }, { 122,-2932 }, { 123,-2932 }, { 124,-2932 },
- { 125,-2932 }, { 126,-2932 }, { 127,-2932 }, { 128,-2932 }, { 129,-2932 },
- { 130,-2932 }, { 131,-2932 }, { 132,-2932 }, { 133,-2932 }, { 134,-2932 },
- { 135,-2932 }, { 136,-2932 }, { 137,-2932 }, { 138,-2932 }, { 139,-2932 },
-
- { 140,-2932 }, { 141,-2932 }, { 142,-2932 }, { 143,-2932 }, { 144,-2932 },
- { 145,-2932 }, { 146,-2932 }, { 147,-2932 }, { 148,-2932 }, { 149,-2932 },
- { 150,-2932 }, { 151,-2932 }, { 152,-2932 }, { 153,-2932 }, { 154,-2932 },
- { 155,-2932 }, { 156,-2932 }, { 157,-2932 }, { 158,-2932 }, { 159,-2932 },
- { 160,-2932 }, { 161,-2932 }, { 162,-2932 }, { 163,-2932 }, { 164,-2932 },
- { 165,-2932 }, { 166,-2932 }, { 167,-2932 }, { 168,-2932 }, { 169,-2932 },
- { 170,-2932 }, { 171,-2932 }, { 172,-2932 }, { 173,-2932 }, { 174,-2932 },
- { 175,-2932 }, { 176,-2932 }, { 177,-2932 }, { 178,-2932 }, { 179,-2932 },
- { 180,-2932 }, { 181,-2932 }, { 182,-2932 }, { 183,-2932 }, { 184,-2932 },
- { 185,-2932 }, { 186,-2932 }, { 187,-2932 }, { 188,-2932 }, { 189,-2932 },
-
- { 190,-2932 }, { 191,-2932 }, { 192,-2932 }, { 193,-2932 }, { 194,-2932 },
- { 195,-2932 }, { 196,-2932 }, { 197,-2932 }, { 198,-2932 }, { 199,-2932 },
- { 200,-2932 }, { 201,-2932 }, { 202,-2932 }, { 203,-2932 }, { 204,-2932 },
- { 205,-2932 }, { 206,-2932 }, { 207,-2932 }, { 208,-2932 }, { 209,-2932 },
- { 210,-2932 }, { 211,-2932 }, { 212,-2932 }, { 213,-2932 }, { 214,-2932 },
- { 215,-2932 }, { 216,-2932 }, { 217,-2932 }, { 218,-2932 }, { 219,-2932 },
- { 220,-2932 }, { 221,-2932 }, { 222,-2932 }, { 223,-2932 }, { 224,-2932 },
- { 225,-2932 }, { 226,-2932 }, { 227,-2932 }, { 228,-2932 }, { 229,-2932 },
- { 230,-2932 }, { 231,-2932 }, { 232,-2932 }, { 233,-2932 }, { 234,-2932 },
- { 235,-2932 }, { 236,-2932 }, { 237,-2932 }, { 238,-2932 }, { 239,-2932 },
-
- { 240,-2932 }, { 241,-2932 }, { 242,-2932 }, { 243,-2932 }, { 244,-2932 },
- { 245,-2932 }, { 246,-2932 }, { 247,-2932 }, { 248,-2932 }, { 249,-2932 },
- { 250,-2932 }, { 251,-2932 }, { 252,-2932 }, { 253,-2932 }, { 254,-2932 },
- { 255,-2932 }, { 256,-2932 }, {   0,  55 }, {   0,1032 }, {   1,-2158 },
- {   2,-2158 }, {   3,-2158 }, {   4,-2158 }, {   5,-2158 }, {   6,-2158 },
- {   7,-2158 }, {   8,-2158 }, {   9,-1900 }, {  10,-1642 }, {  11,-2158 },
- {  12,-1900 }, {  13,-1642 }, {  14,-2158 }, {  15,-2158 }, {  16,-2158 },
- {  17,-2158 }, {  18,-2158 }, {  19,-2158 }, {  20,-2158 }, {  21,-2158 },
- {  22,-2158 }, {  23,-2158 }, {  24,-2158 }, {  25,-2158 }, {  26,-2158 },
- {  27,-2158 }, {  28,-2158 }, {  29,-2158 }, {  30,-2158 }, {  31,-2158 },
-
- {  32,-1900 }, {  33,-2158 }, {  34,-2158 }, {  35,-2158 }, {  36,-2158 },
- {  37,-2158 }, {  38,-2158 }, {  39,-3706 }, {  40,-2158 }, {  41,-2158 },
- {  42,-2158 }, {  43,-2158 }, {  44,-2158 }, {  45,-1595 }, {  46,-2158 },
- {  47,-2158 }, {  48,-2158 }, {  49,-2158 }, {  50,-2158 }, {  51,-2158 },
- {  52,-2158 }, {  53,-2158 }, {  54,-2158 }, {  55,-2158 }, {  56,-2158 },
- {  57,-2158 }, {  58,-2158 }, {  59,-2158 }, {  60,-2158 }, {  61,-2158 },
- {  62,-2158 }, {  63,-2158 }, {  64,-2158 }, {  65,-2158 }, {  66,-2158 },
- {  67,-2158 }, {  68,-2158 }, {  69,-2158 }, {  70,-2158 }, {  71,-2158 },
- {  72,-2158 }, {  73,-2158 }, {  74,-2158 }, {  75,-2158 }, {  76,-2158 },
- {  77,-2158 }, {  78,-2158 }, {  79,-2158 }, {  80,-2158 }, {  81,-2158 },
-
- {  82,-2158 }, {  83,-2158 }, {  84,-2158 }, {  85,-2158 }, {  86,-2158 },
- {  87,-2158 }, {  88,-2158 }, {  89,-2158 }, {  90,-2158 }, {  91,-2158 },
- {  92,-2158 }, {  93,-2158 }, {  94,-2158 }, {  95,-2158 }, {  96,-2158 },
- {  97,-2158 }, {  98,-2158 }, {  99,-2158 }, { 100,-2158 }, { 101,-2158 },
- { 102,-2158 }, { 103,-2158 }, { 104,-2158 }, { 105,-2158 }, { 106,-2158 },
- { 107,-2158 }, { 108,-2158 }, { 109,-2158 }, { 110,-2158 }, { 111,-2158 },
- { 112,-2158 }, { 113,-2158 }, { 114,-2158 }, { 115,-2158 }, { 116,-2158 },
- { 117,-2158 }, { 118,-2158 }, { 119,-2158 }, { 120,-2158 }, { 121,-2158 },
- { 122,-2158 }, { 123,-2158 }, { 124,-2158 }, { 125,-2158 }, { 126,-2158 },
- { 127,-2158 }, { 128,-2158 }, { 129,-2158 }, { 130,-2158 }, { 131,-2158 },
-
- { 132,-2158 }, { 133,-2158 }, { 134,-2158 }, { 135,-2158 }, { 136,-2158 },
- { 137,-2158 }, { 138,-2158 }, { 139,-2158 }, { 140,-2158 }, { 141,-2158 },
- { 142,-2158 }, { 143,-2158 }, { 144,-2158 }, { 145,-2158 }, { 146,-2158 },
- { 147,-2158 }, { 148,-2158 }, { 149,-2158 }, { 150,-2158 }, { 151,-2158 },
- { 152,-2158 }, { 153,-2158 }, { 154,-2158 }, { 155,-2158 }, { 156,-2158 },
- { 157,-2158 }, { 158,-2158 }, { 159,-2158 }, { 160,-2158 }, { 161,-2158 },
- { 162,-2158 }, { 163,-2158 }, { 164,-2158 }, { 165,-2158 }, { 166,-2158 },
- { 167,-2158 }, { 168,-2158 }, { 169,-2158 }, { 170,-2158 }, { 171,-2158 },
- { 172,-2158 }, { 173,-2158 }, { 174,-2158 }, { 175,-2158 }, { 176,-2158 },
- { 177,-2158 }, { 178,-2158 }, { 179,-2158 }, { 180,-2158 }, { 181,-2158 },
-
- { 182,-2158 }, { 183,-2158 }, { 184,-2158 }, { 185,-2158 }, { 186,-2158 },
- { 187,-2158 }, { 188,-2158 }, { 189,-2158 }, { 190,-2158 }, { 191,-2158 },
- { 192,-2158 }, { 193,-2158 }, { 194,-2158 }, { 195,-2158 }, { 196,-2158 },
- { 197,-2158 }, { 198,-2158 }, { 199,-2158 }, { 200,-2158 }, { 201,-2158 },
- { 202,-2158 }, { 203,-2158 }, { 204,-2158 }, { 205,-2158 }, { 206,-2158 },
- { 207,-2158 }, { 208,-2158 }, { 209,-2158 }, { 210,-2158 }, { 211,-2158 },
- { 212,-2158 }, { 213,-2158 }, { 214,-2158 }, { 215,-2158 }, { 216,-2158 },
- { 217,-2158 }, { 218,-2158 }, { 219,-2158 }, { 220,-2158 }, { 221,-2158 },
- { 222,-2158 }, { 223,-2158 }, { 224,-2158 }, { 225,-2158 }, { 226,-2158 },
- { 227,-2158 }, { 228,-2158 }, { 229,-2158 }, { 230,-2158 }, { 231,-2158 },
-
- { 232,-2158 }, { 233,-2158 }, { 234,-2158 }, { 235,-2158 }, { 236,-2158 },
- { 237,-2158 }, { 238,-2158 }, { 239,-2158 }, { 240,-2158 }, { 241,-2158 },
- { 242,-2158 }, { 243,-2158 }, { 244,-2158 }, { 245,-2158 }, { 246,-2158 },
- { 247,-2158 }, { 248,-2158 }, { 249,-2158 }, { 250,-2158 }, { 251,-2158 },
- { 252,-2158 }, { 253,-2158 }, { 254,-2158 }, { 255,-2158 }, { 256,-2158 },
- {   0,  55 }, {   0, 774 }, {   1,-27567 }, {   2,-27567 }, {   3,-27567 },
- {   4,-27567 }, {   5,-27567 }, {   6,-27567 }, {   7,-27567 }, {   8,-27567 },
- {   9,-27567 }, {  10,-27567 }, {  11,-27567 }, {  12,-27567 }, {  13,-27567 },
- {  14,-27567 }, {  15,-27567 }, {  16,-27567 }, {  17,-27567 }, {  18,-27567 },
- {  19,-27567 }, {  20,-27567 }, {  21,-27567 }, {  22,-27567 }, {  23,-27567 },
-
- {  24,-27567 }, {  25,-27567 }, {  26,-27567 }, {  27,-27567 }, {  28,-27567 },
- {  29,-27567 }, {  30,-27567 }, {  31,-27567 }, {  32,-27567 }, {  33,-27567 },
- {  34,-27567 }, {  35,-27567 }, {  36,-27567 }, {  37,-27567 }, {  38,-27567 },
- {   0,   0 }, {  40,-27567 }, {  41,-27567 }, {  42,-27567 }, {  43,-27567 },
- {  44,-27567 }, {  45,-27567 }, {  46,-27567 }, {  47,-27567 }, {  48,-27567 },
- {  49,-27567 }, {  50,-27567 }, {  51,-27567 }, {  52,-27567 }, {  53,-27567 },
- {  54,-27567 }, {  55,-27567 }, {  56,-27567 }, {  57,-27567 }, {  58,-27567 },
- {  59,-27567 }, {  60,-27567 }, {  61,-27567 }, {  62,-27567 }, {  63,-27567 },
- {  64,-27567 }, {  65,-27567 }, {  66,-27567 }, {  67,-27567 }, {  68,-27567 },
- {  69,-27567 }, {  70,-27567 }, {  71,-27567 }, {  72,-27567 }, {  73,-27567 },
-
- {  74,-27567 }, {  75,-27567 }, {  76,-27567 }, {  77,-27567 }, {  78,-27567 },
- {  79,-27567 }, {  80,-27567 }, {  81,-27567 }, {  82,-27567 }, {  83,-27567 },
- {  84,-27567 }, {  85,-27567 }, {  86,-27567 }, {  87,-27567 }, {  88,-27567 },
- {  89,-27567 }, {  90,-27567 }, {  91,-27567 }, {  92,-27567 }, {  93,-27567 },
- {  94,-27567 }, {  95,-27567 }, {  96,-27567 }, {  97,-27567 }, {  98,-27567 },
- {  99,-27567 }, { 100,-27567 }, { 101,-27567 }, { 102,-27567 }, { 103,-27567 },
- { 104,-27567 }, { 105,-27567 }, { 106,-27567 }, { 107,-27567 }, { 108,-27567 },
- { 109,-27567 }, { 110,-27567 }, { 111,-27567 }, { 112,-27567 }, { 113,-27567 },
- { 114,-27567 }, { 115,-27567 }, { 116,-27567 }, { 117,-27567 }, { 118,-27567 },
- { 119,-27567 }, { 120,-27567 }, { 121,-27567 }, { 122,-27567 }, { 123,-27567 },
-
- { 124,-27567 }, { 125,-27567 }, { 126,-27567 }, { 127,-27567 }, { 128,-27567 },
- { 129,-27567 }, { 130,-27567 }, { 131,-27567 }, { 132,-27567 }, { 133,-27567 },
- { 134,-27567 }, { 135,-27567 }, { 136,-27567 }, { 137,-27567 }, { 138,-27567 },
- { 139,-27567 }, { 140,-27567 }, { 141,-27567 }, { 142,-27567 }, { 143,-27567 },
- { 144,-27567 }, { 145,-27567 }, { 146,-27567 }, { 147,-27567 }, { 148,-27567 },
- { 149,-27567 }, { 150,-27567 }, { 151,-27567 }, { 152,-27567 }, { 153,-27567 },
- { 154,-27567 }, { 155,-27567 }, { 156,-27567 }, { 157,-27567 }, { 158,-27567 },
- { 159,-27567 }, { 160,-27567 }, { 161,-27567 }, { 162,-27567 }, { 163,-27567 },
- { 164,-27567 }, { 165,-27567 }, { 166,-27567 }, { 167,-27567 }, { 168,-27567 },
- { 169,-27567 }, { 170,-27567 }, { 171,-27567 }, { 172,-27567 }, { 173,-27567 },
-
- { 174,-27567 }, { 175,-27567 }, { 176,-27567 }, { 177,-27567 }, { 178,-27567 },
- { 179,-27567 }, { 180,-27567 }, { 181,-27567 }, { 182,-27567 }, { 183,-27567 },
- { 184,-27567 }, { 185,-27567 }, { 186,-27567 }, { 187,-27567 }, { 188,-27567 },
- { 189,-27567 }, { 190,-27567 }, { 191,-27567 }, { 192,-27567 }, { 193,-27567 },
- { 194,-27567 }, { 195,-27567 }, { 196,-27567 }, { 197,-27567 }, { 198,-27567 },
- { 199,-27567 }, { 200,-27567 }, { 201,-27567 }, { 202,-27567 }, { 203,-27567 },
- { 204,-27567 }, { 205,-27567 }, { 206,-27567 }, { 207,-27567 }, { 208,-27567 },
- { 209,-27567 }, { 210,-27567 }, { 211,-27567 }, { 212,-27567 }, { 213,-27567 },
- { 214,-27567 }, { 215,-27567 }, { 216,-27567 }, { 217,-27567 }, { 218,-27567 },
- { 219,-27567 }, { 220,-27567 }, { 221,-27567 }, { 222,-27567 }, { 223,-27567 },
-
- { 224,-27567 }, { 225,-27567 }, { 226,-27567 }, { 227,-27567 }, { 228,-27567 },
- { 229,-27567 }, { 230,-27567 }, { 231,-27567 }, { 232,-27567 }, { 233,-27567 },
- { 234,-27567 }, { 235,-27567 }, { 236,-27567 }, { 237,-27567 }, { 238,-27567 },
- { 239,-27567 }, { 240,-27567 }, { 241,-27567 }, { 242,-27567 }, { 243,-27567 },
- { 244,-27567 }, { 245,-27567 }, { 246,-27567 }, { 247,-27567 }, { 248,-27567 },
- { 249,-27567 }, { 250,-27567 }, { 251,-27567 }, { 252,-27567 }, { 253,-27567 },
- { 254,-27567 }, { 255,-27567 }, { 256,-27567 }, {   0,  28 }, {   0, 516 },
- {   1,-1595 }, {   2,-1595 }, {   3,-1595 }, {   4,-1595 }, {   5,-1595 },
- {   6,-1595 }, {   7,-1595 }, {   8,-1595 }, {   9,-1337 }, {  10,-1079 },
- {  11,-1595 }, {  12,-1337 }, {  13,-1079 }, {  14,-1595 }, {  15,-1595 },
-
- {  16,-1595 }, {  17,-1595 }, {  18,-1595 }, {  19,-1595 }, {  20,-1595 },
- {  21,-1595 }, {  22,-1595 }, {  23,-1595 }, {  24,-1595 }, {  25,-1595 },
- {  26,-1595 }, {  27,-1595 }, {  28,-1595 }, {  29,-1595 }, {  30,-1595 },
- {  31,-1595 }, {  32,-1337 }, {  33,-1595 }, {  34,-1595 }, {  35,-1595 },
- {  36,-1595 }, {  37,-1595 }, {  38,-1595 }, {  39,-3190 }, {  40,-1595 },
- {  41,-1595 }, {  42,-1595 }, {  43,-1595 }, {  44,-1595 }, {  45,-1032 },
- {  46,-1595 }, {  47,-1595 }, {  48,-1595 }, {  49,-1595 }, {  50,-1595 },
- {  51,-1595 }, {  52,-1595 }, {  53,-1595 }, {  54,-1595 }, {  55,-1595 },
- {  56,-1595 }, {  57,-1595 }, {  58,-1595 }, {  59,-1595 }, {  60,-1595 },
- {  61,-1595 }, {  62,-1595 }, {  63,-1595 }, {  64,-1595 }, {  65,-1595 },
-
- {  66,-1595 }, {  67,-1595 }, {  68,-1595 }, {  69,-1595 }, {  70,-1595 },
- {  71,-1595 }, {  72,-1595 }, {  73,-1595 }, {  74,-1595 }, {  75,-1595 },
- {  76,-1595 }, {  77,-1595 }, {  78,-1595 }, {  79,-1595 }, {  80,-1595 },
- {  81,-1595 }, {  82,-1595 }, {  83,-1595 }, {  84,-1595 }, {  85,-1595 },
- {  86,-1595 }, {  87,-1595 }, {  88,-1595 }, {  89,-1595 }, {  90,-1595 },
- {  91,-1595 }, {  92,-1595 }, {  93,-1595 }, {  94,-1595 }, {  95,-1595 },
- {  96,-1595 }, {  97,-1595 }, {  98,-1595 }, {  99,-1595 }, { 100,-1595 },
- { 101,-1595 }, { 102,-1595 }, { 103,-1595 }, { 104,-1595 }, { 105,-1595 },
- { 106,-1595 }, { 107,-1595 }, { 108,-1595 }, { 109,-1595 }, { 110,-1595 },
- { 111,-1595 }, { 112,-1595 }, { 113,-1595 }, { 114,-1595 }, { 115,-1595 },
-
- { 116,-1595 }, { 117,-1595 }, { 118,-1595 }, { 119,-1595 }, { 120,-1595 },
- { 121,-1595 }, { 122,-1595 }, { 123,-1595 }, { 124,-1595 }, { 125,-1595 },
- { 126,-1595 }, { 127,-1595 }, { 128,-1595 }, { 129,-1595 }, { 130,-1595 },
- { 131,-1595 }, { 132,-1595 }, { 133,-1595 }, { 134,-1595 }, { 135,-1595 },
- { 136,-1595 }, { 137,-1595 }, { 138,-1595 }, { 139,-1595 }, { 140,-1595 },
- { 141,-1595 }, { 142,-1595 }, { 143,-1595 }, { 144,-1595 }, { 145,-1595 },
- { 146,-1595 }, { 147,-1595 }, { 148,-1595 }, { 149,-1595 }, { 150,-1595 },
- { 151,-1595 }, { 152,-1595 }, { 153,-1595 }, { 154,-1595 }, { 155,-1595 },
- { 156,-1595 }, { 157,-1595 }, { 158,-1595 }, { 159,-1595 }, { 160,-1595 },
- { 161,-1595 }, { 162,-1595 }, { 163,-1595 }, { 164,-1595 }, { 165,-1595 },
-
- { 166,-1595 }, { 167,-1595 }, { 168,-1595 }, { 169,-1595 }, { 170,-1595 },
- { 171,-1595 }, { 172,-1595 }, { 173,-1595 }, { 174,-1595 }, { 175,-1595 },
- { 176,-1595 }, { 177,-1595 }, { 178,-1595 }, { 179,-1595 }, { 180,-1595 },
- { 181,-1595 }, { 182,-1595 }, { 183,-1595 }, { 184,-1595 }, { 185,-1595 },
- { 186,-1595 }, { 187,-1595 }, { 188,-1595 }, { 189,-1595 }, { 190,-1595 },
- { 191,-1595 }, { 192,-1595 }, { 193,-1595 }, { 194,-1595 }, { 195,-1595 },
- { 196,-1595 }, { 197,-1595 }, { 198,-1595 }, { 199,-1595 }, { 200,-1595 },
- { 201,-1595 }, { 202,-1595 }, { 203,-1595 }, { 204,-1595 }, { 205,-1595 },
- { 206,-1595 }, { 207,-1595 }, { 208,-1595 }, { 209,-1595 }, { 210,-1595 },
- { 211,-1595 }, { 212,-1595 }, { 213,-1595 }, { 214,-1595 }, { 215,-1595 },
-
- { 216,-1595 }, { 217,-1595 }, { 218,-1595 }, { 219,-1595 }, { 220,-1595 },
- { 221,-1595 }, { 222,-1595 }, { 223,-1595 }, { 224,-1595 }, { 225,-1595 },
- { 226,-1595 }, { 227,-1595 }, { 228,-1595 }, { 229,-1595 }, { 230,-1595 },
- { 231,-1595 }, { 232,-1595 }, { 233,-1595 }, { 234,-1595 }, { 235,-1595 },
- { 236,-1595 }, { 237,-1595 }, { 238,-1595 }, { 239,-1595 }, { 240,-1595 },
- { 241,-1595 }, { 242,-1595 }, { 243,-1595 }, { 244,-1595 }, { 245,-1595 },
- { 246,-1595 }, { 247,-1595 }, { 248,-1595 }, { 249,-1595 }, { 250,-1595 },
- { 251,-1595 }, { 252,-1595 }, { 253,-1595 }, { 254,-1595 }, { 255,-1595 },
- { 256,-1595 }, {   0,  28 }, {   0, 258 }, {   1,-28081 }, {   2,-28081 },
- {   3,-28081 }, {   4,-28081 }, {   5,-28081 }, {   6,-28081 }, {   7,-28081 },
-
- {   8,-28081 }, {   9,-28081 }, {  10,-28081 }, {  11,-28081 }, {  12,-28081 },
- {  13,-28081 }, {  14,-28081 }, {  15,-28081 }, {  16,-28081 }, {  17,-28081 },
- {  18,-28081 }, {  19,-28081 }, {  20,-28081 }, {  21,-28081 }, {  22,-28081 },
- {  23,-28081 }, {  24,-28081 }, {  25,-28081 }, {  26,-28081 }, {  27,-28081 },
- {  28,-28081 }, {  29,-28081 }, {  30,-28081 }, {  31,-28081 }, {  32,-28081 },
- {  33,-28081 }, {  34,-28081 }, {  35,-28081 }, {  36,-28081 }, {  37,-28081 },
- {  38,-28081 }, {   0,   0 }, {  40,-28081 }, {  41,-28081 }, {  42,-28081 },
- {  43,-28081 }, {  44,-28081 }, {  45,-28081 }, {  46,-28081 }, {  47,-28081 },
- {  48,-28081 }, {  49,-28081 }, {  50,-28081 }, {  51,-28081 }, {  52,-28081 },
- {  53,-28081 }, {  54,-28081 }, {  55,-28081 }, {  56,-28081 }, {  57,-28081 },
-
- {  58,-28081 }, {  59,-28081 }, {  60,-28081 }, {  61,-28081 }, {  62,-28081 },
- {  63,-28081 }, {  64,-28081 }, {  65,-28081 }, {  66,-28081 }, {  67,-28081 },
- {  68,-28081 }, {  69,-28081 }, {  70,-28081 }, {  71,-28081 }, {  72,-28081 },
- {  73,-28081 }, {  74,-28081 }, {  75,-28081 }, {  76,-28081 }, {  77,-28081 },
- {  78,-28081 }, {  79,-28081 }, {  80,-28081 }, {  81,-28081 }, {  82,-28081 },
- {  83,-28081 }, {  84,-28081 }, {  85,-28081 }, {  86,-28081 }, {  87,-28081 },
- {  88,-28081 }, {  89,-28081 }, {  90,-28081 }, {  91,-28081 }, {  92,-28081 },
- {  93,-28081 }, {  94,-28081 }, {  95,-28081 }, {  96,-28081 }, {  97,-28081 },
- {  98,-28081 }, {  99,-28081 }, { 100,-28081 }, { 101,-28081 }, { 102,-28081 },
- { 103,-28081 }, { 104,-28081 }, { 105,-28081 }, { 106,-28081 }, { 107,-28081 },
-
- { 108,-28081 }, { 109,-28081 }, { 110,-28081 }, { 111,-28081 }, { 112,-28081 },
- { 113,-28081 }, { 114,-28081 }, { 115,-28081 }, { 116,-28081 }, { 117,-28081 },
- { 118,-28081 }, { 119,-28081 }, { 120,-28081 }, { 121,-28081 }, { 122,-28081 },
- { 123,-28081 }, { 124,-28081 }, { 125,-28081 }, { 126,-28081 }, { 127,-28081 },
- { 128,-28081 }, { 129,-28081 }, { 130,-28081 }, { 131,-28081 }, { 132,-28081 },
- { 133,-28081 }, { 134,-28081 }, { 135,-28081 }, { 136,-28081 }, { 137,-28081 },
- { 138,-28081 }, { 139,-28081 }, { 140,-28081 }, { 141,-28081 }, { 142,-28081 },
- { 143,-28081 }, { 144,-28081 }, { 145,-28081 }, { 146,-28081 }, { 147,-28081 },
- { 148,-28081 }, { 149,-28081 }, { 150,-28081 }, { 151,-28081 }, { 152,-28081 },
- { 153,-28081 }, { 154,-28081 }, { 155,-28081 }, { 156,-28081 }, { 157,-28081 },
-
- { 158,-28081 }, { 159,-28081 }, { 160,-28081 }, { 161,-28081 }, { 162,-28081 },
- { 163,-28081 }, { 164,-28081 }, { 165,-28081 }, { 166,-28081 }, { 167,-28081 },
- { 168,-28081 }, { 169,-28081 }, { 170,-28081 }, { 171,-28081 }, { 172,-28081 },
- { 173,-28081 }, { 174,-28081 }, { 175,-28081 }, { 176,-28081 }, { 177,-28081 },
- { 178,-28081 }, { 179,-28081 }, { 180,-28081 }, { 181,-28081 }, { 182,-28081 },
- { 183,-28081 }, { 184,-28081 }, { 185,-28081 }, { 186,-28081 }, { 187,-28081 },
- { 188,-28081 }, { 189,-28081 }, { 190,-28081 }, { 191,-28081 }, { 192,-28081 },
- { 193,-28081 }, { 194,-28081 }, { 195,-28081 }, { 196,-28081 }, { 197,-28081 },
- { 198,-28081 }, { 199,-28081 }, { 200,-28081 }, { 201,-28081 }, { 202,-28081 },
- { 203,-28081 }, { 204,-28081 }, { 205,-28081 }, { 206,-28081 }, { 207,-28081 },
-
- { 208,-28081 }, { 209,-28081 }, { 210,-28081 }, { 211,-28081 }, { 212,-28081 },
- { 213,-28081 }, { 214,-28081 }, { 215,-28081 }, { 216,-28081 }, { 217,-28081 },
- { 218,-28081 }, { 219,-28081 }, { 220,-28081 }, { 221,-28081 }, { 222,-28081 },
- { 223,-28081 }, { 224,-28081 }, { 225,-28081 }, { 226,-28081 }, { 227,-28081 },
- { 228,-28081 }, { 229,-28081 }, { 230,-28081 }, { 231,-28081 }, { 232,-28081 },
- { 233,-28081 }, { 234,-28081 }, { 235,-28081 }, { 236,-28081 }, { 237,-28081 },
- { 238,-28081 }, { 239,-28081 }, { 240,-28081 }, { 241,-28081 }, { 242,-28081 },
- { 243,-28081 }, { 244,-28081 }, { 245,-28081 }, { 246,-28081 }, { 247,-28081 },
- { 248,-28081 }, { 249,-28081 }, { 250,-28081 }, { 251,-28081 }, { 252,-28081 },
- { 253,-28081 }, { 254,-28081 }, { 255,-28081 }, { 256,-28081 }, { 257,  81 },
-
- {   1,   0 },    };
-
-static __thread yyconst struct yy_trans_info *yy_start_state_list[27] =
+static __thread const struct yy_trans_info *yy_start_state_list[25] =
     {
     &yy_transition[1],
     &yy_transition[3],
@@ -8563,8 +4530,6 @@ static __thread yyconst struct yy_trans_info *yy_start_state_list[27] =
     &yy_transition[5421],
     &yy_transition[5679],
     &yy_transition[5937],
-    &yy_transition[6195],
-    &yy_transition[6453],
 
     }
 ;
@@ -8578,7 +4543,10 @@ static __thread yyconst struct yy_trans_info *yy_start_state_list[27] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "scan.l"
 
-#line 44 "scan.l"
+#line 46 "scan.l"
+
+/* LCOV_EXCL_START */
+
 /* Avoid exit() on fatal scanner errors (a bit ugly -- see yy_fatal_error) */
 #undef fprintf
 #define fprintf(file, fmt, msg)  fprintf_to_ereport(fmt, msg)
@@ -8603,6 +4571,21 @@ __thread bool		standard_conforming_strings = true;
 
 
 /*
+ * Constant data exported from this file.  This array maps from the
+ * zero-based keyword numbers returned by ScanKeywordLookup to the
+ * Bison token numbers needed by gram.y.  This is exported because
+ * callers need to pass it to scanner_init, if they are using the
+ * standard keyword list ScanKeywords.
+ */
+#define PG_KEYWORD(kwname, value, category) value,
+
+const uint16 ScanKeywordTokens[] = {
+#include "parser/kwlist.h"
+};
+
+#undef PG_KEYWORD
+
+/*
  * Set the type of YYSTYPE.
  */
 #define YYSTYPE core_YYSTYPE
@@ -8614,7 +4597,7 @@ __thread bool		standard_conforming_strings = true;
 #define YY_EXTRA_TYPE core_yy_extra_type *
 
 /*
- * Each call to core_yylex must set yylloc to the location of the found token
+ * Each call to yylex must set yylloc to the location of the found token
  * (expressed as a byte offset from the start of the input text).
  * When we parse a token that requires multiple lexer rules to process,
  * this should be done in the first such rule, else yylloc will point
@@ -8627,18 +4610,25 @@ __thread bool		standard_conforming_strings = true;
  */
 #define ADVANCE_YYLLOC(delta)  ( *(yylloc) += (delta) )
 
+/*
+ * Sometimes, we do want yylloc to point into the middle of a token; this is
+ * useful for instance to throw an error about an escape sequence within a
+ * string literal.  But if we find no error there, we want to revert yylloc
+ * to the token start, so that that's the location reported to the parser.
+ * Use PUSH_YYLLOC/POP_YYLLOC to save/restore yylloc around such code.
+ * (Currently the implied "stack" is just one location, but someday we might
+ * need to nest these.)
+ */
+#define PUSH_YYLLOC()	(yyextra->save_yylloc = *(yylloc))
+#define POP_YYLLOC()	(*(yylloc) = yyextra->save_yylloc)
+
 #define startlit()	( yyextra->literallen = 0 )
 static void addlit(char *ytext, int yleng, core_yyscan_t yyscanner);
 static void addlitchar(unsigned char ychar, core_yyscan_t yyscanner);
 static char *litbufdup(core_yyscan_t yyscanner);
-static char *litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner);
 static unsigned char unescape_single_char(unsigned char c, core_yyscan_t yyscanner);
 static int	process_integer_literal(const char *token, YYSTYPE *lval);
-static bool is_utf16_surrogate_first(pg_wchar c);
-static bool is_utf16_surrogate_second(pg_wchar c);
-static pg_wchar surrogate_pair_to_codepoint(pg_wchar first, pg_wchar second);
 static void addunicode(pg_wchar c, yyscan_t yyscanner);
-static bool check_uescapechar(unsigned char escape);
 
 #define yyerror(msg)  scanner_yyerror(msg, yyscanner)
 
@@ -8656,6 +4646,7 @@ static void check_escape_warning(core_yyscan_t yyscanner);
 extern int	core_yyget_column(yyscan_t yyscanner);
 extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 
+#line 4600 "scan.c"
 #define YY_NO_INPUT 1
 /*
  * OK, here is a short description of lex/flex rules behavior.
@@ -8673,28 +4664,16 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  *  <xd> delimited identifiers (double-quoted identifiers)
  *  <xh> hexadecimal numeric string
  *  <xq> standard quoted strings
+ *  <xqs> quote stop (detect continued strings)
  *  <xe> extended quoted strings (support backslash escape sequences)
  *  <xdolq> $foo$ quoted strings
  *  <xui> quoted identifier with Unicode escapes
- *  <xuiend> end of a quoted identifier with Unicode escapes, UESCAPE can follow
  *  <xus> quoted string with Unicode escapes
- *  <xusend> end of a quoted string with Unicode escapes, UESCAPE can follow
  *  <xeu> Unicode surrogate pair in extended quoted string
  *
  * Remember to add an <<EOF>> case whenever you add a new exclusive state!
  * The default one is probably not the right thing.
  */
-
-
-
-
-
-
-
-
-
-
-
 
 /*
  * In order to make the world safe for Windows and Mac clients as well as
@@ -8711,7 +4690,7 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  * XXX perhaps \f (formfeed) should be treated as a newline as well?
  *
  * XXX if you change the set of whitespace characters, fix scanner_isspace()
- * to agree, and see also the plpgsql lexer.
+ * to agree.
  */
 /*
  * SQL requires at least one newline in the whitespace separating
@@ -8719,14 +4698,13 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  * to argue?  Note that {whitespace_with_newline} should not have * after
  * it, whereas {whitespace} should generally have a * after it...
  */
+/* If we see {quote} then {quotecontinue}, the quoted string continues */
 /*
- * To ensure that {quotecontinue} can be scanned without having to back up
- * if the full pattern isn't matched, we include trailing whitespace in
- * {quotestop}.  This matches all cases where {quotecontinue} fails to match,
- * except for {quote} followed by whitespace and just one "-" (not two,
- * which would start a {comment}).  To cover that we have {quotefail}.
- * The actions for {quotestop} and {quotefail} must throw back characters
- * beyond the quote proper.
+ * {quotecontinuefail} is needed to avoid lexer backup when we fail to match
+ * {quotecontinue}.  It might seem that this could just be {whitespace}*,
+ * but if there's a dash after {whitespace_with_newline}, it must be consumed
+ * to see if there's another dash --- which would start a {comment} and thus
+ * allow continuation of the {quotecontinue} token.
  */
 /* Bit string
  * It is tempting to scan the string for only those characters
@@ -8756,11 +4734,8 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 /* Double quote
  * Allows embedded spaces and other special characters into identifiers.
  */
-/* Unicode escapes */
-/* error rule to avoid backup */
 /* Quoted identifier with Unicode escapes */
 /* Quoted string with Unicode escapes */
-/* Optional UESCAPE after a quoted string or identifier with Unicode escapes. */
 /* error rule to avoid backup */
 /* C-style comments
  *
@@ -8820,21 +4795,20 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
  * Note that xcstart must appear before operator, as explained above!
  *  Also whitespace (comment) must appear before operator.
  */
-#line 8772 "scan.c"
+#line 4749 "scan.c"
 
 #define INITIAL 0
 #define xb 1
 #define xc 2
 #define xd 3
 #define xh 4
-#define xe 5
-#define xq 6
-#define xdolq 7
-#define xui 8
-#define xuiend 9
+#define xq 5
+#define xqs 6
+#define xe 7
+#define xdolq 8
+#define xui 9
 #define xus 10
-#define xusend 11
-#define xeu 12
+#define xeu 11
 
 #ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
@@ -8886,7 +4860,7 @@ struct yyguts_t
 
     }; /* end struct yyguts_t */
 
-static int yy_init_globals (yyscan_t yyscanner );
+static int yy_init_globals ( yyscan_t yyscanner );
 
     /* This must go here because YYSTYPE and YYLTYPE are included
      * from bison output in section 1.*/
@@ -8894,46 +4868,50 @@ static int yy_init_globals (yyscan_t yyscanner );
     
     #    define yylloc yyg->yylloc_r
     
-int core_yylex_init (yyscan_t* scanner);
+int yylex_init (yyscan_t* scanner);
 
-int core_yylex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
+int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
-int core_yylex_destroy (yyscan_t yyscanner );
+int yylex_destroy ( yyscan_t yyscanner );
 
-int core_yyget_debug (yyscan_t yyscanner );
+int yyget_debug ( yyscan_t yyscanner );
 
-void core_yyset_debug (int debug_flag ,yyscan_t yyscanner );
+void yyset_debug ( int debug_flag , yyscan_t yyscanner );
 
-YY_EXTRA_TYPE core_yyget_extra (yyscan_t yyscanner );
+YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 
-void core_yyset_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
+void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 
-FILE *core_yyget_in (yyscan_t yyscanner );
+FILE *yyget_in ( yyscan_t yyscanner );
 
-void core_yyset_in  (FILE * in_str ,yyscan_t yyscanner );
+void yyset_in  ( FILE * _in_str , yyscan_t yyscanner );
 
-FILE *core_yyget_out (yyscan_t yyscanner );
+FILE *yyget_out ( yyscan_t yyscanner );
 
-void core_yyset_out  (FILE * out_str ,yyscan_t yyscanner );
+void yyset_out  ( FILE * _out_str , yyscan_t yyscanner );
 
-yy_size_t core_yyget_leng (yyscan_t yyscanner );
+			yy_size_t yyget_leng ( yyscan_t yyscanner );
 
-char *core_yyget_text (yyscan_t yyscanner );
+char *yyget_text ( yyscan_t yyscanner );
 
-int core_yyget_lineno (yyscan_t yyscanner );
+int yyget_lineno ( yyscan_t yyscanner );
 
-void core_yyset_lineno (int line_number ,yyscan_t yyscanner );
+void yyset_lineno ( int _line_number , yyscan_t yyscanner );
 
-YYSTYPE * core_yyget_lval (yyscan_t yyscanner );
+int yyget_column  ( yyscan_t yyscanner );
 
-void core_yyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
+void yyset_column ( int _column_no , yyscan_t yyscanner );
 
-       YYLTYPE *core_yyget_lloc (yyscan_t yyscanner );
+YYSTYPE * yyget_lval ( yyscan_t yyscanner );
+
+void yyset_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
+
+       YYLTYPE *yyget_lloc ( yyscan_t yyscanner );
     
-        void core_yyset_lloc (YYLTYPE * yylloc_param ,yyscan_t yyscanner );
+        void yyset_lloc ( YYLTYPE * yylloc_param , yyscan_t yyscanner );
     
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -8941,33 +4919,41 @@ void core_yyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int core_yywrap (yyscan_t yyscanner );
+extern "C" int yywrap ( yyscan_t yyscanner );
 #else
-extern int core_yywrap (yyscan_t yyscanner );
+extern int yywrap ( yyscan_t yyscanner );
 #endif
+#endif
+
+#ifndef YY_NO_UNPUT
+    
 #endif
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *,yyconst char *,int ,yyscan_t yyscanner);
+static void yy_flex_strncpy ( char *, const char *, int , yyscan_t yyscanner);
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * ,yyscan_t yyscanner);
+static int yy_flex_strlen ( const char * , yyscan_t yyscanner);
 #endif
 
 #ifndef YY_NO_INPUT
-
 #ifdef __cplusplus
-static int yyinput (yyscan_t yyscanner );
+static int yyinput ( yyscan_t yyscanner );
 #else
-static int input (yyscan_t yyscanner );
+static int input ( yyscan_t yyscanner );
 #endif
 
 #endif
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -8975,7 +4961,7 @@ static int input (yyscan_t yyscanner );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO fwrite( yytext, yyleng, 1, yyout )
+#define ECHO do { if (fwrite( yytext, (size_t) yyleng, 1, yyout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -8999,7 +4985,7 @@ static int input (yyscan_t yyscanner );
 	else \
 		{ \
 		errno=0; \
-		while ( (result = fread(buf, 1, max_size, yyin))==0 && ferror(yyin)) \
+		while ( (result = (int) fread(buf, 1, (yy_size_t) max_size, yyin)) == 0 && ferror(yyin)) \
 			{ \
 			if( errno != EINTR) \
 				{ \
@@ -9040,10 +5026,10 @@ static int input (yyscan_t yyscanner );
 #ifndef YY_DECL
 #define YY_DECL_IS_OURS 1
 
-extern int core_yylex \
-               (YYSTYPE * yylval_param,YYLTYPE * yylloc_param ,yyscan_t yyscanner);
+extern int yylex \
+               (YYSTYPE * yylval_param, YYLTYPE * yylloc_param , yyscan_t yyscanner);
 
-#define YY_DECL int core_yylex \
+#define YY_DECL int yylex \
                (YYSTYPE * yylval_param, YYLTYPE * yylloc_param , yyscan_t yyscanner)
 #endif /* !YY_DECL */
 
@@ -9056,7 +5042,7 @@ extern int core_yylex \
 
 /* Code executed at the end of each rule. */
 #ifndef YY_BREAK
-#define YY_BREAK break;
+#define YY_BREAK /*LINTED*/break;
 #endif
 
 #define YY_RULE_SETUP \
@@ -9066,15 +5052,10 @@ extern int core_yylex \
  */
 YY_DECL
 {
-	register yy_state_type yy_current_state;
-	register char *yy_cp, *yy_bp;
-	register int yy_act;
+	yy_state_type yy_current_state;
+	char *yy_cp, *yy_bp;
+	int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-
-#line 405 "scan.l"
-
-
-#line 9026 "scan.c"
 
     yylval = yylval_param;
 
@@ -9098,15 +5079,21 @@ YY_DECL
 			yyout = stdout;
 
 		if ( ! YY_CURRENT_BUFFER ) {
-			core_yyensure_buffer_stack (yyscanner);
+			yyensure_buffer_stack (yyscanner);
 			YY_CURRENT_BUFFER_LVALUE =
-				core_yy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner);
+				yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner);
 		}
 
-		core_yy_load_buffer_state(yyscanner );
+		yy_load_buffer_state( yyscanner );
 		}
 
-	while ( 1 )		/* loops until end-of-file is reached */
+	{
+#line 420 "scan.l"
+
+
+#line 5045 "scan.c"
+
+	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = yyg->yy_c_buf_p;
 
@@ -9121,12 +5108,12 @@ YY_DECL
 		yy_current_state = yy_start_state_list[yyg->yy_start];
 yy_match:
 		{
-		register yyconst struct yy_trans_info *yy_trans_info;
+		const struct yy_trans_info *yy_trans_info;
 
-		register YY_CHAR yy_c;
+		YY_CHAR yy_c;
 
 		for ( yy_c = YY_SC_TO_UI(*yy_cp);
-		      (yy_trans_info = &yy_current_state[(unsigned int) yy_c])->
+		      (yy_trans_info = &yy_current_state[yy_c])->
 		yy_verify == yy_c;
 		      yy_c = YY_SC_TO_UI(*++yy_cp) )
 			yy_current_state += yy_trans_info->yy_nxt;
@@ -9144,14 +5131,22 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 407 "scan.l"
+#line 422 "scan.l"
 {
 					/* ignore */
 				}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 411 "scan.l"
+#line 426 "scan.l"
+{
+					SET_YYLLOC();
+					return SQL_COMMENT;
+				}
+	YY_BREAK
+case 3:
+YY_RULE_SETUP
+#line 431 "scan.l"
 {
 					/* Set location in case of syntax error in comment */
 					SET_YYLLOC();
@@ -9161,54 +5156,62 @@ YY_RULE_SETUP
 					yyless(2);
 				}
 	YY_BREAK
-case 3:
+
+case 4:
 YY_RULE_SETUP
-#line 420 "scan.l"
+#line 441 "scan.l"
 {
 					(yyextra->xcdepth)++;
 					/* Put back any characters past slash-star; see above */
 					yyless(2);
 				}
 	YY_BREAK
-case 4:
+case 5:
 YY_RULE_SETUP
-#line 426 "scan.l"
+#line 447 "scan.l"
 {
 					if (yyextra->xcdepth <= 0)
+					{
 						BEGIN(INITIAL);
+						yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+						return C_COMMENT;
+					}
 					else
 						(yyextra->xcdepth)--;
 				}
 	YY_BREAK
-case 5:
-/* rule 5 can match eol */
-YY_RULE_SETUP
-#line 433 "scan.l"
-{
-					/* ignore */
-				}
-	YY_BREAK
 case 6:
+/* rule 6 can match eol */
 YY_RULE_SETUP
-#line 437 "scan.l"
+#line 458 "scan.l"
 {
 					/* ignore */
 				}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 441 "scan.l"
+#line 462 "scan.l"
+{
+					/* ignore */
+				}
+	YY_BREAK
+case 8:
+YY_RULE_SETUP
+#line 466 "scan.l"
 {
 					/* ignore */
 				}
 	YY_BREAK
 case YY_STATE_EOF(xc):
-#line 445 "scan.l"
-{ yyerror("unterminated /* comment"); }
+#line 470 "scan.l"
+{
+					yyerror("unterminated /* comment");
+				}
 	YY_BREAK
-case 8:
+/* <xc> */
+case 9:
 YY_RULE_SETUP
-#line 447 "scan.l"
+#line 475 "scan.l"
 {
 					/* Binary bit type.
 					 * At some point we should simply pass the string
@@ -9222,49 +5225,24 @@ YY_RULE_SETUP
 					addlitchar('b', yyscanner);
 				}
 	YY_BREAK
-case 9:
-/* rule 9 can match eol */
-#line 460 "scan.l"
 case 10:
 /* rule 10 can match eol */
-YY_RULE_SETUP
-#line 460 "scan.l"
-{
-					yyless(1);
-					BEGIN(INITIAL);
-					yylval->str = litbufdup(yyscanner);
-					return BCONST;
-				}
-	YY_BREAK
+#line 488 "scan.l"
 case 11:
 /* rule 11 can match eol */
-#line 467 "scan.l"
-case 12:
-/* rule 12 can match eol */
 YY_RULE_SETUP
-#line 467 "scan.l"
+#line 488 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
-case 13:
-/* rule 13 can match eol */
-#line 471 "scan.l"
-case 14:
-/* rule 14 can match eol */
-YY_RULE_SETUP
-#line 471 "scan.l"
-{
-					/* ignore */
-				}
-	YY_BREAK
 case YY_STATE_EOF(xb):
-#line 474 "scan.l"
+#line 491 "scan.l"
 { yyerror("unterminated bit string literal"); }
 	YY_BREAK
-case 15:
+case 12:
 YY_RULE_SETUP
-#line 476 "scan.l"
+#line 493 "scan.l"
 {
 					/* Hexadecimal bit type.
 					 * At some point we should simply pass the string
@@ -9278,56 +5256,43 @@ YY_RULE_SETUP
 					addlitchar('x', yyscanner);
 				}
 	YY_BREAK
-case 16:
-/* rule 16 can match eol */
-#line 489 "scan.l"
-case 17:
-/* rule 17 can match eol */
-YY_RULE_SETUP
-#line 489 "scan.l"
-{
-					yyless(1);
-					BEGIN(INITIAL);
-					yylval->str = litbufdup(yyscanner);
-					return XCONST;
-				}
-	YY_BREAK
 case YY_STATE_EOF(xh):
-#line 495 "scan.l"
+#line 505 "scan.l"
 { yyerror("unterminated hexadecimal string literal"); }
 	YY_BREAK
-case 18:
+case 13:
 YY_RULE_SETUP
-#line 497 "scan.l"
+#line 507 "scan.l"
 {
 					/* National character.
 					 * We will pass this along as a normal character string,
 					 * but preceded with an internally-generated "NCHAR".
 					 */
-					const ScanKeyword *keyword;
+					int		kwnum;
 
 					SET_YYLLOC();
 					yyless(1);	/* eat only 'n' this time */
 
-					keyword = ScanKeywordLookup("nchar",
-												yyextra->keywords,
-												yyextra->num_keywords);
-					if (keyword != NULL)
+					kwnum = ScanKeywordLookup("nchar",
+											  yyextra->keywordlist);
+					if (kwnum >= 0)
 					{
-						yylval->keyword = keyword->name;
-						return keyword->value;
+						yylval->keyword = GetScanKeyword(kwnum,
+														 yyextra->keywordlist);
+						return yyextra->keyword_tokens[kwnum];
 					}
 					else
 					{
 						/* If NCHAR isn't a keyword, just return "n" */
 						yylval->str = pstrdup("n");
+						yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
 						return IDENT;
 					}
 				}
 	YY_BREAK
-case 19:
+case 14:
 YY_RULE_SETUP
-#line 523 "scan.l"
+#line 534 "scan.l"
 {
 					yyextra->warn_on_first_escape = true;
 					yyextra->saw_non_ascii = false;
@@ -9339,9 +5304,9 @@ YY_RULE_SETUP
 					startlit();
 				}
 	YY_BREAK
-case 20:
+case 15:
 YY_RULE_SETUP
-#line 533 "scan.l"
+#line 544 "scan.l"
 {
 					yyextra->warn_on_first_escape = false;
 					yyextra->saw_non_ascii = false;
@@ -9350,9 +5315,9 @@ YY_RULE_SETUP
 					startlit();
 				}
 	YY_BREAK
-case 21:
+case 16:
 YY_RULE_SETUP
-#line 540 "scan.l"
+#line 551 "scan.l"
 {
 					SET_YYLLOC();
 					if (!yyextra->standard_conforming_strings)
@@ -9365,115 +5330,125 @@ YY_RULE_SETUP
 					startlit();
 				}
 	YY_BREAK
-case 22:
-/* rule 22 can match eol */
-#line 552 "scan.l"
-case 23:
-/* rule 23 can match eol */
+case 17:
 YY_RULE_SETUP
-#line 552 "scan.l"
+#line 563 "scan.l"
 {
-					yyless(1);
-					BEGIN(INITIAL);
 					/*
-					 * check that the data remains valid if it might have been
-					 * made invalid by unescaping any chars.
+					 * When we are scanning a quoted string and see an end
+					 * quote, we must look ahead for a possible continuation.
+					 * If we don't see one, we know the end quote was in fact
+					 * the end of the string.  To reduce the lexer table size,
+					 * we use a single "xqs" state to do the lookahead for all
+					 * types of strings.
 					 */
-					if (yyextra->saw_non_ascii)
-						pg_verifymbstr(yyextra->literalbuf,
-									   yyextra->literallen,
-									   false);
-					yylval->str = litbufdup(yyscanner);
-					return SCONST;
+					yyextra->state_before_str_stop = YYSTATE;
+					BEGIN(xqs);
 				}
 	YY_BREAK
-case 24:
-/* rule 24 can match eol */
-#line 567 "scan.l"
-case 25:
-/* rule 25 can match eol */
+case 18:
+/* rule 18 can match eol */
 YY_RULE_SETUP
-#line 567 "scan.l"
+#line 575 "scan.l"
 {
-					/* throw back all but the quote */
-					yyless(1);
-					/* xusend state looks for possible UESCAPE */
-					BEGIN(xusend);
+					/*
+					 * Found a quote continuation, so return to the in-quote
+					 * state and continue scanning the literal.  Nothing is
+					 * added to the literal's contents.
+					 */
+					BEGIN(yyextra->state_before_str_stop);
 				}
 	YY_BREAK
-case 26:
-/* rule 26 can match eol */
+case 19:
+/* rule 19 can match eol */
+#line 584 "scan.l"
+case 20:
+/* rule 20 can match eol */
+#line 585 "scan.l"
 YY_RULE_SETUP
-#line 573 "scan.l"
-{
-					/* stay in xusend state over whitespace */
-				}
-	YY_BREAK
-case YY_STATE_EOF(xusend):
-#line 576 "scan.l"
-case 27:
-/* rule 27 can match eol */
-#line 578 "scan.l"
-case 28:
-/* rule 28 can match eol */
-YY_RULE_SETUP
-#line 578 "scan.l"
-{
-					/* no UESCAPE after the quote, throw back everything */
-					yyless(0);
-					BEGIN(INITIAL);
-					yylval->str = litbuf_udeescape('\\', yyscanner);
-					return SCONST;
-				}
-	YY_BREAK
-case 29:
-/* rule 29 can match eol */
-YY_RULE_SETUP
+case YY_STATE_EOF(xqs):
 #line 585 "scan.l"
 {
-					/* found UESCAPE after the end quote */
+					/*
+					 * Failed to see a quote continuation.  Throw back
+					 * everything after the end quote, and handle the string
+					 * according to the state we were in previously.
+					 */
+					yyless(0);
 					BEGIN(INITIAL);
-					if (!check_uescapechar(yytext[yyleng - 2]))
+
+					switch (yyextra->state_before_str_stop)
 					{
-						SET_YYLLOC();
-						ADVANCE_YYLLOC(yyleng - 2);
-						yyerror("invalid Unicode escape character");
+						case xb:
+							yylval->str = litbufdup(yyscanner);
+							yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+							return BCONST;
+						case xh:
+							yylval->str = litbufdup(yyscanner);
+							yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+							return XCONST;
+						case xq:
+						case xe:
+							/*
+							 * Check that the data remains valid, if it might
+							 * have been made invalid by unescaping any chars.
+							 */
+							if (yyextra->saw_non_ascii)
+								pg_verifymbstr(yyextra->literalbuf,
+											   yyextra->literallen,
+											   false);
+							yylval->str = litbufdup(yyscanner);
+							yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+							return SCONST;
+						case xus:
+							yylval->str = litbufdup(yyscanner);
+							yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+							return USCONST;
+						default:
+							yyerror("unhandled previous state in xqs");
 					}
-					yylval->str = litbuf_udeescape(yytext[yyleng - 2],
-												   yyscanner);
-					return SCONST;
 				}
 	YY_BREAK
-case 30:
+case 21:
 YY_RULE_SETUP
-#line 598 "scan.l"
+#line 626 "scan.l"
 {
 					addlitchar('\'', yyscanner);
 				}
 	YY_BREAK
-case 31:
-/* rule 31 can match eol */
+case 22:
+/* rule 22 can match eol */
 YY_RULE_SETUP
-#line 601 "scan.l"
+#line 629 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
-case 32:
-/* rule 32 can match eol */
+case 23:
+/* rule 23 can match eol */
 YY_RULE_SETUP
-#line 604 "scan.l"
+#line 632 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
-case 33:
+case 24:
 YY_RULE_SETUP
-#line 607 "scan.l"
+#line 635 "scan.l"
 {
 					pg_wchar	c = strtoul(yytext + 2, NULL, 16);
 
+					/*
+					 * For consistency with other productions, issue any
+					 * escape warning with cursor pointing to start of string.
+					 * We might want to change that, someday.
+					 */
 					check_escape_warning(yyscanner);
+
+					/* Remember start of overall string token ... */
+					PUSH_YYLLOC();
+					/* ... and set the error cursor to point at this esc seq */
+					SET_YYLLOC();
 
 					if (is_utf16_surrogate_first(c))
 					{
@@ -9484,13 +5459,21 @@ YY_RULE_SETUP
 						yyerror("invalid Unicode surrogate pair");
 					else
 						addunicode(c, yyscanner);
+
+					/* Restore yylloc to be start of string token */
+					POP_YYLLOC();
 				}
 	YY_BREAK
-case 34:
+case 25:
 YY_RULE_SETUP
-#line 622 "scan.l"
+#line 663 "scan.l"
 {
 					pg_wchar	c = strtoul(yytext + 2, NULL, 16);
+
+					/* Remember start of overall string token ... */
+					PUSH_YYLLOC();
+					/* ... and set the error cursor to point at this esc seq */
+					SET_YYLLOC();
 
 					if (!is_utf16_surrogate_second(c))
 						yyerror("invalid Unicode surrogate pair");
@@ -9499,28 +5482,32 @@ YY_RULE_SETUP
 
 					addunicode(c, yyscanner);
 
+					/* Restore yylloc to be start of string token */
+					POP_YYLLOC();
+
 					BEGIN(xe);
 				}
 	YY_BREAK
-case 35:
+case 26:
+#line 684 "scan.l"
+case 27:
+/* rule 27 can match eol */
+#line 685 "scan.l"
 YY_RULE_SETUP
-#line 634 "scan.l"
-{ yyerror("invalid Unicode surrogate pair"); }
-	YY_BREAK
-case 36:
-/* rule 36 can match eol */
-YY_RULE_SETUP
-#line 635 "scan.l"
-{ yyerror("invalid Unicode surrogate pair"); }
-	YY_BREAK
 case YY_STATE_EOF(xeu):
-#line 636 "scan.l"
-{ yyerror("invalid Unicode surrogate pair"); }
-	YY_BREAK
-case 37:
-YY_RULE_SETUP
-#line 637 "scan.l"
+#line 685 "scan.l"
 {
+					/* Set the error cursor to point at missing esc seq */
+					SET_YYLLOC();
+					yyerror("invalid Unicode surrogate pair");
+				}
+	YY_BREAK
+case 28:
+YY_RULE_SETUP
+#line 690 "scan.l"
+{
+					/* Set the error cursor to point at malformed esc seq */
+					SET_YYLLOC();
 					ereport(ERROR,
 							(errcode(ERRCODE_INVALID_ESCAPE_SEQUENCE),
 							 errmsg("invalid Unicode escape"),
@@ -9528,10 +5515,10 @@ YY_RULE_SETUP
 							 lexer_errposition()));
 				}
 	YY_BREAK
-case 38:
-/* rule 38 can match eol */
+case 29:
+/* rule 29 can match eol */
 YY_RULE_SETUP
-#line 644 "scan.l"
+#line 699 "scan.l"
 {
 					if (yytext[1] == '\'')
 					{
@@ -9549,9 +5536,9 @@ YY_RULE_SETUP
 							   yyscanner);
 				}
 	YY_BREAK
-case 39:
+case 30:
 YY_RULE_SETUP
-#line 660 "scan.l"
+#line 715 "scan.l"
 {
 					unsigned char c = strtoul(yytext + 1, NULL, 8);
 
@@ -9561,9 +5548,9 @@ YY_RULE_SETUP
 						yyextra->saw_non_ascii = true;
 				}
 	YY_BREAK
-case 40:
+case 31:
 YY_RULE_SETUP
-#line 668 "scan.l"
+#line 723 "scan.l"
 {
 					unsigned char c = strtoul(yytext + 2, NULL, 16);
 
@@ -9573,17 +5560,9 @@ YY_RULE_SETUP
 						yyextra->saw_non_ascii = true;
 				}
 	YY_BREAK
-case 41:
-/* rule 41 can match eol */
+case 32:
 YY_RULE_SETUP
-#line 676 "scan.l"
-{
-					/* ignore */
-				}
-	YY_BREAK
-case 42:
-YY_RULE_SETUP
-#line 679 "scan.l"
+#line 731 "scan.l"
 {
 					/* This is only needed for \ just before EOF */
 					addlitchar(yytext[0], yyscanner);
@@ -9592,12 +5571,12 @@ YY_RULE_SETUP
 case YY_STATE_EOF(xq):
 case YY_STATE_EOF(xe):
 case YY_STATE_EOF(xus):
-#line 683 "scan.l"
+#line 735 "scan.l"
 { yyerror("unterminated quoted string"); }
 	YY_BREAK
-case 43:
+case 33:
 YY_RULE_SETUP
-#line 685 "scan.l"
+#line 737 "scan.l"
 {
 					SET_YYLLOC();
 					yyextra->dolqstart = pstrdup(yytext);
@@ -9605,9 +5584,9 @@ YY_RULE_SETUP
 					startlit();
 				}
 	YY_BREAK
-case 44:
+case 34:
 YY_RULE_SETUP
-#line 691 "scan.l"
+#line 743 "scan.l"
 {
 					SET_YYLLOC();
 					/* throw back all but the initial "$" */
@@ -9616,9 +5595,9 @@ YY_RULE_SETUP
 					return yytext[0];
 				}
 	YY_BREAK
-case 45:
+case 35:
 YY_RULE_SETUP
-#line 698 "scan.l"
+#line 750 "scan.l"
 {
 					if (strcmp(yytext, yyextra->dolqstart) == 0)
 					{
@@ -9626,6 +5605,7 @@ YY_RULE_SETUP
 						yyextra->dolqstart = NULL;
 						BEGIN(INITIAL);
 						yylval->str = litbufdup(yyscanner);
+						yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
 						return SCONST;
 					}
 					else
@@ -9640,54 +5620,54 @@ YY_RULE_SETUP
 					}
 				}
 	YY_BREAK
-case 46:
-/* rule 46 can match eol */
+case 36:
+/* rule 36 can match eol */
 YY_RULE_SETUP
-#line 718 "scan.l"
+#line 771 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
-case 47:
+case 37:
 YY_RULE_SETUP
-#line 721 "scan.l"
+#line 774 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
-case 48:
+case 38:
 YY_RULE_SETUP
-#line 724 "scan.l"
+#line 777 "scan.l"
 {
 					/* This is only needed for $ inside the quoted text */
 					addlitchar(yytext[0], yyscanner);
 				}
 	YY_BREAK
 case YY_STATE_EOF(xdolq):
-#line 728 "scan.l"
+#line 781 "scan.l"
 { yyerror("unterminated dollar-quoted string"); }
 	YY_BREAK
-case 49:
+case 39:
 YY_RULE_SETUP
-#line 730 "scan.l"
+#line 783 "scan.l"
 {
 					SET_YYLLOC();
 					BEGIN(xd);
 					startlit();
 				}
 	YY_BREAK
-case 50:
+case 40:
 YY_RULE_SETUP
-#line 735 "scan.l"
+#line 788 "scan.l"
 {
 					SET_YYLLOC();
 					BEGIN(xui);
 					startlit();
 				}
 	YY_BREAK
-case 51:
+case 41:
 YY_RULE_SETUP
-#line 740 "scan.l"
+#line 793 "scan.l"
 {
 					char	   *ident;
 
@@ -9698,102 +5678,46 @@ YY_RULE_SETUP
 					if (yyextra->literallen >= NAMEDATALEN)
 						truncate_identifier(ident, yyextra->literallen, true);
 					yylval->str = ident;
+					yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
 					return IDENT;
 				}
 	YY_BREAK
-case 52:
+case 42:
 YY_RULE_SETUP
-#line 752 "scan.l"
+#line 806 "scan.l"
 {
-					yyless(1);
-					/* xuiend state looks for possible UESCAPE */
-					BEGIN(xuiend);
-				}
-	YY_BREAK
-case 53:
-/* rule 53 can match eol */
-YY_RULE_SETUP
-#line 757 "scan.l"
-{
-					/* stay in xuiend state over whitespace */
-				}
-	YY_BREAK
-case YY_STATE_EOF(xuiend):
-#line 760 "scan.l"
-case 54:
-/* rule 54 can match eol */
-#line 762 "scan.l"
-case 55:
-/* rule 55 can match eol */
-YY_RULE_SETUP
-#line 762 "scan.l"
-{
-					/* no UESCAPE after the quote, throw back everything */
-					char	   *ident;
-					int			identlen;
-
-					yyless(0);
-
 					BEGIN(INITIAL);
 					if (yyextra->literallen == 0)
 						yyerror("zero-length delimited identifier");
-					ident = litbuf_udeescape('\\', yyscanner);
-					identlen = strlen(ident);
-					if (identlen >= NAMEDATALEN)
-						truncate_identifier(ident, identlen, true);
-					yylval->str = ident;
-					return IDENT;
+					/* can't truncate till after we de-escape the ident */
+					yylval->str = litbufdup(yyscanner);
+					yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
+					return UIDENT;
 				}
 	YY_BREAK
-case 56:
-/* rule 56 can match eol */
+case 43:
 YY_RULE_SETUP
-#line 779 "scan.l"
-{
-					/* found UESCAPE after the end quote */
-					char	   *ident;
-					int			identlen;
-
-					BEGIN(INITIAL);
-					if (yyextra->literallen == 0)
-						yyerror("zero-length delimited identifier");
-					if (!check_uescapechar(yytext[yyleng - 2]))
-					{
-						SET_YYLLOC();
-						ADVANCE_YYLLOC(yyleng - 2);
-						yyerror("invalid Unicode escape character");
-					}
-					ident = litbuf_udeescape(yytext[yyleng - 2], yyscanner);
-					identlen = strlen(ident);
-					if (identlen >= NAMEDATALEN)
-						truncate_identifier(ident, identlen, true);
-					yylval->str = ident;
-					return IDENT;
-				}
-	YY_BREAK
-case 57:
-YY_RULE_SETUP
-#line 800 "scan.l"
+#line 815 "scan.l"
 {
 					addlitchar('"', yyscanner);
 				}
 	YY_BREAK
-case 58:
-/* rule 58 can match eol */
+case 44:
+/* rule 44 can match eol */
 YY_RULE_SETUP
-#line 803 "scan.l"
+#line 818 "scan.l"
 {
 					addlit(yytext, yyleng, yyscanner);
 				}
 	YY_BREAK
 case YY_STATE_EOF(xd):
 case YY_STATE_EOF(xui):
-#line 806 "scan.l"
+#line 821 "scan.l"
 { yyerror("unterminated quoted identifier"); }
 	YY_BREAK
-case 59:
+case 45:
 YY_RULE_SETUP
-#line 808 "scan.l"
+#line 823 "scan.l"
 {
 					char	   *ident;
 
@@ -9803,94 +5727,95 @@ YY_RULE_SETUP
 					/* and treat it as {identifier} */
 					ident = downcase_truncate_identifier(yytext, yyleng, true);
 					yylval->str = ident;
+					yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
 					return IDENT;
 				}
 	YY_BREAK
-case 60:
+case 46:
 YY_RULE_SETUP
-#line 820 "scan.l"
+#line 836 "scan.l"
 {
-          /* ignore E */
-          return yytext[1];
-        }
+					/* ignore E */
+					return yytext[1];
+				}
 	YY_BREAK
-case 61:
+case 47:
 YY_RULE_SETUP
-#line 825 "scan.l"
+#line 841 "scan.l"
 {
 					SET_YYLLOC();
 					return TYPECAST;
 				}
 	YY_BREAK
-case 62:
+case 48:
 YY_RULE_SETUP
-#line 830 "scan.l"
+#line 846 "scan.l"
 {
 					SET_YYLLOC();
 					return DOT_DOT;
 				}
 	YY_BREAK
-case 63:
+case 49:
 YY_RULE_SETUP
-#line 835 "scan.l"
+#line 851 "scan.l"
 {
 					SET_YYLLOC();
 					return COLON_EQUALS;
 				}
 	YY_BREAK
-case 64:
+case 50:
 YY_RULE_SETUP
-#line 840 "scan.l"
+#line 856 "scan.l"
 {
 					SET_YYLLOC();
 					return EQUALS_GREATER;
 				}
 	YY_BREAK
-case 65:
+case 51:
 YY_RULE_SETUP
-#line 845 "scan.l"
+#line 861 "scan.l"
 {
 					SET_YYLLOC();
 					return LESS_EQUALS;
 				}
 	YY_BREAK
-case 66:
+case 52:
 YY_RULE_SETUP
-#line 850 "scan.l"
+#line 866 "scan.l"
 {
 					SET_YYLLOC();
 					return GREATER_EQUALS;
 				}
 	YY_BREAK
-case 67:
+case 53:
 YY_RULE_SETUP
-#line 855 "scan.l"
+#line 871 "scan.l"
 {
 					/* We accept both "<>" and "!=" as meaning NOT_EQUALS */
 					SET_YYLLOC();
 					return NOT_EQUALS;
 				}
 	YY_BREAK
-case 68:
+case 54:
 YY_RULE_SETUP
-#line 861 "scan.l"
+#line 877 "scan.l"
 {
 					/* We accept both "<>" and "!=" as meaning NOT_EQUALS */
 					SET_YYLLOC();
 					return NOT_EQUALS;
 				}
 	YY_BREAK
-case 69:
+case 55:
 YY_RULE_SETUP
-#line 867 "scan.l"
+#line 883 "scan.l"
 {
 					SET_YYLLOC();
 					return yytext[0];
 				}
 	YY_BREAK
-case 70:
+case 56:
 YY_RULE_SETUP
-#line 872 "scan.l"
+#line 888 "scan.l"
 {
 					/*
 					 * Check for embedded slash-star or dash-dash; those
@@ -9950,24 +5875,28 @@ YY_RULE_SETUP
 						}
 					}
 
-          /* We don't accept leading ? in any multi-character operators
-           * except for those in use by hstore, JSON and geometric operators.
-           *
-           * We don't accept contained or trailing ? in any
-           * multi-character operators.
-           *
-           * This is necessary in order to support normalized queries without
-           * spacing between ? as a substition character and a simple operator (e.g. "?=?")
-           */
-          if (yytext[0] == '?' &&
-              strcmp(yytext, "?|") != 0 && strcmp(yytext, "?&") != 0 &&
-              strcmp(yytext, "?#") != 0 && strcmp(yytext, "?-") != 0 &&
-              strcmp(yytext, "?-|") != 0 && strcmp(yytext, "?||") != 0)
-            nchars = 1;
+					/* We don't accept leading ? in any multi-character operators
+					 * except for those in use by hstore, JSON and geometric operators.
+					 *
+					 * We don't accept contained or trailing ? in any
+					 * multi-character operators, except for those in use by JSON operators.
+					 *
+					 * This is necessary in order to support normalized queries without
+					 * spacing between ? as a substition character and a simple operator (e.g. "?=?")
+					 */
+					if (yytext[0] == '?' &&
+					  strcmp(yytext, "?<@") != 0 && strcmp(yytext, "?@>") != 0 &&
+					  strcmp(yytext, "?~") != 0 && strcmp(yytext, "?@") != 0 &&
+					  strcmp(yytext, "?|") != 0 && strcmp(yytext, "?&") != 0 &&
+					  strcmp(yytext, "?#") != 0 && strcmp(yytext, "?-") != 0 &&
+					  strcmp(yytext, "?-|") != 0 && strcmp(yytext, "?||") != 0)
+						nchars = 1;
 
-          if (yytext[0] != '?' && strchr(yytext, '?'))
-            /* Lex up to just before the ? character */
-            nchars = strchr(yytext, '?') - yytext;
+					if (yytext[0] != '?' && strchr(yytext, '?') &&
+					  strcmp(yytext, "^?") != 0 && strcmp(yytext, "#?") != 0 &&
+					  strcmp(yytext, "@?") != 0)
+						/* Lex up to just before the ? character */
+						nchars = strchr(yytext, '?') - yytext;
 
 					SET_YYLLOC();
 
@@ -10018,35 +5947,35 @@ YY_RULE_SETUP
 					return Op;
 				}
 	YY_BREAK
-case 71:
+case 57:
 YY_RULE_SETUP
-#line 999 "scan.l"
+#line 1019 "scan.l"
 {
 					SET_YYLLOC();
 					yylval->ival = atol(yytext + 1);
 					return PARAM;
 				}
 	YY_BREAK
-case 72:
+case 58:
 YY_RULE_SETUP
-#line 1005 "scan.l"
+#line 1025 "scan.l"
 {
 					SET_YYLLOC();
 					return process_integer_literal(yytext, yylval);
 				}
 	YY_BREAK
-case 73:
+case 59:
 YY_RULE_SETUP
-#line 1009 "scan.l"
+#line 1029 "scan.l"
 {
 					SET_YYLLOC();
 					yylval->str = pstrdup(yytext);
 					return FCONST;
 				}
 	YY_BREAK
-case 74:
+case 60:
 YY_RULE_SETUP
-#line 1014 "scan.l"
+#line 1034 "scan.l"
 {
 					/* throw back the .., and treat as integer */
 					yyless(yyleng - 2);
@@ -10054,65 +5983,60 @@ YY_RULE_SETUP
 					return process_integer_literal(yytext, yylval);
 				}
 	YY_BREAK
-case 75:
+case 61:
 YY_RULE_SETUP
-#line 1020 "scan.l"
+#line 1040 "scan.l"
 {
 					SET_YYLLOC();
 					yylval->str = pstrdup(yytext);
 					return FCONST;
 				}
 	YY_BREAK
-case 76:
+case 62:
 YY_RULE_SETUP
-#line 1025 "scan.l"
+#line 1045 "scan.l"
 {
 					/*
-					 * throw back the [Ee], and treat as {decimal}.  Note
-					 * that it is possible the input is actually {integer},
-					 * but since this case will almost certainly lead to a
-					 * syntax error anyway, we don't bother to distinguish.
+					 * throw back the [Ee], and figure out whether what
+					 * remains is an {integer} or {decimal}.
 					 */
 					yyless(yyleng - 1);
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
-					return FCONST;
+					return process_integer_literal(yytext, yylval);
 				}
 	YY_BREAK
-case 77:
+case 63:
 YY_RULE_SETUP
-#line 1037 "scan.l"
+#line 1054 "scan.l"
 {
 					/* throw back the [Ee][+-], and proceed as above */
 					yyless(yyleng - 2);
 					SET_YYLLOC();
-					yylval->str = pstrdup(yytext);
-					return FCONST;
+					return process_integer_literal(yytext, yylval);
 				}
 	YY_BREAK
-case 78:
+case 64:
 YY_RULE_SETUP
-#line 1046 "scan.l"
+#line 1062 "scan.l"
 {
-					const ScanKeyword *keyword;
+					int			kwnum;
 					char	   *ident;
-          char       *keyword_text = pstrdup(yytext);
+					char *keyword_text = pstrdup(yytext);
 
 					SET_YYLLOC();
 
 					/* Is it a keyword? */
-          if (yytext[yyleng - 1] == '?')
-            keyword_text[yyleng - 1] = '\0';
-
-					keyword = ScanKeywordLookup(keyword_text,
-												yyextra->keywords,
-												yyextra->num_keywords);
-					if (keyword != NULL)
+					if (yytext[yyleng - 1] == '?')
+					  keyword_text[yyleng - 1] = '\0';
+					kwnum = ScanKeywordLookup(keyword_text,
+											  yyextra->keywordlist);
+					if (kwnum >= 0)
 					{
-            if (keyword_text[yyleng - 1] == '\0')
-              yyless(yyleng - 1);
-						yylval->keyword = keyword->name;
-						return keyword->value;
+						if (keyword_text[yyleng - 1] == '\0')
+						  yyless(yyleng - 1);
+						yylval->keyword = GetScanKeyword(kwnum,
+														 yyextra->keywordlist);
+						return yyextra->keyword_tokens[kwnum];
 					}
 
 					/*
@@ -10121,30 +6045,31 @@ YY_RULE_SETUP
 					 */
 					ident = downcase_truncate_identifier(yytext, yyleng, true);
 					yylval->str = ident;
+					yyextra->yyllocend = yytext - yyextra->scanbuf + yyleng;
 					return IDENT;
 				}
 	YY_BREAK
-case 79:
+case 65:
 YY_RULE_SETUP
-#line 1077 "scan.l"
+#line 1093 "scan.l"
 {
 					SET_YYLLOC();
 					return yytext[0];
 				}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 1082 "scan.l"
+#line 1098 "scan.l"
 {
 					SET_YYLLOC();
 					yyterminate();
 				}
 	YY_BREAK
-case 80:
+case 66:
 YY_RULE_SETUP
-#line 1087 "scan.l"
+#line 1103 "scan.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 10096 "scan.c"
+#line 6023 "scan.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -10160,7 +6085,7 @@ YY_FATAL_ERROR( "flex scanner jammed" );
 			/* We're scanning a new file or input source.  It's
 			 * possible that this happened because the user
 			 * just pointed yyin at a new source and called
-			 * core_yylex().  If so, then we have to assure
+			 * yylex().  If so, then we have to assure
 			 * consistency between YY_CURRENT_BUFFER and our
 			 * globals.  Here is the right place to do so, because
 			 * this is the first action (other than possibly a
@@ -10220,7 +6145,7 @@ YY_FATAL_ERROR( "flex scanner jammed" );
 				{
 				yyg->yy_did_buffer_switch_on_eof = 0;
 
-				if ( core_yywrap(yyscanner ) )
+				if ( yywrap( yyscanner ) )
 					{
 					/* Note: because we've taken care in
 					 * yy_get_next_buffer() to have set up
@@ -10273,7 +6198,8 @@ YY_FATAL_ERROR( "flex scanner jammed" );
 			"fatal flex scanner internal error--no action found" );
 	} /* end of action switch */
 		} /* end of scanning one token */
-} /* end of core_yylex */
+	} /* end of user's declarations */
+} /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer
  *
@@ -10285,9 +6211,9 @@ YY_FATAL_ERROR( "flex scanner jammed" );
 static int yy_get_next_buffer (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
-	register char *source = yyg->yytext_ptr;
-	register int number_to_move, i;
+	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+	char *source = yyg->yytext_ptr;
+	int number_to_move, i;
 	int ret_val;
 
 	if ( yyg->yy_c_buf_p > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars + 1] )
@@ -10316,7 +6242,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	/* Try to read more data. */
 
 	/* First move last chars to start of buffer. */
-	number_to_move = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr) - 1;
+	number_to_move = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr - 1);
 
 	for ( i = 0; i < number_to_move; ++i )
 		*(dest++) = *(source++);
@@ -10336,7 +6262,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 			{ /* Not enough room in the buffer - grow it. */
 
 			/* just a shorter name for the current buffer */
-			YY_BUFFER_STATE b = YY_CURRENT_BUFFER;
+			YY_BUFFER_STATE b = YY_CURRENT_BUFFER_LVALUE;
 
 			int yy_c_buf_p_offset =
 				(int) (yyg->yy_c_buf_p - b->yy_ch_buf);
@@ -10352,11 +6278,12 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 				b->yy_ch_buf = (char *)
 					/* Include room in for 2 EOB chars. */
-					core_yyrealloc((void *) b->yy_ch_buf,b->yy_buf_size + 2 ,yyscanner );
+					yyrealloc( (void *) b->yy_ch_buf,
+							 (yy_size_t) (b->yy_buf_size + 2) , yyscanner );
 				}
 			else
 				/* Can't grow it, we don't own it. */
-				b->yy_ch_buf = 0;
+				b->yy_ch_buf = NULL;
 
 			if ( ! b->yy_ch_buf )
 				YY_FATAL_ERROR(
@@ -10384,7 +6311,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		if ( number_to_move == YY_MORE_ADJ )
 			{
 			ret_val = EOB_ACT_END_OF_FILE;
-			core_yyrestart(yyin  ,yyscanner);
+			yyrestart( yyin  , yyscanner);
 			}
 
 		else
@@ -10398,12 +6325,15 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
 
-	if ((yy_size_t) (yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+	if ((yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
 		yy_size_t new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
-		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) core_yyrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,new_size ,yyscanner );
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) yyrealloc(
+			(void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf, (yy_size_t) new_size , yyscanner );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
+		/* "- 2" to take care of EOB's */
+		YY_CURRENT_BUFFER_LVALUE->yy_buf_size = (int) (new_size - 2);
 	}
 
 	yyg->yy_n_chars += number_to_move;
@@ -10419,8 +6349,8 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
     static yy_state_type yy_get_previous_state (yyscan_t yyscanner)
 {
-	register yy_state_type yy_current_state;
-	register char *yy_cp;
+	yy_state_type yy_current_state;
+	char *yy_cp;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	yy_current_state = yy_start_state_list[yyg->yy_start];
@@ -10440,19 +6370,23 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
  */
     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state , yyscan_t yyscanner)
 {
-	register int yy_is_jam;
+	int yy_is_jam;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
 
-	register int yy_c = 256;
-	register yyconst struct yy_trans_info *yy_trans_info;
+	int yy_c = 256;
+	const struct yy_trans_info *yy_trans_info;
 
 	yy_trans_info = &yy_current_state[(unsigned int) yy_c];
 	yy_current_state += yy_trans_info->yy_nxt;
 	yy_is_jam = (yy_trans_info->yy_verify != yy_c);
 
-	(void) yyg;
+	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
 }
+
+#ifndef YY_NO_UNPUT
+
+#endif
 
 #ifndef YY_NO_INPUT
 #ifdef __cplusplus
@@ -10496,13 +6430,13 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 					 */
 
 					/* Reset buffer status. */
-					core_yyrestart(yyin ,yyscanner);
+					yyrestart( yyin , yyscanner);
 
 					/*FALLTHROUGH*/
 
 				case EOB_ACT_END_OF_FILE:
 					{
-					if ( core_yywrap(yyscanner ) )
+					if ( yywrap( yyscanner ) )
 						return 0;
 
 					if ( ! yyg->yy_did_buffer_switch_on_eof )
@@ -10534,34 +6468,34 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  * @note This function does not reset the start condition to @c INITIAL .
  */
-    void core_yyrestart  (FILE * input_file , yyscan_t yyscanner)
+    void yyrestart  (FILE * input_file , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	if ( ! YY_CURRENT_BUFFER ){
-        core_yyensure_buffer_stack (yyscanner);
+        yyensure_buffer_stack (yyscanner);
 		YY_CURRENT_BUFFER_LVALUE =
-            core_yy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner);
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner);
 	}
 
-	core_yy_init_buffer(YY_CURRENT_BUFFER,input_file ,yyscanner);
-	core_yy_load_buffer_state(yyscanner );
+	yy_init_buffer( YY_CURRENT_BUFFER, input_file , yyscanner);
+	yy_load_buffer_state( yyscanner );
 }
 
 /** Switch to a different input buffer.
  * @param new_buffer The new input buffer.
  * @param yyscanner The scanner object.
  */
-    void core_yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer , yyscan_t yyscanner)
+    void yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	/* TODO. We should be able to replace this entire function body
 	 * with
-	 *		core_yypop_buffer_state();
-	 *		core_yypush_buffer_state(new_buffer);
+	 *		yypop_buffer_state();
+	 *		yypush_buffer_state(new_buffer);
      */
-	core_yyensure_buffer_stack (yyscanner);
+	yyensure_buffer_stack (yyscanner);
 	if ( YY_CURRENT_BUFFER == new_buffer )
 		return;
 
@@ -10574,17 +6508,17 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		}
 
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
-	core_yy_load_buffer_state(yyscanner );
+	yy_load_buffer_state( yyscanner );
 
 	/* We don't actually know whether we did this switch during
-	 * EOF (core_yywrap()) processing, but the only time this flag
-	 * is looked at is after core_yywrap() is called, so it's safe
+	 * EOF (yywrap()) processing, but the only time this flag
+	 * is looked at is after yywrap() is called, so it's safe
 	 * to go ahead and always set it.
 	 */
 	yyg->yy_did_buffer_switch_on_eof = 1;
 }
 
-static void core_yy_load_buffer_state  (yyscan_t yyscanner)
+static void yy_load_buffer_state  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	yyg->yy_n_chars = YY_CURRENT_BUFFER_LVALUE->yy_n_chars;
@@ -10599,32 +6533,32 @@ static void core_yy_load_buffer_state  (yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  * @return the allocated buffer state.
  */
-    YY_BUFFER_STATE core_yy_create_buffer  (FILE * file, int  size , yyscan_t yyscanner)
+    YY_BUFFER_STATE yy_create_buffer  (FILE * file, int  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
     
-	b = (YY_BUFFER_STATE) core_yyalloc(sizeof( struct yy_buffer_state ) ,yyscanner );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state ) , yyscanner );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in core_yy_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_buf_size = size;
 
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
 	 */
-	b->yy_ch_buf = (char *) core_yyalloc(b->yy_buf_size + 2 ,yyscanner );
+	b->yy_ch_buf = (char *) yyalloc( (yy_size_t) (b->yy_buf_size + 2) , yyscanner );
 	if ( ! b->yy_ch_buf )
-		YY_FATAL_ERROR( "out of dynamic memory in core_yy_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_is_our_buffer = 1;
 
-	core_yy_init_buffer(b,file ,yyscanner);
+	yy_init_buffer( b, file , yyscanner);
 
 	return b;
 }
 
 /** Destroy the buffer.
- * @param b a buffer created with core_yy_create_buffer()
+ * @param b a buffer created with yy_create_buffer()
  * @param yyscanner The scanner object.
  */
    
@@ -10632,21 +6566,21 @@ static void core_yy_load_buffer_state  (yyscan_t yyscanner)
 
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
- * such as during a core_yyrestart() or at EOF.
+ * such as during a yyrestart() or at EOF.
  */
-    static void core_yy_init_buffer  (YY_BUFFER_STATE  b, FILE * file , yyscan_t yyscanner)
+    static void yy_init_buffer  (YY_BUFFER_STATE  b, FILE * file , yyscan_t yyscanner)
 
 {
 	int oerrno = errno;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-	core_yy_flush_buffer(b ,yyscanner);
+	yy_flush_buffer( b , yyscanner);
 
 	b->yy_input_file = file;
 	b->yy_fill_buffer = 1;
 
-    /* If b is the current buffer, then core_yy_init_buffer was _probably_
-     * called from core_yyrestart() or through yy_get_next_buffer.
+    /* If b is the current buffer, then yy_init_buffer was _probably_
+     * called from yyrestart() or through yy_get_next_buffer.
      * In that case, we don't want to reset the lineno or column.
      */
     if (b != YY_CURRENT_BUFFER){
@@ -10663,7 +6597,7 @@ static void core_yy_load_buffer_state  (yyscan_t yyscanner)
  * @param b the buffer state to be flushed, usually @c YY_CURRENT_BUFFER.
  * @param yyscanner The scanner object.
  */
-    void core_yy_flush_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
+    void yy_flush_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	if ( ! b )
@@ -10684,7 +6618,7 @@ static void core_yy_load_buffer_state  (yyscan_t yyscanner)
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
 	if ( b == YY_CURRENT_BUFFER )
-		core_yy_load_buffer_state(yyscanner );
+		yy_load_buffer_state( yyscanner );
 }
 
 /** Pushes the new state onto the stack. The new state becomes
@@ -10704,7 +6638,7 @@ static void core_yy_load_buffer_state  (yyscan_t yyscanner)
 /* Allocates the stack if it does not exist.
  *  Guarantees space for at least one push.
  */
-static void core_yyensure_buffer_stack (yyscan_t yyscanner)
+static void yyensure_buffer_stack (yyscan_t yyscanner)
 {
 	yy_size_t num_to_alloc;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
@@ -10715,15 +6649,15 @@ static void core_yyensure_buffer_stack (yyscan_t yyscanner)
 		 * scanner will even need a stack. We use 2 instead of 1 to avoid an
 		 * immediate realloc on the next call.
          */
-		num_to_alloc = 1;
-		yyg->yy_buffer_stack = (struct yy_buffer_state**)core_yyalloc
+      num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
+		yyg->yy_buffer_stack = (struct yy_buffer_state**)yyalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
 		if ( ! yyg->yy_buffer_stack )
-			YY_FATAL_ERROR( "out of dynamic memory in core_yyensure_buffer_stack()" );
-								  
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
+
 		memset(yyg->yy_buffer_stack, 0, num_to_alloc * sizeof(struct yy_buffer_state*));
-				
+
 		yyg->yy_buffer_stack_max = num_to_alloc;
 		yyg->yy_buffer_stack_top = 0;
 		return;
@@ -10732,15 +6666,15 @@ static void core_yyensure_buffer_stack (yyscan_t yyscanner)
 	if (yyg->yy_buffer_stack_top >= (yyg->yy_buffer_stack_max) - 1){
 
 		/* Increase the buffer to prepare for a possible push. */
-		int grow_size = 8 /* arbitrary grow size */;
+		yy_size_t grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = yyg->yy_buffer_stack_max + grow_size;
-		yyg->yy_buffer_stack = (struct yy_buffer_state**)core_yyrealloc
+		yyg->yy_buffer_stack = (struct yy_buffer_state**)yyrealloc
 								(yyg->yy_buffer_stack,
 								num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
 		if ( ! yyg->yy_buffer_stack )
-			YY_FATAL_ERROR( "out of dynamic memory in core_yyensure_buffer_stack()" );
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
 
 		/* zero only the new slots.*/
 		memset(yyg->yy_buffer_stack + yyg->yy_buffer_stack_max, 0, grow_size * sizeof(struct yy_buffer_state*));
@@ -10752,9 +6686,9 @@ static void core_yyensure_buffer_stack (yyscan_t yyscanner)
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
  * @param yyscanner The scanner object.
- * @return the newly allocated buffer state object. 
+ * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE core_yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
     
@@ -10762,41 +6696,41 @@ YY_BUFFER_STATE core_yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yy
 	     base[size-2] != YY_END_OF_BUFFER_CHAR ||
 	     base[size-1] != YY_END_OF_BUFFER_CHAR )
 		/* They forgot to leave room for the EOB's. */
-		return 0;
+		return NULL;
 
-	b = (YY_BUFFER_STATE) core_yyalloc(sizeof( struct yy_buffer_state ) ,yyscanner );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state ) , yyscanner );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in core_yy_scan_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_buffer()" );
 
-	b->yy_buf_size = size - 2;	/* "- 2" to take care of EOB's */
+	b->yy_buf_size = (int) (size - 2);	/* "- 2" to take care of EOB's */
 	b->yy_buf_pos = b->yy_ch_buf = base;
 	b->yy_is_our_buffer = 0;
-	b->yy_input_file = 0;
+	b->yy_input_file = NULL;
 	b->yy_n_chars = b->yy_buf_size;
 	b->yy_is_interactive = 0;
 	b->yy_at_bol = 1;
 	b->yy_fill_buffer = 0;
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
-	core_yy_switch_to_buffer(b ,yyscanner );
+	yy_switch_to_buffer( b , yyscanner );
 
 	return b;
 }
 
-/** Setup the input buffer state to scan a string. The next call to core_yylex() will
+/** Setup the input buffer state to scan a string. The next call to yylex() will
  * scan from a @e copy of @a str.
  * @param yystr a NUL-terminated string to scan
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  * @note If you want to scan bytes that may contain NUL values, then use
- *       core_yy_scan_bytes() instead.
+ *       yy_scan_bytes() instead.
  */
 
 
-/** Setup the input buffer state to scan the given bytes. The next call to core_yylex() will
+/** Setup the input buffer state to scan the given bytes. The next call to yylex() will
  * scan from a @e copy of @a bytes.
- * @param bytes the byte buffer to scan
- * @param len the number of bytes in the buffer pointed to by @a bytes.
+ * @param yybytes the byte buffer to scan
+ * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  */
@@ -10806,9 +6740,11 @@ YY_BUFFER_STATE core_yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yy
 #define YY_EXIT_FAILURE 2
 #endif
 
-static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
+static void yynoreturn yy_fatal_error (const char* msg , yyscan_t yyscanner)
 {
-    	(void) fprintf( stderr, "%s\n", msg );
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+	fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -10819,7 +6755,7 @@ static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
 	do \
 		{ \
 		/* Undo effects of setting up yytext. */ \
-        int yyless_macro_arg = (n); \
+        yy_size_t yyless_macro_arg = (n); \
         YY_LESS_LINENO(yyless_macro_arg);\
 		yytext[yyleng] = yyg->yy_hold_char; \
 		yyg->yy_c_buf_p = yytext + yyless_macro_arg; \
@@ -10871,29 +6807,29 @@ static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
  * @param user_defined The data to be associated with this scanner.
  * @param yyscanner The scanner object.
  */
-void core_yyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
+void yyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     yyextra = user_defined ;
 }
 
 /** Set the current line number.
- * @param line_number
+ * @param _line_number line number
  * @param yyscanner The scanner object.
  */
 
 
 /** Set the current column.
- * @param line_number
+ * @param _column_no column number
  * @param yyscanner The scanner object.
  */
 
 
 /** Set the input stream. This does not discard the current
  * input buffer.
- * @param in_str A readable stream.
+ * @param _in_str A readable stream.
  * @param yyscanner The scanner object.
- * @see core_yy_switch_to_buffer
+ * @see yy_switch_to_buffer
  */
 
 
@@ -10915,20 +6851,18 @@ void core_yyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
     
 /* User-visible API */
 
-/* core_yylex_init is special because it creates the scanner itself, so it is
+/* yylex_init is special because it creates the scanner itself, so it is
  * the ONLY reentrant function that doesn't take the scanner as the last argument.
  * That's why we explicitly handle the declaration, instead of using our macros.
  */
-
-int core_yylex_init(yyscan_t* ptr_yy_globals)
-
+int yylex_init(yyscan_t* ptr_yy_globals)
 {
     if (ptr_yy_globals == NULL){
         errno = EINVAL;
         return 1;
     }
 
-    *ptr_yy_globals = (yyscan_t) core_yyalloc ( sizeof( struct yyguts_t ), NULL );
+    *ptr_yy_globals = (yyscan_t) yyalloc ( sizeof( struct yyguts_t ), NULL );
 
     if (*ptr_yy_globals == NULL){
         errno = ENOMEM;
@@ -10941,27 +6875,26 @@ int core_yylex_init(yyscan_t* ptr_yy_globals)
     return yy_init_globals ( *ptr_yy_globals );
 }
 
-/* core_yylex_init_extra has the same functionality as core_yylex_init, but follows the
+/* yylex_init_extra has the same functionality as yylex_init, but follows the
  * convention of taking the scanner as the last argument. Note however, that
  * this is a *pointer* to a scanner, as it will be allocated by this call (and
  * is the reason, too, why this function also must handle its own declaration).
- * The user defined value in the first argument will be available to core_yyalloc in
+ * The user defined value in the first argument will be available to yyalloc in
  * the yyextra field.
  */
-
 
 
 static int yy_init_globals (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     /* Initialization is the same as for the non-reentrant scanner.
-     * This function is called from core_yylex_destroy(), so don't allocate here.
+     * This function is called from yylex_destroy(), so don't allocate here.
      */
 
-    yyg->yy_buffer_stack = 0;
+    yyg->yy_buffer_stack = NULL;
     yyg->yy_buffer_stack_top = 0;
     yyg->yy_buffer_stack_max = 0;
-    yyg->yy_c_buf_p = (char *) 0;
+    yyg->yy_c_buf_p = NULL;
     yyg->yy_init = 0;
     yyg->yy_start = 0;
 
@@ -10974,17 +6907,17 @@ static int yy_init_globals (yyscan_t yyscanner)
     yyin = stdin;
     yyout = stdout;
 #else
-    yyin = (FILE *) 0;
-    yyout = (FILE *) 0;
+    yyin = NULL;
+    yyout = NULL;
 #endif
 
     /* For future reference: Set errno on error, since we are called by
-     * core_yylex_init()
+     * yylex_init()
      */
     return 0;
 }
 
-/* core_yylex_destroy is for both reentrant and non-reentrant scanners. */
+/* yylex_destroy is for both reentrant and non-reentrant scanners. */
 
 
 /*
@@ -10992,18 +6925,21 @@ static int yy_init_globals (yyscan_t yyscanner)
  */
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yyscanner)
+static void yy_flex_strncpy (char* s1, const char * s2, int n , yyscan_t yyscanner)
 {
-	register int i;
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+
+	int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
 }
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
+static int yy_flex_strlen (const char * s , yyscan_t yyscanner)
 {
-	register int n;
+	int n;
 	for ( n = 0; s[n]; ++n )
 		;
 
@@ -11013,12 +6949,13 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 1087 "scan.l"
+#line 1103 "scan.l"
 
 
+/* LCOV_EXCL_STOP */
 
 /*
- * Arrange access to yyextra for subroutines of the main core_yylex() function.
+ * Arrange access to yyextra for subroutines of the main yylex() function.
  * We expect each subroutine to have a yyscanner parameter.  Rather than
  * use the yyget_xxx functions, which might or might not get inlined by the
  * compiler, we cheat just a bit and cast yyscanner to the right type.
@@ -11037,12 +6974,13 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
  * scanner_errposition
  *		Report a lexer or grammar error cursor position, if possible.
  *
- * This is expected to be used within an ereport() call.  The return value
+ * This is expected to be used within an ereport() call, or via an error
+ * callback such as setup_scanner_errposition_callback().  The return value
  * is a dummy (always 0, in fact).
  *
  * Note that this can only be used for messages emitted during raw parsing
- * (essentially, scan.l and gram.y), since it requires the yyscanner struct
- * to still be available.
+ * (essentially, scan.l, parser.c, and gram.y), since it requires the
+ * yyscanner struct to still be available.
  */
 int
 scanner_errposition(int location, core_yyscan_t yyscanner)
@@ -11059,11 +6997,67 @@ scanner_errposition(int location, core_yyscan_t yyscanner)
 }
 
 /*
+ * Error context callback for inserting scanner error location.
+ *
+ * Note that this will be called for *any* error occurring while the
+ * callback is installed.  We avoid inserting an irrelevant error location
+ * if the error is a query cancel --- are there any other important cases?
+ */
+static void
+scb_error_callback(void *arg)
+{
+	ScannerCallbackState *scbstate = (ScannerCallbackState *) arg;
+
+	if (geterrcode() != ERRCODE_QUERY_CANCELED)
+		(void) scanner_errposition(scbstate->location, scbstate->yyscanner);
+}
+
+/*
+ * setup_scanner_errposition_callback
+ *		Arrange for non-scanner errors to report an error position
+ *
+ * Sometimes the scanner calls functions that aren't part of the scanner
+ * subsystem and can't reasonably be passed the yyscanner pointer; yet
+ * we would like any errors thrown in those functions to be tagged with an
+ * error location.  Use this function to set up an error context stack
+ * entry that will accomplish that.  Usage pattern:
+ *
+ *		declare a local variable "ScannerCallbackState scbstate"
+ *		...
+ *		setup_scanner_errposition_callback(&scbstate, yyscanner, location);
+ *		call function that might throw error;
+ *		cancel_scanner_errposition_callback(&scbstate);
+ */
+void
+setup_scanner_errposition_callback(ScannerCallbackState *scbstate,
+								   core_yyscan_t yyscanner,
+								   int location)
+{
+	/* Setup error traceback support for ereport() */
+	scbstate->yyscanner = yyscanner;
+	scbstate->location = location;
+	scbstate->errcallback.callback = scb_error_callback;
+	scbstate->errcallback.arg = (void *) scbstate;
+	scbstate->errcallback.previous = error_context_stack;
+	error_context_stack = &scbstate->errcallback;
+}
+
+/*
+ * Cancel a previously-set-up errposition callback.
+ */
+void
+cancel_scanner_errposition_callback(ScannerCallbackState *scbstate)
+{
+	/* Pop the error context stack */
+	error_context_stack = scbstate->errcallback.previous;
+}
+
+/*
  * scanner_yyerror
  *		Report a lexer or grammar error.
  *
  * The message's cursor position is whatever YYLLOC was last set to,
- * ie, the start of the current token if called within core_yylex(), or the
+ * ie, the start of the current token if called within yylex(), or the
  * most recently lexed token if called from the grammar.
  * This is OK for syntax error messages from the Bison parser, because Bison
  * parsers report error as soon as the first unparsable token is reached.
@@ -11100,19 +7094,19 @@ scanner_yyerror(const char *message, core_yyscan_t yyscanner)
 core_yyscan_t
 scanner_init(const char *str,
 			 core_yy_extra_type *yyext,
-			 const ScanKeyword *keywords,
-			 int num_keywords)
+			 const ScanKeywordList *keywordlist,
+			 const uint16 *keyword_tokens)
 {
 	Size		slen = strlen(str);
 	yyscan_t	scanner;
 
-	if (core_yylex_init(&scanner) != 0)
-		elog(ERROR, "core_yylex_init() failed: %m");
+	if (yylex_init(&scanner) != 0)
+		elog(ERROR, "yylex_init() failed: %m");
 
 	core_yyset_extra(yyext, scanner);
 
-	yyext->keywords = keywords;
-	yyext->num_keywords = num_keywords;
+	yyext->keywordlist = keywordlist;
+	yyext->keyword_tokens = keyword_tokens;
 
 	yyext->backslash_quote = backslash_quote;
 	yyext->escape_string_warning = escape_string_warning;
@@ -11125,7 +7119,7 @@ scanner_init(const char *str,
 	yyext->scanbuflen = slen;
 	memcpy(yyext->scanbuf, str, slen);
 	yyext->scanbuf[slen] = yyext->scanbuf[slen + 1] = YY_END_OF_BUFFER_CHAR;
-	core_yy_scan_buffer(yyext->scanbuf,slen + 2,scanner);
+	yy_scan_buffer(yyext->scanbuf, slen + 2, scanner);
 
 	/* initialize literal buffer to a reasonable but expansible size */
 	yyext->literalalloc = 1024;
@@ -11143,7 +7137,7 @@ void
 scanner_finish(core_yyscan_t yyscanner)
 {
 	/*
-	 * We don't bother to call core_yylex_destroy(), because all it would do is
+	 * We don't bother to call yylex_destroy(), because all it would do is
 	 * pfree a small amount of control storage.  It's cheaper to leak the
 	 * storage until the parsing context is destroyed.  The amount of space
 	 * involved is usually negligible compared to the output parse tree
@@ -11209,22 +7203,21 @@ litbufdup(core_yyscan_t yyscanner)
 	return new;
 }
 
+/*
+ * Process {integer}.  Note this will also do the right thing with {decimal},
+ * ie digits and a decimal point.
+ */
 static int
 process_integer_literal(const char *token, YYSTYPE *lval)
 {
-	long		val;
+	int			val;
 	char	   *endptr;
 
 	errno = 0;
-	val = strtol(token, &endptr, 10);
-	if (*endptr != '\0' || errno == ERANGE
-#ifdef HAVE_LONG_INT_64
-	/* if long > 32 bits, check for overflow of int4 */
-		|| val != (long) ((int32) val)
-#endif
-		)
+	val = strtoint(token, &endptr, 10);
+	if (*endptr != '\0' || errno == ERANGE)
 	{
-		/* integer too large, treat it as a float */
+		/* integer too large (or contains decimal pt), treat it as a float */
 		lval->str = pstrdup(token);
 		return FCONST;
 	}
@@ -11232,231 +7225,23 @@ process_integer_literal(const char *token, YYSTYPE *lval)
 	return ICONST;
 }
 
-static unsigned int
-hexval(unsigned char c)
-{
-	if (c >= '0' && c <= '9')
-		return c - '0';
-	if (c >= 'a' && c <= 'f')
-		return c - 'a' + 0xA;
-	if (c >= 'A' && c <= 'F')
-		return c - 'A' + 0xA;
-	elog(ERROR, "invalid hexadecimal digit");
-	return 0;					/* not reached */
-}
-
-static void
-check_unicode_value(pg_wchar c, char *loc, core_yyscan_t yyscanner)
-{
-	if (GetDatabaseEncoding() == PG_UTF8)
-		return;
-
-	if (c > 0x7F)
-	{
-		ADVANCE_YYLLOC(loc - yyextra->literalbuf + 3);	/* 3 for U&" */
-		yyerror("Unicode escape values cannot be used for code point values above 007F when the server encoding is not UTF8");
-	}
-}
-
-static bool
-is_utf16_surrogate_first(pg_wchar c)
-{
-	return (c >= 0xD800 && c <= 0xDBFF);
-}
-
-static bool
-is_utf16_surrogate_second(pg_wchar c)
-{
-	return (c >= 0xDC00 && c <= 0xDFFF);
-}
-
-static pg_wchar
-surrogate_pair_to_codepoint(pg_wchar first, pg_wchar second)
-{
-	return ((first & 0x3FF) << 10) + 0x10000 + (second & 0x3FF);
-}
-
 static void
 addunicode(pg_wchar c, core_yyscan_t yyscanner)
 {
-	char		buf[8];
+	ScannerCallbackState scbstate;
+	char		buf[MAX_UNICODE_EQUIVALENT_STRING + 1];
 
-	if (c == 0 || c > 0x10FFFF)
+	if (!is_valid_unicode_codepoint(c))
 		yyerror("invalid Unicode escape value");
-	if (c > 0x7F)
-	{
-		if (GetDatabaseEncoding() != PG_UTF8)
-			yyerror("Unicode escape values cannot be used for code point values above 007F when the server encoding is not UTF8");
-		yyextra->saw_non_ascii = true;
-	}
-	unicode_to_utf8(c, (unsigned char *) buf);
-	addlit(buf, pg_mblen(buf), yyscanner);
-}
-
-/* is 'escape' acceptable as Unicode escape character (UESCAPE syntax) ? */
-static bool
-check_uescapechar(unsigned char escape)
-{
-	if (isxdigit(escape)
-		|| escape == '+'
-		|| escape == '\''
-		|| escape == '"'
-		|| scanner_isspace(escape))
-	{
-		return false;
-	}
-	else
-		return true;
-}
-
-/* like litbufdup, but handle unicode escapes */
-static char *
-litbuf_udeescape(unsigned char escape, core_yyscan_t yyscanner)
-{
-	char	   *new;
-	char	   *litbuf,
-			   *in,
-			   *out;
-	pg_wchar	pair_first = 0;
-
-	/* Make literalbuf null-terminated to simplify the scanning loop */
-	litbuf = yyextra->literalbuf;
-	litbuf[yyextra->literallen] = '\0';
 
 	/*
-	 * This relies on the subtle assumption that a UTF-8 expansion cannot be
-	 * longer than its escaped representation.
+	 * We expect that pg_unicode_to_server() will complain about any
+	 * unconvertible code point, so we don't have to set saw_non_ascii.
 	 */
-	new = palloc(yyextra->literallen + 1);
-
-	in = litbuf;
-	out = new;
-	while (*in)
-	{
-		if (in[0] == escape)
-		{
-			if (in[1] == escape)
-			{
-				if (pair_first)
-				{
-					ADVANCE_YYLLOC(in - litbuf + 3);	/* 3 for U&" */
-					yyerror("invalid Unicode surrogate pair");
-				}
-				*out++ = escape;
-				in += 2;
-			}
-			else if (isxdigit((unsigned char) in[1]) &&
-					 isxdigit((unsigned char) in[2]) &&
-					 isxdigit((unsigned char) in[3]) &&
-					 isxdigit((unsigned char) in[4]))
-			{
-				pg_wchar	unicode;
-
-				unicode = (hexval(in[1]) << 12) +
-					(hexval(in[2]) << 8) +
-					(hexval(in[3]) << 4) +
-					hexval(in[4]);
-				check_unicode_value(unicode, in, yyscanner);
-				if (pair_first)
-				{
-					if (is_utf16_surrogate_second(unicode))
-					{
-						unicode = surrogate_pair_to_codepoint(pair_first, unicode);
-						pair_first = 0;
-					}
-					else
-					{
-						ADVANCE_YYLLOC(in - litbuf + 3);		/* 3 for U&" */
-						yyerror("invalid Unicode surrogate pair");
-					}
-				}
-				else if (is_utf16_surrogate_second(unicode))
-					yyerror("invalid Unicode surrogate pair");
-
-				if (is_utf16_surrogate_first(unicode))
-					pair_first = unicode;
-				else
-				{
-					unicode_to_utf8(unicode, (unsigned char *) out);
-					out += pg_mblen(out);
-				}
-				in += 5;
-			}
-			else if (in[1] == '+' &&
-					 isxdigit((unsigned char) in[2]) &&
-					 isxdigit((unsigned char) in[3]) &&
-					 isxdigit((unsigned char) in[4]) &&
-					 isxdigit((unsigned char) in[5]) &&
-					 isxdigit((unsigned char) in[6]) &&
-					 isxdigit((unsigned char) in[7]))
-			{
-				pg_wchar	unicode;
-
-				unicode = (hexval(in[2]) << 20) +
-					(hexval(in[3]) << 16) +
-					(hexval(in[4]) << 12) +
-					(hexval(in[5]) << 8) +
-					(hexval(in[6]) << 4) +
-					hexval(in[7]);
-				check_unicode_value(unicode, in, yyscanner);
-				if (pair_first)
-				{
-					if (is_utf16_surrogate_second(unicode))
-					{
-						unicode = surrogate_pair_to_codepoint(pair_first, unicode);
-						pair_first = 0;
-					}
-					else
-					{
-						ADVANCE_YYLLOC(in - litbuf + 3);		/* 3 for U&" */
-						yyerror("invalid Unicode surrogate pair");
-					}
-				}
-				else if (is_utf16_surrogate_second(unicode))
-					yyerror("invalid Unicode surrogate pair");
-
-				if (is_utf16_surrogate_first(unicode))
-					pair_first = unicode;
-				else
-				{
-					unicode_to_utf8(unicode, (unsigned char *) out);
-					out += pg_mblen(out);
-				}
-				in += 8;
-			}
-			else
-			{
-				ADVANCE_YYLLOC(in - litbuf + 3);		/* 3 for U&" */
-				yyerror("invalid Unicode escape value");
-			}
-		}
-		else
-		{
-			if (pair_first)
-			{
-				ADVANCE_YYLLOC(in - litbuf + 3);		/* 3 for U&" */
-				yyerror("invalid Unicode surrogate pair");
-			}
-			*out++ = *in++;
-		}
-	}
-
-	/* unfinished surrogate pair? */
-	if (pair_first)
-	{
-		ADVANCE_YYLLOC(in - litbuf + 3);				/* 3 for U&" */
-		yyerror("invalid Unicode surrogate pair");
-	}
-
-	*out = '\0';
-
-	/*
-	 * We could skip pg_verifymbstr if we didn't process any non-7-bit-ASCII
-	 * codes; but it's probably not worth the trouble, since this isn't likely
-	 * to be a performance-critical path.
-	 */
-	pg_verifymbstr(new, out - new, false);
-	return new;
+	setup_scanner_errposition_callback(&scbstate, yyscanner, *(yylloc));
+	pg_unicode_to_server(c, (unsigned char *) buf);
+	cancel_scanner_errposition_callback(&scbstate);
+	addlit(buf, strlen(buf), yyscanner);
 }
 
 static unsigned char

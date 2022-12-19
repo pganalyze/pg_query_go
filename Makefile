@@ -6,8 +6,7 @@ build:
 	go build
 
 test: build
-	go get github.com/kr/pretty
-	go test -v ./ ./nodes
+	go test -v ./
 
 benchmark:
 	go build -a
@@ -17,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 10-1.0.5
+LIB_PG_QUERY_TAG = 13-2.2.0
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -30,23 +29,39 @@ $(LIBDIR): $(LIBDIRGZ)
 
 $(LIBDIRGZ):
 	mkdir -p $(LIB_TMPDIR)
-	curl -o $(LIBDIRGZ) https://codeload.github.com/lfittl/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
+	curl -o $(LIBDIRGZ) https://codeload.github.com/pganalyze/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
 
 update_source: $(LIBDIR)
 	rm -f parser/*.{c,h}
 	rm -fr parser/include
 	# Reduce everything down to one directory
 	cp -a $(LIBDIR)/src/* parser/
+	rm parser/pg_query_outfuncs_protobuf_cpp.cc
 	mv parser/postgres/* parser/
 	rmdir parser/postgres
 	cp -a $(LIBDIR)/pg_query.h parser/include
-	# Make sure every .c file in the top-level directory is its own translation unit
+	# Make sure every .c in the top-level directory is its own translation unit
 	mv parser/*{_conds,_defs,_helper}.c parser/include
+	# Protobuf definitions
+	mkdir -p $(PWD)/bin
+	GOBIN=$(PWD)/bin go install github.com/golang/protobuf/protoc-gen-go
+	PATH=$(PWD)/bin:$(PATH) protoc --proto_path=$(LIBDIR)/protobuf --go_out=. $(LIBDIR)/protobuf/pg_query.proto
+	mkdir -p parser/include/protobuf
+	cp -a $(LIBDIR)/protobuf/*.h parser/include/protobuf
+	cp -a $(LIBDIR)/protobuf/*.c parser/
+	# Protobuf library code
+	mkdir -p parser/include/protobuf-c
+	cp -a $(LIBDIR)/vendor/protobuf-c/*.h parser/include
+	cp -a $(LIBDIR)/vendor/protobuf-c/*.h parser/include/protobuf-c
+	cp -a $(LIBDIR)/vendor/protobuf-c/*.c parser/
+	# xxhash library code
+	mkdir -p parser/include/xxhash
+	cp -a $(LIBDIR)/vendor/xxhash/*.h parser/include
+	cp -a $(LIBDIR)/vendor/xxhash/*.h parser/include/xxhash
+	cp -a $(LIBDIR)/vendor/xxhash/*.c parser/
 	# Other support files
 	rm -fr testdata
 	cp -a $(LIBDIR)/testdata testdata
-	# Update nodes directory
-	ruby scripts/generate_nodes.rb
 
 clean:
 	-@ $(RM) -r $(LIB_TMPDIR)

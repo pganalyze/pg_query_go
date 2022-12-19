@@ -1,10 +1,8 @@
-# pg_query_go [![Build Status](https://travis-ci.org/lfittl/pg_query_go.svg)](https://travis-ci.org/lfittl/pg_query_go) [![GoDoc](https://godoc.org/github.com/lfittl/pg_query_go?status.svg)](https://godoc.org/github.com/lfittl/pg_query_go)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go)
 
-Go version of https://github.com/lfittl/pg_query
+Go version of https://github.com/pganalyze/pg_query
 
 This Go library and its cgo extension use the actual PostgreSQL server source to parse SQL queries and return the internal PostgreSQL parse tree.
-
-Note that the original Ruby version of this library is much more feature complete.
 
 You can find further background to why a query's parse tree is useful here: https://pganalyze.com/blog/parse-postgresql-queries-in-ruby.html
 
@@ -12,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/lfittl/pg_query_go
+go get github.com/pganalyze/pg_query_go/v2@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -45,7 +43,7 @@ package main
 
 import (
   "fmt"
-  "github.com/lfittl/pg_query_go"
+  "github.com/pganalyze/pg_query_go"
 )
 
 func main() {
@@ -60,8 +58,7 @@ func main() {
 Running will output the query's parse tree as JSON:
 
 ```json
-$ go run main.go
-[{"SELECT": {"distinctClause": null, "intoClause": null, "targetList": [{"RESTARGET": {"name": null, "indirection": null, "val": {"A_CONST": {"val": 1, "location": 7}}, "location": 7}}], "fromClause": null, "whereClause": null, "groupClause": null, "havingClause": null, "windowClause": null, "valuesLists": null, "sortClause": null, "limitOffset": null, "limitCount": null, "lockingClause": null, "withClause": null, "op": 0, "all": false, "larg": null, "rarg": null}}]
+{"version":130002,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"val":{"Integer":{"ival":1}},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}
 ```
 
 ### Parsing a query into Go structs
@@ -72,41 +69,60 @@ When working with the query information inside Go its recommended you use the `P
 package main
 
 import (
-  "fmt"
-  "reflect"
-  "github.com/lfittl/pg_query_go"
-  nodes "github.com/lfittl/pg_query_go/nodes"
+	"fmt"
+
+	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {
-  tree, err := pg_query.Parse("SELECT 1")
-  if err != nil {
-    panic(err);
-  }
+	result, err := pg_query.Parse("SELECT 42")
+	if err != nil {
+		panic(err)
+	}
 
-  fmt.Printf("%s\n", reflect.DeepEqual(tree, pg_query.ParsetreeList{
-    Statements: []nodes.Node{
-      nodes.SelectStmt{
-        TargetList: []nodes.Node{
-          nodes.ResTarget{
-            Val: nodes.A_Const{
-              Type: "integer",
-              Val: nodes.Value{
-                Type: nodes.T_Integer,
-                Ival: 1,
-              },
-              Location: 7,
-            },
-            Location: 7,
-          },
-        },
-      },
-    },
-  }));
+	// This will output "42"
+	fmt.Printf("%d\n", result.Stmts[0].Stmt.GetSelectStmt().GetTargetList()[0].GetResTarget().GetVal().GetAConst().GetVal().GetInteger().Ival)
 }
 ```
 
-You can find all the node struct types in the `nodes/` directory.
+You can find all the node types in the `pg_query.pb.go` Protobuf definition.
+
+### Deparsing a parse tree back into a SQL statement (Experimental)
+
+In order to go back from a parse tree to a SQL statement, you can use the deparsing functionality:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	pg_query "github.com/pganalyze/pg_query_go/v2"
+)
+
+func main() {
+	result, err := pg_query.Parse("SELECT 42")
+	if err != nil {
+		panic(err)
+	}
+
+	result.Stmts[0].Stmt.GetSelectStmt().GetTargetList()[0].GetResTarget().Val = pg_query.MakeAConstStrNode("Hello World", -1)
+
+	stmt, err := pg_query.Deparse(result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", stmt)
+}
+```
+
+This will output the following:
+
+```
+SELECT 'Hello World'
+```
+
+Note that it is currently not recommended to pass unsanitized input to the deparser, as it may lead to crashes.
 
 ### Parsing a PL/pgSQL function into JSON (Experimental)
 
@@ -117,7 +133,7 @@ package main
 
 import (
   "fmt"
-  "github.com/lfittl/pg_query_go"
+  "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {
@@ -143,56 +159,36 @@ Running will output the functions's parse tree as JSON:
 ```json
 $ go run main.go
 [
-{"PLpgSQL_function": {"datums": [{"PLpgSQL_var": {"refname": "found", "datatype": {"PLpgSQL_type": {"typname": "UNKNOWN"}}}}], "action": {"PLpgSQL_stmt_block": {"lineno": 2, "body": [{"PLpgSQL_stmt_if": {"lineno": 3, "cond": {"PLpgSQL_expr": {"query": "SELECT v_version IS NULL"}}, "then_body": [{"PLpgSQL_stmt_return": {"lineno": 4, "expr": {"PLpgSQL_expr": {"query": "SELECT v_name"}}}}]}}, {"PLpgSQL_stmt_return": {"lineno": 6, "expr": {"PLpgSQL_expr": {"query": "SELECT v_name || '/' || v_version"}}}}]}}}}
+{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":2,"body":[{"PLpgSQL_stmt_if":{"lineno":3,"cond":{"PLpgSQL_expr":{"query":"SELECT v_version IS NULL"}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":4,"expr":{"PLpgSQL_expr":{"query":"SELECT v_name"}}}}]}},{"PLpgSQL_stmt_return":{"lineno":6,"expr":{"PLpgSQL_expr":{"query":"SELECT v_name || '/' || v_version"}}}}]}}}}
 ]
 ```
 
 ## Benchmarks
 
-As it stands, parsing has considerable overhead for complex queries, due to the use of JSON to pass structs across the C <=> Go barrier.
-
 ```
-BenchmarkParseSelect1-4               	  300000	     40723 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2-4               	  100000	    164339 ns/op	   49105 B/op	     742 allocs/op
-BenchmarkParseCreateTable-4           	   30000	    504815 ns/op	  149826 B/op	    2123 allocs/op
-BenchmarkParseSelect1Parallel-4       	 1000000	     12245 ns/op	   14608 B/op	     226 allocs/op
-BenchmarkParseSelect2Parallel-4       	  300000	     46268 ns/op	   49105 B/op	     742 allocs/op
-BenchmarkParseCreateTableParallel-4   	  100000	    157849 ns/op	  149827 B/op	    2123 allocs/op
-```
-
-A good portion of this is due to JSON parsing inside Go so we can work with Go structs - just the raw parser is 10x faster:
-
-```
-BenchmarkRawParseSelect1-4            	 5000000	      3012 ns/op	     192 B/op	       2 allocs/op
-BenchmarkRawParseSelect2-4            	 2000000	      7755 ns/op	     672 B/op	       2 allocs/op
-BenchmarkRawParseCreateTable-4        	 1000000	     20848 ns/op	    2080 B/op	       2 allocs/op
-BenchmarkRawParseSelect1Parallel-4    	20000000	       801 ns/op	     192 B/op	       2 allocs/op
-BenchmarkRawParseSelect2Parallel-4    	10000000	      2220 ns/op	     672 B/op	       2 allocs/op
-BenchmarkRawParseCreateTableParallel-4	 2000000	      6153 ns/op	    2080 B/op	       2 allocs/op
-```
-
-Similarly, for query fingerprinting, you might want to use `pg_query.FastFingerprint` to let the C extension handle it:
-
-```
-BenchmarkFingerprintSelect1-4         	  300000	     42318 ns/op	   15564 B/op	     246 allocs/op
-BenchmarkFingerprintSelect2-4         	  100000	    164205 ns/op	   53215 B/op	     834 allocs/op
-BenchmarkFingerprintCreateTable-4     	   30000	    524524 ns/op	  162972 B/op	    2371 allocs/op
-BenchmarkFastFingerprintSelect1-4     	 5000000	      3614 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintSelect2-4     	 2000000	      6748 ns/op	      80 B/op	       2 allocs/op
-BenchmarkFastFingerprintCreateTable-4 	 1000000	     18361 ns/op	      80 B/op	       2 allocs/op
+BenchmarkParseSelect1-4                  	 1542726	      7757 ns/op	    1168 B/op	      21 allocs/op
+BenchmarkParseSelect2-4                  	  496621	     24027 ns/op	    3184 B/op	      63 allocs/op
+BenchmarkParseCreateTable-4              	  231754	     51624 ns/op	    8832 B/op	     157 allocs/op
+BenchmarkParseSelect1Parallel-4          	 5451890	      2213 ns/op	    1168 B/op	      21 allocs/op
+BenchmarkParseSelect2Parallel-4          	 1711480	      7067 ns/op	    3184 B/op	      63 allocs/op
+BenchmarkParseCreateTableParallel-4      	  759412	     16157 ns/op	    8832 B/op	     157 allocs/op
+BenchmarkRawParseSelect1-4               	 2311986	      5158 ns/op	     192 B/op	       5 allocs/op
+BenchmarkRawParseSelect2-4               	  721333	     16517 ns/op	     384 B/op	       5 allocs/op
+BenchmarkRawParseCreateTable-4           	  328119	     35675 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkRawParseSelect1Parallel-4       	 8378274	      1412 ns/op	     192 B/op	       5 allocs/op
+BenchmarkRawParseSelect2Parallel-4       	 2650692	      4553 ns/op	     384 B/op	       5 allocs/op
+BenchmarkRawParseCreateTableParallel-4   	 1000000	     10335 ns/op	    1248 B/op	       5 allocs/op
+BenchmarkFingerprintSelect1-4           	 5012028	      2388 ns/op	     112 B/op	       4 allocs/op
+BenchmarkFingerprintSelect2-4           	 2391704	      5026 ns/op	     112 B/op	       4 allocs/op
+BenchmarkFingerprintCreateTable-4       	 1304545	      9601 ns/op	     112 B/op	       4 allocs/op
+BenchmarkNormalizeSelect1-4              	 8767273	      1360 ns/op	      72 B/op	       4 allocs/op
+BenchmarkNormalizeSelect2-4              	 4465364	      2756 ns/op	     104 B/op	       4 allocs/op
+BenchmarkNormalizeCreateTable-4          	 2738284	      4345 ns/op	     184 B/op	       4 allocs/op
 ```
 
-Normalization is already handled in the C extension, doesn't depend on JSON parsing at all, and is fast:
+Note that allocation counts exclude the cgo portion, so they are higher than shown here.
 
-```
-BenchmarkNormalizeSelect1-4           	10000000	      1859 ns/op	      24 B/op	       2 allocs/op
-BenchmarkNormalizeSelect2-4           	 5000000	      3551 ns/op	      64 B/op	       2 allocs/op
-BenchmarkNormalizeCreateTable-4       	 2000000	      6051 ns/op	     144 B/op	       2 allocs/op
-```
-
-See `benchmark_test.go` for the queries.
-
-Benchmark numbers from running on a 3.2 GHz Intel Core i5 CPU, OSX 10.11.
+See `benchmark_test.go` for details on the benchmarks.
 
 
 ## Authors

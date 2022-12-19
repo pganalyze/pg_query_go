@@ -22,7 +22,7 @@
  *		Unlock a previously acquired lock.
  *
  *	bool S_LOCK_FREE(slock_t *lock)
- *		Tests if the lock is free. Returns TRUE if free, FALSE if locked.
+ *		Tests if the lock is free. Returns true if free, false if locked.
  *		This does *not* change the state of the lock.
  *
  *	void SPIN_DELAY(void)
@@ -86,7 +86,7 @@
  *	when using the SysV semaphore code.
  *
  *
- * Portions Copyright (c) 1996-2017, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *	  src/include/storage/s_lock.h
@@ -314,6 +314,7 @@ tas(volatile slock_t *lock)
 #endif /* __INTEL_COMPILER */
 #endif	 /* __ia64__ || __ia64 */
 
+
 /*
  * On ARM and ARM64, we use __sync_lock_test_and_set(int *, int) if available.
  *
@@ -338,6 +339,29 @@ tas(volatile slock_t *lock)
 
 #endif	 /* HAVE_GCC__SYNC_INT32_TAS */
 #endif	 /* __arm__ || __arm || __aarch64__ || __aarch64 */
+
+
+/*
+ * RISC-V likewise uses __sync_lock_test_and_set(int *, int) if available.
+ */
+#if defined(__riscv)
+#ifdef HAVE_GCC__SYNC_INT32_TAS
+#define HAS_TEST_AND_SET
+
+#define TAS(lock) tas(lock)
+
+typedef int slock_t;
+
+static __inline__ int
+tas(volatile slock_t *lock)
+{
+	return __sync_lock_test_and_set(lock, 1);
+}
+
+#define S_UNLOCK(lock) __sync_lock_release(lock)
+
+#endif	 /* HAVE_GCC__SYNC_INT32_TAS */
+#endif	 /* __riscv */
 
 
 /* S/390 and S/390x Linux (32- and 64-bit zSeries) */
@@ -383,7 +407,7 @@ tas(volatile slock_t *lock)
 	register slock_t _res;
 
 	/*
-	 *	See comment in /pg/backend/port/tas/solaris_sparc.s for why this
+	 *	See comment in src/backend/port/tas/sunstudio_sparc.s for why this
 	 *	uses "ldstub", and that file uses "cas".  gcc currently generates
 	 *	sparcv7-targeted binaries, so "cas" use isn't possible.
 	 */
@@ -919,7 +943,7 @@ spin_delay(void)
 
 /* Blow up if we didn't have any way to do spinlocks */
 #ifndef HAS_TEST_AND_SET
-#error PostgreSQL does not have native spinlock support on this platform.  To continue the compilation, rerun configure using --disable-spinlocks.  However, performance will be poor.  Please report this to pgsql-bugs@postgresql.org.
+#error PostgreSQL does not have native spinlock support on this platform.  To continue the compilation, rerun configure using --disable-spinlocks.  However, performance will be poor.  Please report this to pgsql-bugs@lists.postgresql.org.
 #endif
 
 
