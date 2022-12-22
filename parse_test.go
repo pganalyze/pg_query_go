@@ -19,9 +19,9 @@ var parseTests = []struct {
 }{
 	{
 		"SELECT 1",
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"val":{"Integer":{"ival":1}},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -44,9 +44,9 @@ var parseTests = []struct {
 	},
 	{
 		"SELECT * FROM x WHERE z = 1",
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"str":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"z"}}],"location":22}},"rexpr":{"A_Const":{"val":{"Integer":{"ival":1}},"location":26}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"z"}}],"location":22}},"rexpr":{"A_Const":{"ival":{"ival":1},"location":26}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -95,9 +95,9 @@ var parseTests = []struct {
 	},
 	{
 		`INSERT INTO "schema_index_stats" ("snapshot_id","schema_index_id","size_bytes") VALUES (11710849,8448632,16384),(11710849,8448633,16384) RETURNING id`,
-		`{"version":130008,"stmts":[{"stmt":{"InsertStmt":{"relation":{"relname":"schema_index_stats","inh":true,"relpersistence":"p","location":12},"cols":[{"ResTarget":{"name":"snapshot_id","location":34}},{"ResTarget":{"name":"schema_index_id","location":48}},{"ResTarget":{"name":"size_bytes","location":66}}],"selectStmt":{"SelectStmt":{"valuesLists":[{"List":{"items":[{"A_Const":{"val":{"Integer":{"ival":11710849}},"location":88}},{"A_Const":{"val":{"Integer":{"ival":8448632}},"location":97}},{"A_Const":{"val":{"Integer":{"ival":16384}},"location":105}}]}},{"List":{"items":[{"A_Const":{"val":{"Integer":{"ival":11710849}},"location":113}},{"A_Const":{"val":{"Integer":{"ival":8448633}},"location":122}},{"A_Const":{"val":{"Integer":{"ival":16384}},"location":130}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"returningList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"String":{"str":"id"}}],"location":147}},"location":147}}],"override":"OVERRIDING_NOT_SET"}}}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"InsertStmt":{"relation":{"relname":"schema_index_stats","inh":true,"relpersistence":"p","location":12},"cols":[{"ResTarget":{"name":"snapshot_id","location":34}},{"ResTarget":{"name":"schema_index_id","location":48}},{"ResTarget":{"name":"size_bytes","location":66}}],"selectStmt":{"SelectStmt":{"valuesLists":[{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":88}},{"A_Const":{"ival":{"ival":8448632},"location":97}},{"A_Const":{"ival":{"ival":16384},"location":105}}]}},{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":113}},{"A_Const":{"ival":{"ival":8448633},"location":122}},{"A_Const":{"ival":{"ival":16384},"location":130}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"returningList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"String":{"sval":"id"}}],"location":147}},"location":147}}],"override":"OVERRIDING_NOT_SET"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -149,10 +149,10 @@ var parseTests = []struct {
 		},
 	},
 	{
-		"SELECT * FROM x WHERE y IN (?)",
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"str":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"y"}}],"location":22}},"rexpr":{"List":{"items":[{"ParamRef":{"location":28}}]}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		"SELECT * FROM x WHERE y IN ($1)",
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"y"}}],"location":22}},"rexpr":{"List":{"items":[{"ParamRef":{"number":1,"location":28}}]}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -188,7 +188,7 @@ var parseTests = []struct {
 												22,
 											),
 											Rexpr: pg_query.MakeListNode([]*pg_query.Node{
-												pg_query.MakeParamRefNode(0, 28),
+												pg_query.MakeParamRefNode(1, 28),
 											}),
 											Location: 24,
 										},
@@ -214,9 +214,9 @@ var parseTests = []struct {
 						AND n.nspname !~ '^pg_toast'
 						AND pg_catalog.pg_table_is_visible(c.oid)
 			ORDER BY 1,2;`,
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"name":"Schema","val":{"ColumnRef":{"fields":[{"String":{"str":"n"}},{"String":{"str":"nspname"}}],"location":7}},"location":7}},{"ResTarget":{"name":"Name","val":{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"relname"}}],"location":36}},"location":36}},{"ResTarget":{"name":"Type","val":{"CaseExpr":{"arg":{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"relkind"}}],"location":68}},"args":[{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"r"}},"location":83}},"result":{"A_Const":{"val":{"String":{"str":"table"}},"location":92}},"location":78}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"v"}},"location":105}},"result":{"A_Const":{"val":{"String":{"str":"view"}},"location":114}},"location":100}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"m"}},"location":126}},"result":{"A_Const":{"val":{"String":{"str":"materialized view"}},"location":135}},"location":121}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"i"}},"location":160}},"result":{"A_Const":{"val":{"String":{"str":"index"}},"location":169}},"location":155}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"S"}},"location":182}},"result":{"A_Const":{"val":{"String":{"str":"sequence"}},"location":191}},"location":177}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"s"}},"location":207}},"result":{"A_Const":{"val":{"String":{"str":"special"}},"location":216}},"location":202}},{"CaseWhen":{"expr":{"A_Const":{"val":{"String":{"str":"f"}},"location":231}},"result":{"A_Const":{"val":{"String":{"str":"foreign table"}},"location":240}},"location":226}}],"location":63}},"location":63}},{"ResTarget":{"name":"Owner","val":{"FuncCall":{"funcname":[{"String":{"str":"pg_catalog"}},{"String":{"str":"pg_get_userbyid"}}],"args":[{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"relowner"}}],"location":304}}],"location":277}},"location":277}}],"fromClause":[{"JoinExpr":{"jointype":"JOIN_LEFT","larg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_class","inh":true,"relpersistence":"p","alias":{"aliasname":"c"},"location":336}},"rarg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_namespace","inh":true,"relpersistence":"p","alias":{"aliasname":"n"},"location":374}},"quals":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"str":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"n"}},{"String":{"str":"oid"}}],"location":403}},"rexpr":{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"relnamespace"}}],"location":411}},"location":409}}}}],"whereClause":{"BoolExpr":{"boolop":"AND_EXPR","args":[{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"str":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"relkind"}}],"location":435}},"rexpr":{"List":{"items":[{"A_Const":{"val":{"String":{"str":"r"}},"location":449}},{"A_Const":{"val":{"String":{"str":""}},"location":453}}]}},"location":445}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"str":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"n"}},{"String":{"str":"nspname"}}],"location":467}},"rexpr":{"A_Const":{"val":{"String":{"str":"pg_catalog"}},"location":480}},"location":477}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"str":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"n"}},{"String":{"str":"nspname"}}],"location":503}},"rexpr":{"A_Const":{"val":{"String":{"str":"information_schema"}},"location":516}},"location":513}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"str":"!~"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"str":"n"}},{"String":{"str":"nspname"}}],"location":547}},"rexpr":{"A_Const":{"val":{"String":{"str":"^pg_toast"}},"location":560}},"location":557}},{"FuncCall":{"funcname":[{"String":{"str":"pg_catalog"}},{"String":{"str":"pg_table_is_visible"}}],"args":[{"ColumnRef":{"fields":[{"String":{"str":"c"}},{"String":{"str":"oid"}}],"location":613}}],"location":582}}],"location":463}},"sortClause":[{"SortBy":{"node":{"A_Const":{"val":{"Integer":{"ival":1}},"location":632}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}},{"SortBy":{"node":{"A_Const":{"val":{"Integer":{"ival":2}},"location":634}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"stmt_len":635}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"name":"Schema","val":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":7}},"location":7}},{"ResTarget":{"name":"Name","val":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relname"}}],"location":36}},"location":36}},{"ResTarget":{"name":"Type","val":{"CaseExpr":{"arg":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":68}},"args":[{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"r"},"location":83}},"result":{"A_Const":{"sval":{"sval":"table"},"location":92}},"location":78}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"v"},"location":105}},"result":{"A_Const":{"sval":{"sval":"view"},"location":114}},"location":100}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"m"},"location":126}},"result":{"A_Const":{"sval":{"sval":"materialized view"},"location":135}},"location":121}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"i"},"location":160}},"result":{"A_Const":{"sval":{"sval":"index"},"location":169}},"location":155}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"S"},"location":182}},"result":{"A_Const":{"sval":{"sval":"sequence"},"location":191}},"location":177}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"s"},"location":207}},"result":{"A_Const":{"sval":{"sval":"special"},"location":216}},"location":202}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"f"},"location":231}},"result":{"A_Const":{"sval":{"sval":"foreign table"},"location":240}},"location":226}}],"location":63}},"location":63}},{"ResTarget":{"name":"Owner","val":{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_get_userbyid"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relowner"}}],"location":304}}],"funcformat":"COERCE_EXPLICIT_CALL","location":277}},"location":277}}],"fromClause":[{"JoinExpr":{"jointype":"JOIN_LEFT","larg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_class","inh":true,"relpersistence":"p","alias":{"aliasname":"c"},"location":336}},"rarg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_namespace","inh":true,"relpersistence":"p","alias":{"aliasname":"n"},"location":374}},"quals":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"oid"}}],"location":403}},"rexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relnamespace"}}],"location":411}},"location":409}}}}],"whereClause":{"BoolExpr":{"boolop":"AND_EXPR","args":[{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":435}},"rexpr":{"List":{"items":[{"A_Const":{"sval":{"sval":"r"},"location":449}},{"A_Const":{"sval":{"sval":""},"location":453}}]}},"location":445}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":467}},"rexpr":{"A_Const":{"sval":{"sval":"pg_catalog"},"location":480}},"location":477}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":503}},"rexpr":{"A_Const":{"sval":{"sval":"information_schema"},"location":516}},"location":513}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"!~"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":547}},"rexpr":{"A_Const":{"sval":{"sval":"^pg_toast"},"location":560}},"location":557}},{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_table_is_visible"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"oid"}}],"location":613}}],"funcformat":"COERCE_EXPLICIT_CALL","location":582}}],"location":463}},"sortClause":[{"SortBy":{"node":{"A_Const":{"ival":{"ival":1},"location":632}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}},{"SortBy":{"node":{"A_Const":{"ival":{"ival":2},"location":634}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"stmt_len":635}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -396,9 +396,9 @@ var parseTests = []struct {
 			PERFORM 'dummy';
 		END;
 		$$;`,
-		`{"version":130008,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"str":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"str":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"str":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"str":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71}}]}},"stmt_len":126}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"sval":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"sval":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"sval":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"sval":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71}}]}},"stmt_len":126}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -439,9 +439,9 @@ var parseTests = []struct {
 			 id SERIAL PRIMARY KEY,
 			 user_id integer DEFAULT 0 NOT NULL,
 			 created_at timestamp without time zone NOT NULL);`,
-		`{"version":130008,"stmts":[{"stmt":{"CreateStmt":{"relation":{"relname":"test","inh":true,"relpersistence":"p","location":13},"tableElts":[{"ColumnDef":{"colname":"id","typeName":{"names":[{"String":{"str":"serial"}}],"typemod":-1,"location":27},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_PRIMARY","location":34}}],"location":24}},{"ColumnDef":{"colname":"user_id","typeName":{"names":[{"String":{"str":"pg_catalog"}},{"String":{"str":"int4"}}],"typemod":-1,"location":59},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_DEFAULT","location":67,"raw_expr":{"A_Const":{"val":{"Integer":{"ival":0}},"location":75}}}},{"Constraint":{"contype":"CONSTR_NOTNULL","location":77}}],"location":51}},{"ColumnDef":{"colname":"created_at","typeName":{"names":[{"String":{"str":"pg_catalog"}},{"String":{"str":"timestamp"}}],"typemod":-1,"location":102},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":130}}],"location":91}}],"oncommit":"ONCOMMIT_NOOP"}},"stmt_len":139}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"CreateStmt":{"relation":{"relname":"test","inh":true,"relpersistence":"p","location":13},"tableElts":[{"ColumnDef":{"colname":"id","typeName":{"names":[{"String":{"sval":"serial"}}],"typemod":-1,"location":27},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_PRIMARY","location":34}}],"location":24}},{"ColumnDef":{"colname":"user_id","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":59},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_DEFAULT","location":67,"raw_expr":{"A_Const":{"ival":{},"location":75}}}},{"Constraint":{"contype":"CONSTR_NOTNULL","location":77}}],"location":51}},{"ColumnDef":{"colname":"created_at","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":102},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":130}}],"location":91}}],"oncommit":"ONCOMMIT_NOOP"}},"stmt_len":139}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -506,9 +506,9 @@ var parseTests = []struct {
 	},
 	{
 		`SELECT * FROM a(1)`,
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeFunction":{"functions":[{"List":{"items":[{"FuncCall":{"funcname":[{"String":{"str":"a"}}],"args":[{"A_Const":{"val":{"Integer":{"ival":1}},"location":16}}],"location":14}},{}]}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeFunction":{"functions":[{"List":{"items":[{"FuncCall":{"funcname":[{"String":{"sval":"a"}}],"args":[{"A_Const":{"ival":{"ival":1},"location":16}}],"funcformat":"COERCE_EXPLICIT_CALL","location":14}},{}]}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -549,9 +549,9 @@ var parseTests = []struct {
 	{
 		// Test for null-byte related crashes
 		string([]byte{'S', 'E', 'L', 'E', 'C', 'T', ' ', '1', '\x00'}),
-		`{"version":130008,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"val":{"Integer":{"ival":1}},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":150001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(130008),
+			Version: int32(150001),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -602,7 +602,7 @@ var parseErrorTests = []struct {
 		errors.New("syntax error at or near \"$\""),
 	},
 	{
-		"SELECT * FROM y WHERE x IN (?, ",
+		"SELECT * FROM y WHERE x IN ($1, ",
 		errors.New("syntax error at end of input"),
 	},
 }
@@ -657,7 +657,7 @@ var parsePlPgSQLTests = []struct {
 			`END;` +
 			`$$ LANGUAGE plpgsql;`,
 		`[
-{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"SELECT v_version IS NULL"}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"SELECT v_name"}}}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"SELECT v_name || '/' || v_version"}}}}]}}}}
+{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL"}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name"}}}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version"}}}}]}}}}
 ]`,
 	},
 }
