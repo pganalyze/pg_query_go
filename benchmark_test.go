@@ -3,8 +3,8 @@ package pg_query_test
 import (
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v2"
-	"github.com/pganalyze/pg_query_go/v2/parser"
+	pg_query "github.com/pganalyze/pg_query_go/v4"
+	"github.com/pganalyze/pg_query_go/v4/parser"
 )
 
 // Prevent compiler optimizations by assigning all results to global variables
