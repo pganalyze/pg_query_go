@@ -990,6 +990,6 @@
 #undef HAVE_EXECINFO_H
 #undef HAVE_BACKTRACE_SYMBOLS
 #undef HAVE__GET_CPUID
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #define HAVE_STRCHRNUL
 #endif
