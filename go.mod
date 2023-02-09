@@ -1,4 +1,4 @@
-module github.com/pganalyze/pg_query_go/v2
+module github.com/pganalyze/pg_query_go/v4
 
 go 1.14
 

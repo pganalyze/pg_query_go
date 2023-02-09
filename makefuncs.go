@@ -1,14 +1,17 @@
 package pg_query
 
 func MakeStrNode(str string) *Node {
-	return &Node{Node: &Node_String_{String_: &String{Str: str}}}
+	return &Node{Node: &Node_String_{String_: &String{Sval: str}}}
 }
 
 func MakeAConstStrNode(str string, location int32) *Node {
 	return &Node{
 		Node: &Node_AConst{
 			AConst: &A_Const{
-				Val:      MakeStrNode(str),
+				Val: &A_Const_Sval {
+					Sval: &String{Sval: str},
+				},
+				Isnull: false,
 				Location: location,
 			},
 		},
@@ -23,7 +26,10 @@ func MakeAConstIntNode(ival int64, location int32) *Node {
 	return &Node{
 		Node: &Node_AConst{
 			AConst: &A_Const{
-				Val:      MakeIntNode(ival),
+				Val: &A_Const_Ival {
+					Ival: &Integer{Ival: int32(ival)},
+				},
+				Isnull:   false,
 				Location: location,
 			},
 		},
@@ -136,9 +142,10 @@ func MakeFuncCallNode(funcname []*Node, args []*Node, location int32) *Node {
 	return &Node{
 		Node: &Node_FuncCall{
 			FuncCall: &FuncCall{
-				Funcname: funcname,
-				Args:     args,
-				Location: location,
+				Funcname:   funcname,
+				Args:       args,
+				Funcformat: CoercionForm_COERCE_EXPLICIT_CALL,
+				Location:   location,
 			},
 		},
 	}
