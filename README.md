@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v2?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v4)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v4?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v4)
 
 Go version of https://github.com/pganalyze/pg_query
 
