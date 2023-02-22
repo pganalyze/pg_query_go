@@ -603,7 +603,6 @@ var parseErrorTests = []struct {
 			Message:   "syntax error at or near \"$\"",
 			Cursorpos: 8,
 			Filename:  "scan.l",
-			Lineno:    1202,
 			Funcname:  "scanner_yyerror",
 		},
 	},
@@ -613,7 +612,6 @@ var parseErrorTests = []struct {
 			Message:   "syntax error at end of input",
 			Cursorpos: 33,
 			Filename:  "scan.l",
-			Lineno:    1194,
 			Funcname:  "scanner_yyerror",
 		},
 	},
@@ -625,14 +623,17 @@ func TestParseError(t *testing.T) {
 
 		if actualErr == nil {
 			t.Errorf("Parse(%s)\nexpected error but none returned\n\n", test.input)
-		} else if !reflect.DeepEqual(actualErr, test.expectedErr) {
+		} else {
 			exp := test.expectedErr.(*parser.Error)
 			act := actualErr.(*parser.Error)
-			t.Errorf(
-				"Parse(%s)\nexpected error %s at %d (%s:%d), func: %s, context: %s\nactual error %+v at %d (%s:%d), func: %s, context: %s\n\n",
-				test.input,
-				exp.Message, exp.Cursorpos, exp.Filename, exp.Lineno, exp.Funcname, exp.Context,
-				act.Message, act.Cursorpos, act.Filename, act.Lineno, act.Funcname, act.Context)
+			act.Lineno = 0 // Line number is architecture dependent, so we ignore it
+			if !reflect.DeepEqual(act, exp) {
+				t.Errorf(
+					"Parse(%s)\nexpected error %s at %d (%s:%d), func: %s, context: %s\nactual error %+v at %d (%s:%d), func: %s, context: %s\n\n",
+					test.input,
+					exp.Message, exp.Cursorpos, exp.Filename, exp.Lineno, exp.Funcname, exp.Context,
+					act.Message, act.Cursorpos, act.Filename, act.Lineno, act.Funcname, act.Context)
+			}
 		}
 	}
 }
