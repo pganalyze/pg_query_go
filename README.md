@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v2?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v2)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v4?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v4)
 
 Go version of https://github.com/pganalyze/pg_query
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/pganalyze/pg_query_go/v2@latest
+go get github.com/pganalyze/pg_query_go/v4@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
