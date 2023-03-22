@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
+	pg_query "github.com/formalco/pg_query_go/v4"
+	"github.com/formalco/pg_query_go/v4/parser"
 	"github.com/google/go-cmp/cmp"
-	pg_query "github.com/pganalyze/pg_query_go/v4"
-	"github.com/pganalyze/pg_query_go/v4/parser"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
