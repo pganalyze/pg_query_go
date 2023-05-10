@@ -1,7 +1,7 @@
 package parser
 
 /*
-#cgo CFLAGS: -Iinclude -g -fstack-protector -std=gnu99
+#cgo CFLAGS: -Iinclude -g -fstack-protector -std=gnu99 -Wno-deprecated-non-prototype
 #cgo LDFLAGS:
 #include "pg_query.h"
 #include "xxhash.h"
