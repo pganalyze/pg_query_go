@@ -1,7 +1,14 @@
 package parser
 
 /*
-#cgo CFLAGS: -Iinclude -g -fstack-protector -std=gnu99 -Wno-deprecated-non-prototype
+ * Note on CFLAGS below:
+ *
+ * -Wno-deprecated-non-prototype avoids warnings on Clang 15.0+, this can be removed in Postgres 16:
+ * https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1c27d16e6e5c1f463bbe1e9ece88dda811235165
+ */
+
+/*
+#cgo CFLAGS: -Iinclude -g -fstack-protector -std=gnu99 -Wno-deprecated-non-prototype -Wno-unknown-warning-option
 #cgo LDFLAGS:
 #include "pg_query.h"
 #include "xxhash.h"
