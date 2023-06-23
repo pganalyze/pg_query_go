@@ -603,7 +603,12 @@ func (tpr *TaggedParseResult) LoadObjects() (err error) {
 					case *Node_ColumnRef:
 						var strbuf []string
 						for _, e := range node.ColumnRef.Fields {
-							strbuf = append(strbuf, e.GetNode().(*Node_String_).String_.GetSval())
+							switch node := e.GetNode().(type) {
+							case *Node_String_:
+								strbuf = append(strbuf, node.String_.GetSval())
+							case *Node_AStar:
+								strbuf = append(strbuf, node.AStar.String())
+							}
 						}
 						var argname string
 						if len(strbuf) == 1 {
