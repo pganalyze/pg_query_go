@@ -5,6 +5,16 @@
 * ...
 
 
+## 4.2.3     2023-08-04
+
+* Update to libpg_query 15-4.2.3, including changes from 15-4.2.2
+  - Fix builds when compiling with `glibc >=  2.38` [#203](https://github.com/pganalyze/libpg_query/pull/203)
+  - Deparser: Add support for COALESCE and other expressions in LIMIT clause [#199](https://github.com/pganalyze/libpg_query/pull/199)
+  - Deparser: Add support for multi-statement CREATE PROCEDURE definitions [#197](https://github.com/pganalyze/libpg_query/pull/197)
+  - Deparser: Correctly quote identifier in ALTER TABLE ... ADD CONSTRAINT [x] [#196](https://github.com/pganalyze/libpg_query/pull/196)
+  - Deparser: Add support for index fillfactor within CREATE TABLE, fix SHOW ALL [#193](https://github.com/pganalyze/libpg_query/pull/193)
+  - Deparser: Move to dedicated file for easier inclusion in third-party projects [#192](https://github.com/pganalyze/libpg_query/pull/192)
+
 ## 4.2.1     2023-05-25
 
 * Update to libpg_query 15-4.2.1 ([#85](https://github.com/pganalyze/pg_query_go/pull/85))
