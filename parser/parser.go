@@ -30,6 +30,7 @@ uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
 import "C"
 
 import (
+	"strings"
 	"unsafe"
 )
 
@@ -176,6 +177,30 @@ func Normalize(input string) (result string, err error) {
 	}
 
 	result = C.GoString(resultC.normalized_query)
+
+	return
+}
+
+func Split(input string) (result []string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_split_with_parser(inputC)
+	defer C.pg_query_free_split_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	stmts := (**C.PgQuerySplitStmt)(unsafe.Pointer(resultC.stmts))
+	for i := 0; i < int(resultC.n_stmts); i++ {
+		stmtptr := (**C.PgQuerySplitStmt)(unsafe.Pointer(uintptr(unsafe.Pointer(stmts)) + uintptr(i)*unsafe.Sizeof(*stmts)))
+		stmt := **stmtptr
+
+		end := stmt.stmt_location + stmt.stmt_len
+		result = append(result, strings.TrimSpace(input[stmt.stmt_location:end]))
+	}
 
 	return
 }
