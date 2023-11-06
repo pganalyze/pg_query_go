@@ -49,7 +49,7 @@ func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)
 }
 
-// Normalize the passed SQL statement to replace constant values with ? characters
+// Normalize the passed SQL statement to replace constant values with $n parameter references
 func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)
 }
