@@ -658,6 +658,7 @@ func TestParseConcurrency(t *testing.T) {
 	}
 
 	wg.Wait()
+	fmt.Println()
 }
 
 var parsePlPgSQLTests = []struct {
