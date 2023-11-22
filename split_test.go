@@ -7,24 +7,70 @@ import (
 )
 
 var splitTests = []struct {
-	name     string
-	input    string
-	expected []string
+	name      string
+	splitFunc func(string, bool) ([]string, error)
+	input     string
+	trimSpace bool
+	expected  []string
 }{
 	{
-		name:  "basic split",
-		input: "select * from a;select * from b;",
+		name:      "splitWithParser - basic split",
+		splitFunc: pg_query.SplitWithParser,
+		input:     "select * from a;select * from b;",
+		trimSpace: true,
 		expected: []string{
 			"select * from a",
 			"select * from b",
 		},
 	},
 	{
-		name:  "procedure",
-		input: splitTestInput,
+		name:      "splitWithParser - procedure",
+		splitFunc: pg_query.SplitWithParser,
+		input:     splitTestInput,
+		trimSpace: true,
 		expected: []string{
 			splitExpected1,
 			splitExpected2,
+		},
+	},
+	{
+		name:      "splitWithParser - basic split, no trim",
+		splitFunc: pg_query.SplitWithParser,
+		input:     "   select * from a;select * from b;",
+		trimSpace: false,
+		expected: []string{
+			"   select * from a",
+			"select * from b",
+		},
+	},
+	{
+		name:      "splitWithScanner - basic split",
+		splitFunc: pg_query.SplitWithScanner,
+		input:     "select * from a;select * from b;",
+		trimSpace: true,
+		expected: []string{
+			"select * from a",
+			"select * from b",
+		},
+	},
+	{
+		name:      "splitWithScanner - procedure",
+		splitFunc: pg_query.SplitWithScanner,
+		input:     splitTestInput,
+		trimSpace: true,
+		expected: []string{
+			splitExpected1,
+			splitExpected2,
+		},
+	},
+	{
+		name:      "splitWithScanner - basic split, no trim",
+		splitFunc: pg_query.SplitWithScanner,
+		input:     "   select * from a;select * from b;",
+		trimSpace: false,
+		expected: []string{
+			"   select * from a",
+			"select * from b",
 		},
 	},
 }
@@ -49,7 +95,7 @@ $$ LANGUAGE plpgsql`
 func TestSplit(t *testing.T) {
 	for _, test := range splitTests {
 		t.Run(test.name, func(t *testing.T) {
-			actuals, err := pg_query.Split(test.input)
+			actuals, err := test.splitFunc(test.input, test.trimSpace)
 			if err != nil {
 				t.Error(err)
 			}

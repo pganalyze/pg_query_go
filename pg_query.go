@@ -69,6 +69,10 @@ func HashXXH3_64(input []byte, seed uint64) (result uint64) {
 	return parser.HashXXH3_64(input, seed)
 }
 
-func Split(input string) (result []string, err error) {
-	return parser.Split(input)
+func SplitWithScanner(input string, trimSpace bool) (result []string, err error) {
+	return parser.SplitWithScanner(input, trimSpace)
+}
+
+func SplitWithParser(input string, trimSpace bool) (result []string, err error) {
+	return parser.SplitWithParser(input, trimSpace)
 }
