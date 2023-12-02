@@ -30,6 +30,7 @@ uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
 import "C"
 
 import (
+	"strings"
 	"unsafe"
 )
 
@@ -177,6 +178,55 @@ func Normalize(input string) (result string, err error) {
 
 	result = C.GoString(resultC.normalized_query)
 
+	return
+}
+
+func SplitWithScanner(input string, trimSpace bool) (result []string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_split_with_scanner(inputC)
+	defer C.pg_query_free_split_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = handleSplitResult(input, trimSpace, resultC)
+	return
+}
+
+func SplitWithParser(input string, trimSpace bool) (result []string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_split_with_parser(inputC)
+	defer C.pg_query_free_split_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = handleSplitResult(input, trimSpace, resultC)
+	return
+}
+
+func handleSplitResult(input string, trimSpace bool, resultC C.PgQuerySplitResult) (result []string) {
+	stmts := (**C.PgQuerySplitStmt)(unsafe.Pointer(resultC.stmts))
+	for i := 0; i < int(resultC.n_stmts); i++ {
+		stmtptr := (**C.PgQuerySplitStmt)(unsafe.Pointer(uintptr(unsafe.Pointer(stmts)) + uintptr(i)*unsafe.Sizeof(*stmts)))
+		stmt := **stmtptr
+
+		end := stmt.stmt_location + stmt.stmt_len
+		stmtStr := input[stmt.stmt_location:end]
+		if trimSpace {
+			stmtStr = strings.TrimSpace(stmtStr)
+		}
+
+		result = append(result, stmtStr)
+	}
 	return
 }
 
