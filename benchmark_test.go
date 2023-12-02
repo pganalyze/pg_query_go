@@ -1,3 +1,6 @@
+//go:build cgo
+// +build cgo
+
 package pg_query_test
 
 import (

@@ -8,10 +8,10 @@ func MakeAConstStrNode(str string, location int32) *Node {
 	return &Node{
 		Node: &Node_AConst{
 			AConst: &A_Const{
-				Val: &A_Const_Sval {
+				Val: &A_Const_Sval{
 					Sval: &String{Sval: str},
 				},
-				Isnull: false,
+				Isnull:   false,
 				Location: location,
 			},
 		},
@@ -26,7 +26,7 @@ func MakeAConstIntNode(ival int64, location int32) *Node {
 	return &Node{
 		Node: &Node_AConst{
 			AConst: &A_Const{
-				Val: &A_Const_Ival {
+				Val: &A_Const_Ival{
 					Ival: &Integer{Ival: int32(ival)},
 				},
 				Isnull:   false,
