@@ -44,8 +44,8 @@ update_source: $(LIBDIR)
 	mv parser/*{_conds,_defs,_helper}.c parser/include
 	# Protobuf definitions
 	mkdir -p $(PWD)/bin
-	GOBIN=$(PWD)/bin go install github.com/golang/protobuf/protoc-gen-go
-	PATH=$(PWD)/bin:$(PATH) protoc --proto_path=$(LIBDIR)/protobuf --go_out=. $(LIBDIR)/protobuf/pg_query.proto
+	GOBIN=$(PWD)/bin go install google.golang.org/protobuf/cmd/protoc-gen-go
+	PATH="$(PWD)/bin:$(PATH)" protoc --proto_path=$(LIBDIR)/protobuf --go_out=. --go_opt=Mpg_query.proto=/pg_query --go_opt=paths=source_relative $(LIBDIR)/protobuf/pg_query.proto
 	mkdir -p parser/include/protobuf
 	cp -a $(LIBDIR)/protobuf/*.h parser/include/protobuf
 	cp -a $(LIBDIR)/protobuf/*.c parser/
