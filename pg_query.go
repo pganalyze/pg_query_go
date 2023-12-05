@@ -1,5 +1,5 @@
-//go:build cgo
-// +build cgo
+//go:build cgo && !windows
+// +build cgo,!windows
 
 package pg_query
 
