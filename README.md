@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v4?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v4)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v5?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v5)
 
 Go version of https://github.com/pganalyze/pg_query
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/pganalyze/pg_query_go/v4@latest
+go get github.com/pganalyze/pg_query_go/v5@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -44,7 +44,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v4"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
 )
 
 func main() {
@@ -72,7 +72,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v4"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
 )
 
 func main() {
@@ -98,7 +98,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v4"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
 )
 
 func main() {
@@ -135,7 +135,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v4"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
 )
 
 func main() {
@@ -173,7 +173,7 @@ go build -a
 go test -test.bench=. -test.run=XXX -test.benchtime 10s -test.benchmem -test.cpu=4
 goos: darwin
 goarch: arm64
-pkg: github.com/pganalyze/pg_query_go/v4
+pkg: github.com/pganalyze/pg_query_go/v5
 BenchmarkParseSelect1-4                  	 3230398	      3656 ns/op	    1104 B/op	      20 allocs/op
 BenchmarkParseSelect2-4                  	  927363	     12739 ns/op	    2896 B/op	      59 allocs/op
 BenchmarkParseCreateTable-4              	  399819	     30080 ns/op	    8432 B/op	     151 allocs/op
@@ -193,7 +193,7 @@ BenchmarkNormalizeSelect1-4              	10073278	      1171 ns/op	      72 B/o
 BenchmarkNormalizeSelect2-4              	 6029834	      1932 ns/op	     104 B/op	       4 allocs/op
 BenchmarkNormalizeCreateTable-4          	 4703816	      2490 ns/op	     184 B/op	       4 allocs/op
 PASS
-ok  	github.com/pganalyze/pg_query_go/v4	273.449s
+ok  	github.com/pganalyze/pg_query_go/v5	273.449s
 ```
 
 Note that allocation counts exclude the cgo portion, so they are higher than shown here.

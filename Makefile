@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 15-4.2.3
+LIB_PG_QUERY_TAG = 16-5.0.0
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -41,7 +41,7 @@ update_source: $(LIBDIR)
 	rmdir parser/postgres
 	cp -a $(LIBDIR)/pg_query.h parser/include
 	# Make sure every .c in the top-level directory is its own translation unit
-	mv parser/*{_conds,_defs,_helper}.c parser/include
+	mv parser/*{_conds,_defs,_helper,.funcs}.c parser/include
 	# Protobuf definitions
 	mkdir -p $(PWD)/bin
 	GOBIN=$(PWD)/bin go install google.golang.org/protobuf/cmd/protoc-gen-go
