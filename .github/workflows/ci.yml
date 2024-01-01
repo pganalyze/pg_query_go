@@ -8,13 +8,20 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.20', '1.21']
+        os: ['ubuntu-latest', 'windows-latest']
+        include:
+        - go: 1.16 # Oldest Go version still tested (Windows requires 1.20+ due to https://github.com/golang/go/issues/57455)
+          os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v4
       with:
-        go-version: 1.16
-      id: go
+        go-version: ${{ matrix.go }}
     - name: Check out code
       uses: actions/checkout@v3
     - name: Runs tests
