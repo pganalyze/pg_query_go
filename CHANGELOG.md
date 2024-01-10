@@ -5,6 +5,24 @@
 * ...
 
 
+## 5.1.0     2024-01-09
+
+* Update to libpg_query 16-5.1.0
+  - Add support for running on Windows
+  - Add support for compiling on 32-bit systems
+* Treewalker: Allow passing a block with a single argument to walk!
+* PgQuery::Node: Add inner and inner= helpers to get/set inner object
+
+
+## 5.0.0     2023-12-23
+
+* Upgrade to libpg_query 16-5.0.0
+  - Updates to the Postgres 16 parser
+  - Multiple deparser improvements
+* Allow importing parse tree proto with cgo disabled
+* Add parser.SplitWithScanner() and parser.SplitWithParser()
+
+
 ## 4.2.3     2023-08-04
 
 * Update to libpg_query 15-4.2.3, including changes from 15-4.2.2
@@ -14,6 +32,7 @@
   - Deparser: Correctly quote identifier in ALTER TABLE ... ADD CONSTRAINT [x] [#196](https://github.com/pganalyze/libpg_query/pull/196)
   - Deparser: Add support for index fillfactor within CREATE TABLE, fix SHOW ALL [#193](https://github.com/pganalyze/libpg_query/pull/193)
   - Deparser: Move to dedicated file for easier inclusion in third-party projects [#192](https://github.com/pganalyze/libpg_query/pull/192)
+
 
 ## 4.2.1     2023-05-25
 
