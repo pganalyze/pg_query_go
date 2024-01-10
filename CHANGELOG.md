@@ -10,8 +10,6 @@
 * Update to libpg_query 16-5.1.0
   - Add support for running on Windows
   - Add support for compiling on 32-bit systems
-* Treewalker: Allow passing a block with a single argument to walk!
-* PgQuery::Node: Add inner and inner= helpers to get/set inner object
 
 
 ## 5.0.0     2023-12-23
