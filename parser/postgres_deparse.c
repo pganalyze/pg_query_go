@@ -159,7 +159,7 @@ static void deparseRangeFunction(StringInfo str, RangeFunction *range_func);
 static void deparseAArrayExpr(StringInfo str, A_ArrayExpr * array_expr);
 static void deparseRowExpr(StringInfo str, RowExpr *row_expr);
 static void deparseTypeCast(StringInfo str, TypeCast *type_cast, DeparseNodeContext context);
-static void deparseTypeName(StringInfo str, TypeName *type_name);
+void deparseTypeName(StringInfo str, TypeName *type_name);
 static void deparseIntervalTypmods(StringInfo str, TypeName *type_name);
 static void deparseNullTest(StringInfo str, NullTest *null_test);
 static void deparseCaseExpr(StringInfo str, CaseExpr *case_expr);
@@ -171,7 +171,7 @@ static void deparseBooleanTest(StringInfo str, BooleanTest *boolean_test);
 static void deparseColumnDef(StringInfo str, ColumnDef *column_def);
 static void deparseInsertStmt(StringInfo str, InsertStmt *insert_stmt);
 static void deparseOnConflictClause(StringInfo str, OnConflictClause *on_conflict_clause);
-static void deparseIndexElem(StringInfo str, IndexElem* index_elem);
+void deparseIndexElem(StringInfo str, IndexElem* index_elem);
 static void deparseUpdateStmt(StringInfo str, UpdateStmt *update_stmt);
 static void deparseDeleteStmt(StringInfo str, DeleteStmt *delete_stmt);
 static void deparseLockingClause(StringInfo str, LockingClause *locking_clause);
@@ -203,6 +203,10 @@ static void deparseTriggerTransition(StringInfo str, TriggerTransition *trigger_
 static void deparseCreateOpClassItem(StringInfo str, CreateOpClassItem *create_op_class_item);
 static void deparseAConst(StringInfo str, A_Const *a_const);
 static void deparseGroupingFunc(StringInfo str, GroupingFunc *grouping_func);
+
+void deparseAnyOperator(StringInfo str, List *op);
+void deparseExpr(StringInfo str, Node *node);
+void deparseIndexElem(StringInfo str, IndexElem* index_elem);
 
 static void deparsePreparableStmt(StringInfo str, Node *node);
 static void deparseRuleActionStmt(StringInfo str, Node *node);
@@ -299,7 +303,7 @@ static void deparseFuncExpr(StringInfo str, Node *node)
 static void deparseCExpr(StringInfo str, Node *node);
 
 // "a_expr" in gram.y
-static void deparseExpr(StringInfo str, Node *node)
+void deparseExpr(StringInfo str, Node *node)
 {
 	if (node == NULL)
 		return;
@@ -673,7 +677,7 @@ static void deparseOptDropBehavior(StringInfo str, DropBehavior behavior)
 }
 
 // "any_operator" in gram.y
-static void deparseAnyOperator(StringInfo str, List *op)
+void deparseAnyOperator(StringInfo str, List *op)
 {
 	Assert(isOp(strVal(llast(op))));
 	if (list_length(op) == 2)
@@ -1900,7 +1904,7 @@ static void deparseOptCollate(StringInfo str, List *l)
 }
 
 // "index_elem" in gram.y
-static void deparseIndexElem(StringInfo str, IndexElem* index_elem)
+void deparseIndexElem(StringInfo str, IndexElem* index_elem)
 {
 	if (index_elem->name != NULL)
 	{
@@ -3728,7 +3732,7 @@ static void deparseTypeCast(StringInfo str, TypeCast *type_cast, DeparseNodeCont
 	deparseTypeName(str, type_cast->typeName);
 }
 
-static void deparseTypeName(StringInfo str, TypeName *type_name)
+void deparseTypeName(StringInfo str, TypeName *type_name)
 {
 	ListCell *lc;
 	bool skip_typmods = false;
