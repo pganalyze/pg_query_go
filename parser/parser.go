@@ -16,6 +16,14 @@ PgQueryDeparseResult pg_query_deparse_protobuf_direct_args(void* data, unsigned 
 	return pg_query_deparse_protobuf(p);
 }
 
+// Avoid complexities dealing with C structs in Go
+PgQueryDeparseResult pg_query_deparse_node_protobuf_direct_args(int deparse_type, void* data, unsigned int len) {
+	PgQueryProtobuf p;
+	p.data = (char *) data;
+	p.len = len;
+	return pg_query_deparse_node_protobuf(deparse_type, p);
+}
+
 // Avoid inconsistent type behaviour in xxhash library
 uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
 	return XXH3_64bits_withSeed(data, len, seed);
@@ -24,6 +32,7 @@ uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
 import "C"
 
 import (
+	"errors"
 	"strings"
 	"unsafe"
 )
@@ -130,6 +139,28 @@ func DeparseFromProtobuf(input []byte) (result string, err error) {
 
 	if resultC.error != nil {
 		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = C.GoString(resultC.query)
+
+	return
+}
+
+// DeparseNodeFromProtobuf is the Bytebase implementation of deparse node.
+func DeparseNodeFromProtobuf(deparse_type int, input []byte) (result string, err error) {
+	inputC := C.CBytes(input)
+	defer C.free(inputC)
+
+	typeC := C.int(deparse_type)
+
+	resultC := C.pg_query_deparse_node_protobuf_direct_args(typeC, inputC, C.uint(len(input)))
+
+	defer C.pg_query_free_deparse_result(resultC)
+
+	if resultC.error != nil {
+		errMessage := C.GoString(resultC.error.message)
+		err = errors.New(errMessage)
 		return
 	}
 

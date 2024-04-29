@@ -116,6 +116,13 @@ PgQueryFingerprintResult pg_query_fingerprint_opts(const char* input, int parser
 PgQuerySplitResult pg_query_split_with_scanner(const char *input);
 PgQuerySplitResult pg_query_split_with_parser(const char *input);
 
+enum DeparseType{
+  deparse_type_expr,
+  deparse_type_exclusions,
+  deparse_type_data_type,
+};
+PgQueryDeparseResult pg_query_deparse_node_protobuf(enum DeparseType deparse_type, PgQueryProtobuf parse_tree);
+
 PgQueryDeparseResult pg_query_deparse_protobuf(PgQueryProtobuf parse_tree);
 
 void pg_query_free_normalize_result(PgQueryNormalizeResult result);
