@@ -69,6 +69,16 @@ func MakeSimpleRangeVarNode(relname string, location int32) *Node {
 	}
 }
 
+func MakeFullRangeVarWithoutAlias(schemaname string, relname string, location int32) *RangeVar {
+	return &RangeVar{
+		Schemaname:     schemaname,
+		Relname:        relname,
+		Inh:            true,
+		Relpersistence: "p",
+		Location:       location,
+	}
+}
+
 func MakeFullRangeVar(schemaname string, relname string, alias string, location int32) *RangeVar {
 	return &RangeVar{
 		Schemaname:     schemaname,
@@ -230,6 +240,19 @@ func MakeSimpleColumnDefNode(colname string, typeName *TypeName, constraints []*
 	}
 }
 
+func MakePrimaryKeyConstraintNodeWithKeys(keys []*Node, location int32) *Node {
+	return &Node{
+		Node: &Node_Constraint{
+			Constraint: &Constraint{
+				Contype:  ConstrType_CONSTR_PRIMARY,
+				Keys:     keys,
+				Location: location,
+			},
+		},
+	}
+
+}
+
 func MakePrimaryKeyConstraintNode(location int32) *Node {
 	return &Node{
 		Node: &Node_Constraint{
@@ -269,6 +292,29 @@ func MakeSimpleRangeFunctionNode(functions []*Node) *Node {
 		Node: &Node_RangeFunction{
 			RangeFunction: &RangeFunction{
 				Functions: functions,
+			},
+		},
+	}
+}
+
+func MakePartitionElemNode(elem string, location int32) *Node {
+	return &Node{
+		Node: &Node_PartitionElem{
+			PartitionElem: &PartitionElem{
+				Name:     elem,
+				Location: location,
+			},
+		},
+	}
+}
+
+func MakeTypeCastNode(arg *Node, typeName *TypeName, location int32) *Node {
+	return &Node{
+		Node: &Node_TypeCast{
+			TypeCast: &TypeCast{
+				Arg:      arg,
+				TypeName: typeName,
+				Location: location,
 			},
 		},
 	}

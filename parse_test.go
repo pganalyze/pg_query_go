@@ -711,3 +711,433 @@ func TestScan(t *testing.T) {
 		smokeTest(testCase.input)
 	}
 }
+
+var parseCreateStmtTestList = []struct {
+	input        string
+	expectedJSON string
+	expectedTree *pg_query.ParseResult
+}{
+	{
+		// 冷热分区表
+		`
+	create table public.t1_cold_hot
+	(
+		f1 int not null,
+		f2 timestamp not null,
+		f3 varchar(20),
+		primary key(f1)
+	)
+	partition by range (f2)
+	begin (timestamp without time zone '2017-01-01 0:0:0')
+	step (interval '12 month') partitions (4)
+	distribute by shard(f1,f2)
+	to group default_group cold_group;
+	`,
+		`{"version":160001,"stmts":[{"stmt":{"CreateStmt":{"relation":{"schemaname":"public","relname":"t1_cold_hot","inh":true,"relpersistence":"p","location":15},"tableElts":[{"ColumnDef":{"colname":"f1","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":42},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":46}}],"location":39}},{"ColumnDef":{"colname":"f2","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":61},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":71}}],"location":58}},{"ColumnDef":{"colname":"f3","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}],"typmods":[{"A_Const":{"ival":{"ival":20},"location":94}}],"typemod":-1,"location":86},"is_local":true,"location":83}},{"Constraint":{"contype":"CONSTR_PRIMARY","location":101,"keys":[{"String":{"sval":"f1"}}]}}],"partspec":{"strategy":"PARTITION_STRATEGY_RANGE","partParams":[{"PartitionElem":{"name":"f2","location":141}}],"interval":{"strategy":"i","startvalue":{"TypeCast":{"arg":{"A_Const":{"sval":{"sval":"2017-01-01 0:0:0"},"location":181}},"typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":153},"location":-1}},"step":{"TypeCast":{"arg":{"A_Const":{"sval":{"sval":"12 month"},"location":217}},"typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"interval"}}],"typemod":-1,"location":208},"location":-1}},"nPartitions":4},"location":121},"oncommit":"ONCOMMIT_NOOP","relkind":"(null)","distributeby":{"disttype":"DISTTYPE_SHARD","colname":[{"String":{"sval":"f1"}},{"String":{"sval":"f2"}}]},"subcluster":{"clustertype":"SUBCLUSTER_GROUP","members":[{"String":{"sval":"default_group"}},{"String":{"sval":"cold_group"}}]}}},"stmt_len":306}]}`,
+		&pg_query.ParseResult{
+			Version: int32(160001),
+			Stmts: []*pg_query.RawStmt{
+				{
+					Stmt: &pg_query.Node{
+						Node: &pg_query.Node_CreateStmt{
+							CreateStmt: &pg_query.CreateStmt{
+								Relation: pg_query.MakeFullRangeVarWithoutAlias("public", "t1_cold_hot", 15),
+								TableElts: []*pg_query.Node{
+									pg_query.MakeSimpleColumnDefNode(
+										"f1",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("int4"),
+											},
+											Typemod:  -1,
+											Location: 42,
+										},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(46),
+										},
+										39,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f2",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("timestamp"),
+											},
+											Typemod:  -1,
+											Location: 61,
+										},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(71),
+										},
+										58,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f3",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("varchar"),
+											},
+											Typmods: []*pg_query.Node{
+												pg_query.MakeAConstIntNode(20, 94),
+											},
+											Typemod:  -1,
+											Location: 86,
+										},
+										nil,
+										83,
+									),
+									pg_query.MakePrimaryKeyConstraintNodeWithKeys([]*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									}, 101),
+								},
+								Partspec: &pg_query.PartitionSpec{
+									Strategy: pg_query.PartitionStrategy_PARTITION_STRATEGY_RANGE,
+									PartParams: []*pg_query.Node{
+										pg_query.MakePartitionElemNode("f2", 141),
+									},
+									Interval: &pg_query.PartitionBy{
+										Strategy: "i",
+										Startvalue: pg_query.MakeTypeCastNode(pg_query.MakeAConstStrNode("2017-01-01 0:0:0", 181), &pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("timestamp"),
+											},
+											Typemod:  -1,
+											Location: 153,
+										}, -1),
+										Step: pg_query.MakeTypeCastNode(pg_query.MakeAConstStrNode("12 month", 217), &pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("interval"),
+											},
+											Typemod:  -1,
+											Location: 208,
+										}, -1),
+										NPartitions: 4,
+									},
+									Location: 121,
+								},
+								Oncommit: pg_query.OnCommitAction_ONCOMMIT_NOOP,
+								Relkind:  -1,
+								Distributeby: &pg_query.DistributeBy{
+									Disttype: pg_query.DistributionType_DISTTYPE_SHARD,
+									Colname: []*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+										pg_query.MakeStrNode("f2"),
+									},
+								},
+								Subcluster: &pg_query.PGXCSubCluster{
+									Clustertype: pg_query.PGXCSubClusterType_SUBCLUSTER_GROUP,
+									Members: []*pg_query.Node{
+										pg_query.MakeStrNode("default_group"),
+										pg_query.MakeStrNode("cold_group"),
+									},
+								},
+							},
+						},
+					},
+					StmtLen: 306,
+				},
+			},
+		},
+	},
+	{
+		// 复制表
+		`
+	create table public.t1_rep
+	(
+		f1 int not null,
+		f2 varchar(20),
+		primary key(f1)
+	)
+	distribute by replication
+	to group default_group;`,
+		`{"version":160001,"stmts":[{"stmt":{"CreateStmt":{"relation":{"schemaname":"public","relname":"t1_rep","inh":true,"relpersistence":"p","location":15},"tableElts":[{"ColumnDef":{"colname":"f1","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":37},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":41}}],"location":34}},{"ColumnDef":{"colname":"f2","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}],"typmods":[{"A_Const":{"ival":{"ival":20},"location":64}}],"typemod":-1,"location":56},"is_local":true,"location":53}},{"Constraint":{"contype":"CONSTR_PRIMARY","location":71,"keys":[{"String":{"sval":"f1"}}]}}],"oncommit":"ONCOMMIT_NOOP","relkind":"(null)","distributeby":{"disttype":"DISTTYPE_REPLICATION"},"subcluster":{"clustertype":"SUBCLUSTER_GROUP","members":[{"String":{"sval":"default_group"}}]}}},"stmt_len":140}]}`,
+		&pg_query.ParseResult{
+			Version: int32(160001),
+			Stmts: []*pg_query.RawStmt{
+				{
+					Stmt: &pg_query.Node{
+						Node: &pg_query.Node_CreateStmt{
+							CreateStmt: &pg_query.CreateStmt{
+								Relation: pg_query.MakeFullRangeVarWithoutAlias("public", "t1_rep", 15),
+								TableElts: []*pg_query.Node{
+									pg_query.MakeSimpleColumnDefNode(
+										"f1",
+										&pg_query.TypeName{
+											Location: 37,
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("int4"),
+											},
+											Typemod: -1},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(41),
+										},
+										34,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f2",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("varchar"),
+											},
+											Typmods: []*pg_query.Node{
+												pg_query.MakeAConstIntNode(20, 64),
+											},
+											Typemod:  -1,
+											Location: 56,
+										},
+										nil,
+										53,
+									),
+									pg_query.MakePrimaryKeyConstraintNodeWithKeys([]*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									}, 71),
+								},
+								Oncommit: pg_query.OnCommitAction_ONCOMMIT_NOOP,
+								Relkind:  -1,
+								Distributeby: &pg_query.DistributeBy{
+									Disttype: pg_query.DistributionType_DISTTYPE_REPLICATION,
+								},
+								Subcluster: &pg_query.PGXCSubCluster{
+									Clustertype: pg_query.PGXCSubClusterType_SUBCLUSTER_GROUP,
+									Members: []*pg_query.Node{
+										pg_query.MakeStrNode("default_group"),
+									},
+								},
+							},
+						},
+					},
+					StmtLen: 140,
+				},
+			},
+		},
+	},
+	{
+		// 普通表
+		`
+		create table public.t1
+		(
+			f1 int not null,
+			f2 varchar(20),
+			primary key(f1)
+		)
+		distribute by shard(f1)
+		to group default_group;
+		`,
+		`{"version":160001,"stmts":[{"stmt":{"CreateStmt":{"relation":{"schemaname":"public","relname":"t1","inh":true,"relpersistence":"p","location":16},"tableElts":[{"ColumnDef":{"colname":"f1","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":36},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":40}}],"location":33}},{"ColumnDef":{"colname":"f2","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}],"typmods":[{"A_Const":{"ival":{"ival":20},"location":64}}],"typemod":-1,"location":56},"is_local":true,"location":53}},{"Constraint":{"contype":"CONSTR_PRIMARY","location":72,"keys":[{"String":{"sval":"f1"}}]}}],"oncommit":"ONCOMMIT_NOOP","relkind":"(null)","distributeby":{"disttype":"DISTTYPE_SHARD","colname":[{"String":{"sval":"f1"}}]},"subcluster":{"clustertype":"SUBCLUSTER_GROUP","members":[{"String":{"sval":"default_group"}}]}}},"stmt_len":142}]}`,
+		&pg_query.ParseResult{
+			Version: int32(160001),
+			Stmts: []*pg_query.RawStmt{
+				{
+					Stmt: &pg_query.Node{
+						Node: &pg_query.Node_CreateStmt{
+							CreateStmt: &pg_query.CreateStmt{
+								Relation: pg_query.MakeFullRangeVarWithoutAlias("public", "t1", 16),
+								TableElts: []*pg_query.Node{
+									pg_query.MakeSimpleColumnDefNode(
+										"f1",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("int4"),
+											},
+											Typemod:  -1,
+											Location: 36,
+										},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(40),
+										},
+										33,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f2",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("varchar"),
+											},
+											Typmods: []*pg_query.Node{
+												pg_query.MakeAConstIntNode(20, 64),
+											},
+											Typemod:  -1,
+											Location: 56,
+										},
+										nil,
+										53,
+									),
+									pg_query.MakePrimaryKeyConstraintNodeWithKeys([]*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									}, 72),
+								},
+								Oncommit: pg_query.OnCommitAction_ONCOMMIT_NOOP,
+								Relkind:  -1,
+								Distributeby: &pg_query.DistributeBy{
+									Disttype: pg_query.DistributionType_DISTTYPE_SHARD,
+									Colname: []*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									},
+								},
+								Subcluster: &pg_query.PGXCSubCluster{
+									Clustertype: pg_query.PGXCSubClusterType_SUBCLUSTER_GROUP,
+									Members: []*pg_query.Node{
+										pg_query.MakeStrNode("default_group"),
+									},
+								},
+							},
+						},
+					},
+					StmtLen: 142,
+				},
+			},
+		},
+	},
+	{
+		// 分区表
+		`
+		create table public.t1_pt
+		(
+		 f1 int not null,
+		 f2 timestamp not null,
+		 f3 varchar(20),
+		 primary key(f1)
+		)
+		partition by range (f2)
+		begin (timestamp without time zone '2019-01-01 0:0:0')
+		step (interval '1 month') partitions (3)
+		distribute by shard(f1)
+		to group default_group;`,
+		`{"version":160001,"stmts":[{"stmt":{"CreateStmt":{"relation":{"schemaname":"public","relname":"t1_pt","inh":true,"relpersistence":"p","location":16},"tableElts":[{"ColumnDef":{"colname":"f1","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":39},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":43}}],"location":36}},{"ColumnDef":{"colname":"f2","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":59},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":69}}],"location":56}},{"ColumnDef":{"colname":"f3","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}],"typmods":[{"A_Const":{"ival":{"ival":20},"location":93}}],"typemod":-1,"location":85},"is_local":true,"location":82}},{"Constraint":{"contype":"CONSTR_PRIMARY","location":101,"keys":[{"String":{"sval":"f1"}}]}}],"partspec":{"strategy":"PARTITION_STRATEGY_RANGE","partParams":[{"PartitionElem":{"name":"f2","location":143}}],"interval":{"strategy":"i","startvalue":{"TypeCast":{"arg":{"A_Const":{"sval":{"sval":"2019-01-01 0:0:0"},"location":184}},"typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":156},"location":-1}},"step":{"TypeCast":{"arg":{"A_Const":{"sval":{"sval":"1 month"},"location":221}},"typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"interval"}}],"typemod":-1,"location":212},"location":-1}},"nPartitions":3},"location":123},"oncommit":"ONCOMMIT_NOOP","relkind":"(null)","distributeby":{"disttype":"DISTTYPE_SHARD","colname":[{"String":{"sval":"f1"}}]},"subcluster":{"clustertype":"SUBCLUSTER_GROUP","members":[{"String":{"sval":"default_group"}}]}}},"stmt_len":297}]}`,
+		&pg_query.ParseResult{
+			Version: int32(160001),
+			Stmts: []*pg_query.RawStmt{
+				{
+					Stmt: &pg_query.Node{
+						Node: &pg_query.Node_CreateStmt{
+							CreateStmt: &pg_query.CreateStmt{
+								Relation: pg_query.MakeFullRangeVarWithoutAlias("public", "t1_pt", 16),
+								TableElts: []*pg_query.Node{
+									pg_query.MakeSimpleColumnDefNode(
+										"f1",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("int4"),
+											},
+											Typemod:  -1,
+											Location: 39,
+										},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(43),
+										},
+										36,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f2",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("timestamp"),
+											},
+											Typemod:  -1,
+											Location: 59,
+										},
+										[]*pg_query.Node{
+											pg_query.MakeNotNullConstraintNode(69),
+										},
+										56,
+									),
+									pg_query.MakeSimpleColumnDefNode(
+										"f3",
+										&pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("varchar"),
+											},
+											Typmods: []*pg_query.Node{
+												pg_query.MakeAConstIntNode(20, 93),
+											},
+											Typemod:  -1,
+											Location: 85,
+										},
+										nil,
+										82,
+									),
+									pg_query.MakePrimaryKeyConstraintNodeWithKeys([]*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									}, 101),
+								},
+								Partspec: &pg_query.PartitionSpec{
+									Strategy: pg_query.PartitionStrategy_PARTITION_STRATEGY_RANGE,
+									PartParams: []*pg_query.Node{
+										pg_query.MakePartitionElemNode("f2", 143),
+									},
+									Interval: &pg_query.PartitionBy{
+										Strategy: "i",
+										Startvalue: pg_query.MakeTypeCastNode(pg_query.MakeAConstStrNode("2019-01-01 0:0:0", 184), &pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("timestamp"),
+											},
+											Typemod:  -1,
+											Location: 156,
+										}, -1),
+										Step: pg_query.MakeTypeCastNode(pg_query.MakeAConstStrNode("1 month", 221), &pg_query.TypeName{
+											Names: []*pg_query.Node{
+												pg_query.MakeStrNode("pg_catalog"),
+												pg_query.MakeStrNode("interval"),
+											},
+											Typemod:  -1,
+											Location: 212,
+										}, -1),
+										NPartitions: 3,
+									},
+									Location: 123,
+								},
+								Oncommit: pg_query.OnCommitAction_ONCOMMIT_NOOP,
+								Relkind:  -1,
+								Distributeby: &pg_query.DistributeBy{
+									Disttype: pg_query.DistributionType_DISTTYPE_SHARD,
+									Colname: []*pg_query.Node{
+										pg_query.MakeStrNode("f1"),
+									},
+								},
+								Subcluster: &pg_query.PGXCSubCluster{
+									Clustertype: pg_query.PGXCSubClusterType_SUBCLUSTER_GROUP,
+									Members: []*pg_query.Node{
+										pg_query.MakeStrNode("default_group"),
+									},
+								},
+							},
+						},
+					},
+					StmtLen: 297,
+				},
+			},
+		},
+	},
+}
+
+func TestCreateStmtParse(t *testing.T) {
+	for _, test := range parseCreateStmtTestList {
+		actualJSON, err := pg_query.ParseToJSON(test.input)
+		if err != nil {
+			t.Errorf("Parse(%s)\nerror %s\n\n", test.input, err)
+		} else if actualJSON != test.expectedJSON {
+			t.Errorf("Parse(%s)\nexpected %s\nactual %s\n\n", test.input, test.expectedJSON, actualJSON)
+		}
+
+		actualTree, err := pg_query.Parse(test.input)
+
+		if err != nil {
+			t.Errorf("protobuf error %s\n\n", err)
+		} else if diff := cmp.Diff(actualTree, test.expectedTree, protocmp.Transform()); diff != "" {
+			t.Errorf("protobuf unexpected difference:\n%v", diff)
+		}
+	}
+}
