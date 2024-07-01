@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 16-5.1.0
+LIB_PG_QUERY_TAG = TBase
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -29,7 +29,7 @@ $(LIBDIR): $(LIBDIRGZ)
 
 $(LIBDIRGZ):
 	mkdir -p $(LIB_TMPDIR)
-	curl -o $(LIBDIRGZ) https://codeload.github.com/pganalyze/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
+	curl -o $(LIBDIRGZ) https://codeload.github.com/taolx0/libpg_query/zip/refs/heads/$(LIB_PG_QUERY_TAG)
 
 update_source: $(LIBDIR)
 	rm -f parser/*.{c,h}
