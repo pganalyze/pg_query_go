@@ -31,7 +31,7 @@ $(LIBDIRGZ):
 	mkdir -p $(LIB_TMPDIR)
 	curl -o $(LIBDIRGZ) https://codeload.github.com/pganalyze/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
 
-update_source: $(LIBDIR)
+update_source: clean $(LIBDIR)
 	rm -f parser/*.{c,h}
 	rm -fr parser/include
 	# Reduce everything down to one directory
