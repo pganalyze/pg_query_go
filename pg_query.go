@@ -57,6 +57,11 @@ func Normalize(input string) (result string, err error) {
 	return parser.Normalize(input)
 }
 
+// Normalize the passed utility statement to replace constant values with $n parameter references
+func NormalizeUtility(input string) (result string, err error) {
+	return parser.NormalizeUtility(input)
+}
+
 // Fingerprint - Fingerprint the passed SQL statement to a hex string
 func Fingerprint(input string) (result string, err error) {
 	return parser.FingerprintToHexStr(input)
