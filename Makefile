@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = c492b8f6fa54811fb194b6964055bb7d480f8c91
+LIB_PG_QUERY_TAG = 43bad3cbcd1a70a30494b64f464c3f60579884ed
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
