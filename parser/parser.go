@@ -175,6 +175,24 @@ func Normalize(input string) (result string, err error) {
 	return
 }
 
+// Normalize the passed utility statement to replace constant values with ? characters
+func NormalizeUtility(input string) (result string, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_normalize_utility(inputC)
+	defer C.pg_query_free_normalize_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = C.GoString(resultC.normalized_query)
+
+	return
+}
+
 func SplitWithScanner(input string, trimSpace bool) (result []string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
