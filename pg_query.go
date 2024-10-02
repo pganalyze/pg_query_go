@@ -1,7 +1,7 @@
 package pg_query
 
 import (
-	proto "github.com/golang/protobuf/proto"
+	proto "google.golang.org/protobuf/proto"
 
 	"github.com/formalco/pg_query_go/v4/parser"
 )
