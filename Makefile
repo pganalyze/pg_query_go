@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 16-5.1.0
+LIB_PG_QUERY_TAG = 43bad3cbcd1a70a30494b64f464c3f60579884ed
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -31,7 +31,7 @@ $(LIBDIRGZ):
 	mkdir -p $(LIB_TMPDIR)
 	curl -o $(LIBDIRGZ) https://codeload.github.com/pganalyze/libpg_query/tar.gz/$(LIB_PG_QUERY_TAG)
 
-update_source: $(LIBDIR)
+update_source: clean $(LIBDIR)
 	rm -f parser/*.{c,h}
 	rm -fr parser/include
 	# Reduce everything down to one directory
