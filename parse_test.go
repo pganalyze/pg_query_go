@@ -672,6 +672,8 @@ var parsePlPgSQLTests = []struct {
 		`CREATE OR REPLACE FUNCTION cs_fmt_browser_version(v_name varchar,` +
 			`v_version varchar) ` +
 			`RETURNS varchar AS $$ ` +
+			`DECLARE ` +
+			`CURS1 CURSOR FOR SELECT 1;` +
 			`BEGIN ` +
 			`    IF v_version IS NULL THEN` +
 			`        RETURN v_name;` +
@@ -680,7 +682,7 @@ var parsePlPgSQLTests = []struct {
 			`END;` +
 			`$$ LANGUAGE plpgsql;`,
 		`[
-{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"UNKNOWN"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL","parseMode":2}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name","parseMode":2}}}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version","parseMode":2}}}}]}}}}
+{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"varchar\""}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"varchar\""}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"boolean\""}}}},{"PLpgSQL_var":{"refname":"curs1","lineno":1,"datatype":{"PLpgSQL_type":{"typname":"pg_catalog.refcursor"}},"cursor_explicit_expr":{"PLpgSQL_expr":{"query":"SELECT 1","parseMode":0}},"cursor_explicit_argrow":-1,"cursor_options":256}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL","parseMode":2}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name","parseMode":2}}}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version","parseMode":2}}}}]}}}}
 ]`,
 	},
 }
