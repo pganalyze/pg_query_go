@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v5?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v5)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v6?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v6)
 
 Go version of https://github.com/pganalyze/pg_query
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/pganalyze/pg_query_go/v5@latest
+go get github.com/pganalyze/pg_query_go/v6@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -44,7 +44,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -72,7 +72,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -98,7 +98,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -135,7 +135,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -173,27 +173,28 @@ go build -a
 go test -test.bench=. -test.run=XXX -test.benchtime 10s -test.benchmem -test.cpu=4
 goos: darwin
 goarch: arm64
-pkg: github.com/pganalyze/pg_query_go/v5
-BenchmarkParseSelect1-4                  	 2945772	      4234 ns/op	    1104 B/op	      20 allocs/op
-BenchmarkParseSelect2-4                  	  798510	     14618 ns/op	    2896 B/op	      59 allocs/op
-BenchmarkParseCreateTable-4              	  340454	     33893 ns/op	    8544 B/op	     151 allocs/op
-BenchmarkParseSelect1Parallel-4          	 9166213	      1332 ns/op	    1104 B/op	      20 allocs/op
-BenchmarkParseSelect2Parallel-4          	 2795493	      4329 ns/op	    2896 B/op	      59 allocs/op
-BenchmarkParseCreateTableParallel-4      	 1000000	     10325 ns/op	    8544 B/op	     151 allocs/op
-BenchmarkRawParseSelect1-4               	 3775879	      3186 ns/op	     192 B/op	       5 allocs/op
-BenchmarkRawParseSelect2-4               	 1000000	     10708 ns/op	     352 B/op	       5 allocs/op
-BenchmarkRawParseCreateTable-4           	  466368	     25662 ns/op	    1120 B/op	       5 allocs/op
-BenchmarkRawParseSelect1Parallel-4       	13386709	       894.4 ns/op	     192 B/op	       5 allocs/op
-BenchmarkRawParseSelect2Parallel-4       	 4188447	      2871 ns/op	     352 B/op	       5 allocs/op
-BenchmarkRawParseCreateTableParallel-4   	 1758555	      6809 ns/op	    1120 B/op	       5 allocs/op
-BenchmarkFingerprintSelect1-4            	 6139764	      1970 ns/op	     112 B/op	       4 allocs/op
-BenchmarkFingerprintSelect2-4            	 2813995	      4264 ns/op	     112 B/op	       4 allocs/op
-BenchmarkFingerprintCreateTable-4        	 1668691	      7194 ns/op	     112 B/op	       4 allocs/op
-BenchmarkNormalizeSelect1-4              	10068253	      1189 ns/op	      72 B/op	       4 allocs/op
-BenchmarkNormalizeSelect2-4              	 6039188	      1981 ns/op	     104 B/op	       4 allocs/op
-BenchmarkNormalizeCreateTable-4          	 4560278	      2636 ns/op	     184 B/op	       4 allocs/op
+pkg: github.com/pganalyze/pg_query_go/v6
+BenchmarkParseSelect1-4                          2874156              4186 ns/op            1040 B/op         18 allocs/op
+BenchmarkParseSelect2-4                           824781             14572 ns/op            2832 B/op         57 allocs/op
+BenchmarkParseCreateTable-4                       351037             34591 ns/op            8480 B/op        149 allocs/op
+BenchmarkParseSelect1Parallel-4                  9027080              1320 ns/op            1040 B/op         18 allocs/op
+BenchmarkParseSelect2Parallel-4                  2745390              4369 ns/op            2832 B/op         57 allocs/op
+BenchmarkParseCreateTableParallel-4              1000000             10487 ns/op            8480 B/op        149 allocs/op
+BenchmarkRawParseSelect1-4                       3778771              3183 ns/op             128 B/op          3 allocs/op
+BenchmarkRawParseSelect2-4                       1000000             10985 ns/op             288 B/op          3 allocs/op
+BenchmarkRawParseCreateTable-4                    460714             26397 ns/op            1056 B/op          3 allocs/op
+BenchmarkRawParseSelect1Parallel-4              13338790               902.7 ns/op           128 B/op          3 allocs/op
+BenchmarkRawParseSelect2Parallel-4               4060762              2956 ns/op             288 B/op          3 allocs/op
+BenchmarkRawParseCreateTableParallel-4           1709883              7001 ns/op            1056 B/op          3 allocs/op
+BenchmarkFingerprintSelect1-4                    6394882              1875 ns/op              48 B/op          2 allocs/op
+BenchmarkFingerprintSelect2-4                    2865390              4174 ns/op              48 B/op          2 allocs/op
+BenchmarkFingerprintCreateTable-4                1688920              7143 ns/op              48 B/op          2 allocs/op
+BenchmarkNormalizeSelect1-4                     10604962              1133 ns/op              32 B/op          2 allocs/op
+BenchmarkNormalizeSelect2-4                      6226136              1938 ns/op              64 B/op          2 allocs/op
+BenchmarkNormalizeCreateTable-4                  4542387              2635 ns/op             144 B/op          2 allocs/op
 PASS
-ok  	github.com/pganalyze/pg_query_go/v5	257.324s
+ok      github.com/pganalyze/pg_query_go/v6     258.376s
+
 ```
 
 Note that allocation counts exclude the cgo portion, so they are higher than shown here.
