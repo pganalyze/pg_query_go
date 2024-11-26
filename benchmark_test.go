@@ -6,8 +6,8 @@ package pg_query_test
 import (
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
-	"github.com/pganalyze/pg_query_go/v5/parser"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
+	"github.com/pganalyze/pg_query_go/v6/parser"
 )
 
 // Prevent compiler optimizations by assigning all results to global variables

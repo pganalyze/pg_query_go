@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v5?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v5)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v6?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v6)
 
 Go version of https://github.com/pganalyze/pg_query
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/pganalyze/pg_query_go/v5@latest
+go get github.com/pganalyze/pg_query_go/v6@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -44,7 +44,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -72,7 +72,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -98,7 +98,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
@@ -135,7 +135,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	pg_query "github.com/pganalyze/pg_query_go/v6"
 )
 
 func main() {
