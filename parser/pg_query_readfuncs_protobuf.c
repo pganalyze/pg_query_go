@@ -175,3 +175,19 @@ List * pg_query_protobuf_to_nodes(PgQueryProtobuf protobuf)
 
 	return list;
 }
+
+
+Node * pg_query_protobuf_to_node(PgQueryProtobuf protobuf)
+{
+	PgQuery__Node * result;
+
+	result = pg_query__node__unpack(NULL, protobuf.len, (const uint8_t *) protobuf.data);
+
+	// TODO: Handle this by returning an error instead
+	Assert(result != NULL);
+
+	// TODO: Handle this by returning an error instead
+	Assert(result->version == PG_VERSION_NUM);
+
+	return _readNode(result);
+}

@@ -7,5 +7,6 @@
 #include "nodes/pg_list.h"
 
 List * pg_query_protobuf_to_nodes(PgQueryProtobuf protobuf);
+Node * pg_query_protobuf_to_node(PgQueryProtobuf protobuf);
 
 #endif

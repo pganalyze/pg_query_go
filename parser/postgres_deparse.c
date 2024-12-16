@@ -135,6 +135,7 @@ static void deparseIntoClause(StringInfo str, IntoClause *into_clause);
 static void deparseRangeVar(StringInfo str, RangeVar *range_var, DeparseNodeContext context);
 static void deparseResTarget(StringInfo str, ResTarget *res_target, DeparseNodeContext context);
 void deparseRawStmt(StringInfo str, RawStmt *raw_stmt);
+void deparseExpr(StringInfo str, Node *node, DeparseNodeContext context);
 static void deparseAlias(StringInfo str, Alias *alias);
 static void deparseWindowDef(StringInfo str, WindowDef* window_def);
 static void deparseColumnRef(StringInfo str, ColumnRef* column_ref);
@@ -308,7 +309,7 @@ static void deparseFuncExpr(StringInfo str, Node *node, DeparseNodeContext conte
 static void deparseCExpr(StringInfo str, Node *node);
 
 // "a_expr" in gram.y
-static void deparseExpr(StringInfo str, Node *node, DeparseNodeContext context)
+void deparseExpr(StringInfo str, Node *node, DeparseNodeContext context)
 {
 	if (node == NULL)
 		return;

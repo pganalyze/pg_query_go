@@ -5,5 +5,6 @@
 #include "nodes/parsenodes.h"
 
 extern void deparseRawStmt(StringInfo str, RawStmt *raw_stmt);
+extern void deparseExpr(StringInfo str, Node *node);
 
 #endif
