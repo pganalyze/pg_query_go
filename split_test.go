@@ -6,7 +6,7 @@ package pg_query_test
 import (
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/xataio/pg_query_go/v6"
 )
 
 var splitTests = []struct {
