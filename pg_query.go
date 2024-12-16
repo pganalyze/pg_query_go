@@ -47,6 +47,17 @@ func Deparse(tree *ParseResult) (output string, err error) {
 	return
 }
 
+// Deparses a an expression into a SQL statement
+func DeparseExpr(node *Node) (output string, err error) {
+	protobufNode, err := proto.Marshal(node)
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseExprFromProtobuf(protobufNode)
+	return
+}
+
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)

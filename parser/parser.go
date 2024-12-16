@@ -16,6 +16,14 @@ PgQueryDeparseResult pg_query_deparse_protobuf_direct_args(void* data, unsigned 
 	return pg_query_deparse_protobuf(p);
 }
 
+// Avoid complexities dealing with C structs in Go
+PgQueryDeparseResult pg_query_deparse_expr_protobuf_direct_args(void* data, unsigned int len) {
+	PgQueryProtobuf p;
+	p.data = (char *) data;
+	p.len = len;
+	return pg_query_deparse_expr_protobuf(p);
+}
+
 // Avoid inconsistent type behaviour in xxhash library
 uint64_t pg_query_hash_xxh3_64(void *data, size_t len, size_t seed) {
 	return XXH3_64bits_withSeed(data, len, seed);
@@ -125,6 +133,24 @@ func DeparseFromProtobuf(input []byte) (result string, err error) {
 	defer C.free(inputC)
 
 	resultC := C.pg_query_deparse_protobuf_direct_args(inputC, C.uint(len(input)))
+
+	defer C.pg_query_free_deparse_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = C.GoString(resultC.query)
+
+	return
+}
+
+func DeparseExprFromProtobuf(input []byte) (result string, err error) {
+	inputC := C.CBytes(input)
+	defer C.free(inputC)
+
+	resultC := C.pg_query_deparse_expr_protobuf_direct_args(inputC, C.uint(len(input)))
 
 	defer C.pg_query_free_deparse_result(resultC)
 
