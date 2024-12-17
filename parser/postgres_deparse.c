@@ -155,7 +155,7 @@ static void deparseRangeFunction(StringInfo str, RangeFunction *range_func);
 static void deparseAArrayExpr(StringInfo str, A_ArrayExpr * array_expr);
 static void deparseRowExpr(StringInfo str, RowExpr *row_expr);
 static void deparseTypeCast(StringInfo str, TypeCast *type_cast, DeparseNodeContext context);
-static void deparseTypeName(StringInfo str, TypeName *type_name);
+void deparseTypeName(StringInfo str, TypeName *type_name);
 static void deparseIntervalTypmods(StringInfo str, TypeName *type_name);
 static void deparseNullTest(StringInfo str, NullTest *null_test);
 static void deparseCaseExpr(StringInfo str, CaseExpr *case_expr);
@@ -3793,7 +3793,7 @@ static void deparseTypeCast(StringInfo str, TypeCast *type_cast, DeparseNodeCont
 	deparseTypeName(str, type_cast->typeName);
 }
 
-static void deparseTypeName(StringInfo str, TypeName *type_name)
+void deparseTypeName(StringInfo str, TypeName *type_name)
 {
 	ListCell *lc;
 	bool skip_typmods = false;
