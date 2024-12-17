@@ -105,17 +105,17 @@ PgQueryDeparseResult pg_query_deparse_typename_protobuf(PgQueryProtobuf expr)
 	PgQueryDeparseResult result = {0};
 	StringInfoData str;
 	MemoryContext ctx;
-  Node *node;
+  TypeName *typename;
 
 	ctx = pg_query_enter_memory_context();
 
 	PG_TRY();
 	{
-		node = pg_query_protobuf_to_node(expr);
+		typename = pg_query_protobuf_to_typename(expr);
 
 		initStringInfo(&str);
 
-    deparseTypeName(&str, castNode(TypeName, node));
+    deparseTypeName(&str, typename);
 
 		result.query = strdup(str.data);
 	}

@@ -58,6 +58,16 @@ func DeparseExpr(node *Node) (output string, err error) {
 	return
 }
 
+func DeparseTypeName(typeName *TypeName) (output string, err error) {
+	protobufNode, err := proto.Marshal(typeName)
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseTypeNameFromProtobuf(protobufNode)
+	return
+}
+
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)

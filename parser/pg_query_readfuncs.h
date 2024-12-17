@@ -5,8 +5,10 @@
 
 #include "postgres.h"
 #include "nodes/pg_list.h"
+#include "nodes/parsenodes.h"
 
 List * pg_query_protobuf_to_nodes(PgQueryProtobuf protobuf);
 Node * pg_query_protobuf_to_node(PgQueryProtobuf protobuf);
+TypeName * pg_query_protobuf_to_typename(PgQueryProtobuf protobuf);
 
 #endif
