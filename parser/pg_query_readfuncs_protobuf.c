@@ -206,3 +206,18 @@ TypeName * pg_query_protobuf_to_typename(PgQueryProtobuf protobuf)
 
     return _readTypeName(result);
 }
+
+List * pg_query_protobuf_to_list(PgQueryProtobuf protobuf)
+{
+    PgQuery__List * result;
+
+    result = pg_query__list__unpack(NULL, protobuf.len, (const uint8_t *) protobuf.data);
+
+    // TODO: Handle this by returning an error instead
+    Assert(result != NULL);
+
+    // TODO: Handle this by returning an error instead
+    Assert(result->version == PG_VERSION_NUM);
+
+    return _readList(result);
+}

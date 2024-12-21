@@ -1543,7 +1543,7 @@ static void deparseAlterIdentityColumnOptionList(StringInfo str, List *l)
 }
 
 // "reloptions" in gram.y
-static void deparseRelOptions(StringInfo str, List *l)
+void deparseRelOptions(StringInfo str, List *l)
 {
 	ListCell *lc = NULL;
 
