@@ -692,7 +692,7 @@ static void deparseOptSeqOptList(StringInfo str, List *options)
 }
 
 // "OptParenthesizedSeqOptList" in gram.y
-static void deparseOptParenthesizedSeqOptList(StringInfo str, List *options)
+void deparseOptParenthesizedSeqOptList(StringInfo str, List *options)
 {
 	if (list_length(options) > 0)
 	{

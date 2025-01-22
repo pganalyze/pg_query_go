@@ -80,6 +80,18 @@ func DeparseRelOptions(relOptions []*Node) (output string, err error) {
 	return
 }
 
+func DeparseParenthesizedSeqOptList(seqOptions []*Node) (output string, err error) {
+	list := MakeListNode(seqOptions)
+
+	protobufNode, err := proto.Marshal(list.GetList())
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseParenthesizedSeqOptList(protobufNode)
+	return
+}
+
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)

@@ -121,6 +121,7 @@ PgQueryDeparseResult pg_query_deparse_protobuf(PgQueryProtobuf parse_tree);
 PgQueryDeparseResult pg_query_deparse_expr_protobuf(PgQueryProtobuf parse_tree);
 PgQueryDeparseResult pg_query_deparse_typename_protobuf(PgQueryProtobuf parse_tree);
 PgQueryDeparseResult pg_query_deparse_reloptions_protobuf(PgQueryProtobuf buf);
+PgQueryDeparseResult pg_query_deparse_parenthesized_seq_opt_list_protobuf(PgQueryProtobuf buf);
 
 void pg_query_free_normalize_result(PgQueryNormalizeResult result);
 void pg_query_free_scan_result(PgQueryScanResult result);
