@@ -9,5 +9,7 @@ extern void deparseExpr(StringInfo str, Node *node);
 extern void deparseTypeName(StringInfo str, TypeName *type_name);
 extern void deparseRelOptions(StringInfo str, List *l);
 extern void deparseOptParenthesizedSeqOptList(StringInfo str, List *l);
+extern void deparseIndexElem(StringInfo str, Node *node);
+extern void deparseAnyOperator(StringInfo str, List *l);
 
 #endif

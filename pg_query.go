@@ -92,6 +92,28 @@ func DeparseParenthesizedSeqOptList(seqOptions []*Node) (output string, err erro
 	return
 }
 
+func DeparseIndexElem(node *Node) (output string, err error) {
+	protobufNode, err := proto.Marshal(node)
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseIndexElem(protobufNode)
+	return
+}
+
+func DeparseAnyOperator(anyOp []*Node) (output string, err error) {
+	list := MakeListNode(anyOp)
+
+	protobufNode, err := proto.Marshal(list.GetList())
+	if err != nil {
+		return
+	}
+
+	output, err = parser.DeparseAnyOperator(protobufNode)
+	return
+}
+
 // ParsePlPgSqlToJSON - Parses the given PL/pgSQL function statement into a parse tree (JSON format)
 func ParsePlPgSqlToJSON(input string) (result string, err error) {
 	return parser.ParsePlPgSqlToJSON(input)

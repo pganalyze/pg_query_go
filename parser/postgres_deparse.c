@@ -167,7 +167,7 @@ static void deparseBooleanTest(StringInfo str, BooleanTest *boolean_test);
 static void deparseColumnDef(StringInfo str, ColumnDef *column_def);
 static void deparseInsertStmt(StringInfo str, InsertStmt *insert_stmt);
 static void deparseOnConflictClause(StringInfo str, OnConflictClause *on_conflict_clause);
-static void deparseIndexElem(StringInfo str, IndexElem* index_elem);
+void deparseIndexElem(StringInfo str, IndexElem* index_elem);
 static void deparseUpdateStmt(StringInfo str, UpdateStmt *update_stmt);
 static void deparseDeleteStmt(StringInfo str, DeleteStmt *delete_stmt);
 static void deparseLockingClause(StringInfo str, LockingClause *locking_clause);
@@ -717,7 +717,7 @@ static void deparseOptDropBehavior(StringInfo str, DropBehavior behavior)
 }
 
 // "any_operator" in gram.y
-static void deparseAnyOperator(StringInfo str, List *op)
+void deparseAnyOperator(StringInfo str, List *op)
 {
 	Assert(isOp(strVal(llast(op))));
 	if (list_length(op) == 2)
@@ -1947,7 +1947,7 @@ static void deparseOptCollate(StringInfo str, List *l)
 }
 
 // "index_elem" in gram.y
-static void deparseIndexElem(StringInfo str, IndexElem* index_elem)
+void deparseIndexElem(StringInfo str, IndexElem* index_elem)
 {
 	if (index_elem->name != NULL)
 	{
