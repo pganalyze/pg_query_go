@@ -1,0 +1,470 @@
+diff --git a/parser/include/gokeep.go b/parser/include/gokeep.go
+new file mode 100644
+index 0000000..c04672b
+--- /dev/null
++++ b/parser/include/gokeep.go
+@@ -0,0 +1,13 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
++
++import (
++	// Prevent go tooling from stripping out the c source files.
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/protobuf"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/protobuf-c"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/xxhash"
++)
+diff --git a/parser/include/postgres/access/gokeep.go b/parser/include/postgres/access/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/access/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/archive/gokeep.go b/parser/include/postgres/archive/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/archive/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/catalog/gokeep.go b/parser/include/postgres/catalog/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/catalog/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/commands/gokeep.go b/parser/include/postgres/commands/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/commands/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/common/gokeep.go b/parser/include/postgres/common/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/common/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/datatype/gokeep.go b/parser/include/postgres/datatype/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/datatype/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/executor/gokeep.go b/parser/include/postgres/executor/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/executor/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/foreign/gokeep.go b/parser/include/postgres/foreign/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/foreign/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/gokeep.go b/parser/include/postgres/gokeep.go
+new file mode 100644
+index 0000000..7959e27
+--- /dev/null
++++ b/parser/include/postgres/gokeep.go
+@@ -0,0 +1,35 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
++
++import (
++	// Prevent go tooling from stripping out the c source files.
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/access"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/archive"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/catalog"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/commands"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/common"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/datatype"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/executor"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/foreign"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/jit"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/lib"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/libpq"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/mb"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/nodes"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/optimizer"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/parser"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/partitioning"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/portability"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/postmaster"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/regex"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/replication"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/rewrite"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/storage"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/tcop"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/tsearch"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/utils"
++)
+diff --git a/parser/include/postgres/jit/gokeep.go b/parser/include/postgres/jit/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/jit/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/lib/gokeep.go b/parser/include/postgres/lib/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/lib/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/libpq/gokeep.go b/parser/include/postgres/libpq/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/libpq/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/mb/gokeep.go b/parser/include/postgres/mb/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/mb/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/nodes/gokeep.go b/parser/include/postgres/nodes/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/nodes/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/optimizer/gokeep.go b/parser/include/postgres/optimizer/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/optimizer/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/parser/gokeep.go b/parser/include/postgres/parser/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/parser/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/partitioning/gokeep.go b/parser/include/postgres/partitioning/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/partitioning/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/atomics/gokeep.go b/parser/include/postgres/port/atomics/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/atomics/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/gokeep.go b/parser/include/postgres/port/gokeep.go
+new file mode 100644
+index 0000000..afee5cd
+--- /dev/null
++++ b/parser/include/postgres/port/gokeep.go
+@@ -0,0 +1,12 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
++
++import (
++	// Prevent go tooling from stripping out the c source files.
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/atomics"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/win32"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/win32_msvc"
++)
+diff --git a/parser/include/postgres/port/win32/arpa/gokeep.go b/parser/include/postgres/port/win32/arpa/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/win32/arpa/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/win32/gokeep.go b/parser/include/postgres/port/win32/gokeep.go
+new file mode 100644
+index 0000000..ea04b25
+--- /dev/null
++++ b/parser/include/postgres/port/win32/gokeep.go
+@@ -0,0 +1,12 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
++
++import (
++	// Prevent go tooling from stripping out the c source files.
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/win32/arpa"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/win32/netinet"
++	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/port/win32/sys"
++)
+diff --git a/parser/include/postgres/port/win32/netinet/gokeep.go b/parser/include/postgres/port/win32/netinet/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/win32/netinet/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/win32/sys/gokeep.go b/parser/include/postgres/port/win32/sys/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/win32/sys/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/win32_msvc/gokeep.go b/parser/include/postgres/port/win32_msvc/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/win32_msvc/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/port/win32_msvc/sys/gokeep.go b/parser/include/postgres/port/win32_msvc/sys/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/port/win32_msvc/sys/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/portability/gokeep.go b/parser/include/postgres/portability/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/portability/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/postmaster/gokeep.go b/parser/include/postgres/postmaster/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/postmaster/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/regex/gokeep.go b/parser/include/postgres/regex/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/regex/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/replication/gokeep.go b/parser/include/postgres/replication/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/replication/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/rewrite/gokeep.go b/parser/include/postgres/rewrite/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/rewrite/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/storage/gokeep.go b/parser/include/postgres/storage/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/storage/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/tcop/gokeep.go b/parser/include/postgres/tcop/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/tcop/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/tsearch/gokeep.go b/parser/include/postgres/tsearch/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/tsearch/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/postgres/utils/gokeep.go b/parser/include/postgres/utils/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/postgres/utils/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/protobuf-c/gokeep.go b/parser/include/protobuf-c/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/protobuf-c/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/protobuf/gokeep.go b/parser/include/protobuf/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/protobuf/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep
+diff --git a/parser/include/xxhash/gokeep.go b/parser/include/xxhash/gokeep.go
+new file mode 100644
+index 0000000..66d9b71
+--- /dev/null
++++ b/parser/include/xxhash/gokeep.go
+@@ -0,0 +1,5 @@
++//go:build required
++// +build required
++
++// package gokeep prevents go tooling from stripping the c dependencies.
++package gokeep

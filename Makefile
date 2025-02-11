@@ -61,6 +61,7 @@ update_source: clean $(LIBDIR)
 	# Other support files
 	rm -fr testdata
 	cp -a $(LIBDIR)/testdata testdata
+	git apply gokeep.patch
 
 clean:
 	-@ $(RM) -r $(LIB_TMPDIR)
