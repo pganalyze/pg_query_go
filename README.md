@@ -17,21 +17,6 @@ Due to compiling parts of PostgreSQL, the first time you build against this libr
 
 Expect up to 3 minutes. You can use `go build -x` to see the progress.
 
-## Usage with Go modules
-
-When integrating this library using Go modules, and using a vendor/ directory,
-you will need to explicitly copy over some of the C build files, since Go does
-not copy files in subfolders without .go files whilst vendoring.
-
-The best way to do so is to use [modvendor](https://github.com/goware/modvendor),
-and vendor your modules like this:
-
-```
-go mod vendor
-go get -u github.com/goware/modvendor
-modvendor -copy="**/*.c **/*.h **/*.proto" -v
-```
-
 ## Usage
 
 ### Parsing a query into JSON
@@ -59,7 +44,7 @@ func main() {
 Running will output the query's parse tree as JSON:
 
 ```json
-{"version":160001,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}
+{"version":170004,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}
 ```
 
 ### Parsing a query into Go structs
@@ -210,6 +195,7 @@ See `benchmark_test.go` for details on the benchmarks.
 ## License
 
 Copyright (c) 2015, Lukas Fittl <lukas@fittl.com><br>
+Copyright (c) 2016-2025, Duboce Labs, Inc. (pganalyze) <team@pganalyze.com>
 pg_query_go is licensed under the 3-clause BSD license, see LICENSE file for details.
 
 This project includes code derived from the [PostgreSQL project](http://www.postgresql.org/),
