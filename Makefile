@@ -61,6 +61,7 @@ update_source: clean $(LIBDIR)
 	# Other support files
 	rm -fr testdata
 	cp -a $(LIBDIR)/testdata testdata
+	bash scripts/gokeep.sh
 
 clean:
 	-@ $(RM) -r $(LIB_TMPDIR)
