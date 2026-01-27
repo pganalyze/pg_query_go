@@ -336,10 +336,20 @@ static void RecordConstLocation(pgssConstLocations *jstate, int location)
 	}
 }
 
+static bool is_string_delimiter(char c)
+{
+	return c == '\'' || c == '$';
+}
+
+static bool is_special_string_start(char c)
+{
+	return c == 'b' || c == 'B' || c == 'x' || c == 'X' || c == 'n' || c == 'N' || c == 'e' || c == 'E';
+}
+
 static void record_defelem_arg_location(pgssConstLocations *jstate, int location)
 {
 	for (int i = location; i < jstate->query_len; i++) {
-		if (jstate->query[i] == '\'' || jstate->query[i] == '$') {
+		if (is_string_delimiter(jstate->query[i]) || (i + 1 < jstate->query_len && is_special_string_start(jstate->query[i]) && is_string_delimiter(jstate->query[i + 1]))) {
 			RecordConstLocation(jstate, i);
 			break;
 		}
@@ -406,6 +416,9 @@ static bool const_record_walker(Node *node, pgssConstLocations *jstate)
 		case T_CopyStmt:
 			if (jstate->normalize_utility_only) return false;
 			return const_record_walker((Node *) ((CopyStmt *) node)->query, jstate);
+		case T_CallStmt:
+			if (jstate->normalize_utility_only) return false;
+			return const_record_walker((Node *) ((CallStmt *) node)->funccall, jstate);
 		case T_ExplainStmt:
 			return const_record_walker((Node *) ((ExplainStmt *) node)->query, jstate);
 		case T_CreateRoleStmt:

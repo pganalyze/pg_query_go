@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 17-6.1.0
+LIB_PG_QUERY_TAG = 17-6.2.2
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
@@ -40,7 +40,7 @@ update_source: clean $(LIBDIR)
 	rm parser/pg_query_outfuncs_protobuf_cpp.cc
 	mv parser/postgres/* parser/
 	rmdir parser/postgres
-	cp -a $(LIBDIR)/pg_query.h parser/include
+	cp -a $(LIBDIR)/{pg_query.h,postgres_deparse.h} parser/include
 	# Protobuf definitions
 	mkdir -p $(PWD)/bin
 	GOBIN=$(PWD)/bin go install google.golang.org/protobuf/cmd/protoc-gen-go
