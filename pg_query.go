@@ -84,3 +84,11 @@ func SplitWithScanner(input string, trimSpace bool) (result []string, err error)
 func SplitWithParser(input string, trimSpace bool) (result []string, err error) {
 	return parser.SplitWithParser(input, trimSpace)
 }
+
+// IsUtilityStmt - Determines whether each statement in the query is a utility statement
+//
+// Returns a slice of booleans, one for each statement in the query.
+// true = utility statement / DDL, false = SELECT / INSERT / UPDATE / DELETE / MERGE
+func IsUtilityStmt(input string) (result []bool, err error) {
+	return parser.IsUtilityStmt(input)
+}

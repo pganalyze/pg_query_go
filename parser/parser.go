@@ -288,3 +288,24 @@ func HashXXH3_64(input []byte, seed uint64) (result uint64) {
 
 	return
 }
+
+// IsUtilityStmt - Determines whether each statement in the query is a utility statement
+func IsUtilityStmt(input string) (result []bool, err error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_is_utility_stmt(inputC)
+	defer C.pg_query_free_is_utility_result(resultC)
+
+	if resultC.error != nil {
+		err = newPgQueryError(resultC.error)
+		return
+	}
+
+	result = make([]bool, resultC.length)
+	for i, item := range unsafe.Slice(resultC.items, resultC.length) {
+		result[i] = bool(item)
+	}
+
+	return
+}
