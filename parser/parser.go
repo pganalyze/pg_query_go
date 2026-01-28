@@ -101,7 +101,7 @@ func ScanToProtobuf(input string) (result []byte, err error) {
 }
 
 // ParseToProtobuf - Parses the given SQL statement into a parse tree (Protobuf format)
-func ParseToProtobuf(input string) (result []byte, err error) {
+func ParseToProtobuf(input string) ([]byte, error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
@@ -110,13 +110,10 @@ func ParseToProtobuf(input string) (result []byte, err error) {
 	defer C.pg_query_free_protobuf_parse_result(resultC)
 
 	if resultC.error != nil {
-		err = newPgQueryError(resultC.error)
-		return
+		return nil, newPgQueryError(resultC.error)
 	}
 
-	result = []byte(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len)))
-
-	return
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
 }
 
 // DeparseFromProtobuf - Deparses the given Protobuf format parse tree into a SQL statement
