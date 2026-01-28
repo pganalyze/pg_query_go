@@ -2,7 +2,35 @@
 
 ## Unreleased
 
-* ...
+* Upgrade to libpg_query 17-6.2.2
+  - Add pg_query_is_utility_stmt function to determine if query text contains utility statements [#313](https://github.com/pganalyze/libpg_query/pull/313)
+    - This is a fast check for callers that don't actually need the parse tree itself
+  - Add fast summary information function (pg_query_summary)
+    - This allows gathering certain information, for example which tables are referenced in a
+      statement, without requiring a Protobuf serialization step in a higher level library
+    - Additionally this can also be used to perform "smart truncation" of a query by
+      omitting deeply nested information (e.g. a CTE definition, or a target list) whilst
+        preserving more essential parts like the FROM clause
+  - pg_query_normalize: Fix handling of special strings in DefElem
+    - This avoids a crash when running the normalize function on certain utility statements
+  - Deparser:
+    - Introduce pretty printing / formatting
+      - Introduces a new optional pretty print mode that emits a human readable
+        output. A detailed explanation of the mechanism can be found at the start
+        of the deparser file.
+    - Rework handling of expressions inside typecasts
+      - Prefer (..)::type syntax, unless we are already in a function call.
+    - Use lowercase keywords in xmlroot functions
+      - This matches other XML functions as well as the Postgres documentation,
+        since these are closer to function argument names than regular keywords.
+    - Fix deparse of ALTER TABLE a ALTER b SET STATISTICS DEFAULT
+    - Fix the null pointer dereference when handling identity columns
+  - Allow alternate definitions of NAMEDATALEN identifier limit
+    - This allows building libpg_query with an override of the built-time limit of
+      Postgres identifiers (typically 63 characters)
+  - Normalization: Add support for CALL statements
+  - Bump Postgres to 17.7 and switch back to release tarballs
+
 
 ## 6.1.0     2025-02-24
 

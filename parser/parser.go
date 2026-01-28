@@ -1,7 +1,7 @@
 package parser
 
 /*
-#cgo CFLAGS: -Iinclude -Iinclude/postgres -g -fstack-protector -std=gnu99 -Wno-unknown-warning-option
+#cgo CFLAGS: -Iinclude -Iinclude/postgres -g -fstack-protector -std=gnu99 -Wno-unknown-warning-option -Wno-typedef-redefinition
 #cgo windows CFLAGS: -Iinclude/postgres/port/win32
 #cgo LDFLAGS:
 #include "pg_query.h"
