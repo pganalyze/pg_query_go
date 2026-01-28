@@ -92,3 +92,17 @@ func SplitWithParser(input string, trimSpace bool) (result []string, err error) 
 func IsUtilityStmt(input string) (result []bool, err error) {
 	return parser.IsUtilityStmt(input)
 }
+
+// Summary - Extracts summary information from SQL statement
+//
+// Optionally, you can pass a positive numbered truncateLimit to return a
+// "smart" truncated version of the input statement that is at most limit length.
+func Summary(input string, truncateLimit int) (result *SummaryResult, err error) {
+	protobufSummary, err := parser.SummaryToProtobuf(input, truncateLimit)
+	if err != nil {
+		return
+	}
+	result = &SummaryResult{}
+	err = proto.Unmarshal(protobufSummary, result)
+	return
+}
