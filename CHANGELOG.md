@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+* ...
+
+
+## 6.2.2     2026-01-27
+
 * Upgrade to libpg_query 17-6.2.2
-  - Add pg_query_is_utility_stmt function to determine if query text contains utility statements [#313](https://github.com/pganalyze/libpg_query/pull/313)
+  - Add pg_query_is_utility_stmt function to determine if query text contains utility statements
     - This is a fast check for callers that don't actually need the parse tree itself
   - Add fast summary information function (pg_query_summary)
     - This allows gathering certain information, for example which tables are referenced in a
@@ -30,6 +35,8 @@
       Postgres identifiers (typically 63 characters)
   - Normalization: Add support for CALL statements
   - Bump Postgres to 17.7 and switch back to release tarballs
+* Avoid conflicts with other cgo libraries utilizing xxhash by using XXH_NAMESPACE [#144](https://github.com/pganalyze/pg_query_go/pull/144)
+* Remove redundant copy of result in ParseToProtobuf [#139](https://github.com/pganalyze/pg_query_go/pull/139)
 
 
 ## 6.1.0     2025-02-24
