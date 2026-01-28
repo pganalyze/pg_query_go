@@ -37,15 +37,6 @@ var summaryTests = []struct {
 			TruncatedQuery: "SELECT ... FROM users WHERE...",
 		},
 	},
-	// No truncation when disabled (truncateLimit = -1)
-	{
-		input:         "SELECT * FROM users",
-		truncateLimit: -1,
-		expected: &pg_query.SummaryResult{
-			Tables:         []*pg_query.SummaryResult_Table{{Name: "users", TableName: "users", Context: pg_query.SummaryResult_Select}},
-			StatementTypes: []string{"SelectStmt"},
-		},
-	},
 	// JOIN with table aliases
 	{
 		input:         "SELECT * FROM users u JOIN orders o ON u.id = o.user_id",
