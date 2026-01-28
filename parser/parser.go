@@ -309,3 +309,18 @@ func IsUtilityStmt(input string) (result []bool, err error) {
 
 	return
 }
+
+// SummaryToProtobuf - Extracts summary information from SQL statement
+func SummaryToProtobuf(input string, truncateLimit int) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_summary(inputC, C.int(0), C.int(truncateLimit))
+	defer C.pg_query_free_summary_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.summary.data, C.int(resultC.summary.len))), nil
+}
