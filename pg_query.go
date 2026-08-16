@@ -36,6 +36,62 @@ func Parse(input string) (tree *ParseResult, err error) {
 	return
 }
 
+// ParsePlPgSqlExpr parses a standalone PL/pgSQL expression (as opposed to a full SQL
+// statement) into a parse tree (Go struct format). Use this for text taken from a
+// PLpgSQL_expr node's "query" field where parseMode is RAW_PARSE_PLPGSQL_EXPR (2) —
+// such text is not valid input to Parse, since it isn't a complete SQL statement.
+func ParsePlPgSqlExpr(input string) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParsePlPgSqlExprToProtobuf(input)
+	if err != nil {
+		return
+	}
+
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
+	return
+}
+
+// ParsePlPgSqlAssign1 parses a PL/pgSQL assignment statement ("target := expr") whose
+// target is a single, undotted name, using RAW_PARSE_PLPGSQL_ASSIGN1 (parseMode 3). The
+// resulting top-level statement is a PLAssignStmt: its Val field holds the right-hand
+// side as an ordinary *SelectStmt, and its Name/Indirection fields hold the target.
+func ParsePlPgSqlAssign1(input string) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParsePlPgSqlAssign1ToProtobuf(input)
+	if err != nil {
+		return
+	}
+
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
+	return
+}
+
+// ParsePlPgSqlAssign2 is ParsePlPgSqlAssign1 for a two-part dotted target
+// ("rec.field := expr"), using RAW_PARSE_PLPGSQL_ASSIGN2 (parseMode 4).
+func ParsePlPgSqlAssign2(input string) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParsePlPgSqlAssign2ToProtobuf(input)
+	if err != nil {
+		return
+	}
+
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
+	return
+}
+
+// ParsePlPgSqlAssign3 is ParsePlPgSqlAssign1 for a three-part dotted target, using
+// RAW_PARSE_PLPGSQL_ASSIGN3 (parseMode 5).
+func ParsePlPgSqlAssign3(input string) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParsePlPgSqlAssign3ToProtobuf(input)
+	if err != nil {
+		return
+	}
+
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
+	return
+}
+
 // Deparses a given Go parse tree into a SQL statement
 func Deparse(tree *ParseResult) (output string, err error) {
 	protobufTree, err := proto.Marshal(tree)
