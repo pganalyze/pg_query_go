@@ -506,7 +506,21 @@ dump_return(StringInfo out, PLpgSQL_stmt_return *node)
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
 	WRITE_EXPR_FIELD(expr);
-	//WRITE_INT_FIELD(retvarno);
+	/*
+	 * retvarno defaults to -1 and is only set (to a >= 0 datum index,
+	 * possibly 0 for the first-declared variable) when the compiler takes
+	 * the "simple variable RETURN" fast path and leaves expr NULL — the
+	 * plain WRITE_INT_FIELD "!= 0" convention used everywhere else in this
+	 * file would silently drop a genuine dno of 0, and *always* drops it
+	 * here since expr's absence is the only other signal a consumer has.
+	 * Without this, two functions differing only in which already-declared
+	 * bare variable they return (e.g. "RETURN a;" vs "RETURN b;") serialize
+	 * to byte-identical JSON whenever expr is empty, since retvarno was
+	 * never emitted at all.
+	 */
+	if (node->retvarno >= 0) {
+		appendStringInfo(out, "\"retvarno\":%d,", node->retvarno);
+	}
 }
 
 static void
@@ -516,7 +530,10 @@ dump_return_next(StringInfo out, PLpgSQL_stmt_return_next *node)
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
 	WRITE_EXPR_FIELD(expr);
-	//WRITE_INT_FIELD(retvarno);
+	/* See dump_return's identical retvarno note above. */
+	if (node->retvarno >= 0) {
+		appendStringInfo(out, "\"retvarno\":%d,", node->retvarno);
+	}
 }
 
 static void
