@@ -245,8 +245,15 @@ func MakeNotNullConstraintNode(location int32) *Node {
 	return &Node{
 		Node: &Node_Constraint{
 			Constraint: &Constraint{
-				Contype:  ConstrType_CONSTR_NOTNULL,
-				Location: location,
+				Contype: ConstrType_CONSTR_NOTNULL,
+				// PostgreSQL 18's parser now sets both flags true by
+				// default for a plain NOT NULL constraint (no ENFORCED/NOT
+				// ENFORCED or NOT VALID clause given) — omitting either
+				// clause means ENFORCED/initially valid, matching every
+				// other constraint kind's existing default.
+				IsEnforced:     true,
+				InitiallyValid: true,
+				Location:       location,
 			},
 		},
 	}

@@ -116,6 +116,75 @@ func ParseToProtobuf(input string) ([]byte, error) {
 	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
 }
 
+// ParsePlPgSqlExprToProtobuf - Parses a standalone PL/pgSQL expression (as opposed to a full
+// SQL statement) into a parse tree (Protobuf format), e.g. text taken from a PLpgSQL_expr
+// node's "query" field where parseMode is RAW_PARSE_PLPGSQL_EXPR.
+func ParsePlPgSqlExprToProtobuf(input string) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.PG_QUERY_PARSE_PLPGSQL_EXPR)
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
+}
+
+// ParsePlPgSqlAssign1ToProtobuf - Parses a PL/pgSQL assignment statement ("target := expr")
+// whose target is a single, undotted name into a parse tree (Protobuf format).
+func ParsePlPgSqlAssign1ToProtobuf(input string) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.PG_QUERY_PARSE_PLPGSQL_ASSIGN1)
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
+}
+
+// ParsePlPgSqlAssign2ToProtobuf - Same as ParsePlPgSqlAssign1ToProtobuf, for a two-part
+// dotted target ("rec.field := expr").
+func ParsePlPgSqlAssign2ToProtobuf(input string) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.PG_QUERY_PARSE_PLPGSQL_ASSIGN2)
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
+}
+
+// ParsePlPgSqlAssign3ToProtobuf - Same as ParsePlPgSqlAssign1ToProtobuf, for a three-part
+// dotted target.
+func ParsePlPgSqlAssign3ToProtobuf(input string) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.PG_QUERY_PARSE_PLPGSQL_ASSIGN3)
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
+}
+
 // DeparseFromProtobuf - Deparses the given Protobuf format parse tree into a SQL statement
 func DeparseFromProtobuf(input []byte) (result string, err error) {
 	inputC := C.CBytes(input)

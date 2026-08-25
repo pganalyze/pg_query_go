@@ -94,6 +94,7 @@
 static void dump_record(StringInfo out, PLpgSQL_rec *stmt);
 static void dump_row(StringInfo out, PLpgSQL_row *stmt);
 static void dump_var(StringInfo out, PLpgSQL_var *stmt);
+static void dump_promise(StringInfo out, PLpgSQL_var *stmt);
 static void dump_variable(StringInfo out, PLpgSQL_variable *stmt);
 static void dump_record_field(StringInfo out, PLpgSQL_recfield *node);
 static void dump_stmt(StringInfo out, PLpgSQL_stmt *stmt);
@@ -506,7 +507,21 @@ dump_return(StringInfo out, PLpgSQL_stmt_return *node)
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
 	WRITE_EXPR_FIELD(expr);
-	//WRITE_INT_FIELD(retvarno);
+	/*
+	 * retvarno defaults to -1 and is only set (to a >= 0 datum index,
+	 * possibly 0 for the first-declared variable) when the compiler takes
+	 * the "simple variable RETURN" fast path and leaves expr NULL — the
+	 * plain WRITE_INT_FIELD "!= 0" convention used everywhere else in this
+	 * file would silently drop a genuine dno of 0, and *always* drops it
+	 * here since expr's absence is the only other signal a consumer has.
+	 * Without this, two functions differing only in which already-declared
+	 * bare variable they return (e.g. "RETURN a;" vs "RETURN b;") serialize
+	 * to byte-identical JSON whenever expr is empty, since retvarno was
+	 * never emitted at all.
+	 */
+	if (node->retvarno >= 0) {
+		appendStringInfo(out, "\"retvarno\":%d,", node->retvarno);
+	}
 }
 
 static void
@@ -516,7 +531,10 @@ dump_return_next(StringInfo out, PLpgSQL_stmt_return_next *node)
 
 	WRITE_INT_FIELD(lineno, lineno, lineno);
 	WRITE_EXPR_FIELD(expr);
-	//WRITE_INT_FIELD(retvarno);
+	/* See dump_return's identical retvarno note above. */
+	if (node->retvarno >= 0) {
+		appendStringInfo(out, "\"retvarno\":%d,", node->retvarno);
+	}
 }
 
 static void
@@ -660,6 +678,9 @@ dump_function(StringInfo out, PLpgSQL_function *node)
 			case PLPGSQL_DTYPE_RECFIELD:
 				dump_record_field(out, (PLpgSQL_recfield *) d);
 				break;
+			case PLPGSQL_DTYPE_PROMISE:
+				dump_promise(out, (PLpgSQL_var *) d);
+				break;
 			default:
 				elog(WARNING, "could not dump unrecognized dtype: %d",
 					 (int) d->dtype);
@@ -687,6 +708,27 @@ dump_var(StringInfo out, PLpgSQL_var *node)
 	WRITE_EXPR_FIELD(cursor_explicit_expr);
 	WRITE_INT_FIELD(cursor_explicit_argrow, cursor_explicit_argrow, cursor_explicit_argrow);
 	WRITE_INT_FIELD(cursor_options, cursor_options, cursor_options);
+}
+
+/*
+ * A "promise" datum (dtype PLPGSQL_DTYPE_PROMISE) is a PLpgSQL_var whose
+ * dtype tag was overwritten by plpgsql_build_variable's caller — same
+ * struct layout, just distinguished by the promise field being non-NONE
+ * (e.g. every trigger function's TG_NAME/TG_WHEN/TG_OP/etc., built
+ * unconditionally at compile time regardless of whether the function body
+ * ever references them by name). Reuses dump_var for every field a promise
+ * var shares with a regular one, then appends which built-in it is —
+ * without this case, PLPGSQL_DTYPE_PROMISE fell through dump_function's
+ * switch default (an elog(WARNING), no output), leaving that datum's `{`
+ * with no matching content before the loop's own unconditional "}}," —
+ * silently corrupting the surrounding JSON array for every trigger
+ * function's "datums" list, not just the affected entry.
+ */
+static void
+dump_promise(StringInfo out, PLpgSQL_var *node)
+{
+	dump_var(out, node);
+	WRITE_ENUM_FIELD(promise, promise, promise);
 }
 
 static void

@@ -37,12 +37,17 @@ var splitTests = []struct {
 		},
 	},
 	{
+		// PostgreSQL 18's raw parser no longer includes leading whitespace
+		// in the first statement's reported stmt_location (confirmed by
+		// direct comparison against the pre-upgrade PG17 parser, which
+		// preserved it) — SplitWithScanner's own independent
+		// implementation, tested just below, still does.
 		name:      "splitWithParser - basic split, no trim",
 		splitFunc: pg_query.SplitWithParser,
 		input:     "   select * from a;select * from b;",
 		trimSpace: false,
 		expected: []string{
-			"   select * from a",
+			"select * from a",
 			"select * from b",
 		},
 	},

@@ -16,7 +16,7 @@ benchmark:
 
 # --- Below only needed for releasing new versions
 
-LIB_PG_QUERY_TAG = 17-6.2.2
+LIB_PG_QUERY_TAG = 18.0.0
 
 root_dir := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 LIB_TMPDIR = $(root_dir)/tmp
