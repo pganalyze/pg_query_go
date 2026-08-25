@@ -693,6 +693,25 @@ var parsePlPgSQLTests = []struct {
 {"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"varchar"}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"varchar"}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"bool"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL","parseMode":2}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"retvarno":0}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version","parseMode":2}}}}]}}}}
 ]`,
 	},
+	// TestParsePlPgSQL/trigger-function: regression guard for a PROMISE-dtype
+	// bug found while verifying the PG18 upgrade. Every trigger function
+	// unconditionally gets 10 built-in TG_* datums (tg_name/tg_when/
+	// tg_level/tg_op/tg_relid/tg_relname/tg_table_name/tg_table_schema/
+	// tg_nargs/tg_argv — tg_relname is a legacy alias for tg_table_name,
+	// sharing its promise code) compiled in with dtype PLPGSQL_DTYPE_PROMISE,
+	// regardless of whether the function body references them by name (PG17
+	// only added them lazily on first reference — confirmed by comparing
+	// against the pre-upgrade parser directly). dump_function's switch had
+	// no case for that dtype, so it silently emitted no content for each of
+	// those 10 datums while still closing their JSON object — corrupting
+	// the entire surrounding array for every trigger function, not just an
+	// edge case. See dump_promise in pg_query_json_plpgsql.c.
+	{
+		`CREATE FUNCTION audit_trg() RETURNS trigger AS $$ BEGIN RETURN NEW; END; $$ LANGUAGE plpgsql;`,
+		`[
+{"PLpgSQL_function":{"old_varno":1,"datums":[{"PLpgSQL_rec":{"refname":"new"}},{"PLpgSQL_rec":{"refname":"old","dno":1}},{"PLpgSQL_var":{"refname":"tg_name","datatype":{"PLpgSQL_type":{"typname":"name"}},"promise":1}},{"PLpgSQL_var":{"refname":"tg_when","datatype":{"PLpgSQL_type":{"typname":"text"}},"promise":2}},{"PLpgSQL_var":{"refname":"tg_level","datatype":{"PLpgSQL_type":{"typname":"text"}},"promise":3}},{"PLpgSQL_var":{"refname":"tg_op","datatype":{"PLpgSQL_type":{"typname":"text"}},"promise":4}},{"PLpgSQL_var":{"refname":"tg_relid","datatype":{"PLpgSQL_type":{"typname":"oid"}},"promise":5}},{"PLpgSQL_var":{"refname":"tg_relname","datatype":{"PLpgSQL_type":{"typname":"name"}},"promise":6}},{"PLpgSQL_var":{"refname":"tg_table_name","datatype":{"PLpgSQL_type":{"typname":"name"}},"promise":6}},{"PLpgSQL_var":{"refname":"tg_table_schema","datatype":{"PLpgSQL_type":{"typname":"name"}},"promise":7}},{"PLpgSQL_var":{"refname":"tg_nargs","datatype":{"PLpgSQL_type":{"typname":"int4"}},"promise":8}},{"PLpgSQL_var":{"refname":"tg_argv","datatype":{"PLpgSQL_type":{"typname":"_text"}},"promise":9}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"bool"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_return":{"lineno":1,"retvarno":0}}]}}}}
+]`,
+	},
 }
 
 func TestParsePlPgSQL(t *testing.T) {
