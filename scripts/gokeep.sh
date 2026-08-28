@@ -14,7 +14,7 @@ while IFS='' read -r c_dir; do
 // package gokeep prevents go tooling from stripping the C dependencies.
 package gokeep
 EOF
-done < <(find ${c_dir} -type f \( -name '*.c' -o -name '*.h' \) -exec dirname {} \; | sort -u)
+done < <(find ${c_dir} -type f \( -name '*.c' -o -name '*.h' -o -name '*.inc' \) -exec dirname {} \; | sort -u)
 
 cat <<EOF >"parser/build_cgo.go"
 //go:build required

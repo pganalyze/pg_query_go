@@ -17,6 +17,7 @@ import (
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/access"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/archive"
+	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/bootstrap"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/catalog"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/commands"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/common"
@@ -49,6 +50,7 @@ import (
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/tsearch"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/postgres/utils"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/protobuf"
-	_ "github.com/pganalyze/pg_query_go/v6/parser/include/protobuf-c"
+	_ "github.com/pganalyze/pg_query_go/v6/parser/include/upb"
+	_ "github.com/pganalyze/pg_query_go/v6/parser/include/upb/port"
 	_ "github.com/pganalyze/pg_query_go/v6/parser/include/xxhash"
 )

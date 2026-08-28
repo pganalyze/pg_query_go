@@ -245,8 +245,10 @@ func MakeNotNullConstraintNode(location int32) *Node {
 	return &Node{
 		Node: &Node_Constraint{
 			Constraint: &Constraint{
-				Contype:  ConstrType_CONSTR_NOTNULL,
-				Location: location,
+				Contype:        ConstrType_CONSTR_NOTNULL,
+				IsEnforced:     true,
+				InitiallyValid: true,
+				Location:       location,
 			},
 		},
 	}

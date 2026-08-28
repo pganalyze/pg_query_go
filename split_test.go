@@ -37,12 +37,15 @@ var splitTests = []struct {
 		},
 	},
 	{
+		// Since Postgres 18, statement locations reported by the parser no
+		// longer include leading whitespace, so leading whitespace is
+		// excluded even without trimming.
 		name:      "splitWithParser - basic split, no trim",
 		splitFunc: pg_query.SplitWithParser,
 		input:     "   select * from a;select * from b;",
 		trimSpace: false,
 		expected: []string{
-			"   select * from a",
+			"select * from a",
 			"select * from b",
 		},
 	},
