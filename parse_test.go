@@ -399,7 +399,7 @@ var parseTests = []struct {
 			PERFORM 'dummy';
 		END;
 		$$;`,
-		`{"version":170007,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"sval":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"sval":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"sval":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"sval":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71}}]}},"stmt_len":126}]}`,
+		`{"version":170007,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"sval":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"sval":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"sval":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53,"arg_location":-1}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"sval":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71,"arg_location":74}}]}},"stmt_len":126}]}`,
 		&pg_query.ParseResult{
 			Version: int32(170007),
 			Stmts: []*pg_query.RawStmt{
@@ -418,16 +418,32 @@ var parseTests = []struct {
 									Location: 44,
 								},
 								Options: []*pg_query.Node{
-									pg_query.MakeSimpleDefElemNode("language", pg_query.MakeStrNode("plpgsql"), 53),
-									pg_query.MakeSimpleDefElemNode(
-										"as",
-										pg_query.MakeListNode(
-											[]*pg_query.Node{
-												pg_query.MakeStrNode("\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"),
+									{
+										Node: &pg_query.Node_DefElem{
+											DefElem: &pg_query.DefElem{
+												Defname:     "language",
+												Arg:         pg_query.MakeStrNode("plpgsql"),
+												Defaction:   pg_query.DefElemAction_DEFELEM_UNSPEC,
+												Location:    53,
+												ArgLocation: -1,
 											},
-										),
-										71,
-									),
+										},
+									},
+									{
+										Node: &pg_query.Node_DefElem{
+											DefElem: &pg_query.DefElem{
+												Defname: "as",
+												Arg: pg_query.MakeListNode(
+													[]*pg_query.Node{
+														pg_query.MakeStrNode("\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"),
+													},
+												),
+												Defaction:   pg_query.DefElemAction_DEFELEM_UNSPEC,
+												Location:    71,
+												ArgLocation: 74,
+											},
+										},
+									},
 								},
 							},
 						},

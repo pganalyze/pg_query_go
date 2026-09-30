@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	pg_query "github.com/pganalyze/pg_query_go/v6"
+	"github.com/tailscale/hujson"
 )
 
 type fingerprintTest struct {
@@ -25,6 +26,12 @@ func TestFingerprint(t *testing.T) {
 	file, err := ioutil.ReadFile("./testdata/fingerprint.json")
 	if err != nil {
 		t.Errorf("Could not load test file: %v\n", err)
+	}
+
+	// The upstream test file may contain comments, which encoding/json rejects
+	file, err = hujson.Standardize(file)
+	if err != nil {
+		t.Errorf("Could not parse test file: %v\n", err)
 	}
 
 	err = json.Unmarshal(file, &fingerprintTests)

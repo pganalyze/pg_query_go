@@ -5,6 +5,38 @@
 * ...
 
 
+## 6.2.5     2026-09-30
+
+* Upgrade to libpg_query 17-6.2.5
+  - Security fix: Heap out-of-bounds write and read in Normalize ([GHSA-6ggm-xmc9-8ffg](https://github.com/pganalyze/libpg_query/security/advisories/GHSA-6ggm-xmc9-8ffg))
+    - When normalizing certain utility statements (e.g. `DO ... LANGUAGE`, statements with
+      string options, or `CREATE/ALTER SUBSCRIPTION ... CONNECTION`), Normalize searched
+      the query text for the location of string constants, which could yield wrong
+      locations for crafted input. This could cause out-of-bounds writes and reads on
+      the heap, leaking process memory in the normalized output or crashing the process.
+    - Constant locations are now recorded by the parser instead, and the normalizer checks
+      at runtime that constant locations never overlap
+    - This adds new location fields to the parse tree output (`DefElem.ArgLocation`,
+      `NotifyStmt.PayloadLocation`, `CreateSubscriptionStmt.ConninfoLocation` and
+      `AlterSubscriptionStmt.ConninfoLocation`). Like other location fields, these are
+      ignored for fingerprinting.
+    - Applications that normalize untrusted query text should upgrade
+    - Reported by Paul Gerste (Cure53)
+  - Deparser:
+    - Add strict checking for unexpected pointer values
+      - This ensures that a bad input parse tree doesn't cause the deparser to crash, and
+        instead returns an error
+      - Reported by Paul Gerste (Cure53)
+    - Preserve parentheses around subscripted array constructors
+      - This prevents `(ARRAY[...])[...]` from being deparsed as invalid SQL
+    - Fix handling of constraint key named `value` in `ALTER TABLE`
+  - Normalize:
+    - Add support for `NOTIFY` statements
+    - Avoid undefined behaviour for overly large parameter references
+    - Fix compiler warning due to mismatch between `int64` and `long`
+* Bump google.golang.org/protobuf from 1.31.0 to 1.33.0 [#111](https://github.com/pganalyze/pg_query_go/pull/111)
+
+
 ## 6.2.2     2026-01-27
 
 * Upgrade to libpg_query 17-6.2.2
