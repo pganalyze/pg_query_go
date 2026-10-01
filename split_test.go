@@ -6,7 +6,7 @@ package pg_query_test
 import (
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 )
 
 var splitTests = []struct {
@@ -37,12 +37,15 @@ var splitTests = []struct {
 		},
 	},
 	{
+		// Since Postgres 18, statement locations reported by the parser no
+		// longer include leading whitespace, so leading whitespace is
+		// excluded even without trimming.
 		name:      "splitWithParser - basic split, no trim",
 		splitFunc: pg_query.SplitWithParser,
 		input:     "   select * from a;select * from b;",
 		trimSpace: false,
 		expected: []string{
-			"   select * from a",
+			"select * from a",
 			"select * from b",
 		},
 	},

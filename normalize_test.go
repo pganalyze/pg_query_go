@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
-	"github.com/pganalyze/pg_query_go/v6/parser"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
+	"github.com/pganalyze/pg_query_go/v18/parser"
 )
 
 var normalizeTests = []struct {

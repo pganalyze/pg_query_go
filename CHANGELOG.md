@@ -5,6 +5,77 @@
 * ...
 
 
+## 18.1.0     2026-09-30
+
+* Switch to versioning by Postgres major version, matching libpg_query
+  - The Go module path is now `github.com/pganalyze/pg_query_go/v18`, update your
+    imports accordingly (the previous release was 6.2.5, under `/v6`)
+* Upgrade to libpg_query 18.1.0
+  - Updates to the Postgres 18 parser (Postgres 18.6)
+  - Rework PL/pgSQL parsing to use proper type definitions
+    - Instead of hacking the PL/pgSQL parser into accepting our constructs, this
+      imitates actual `CREATE FUNCTION` logic and PL/pgSQL compilation for a function
+  - Return errors for PL/pgSQL statements without bodies
+    - This avoids an assertion failure or crash when `CREATE FUNCTION` or `DO` omits
+      its function body
+  - Security fix: Heap out-of-bounds write and read in Normalize ([GHSA-6ggm-xmc9-8ffg](https://github.com/pganalyze/libpg_query/security/advisories/GHSA-6ggm-xmc9-8ffg))
+    - Same fix as in 6.2.5, see details below
+  - Add stack overflow crash protection, error out instead
+    - Overly deep queries now return the standard Postgres "stack depth limit exceeded"
+      error instead of crashing the process
+  - Switch Protobuf implementation from protobuf-c to upb
+    - upb is developed as part of the main Protobuf project, and is substantially faster,
+      in part due to its built-in arena allocation
+    - upb also allows limiting parse depth for complex Protobuf input, avoiding crashes
+  - Ignore comments when parsing queries, only treat them as significant for scanning
+    - This fixes parse errors when comments are placed between related tokens
+      (e.g. `NOT /* comment */ IN`), or between string literals that get concatenated
+  - Parser: Avoid quadratic memory use for rules that involve dotted names
+  - Fingerprinting:
+    - Rework alias/schema name handling to match Postgres 18 query IDs
+      - This changes fingerprints compared to prior releases: By default, in SELECT/DML
+        statements the alias name replaces the relation name when present, and schema
+        names are ignored
+      - Use `FingerprintWithOpts` with `FingerprintRangeVarPG17Compat` to get fingerprints
+        that match prior releases
+    - Ignore `NOTIFY` payloads, similar to channel names
+    - Ignore role names (e.g. in `CREATE ROLE`, `DROP ROLE`, `GRANT` and `ALTER ... RENAME`)
+    - Include `BEGIN`/`START TRANSACTION` options (e.g. read-only, isolation level)
+    - Apply the depth cutoff when recursing into specific node types
+      - This changes fingerprints for set operation chains deeper than 100 levels,
+        which are now cut off consistently like other deeply nested nodes
+  - Deparser:
+    - Add strict checking for unexpected pointer values
+      - This ensures that a bad input parse tree doesn't cause the deparser to crash, and
+        instead returns an error
+    - Rework when parentheses are added based on operator precedence
+      - This fixes cases where the deparsed SQL changed meaning or was invalid, and
+        avoids adding unnecessary parentheses in others
+    - Rework comment handling for Postgres 18 multi-statement strings
+      - In Postgres 18, comments and whitespace between statements are excluded from the
+        statements, the next statement starts at the first non-whitespace (and
+        non-comment) character
+  - Normalize:
+    - Add support for `NOTIFY` statements
+    - Avoid undefined behaviour for overly large parameter references
+    - Fix handling of `U&` special constants in DefElem nodes
+    - Don't swallow stack depth errors and return a partially normalized query
+  - Summary:
+    - Fix a relation going missing when a CTE shares its name
+    - Fix memory leak when the tree walk throws an error
+* Add `FingerprintWithOpts` and `FingerprintToUInt64WithOpts` functions
+  - These accept a `FingerprintOption` bitmask to control how fingerprints are calculated:
+    - `FingerprintRangeVarIgnoreAliases` always fingerprints relation names and ignores aliases
+    - `FingerprintRangeVarIncludeSchema` also fingerprints schema names in SELECT/DML statements
+    - `FingerprintRangeVarPG17Compat` combines both, matching how Postgres 17 and earlier
+      calculate query IDs, and how prior releases calculated fingerprints
+    - `FingerprintRelnameFull` fingerprints the full relation name, instead of the default
+      behavior of ignoring 2+ consecutive digits (which groups queries on
+      date/number-suffixed tables together)
+* `MakeNotNullConstraintNode` now sets `IsEnforced` and `InitiallyValid`, matching
+  how Postgres 18 represents `NOT NULL` constraints
+
+
 ## 6.2.5     2026-09-30
 
 * Upgrade to libpg_query 17-6.2.5
