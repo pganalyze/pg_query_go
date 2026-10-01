@@ -1,4 +1,4 @@
-# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v6?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v6)
+# pg_query_go [![GoDoc](https://godoc.org/github.com/pganalyze/pg_query_go/v18?status.svg)](https://godoc.org/github.com/pganalyze/pg_query_go/v18)
 
 Go version of https://github.com/pganalyze/pg_query
 
@@ -10,7 +10,7 @@ You can find further background to why a query's parse tree is useful here: http
 ## Installation
 
 ```
-go get github.com/pganalyze/pg_query_go/v6@latest
+go get github.com/pganalyze/pg_query_go/v18@latest
 ```
 
 Due to compiling parts of PostgreSQL, the first time you build against this library it will take a bit longer.
@@ -29,7 +29,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 )
 
 func main() {
@@ -57,7 +57,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 )
 
 func main() {
@@ -83,7 +83,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 )
 
 func main() {
@@ -120,7 +120,7 @@ package main
 import (
 	"fmt"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 )
 
 func main() {
@@ -158,7 +158,7 @@ go build -a
 go test -test.bench=. -test.run=XXX -test.benchtime 10s -test.benchmem -test.cpu=4
 goos: darwin
 goarch: arm64
-pkg: github.com/pganalyze/pg_query_go/v6
+pkg: github.com/pganalyze/pg_query_go/v18
 BenchmarkParseSelect1-4                          2874156              4186 ns/op            1040 B/op         18 allocs/op
 BenchmarkParseSelect2-4                           824781             14572 ns/op            2832 B/op         57 allocs/op
 BenchmarkParseCreateTable-4                       351037             34591 ns/op            8480 B/op        149 allocs/op
@@ -178,7 +178,7 @@ BenchmarkNormalizeSelect1-4                     10604962              1133 ns/op
 BenchmarkNormalizeSelect2-4                      6226136              1938 ns/op              64 B/op          2 allocs/op
 BenchmarkNormalizeCreateTable-4                  4542387              2635 ns/op             144 B/op          2 allocs/op
 PASS
-ok      github.com/pganalyze/pg_query_go/v6     258.376s
+ok      github.com/pganalyze/pg_query_go/v18     258.376s
 
 ```
 
