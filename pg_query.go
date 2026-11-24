@@ -36,6 +36,30 @@ func Parse(input string) (tree *ParseResult, err error) {
 	return
 }
 
+const (
+	ParseDefault = iota
+	ParseTypeName
+	ParsePlpgsqlExpr
+	ParsePlpgsqlAssign1
+	ParsePlpgsqlAssign2
+	ParsePlpgsqlAssign3
+	ParseDisableBackslashQuote            = 16
+	ParseDisableStandardConformingStrings = 32
+	ParseDisableEscapeStringWarning       = 64
+)
+
+// ParseWithOptions parses the given SQL statement with PostgreSQL parser options into a parse tree (Go struct format).
+func ParseWithOptions(input string, options int) (tree *ParseResult, err error) {
+	protobufTree, err := parser.ParseToProtobufOpts(input, options)
+	if err != nil {
+		return
+	}
+
+	tree = &ParseResult{}
+	err = proto.Unmarshal(protobufTree, tree)
+	return
+}
+
 // Deparses a given Go parse tree into a SQL statement
 func Deparse(tree *ParseResult) (output string, err error) {
 	protobufTree, err := proto.Marshal(tree)

@@ -116,6 +116,22 @@ func ParseToProtobuf(input string) ([]byte, error) {
 	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
 }
 
+// ParseToProtobufOpts - Parses the given SQL statement with PostgreSQL parser options into a parse tree (Protobuf format)
+func ParseToProtobufOpts(input string, options int) ([]byte, error) {
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.int(options))
+
+	defer C.pg_query_free_protobuf_parse_result(resultC)
+
+	if resultC.error != nil {
+		return nil, newPgQueryError(resultC.error)
+	}
+
+	return toBytes(C.GoStringN(resultC.parse_tree.data, C.int(resultC.parse_tree.len))), nil
+}
+
 // DeparseFromProtobuf - Deparses the given Protobuf format parse tree into a SQL statement
 func DeparseFromProtobuf(input []byte) (result string, err error) {
 	inputC := C.CBytes(input)
