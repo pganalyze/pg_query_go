@@ -636,6 +636,36 @@ var parseErrorTests = []struct {
 	},
 }
 
+func TestParseWithOptions(t *testing.T) {
+	defaultGot, err := pg_query.ParseWithOptions("SELECT 1", pg_query.ParseDefault)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defaultWant, err := pg_query.Parse("SELECT 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff(defaultWant, defaultGot, protocmp.Transform()); diff != "" {
+		t.Errorf("default options changed the parse tree:\n%v", diff)
+	}
+
+	full, err := pg_query.Parse("SELECT x + 1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := pg_query.ParseWithOptions("x + 1", pg_query.ParsePlpgsqlExpr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Stmts) != 1 {
+		t.Fatalf("expression parse returned %d statements, want 1", len(got.Stmts))
+	}
+	want := full.Stmts[0].Stmt.GetSelectStmt().GetTargetList()[0].GetResTarget().GetVal()
+	if diff := cmp.Diff(want, got.Stmts[0].Stmt, protocmp.Transform()); diff != "" {
+		t.Errorf("expression parse differs from the SELECT projection:\n%v", diff)
+	}
+}
+
 func TestParseError(t *testing.T) {
 	for _, test := range parseErrorTests {
 		_, actualErr := pg_query.Parse(test.input)
