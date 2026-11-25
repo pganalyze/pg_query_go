@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
 	"github.com/tailscale/hujson"
 )
 
@@ -42,7 +42,7 @@ func TestFingerprint(t *testing.T) {
 	for _, test := range fingerprintTests {
 		fmt.Printf(".")
 
-		fingerprint, err := pg_query.Fingerprint(test.Input)
+		fingerprint, err := pg_query.Fingerprint(test.Input, 0, 0)
 		if err != nil {
 			t.Errorf("Fingerprint(%s)\nparse error %s\n\n", test.Input, err)
 		}
@@ -51,7 +51,7 @@ func TestFingerprint(t *testing.T) {
 			t.Errorf("Fingerprint(%s)\nexpected %s\nactual %s\n\n", test.Input, test.ExpectedHash, fingerprint)
 		}
 
-		fingerprintInt, err := pg_query.FingerprintToUInt64(test.Input)
+		fingerprintInt, err := pg_query.FingerprintToUInt64(test.Input, 0, 0)
 		if err != nil {
 			t.Errorf("FingerprintToUInt64(%s)\nparse error %s\n\n", test.Input, err)
 		}
@@ -64,6 +64,84 @@ func TestFingerprint(t *testing.T) {
 	}
 
 	fmt.Printf("\n")
+}
+
+// Expected values match the upstream libpg_query fingerprint option tests
+// (test/fingerprint_opts_tests.c)
+var fingerprintOptionsTests = []struct {
+	input    string
+	opts     pg_query.FingerprintOptions
+	expected string
+}{
+	// By default, 2+ consecutive digits in the relation name are ignored (these two match)
+	{"SELECT * FROM orders_2024_01", pg_query.FingerprintDefault, "0e612f391ad711b8"},
+	{"SELECT * FROM orders_2024_02", pg_query.FingerprintDefault, "0e612f391ad711b8"},
+	// With FingerprintFullRelname the full relation name is fingerprinted (these two differ)
+	{"SELECT * FROM orders_2024_01", pg_query.FingerprintFullRelname, "3cc2d1ca3f22c9bf"},
+	{"SELECT * FROM orders_2024_02", pg_query.FingerprintFullRelname, "291f96ac98cf4c38"},
+	// By default (Postgres 18+ behavior), the alias replaces the relation name, and the schema name is ignored
+	{"SELECT * FROM sales", pg_query.FingerprintDefault, "4d93c901b91cb364"},
+	{"SELECT * FROM public.sales", pg_query.FingerprintDefault, "4d93c901b91cb364"},
+	{"SELECT * FROM sales s", pg_query.FingerprintDefault, "93a3bbe18171c380"},
+	// With FingerprintRangeVarIgnoreAliases, aliases are ignored (matches "SELECT * FROM sales" above)
+	{"SELECT * FROM sales s", pg_query.FingerprintRangeVarIgnoreAliases, "4d93c901b91cb364"},
+	// With FingerprintRangeVarIncludeSchema, the schema name is fingerprinted (differs from "SELECT * FROM sales" above)
+	{"SELECT * FROM public.sales", pg_query.FingerprintRangeVarIncludeSchema, "78d676e53f612747"},
+	// ... whilst aliases still replace the relation name
+	{"SELECT * FROM public.sales s", pg_query.FingerprintRangeVarIncludeSchema, "9cf22829ca3b350b"},
+	// PG17_COMPAT matches the fingerprint from libpg_query 17
+	{"SELECT * FROM x AS a, y AS b", pg_query.FingerprintRangeVarPG17Compat, "4e9acae841dae228"},
+	// All flags combined
+	{"SELECT * FROM public.orders_2024_01 o", pg_query.FingerprintRangeVarPG17Compat | pg_query.FingerprintFullRelname, "115077f8a9c3c10d"},
+}
+
+func TestFingerprintOptions(t *testing.T) {
+	for _, test := range fingerprintOptionsTests {
+		fingerprint, err := pg_query.Fingerprint(test.input, 0, test.opts)
+		if err != nil {
+			t.Errorf("Fingerprint(%s, 0, %d)\nparse error %s\n\n", test.input, test.opts, err)
+		}
+
+		if fingerprint != test.expected {
+			t.Errorf("Fingerprint(%s, 0, %d)\nexpected %s\nactual %s\n\n", test.input, test.opts, test.expected, fingerprint)
+		}
+
+		fingerprintInt, err := pg_query.FingerprintToUInt64(test.input, 0, test.opts)
+		if err != nil {
+			t.Errorf("FingerprintToUInt64(%s, 0, %d)\nparse error %s\n\n", test.input, test.opts, err)
+		}
+
+		expectedInt, _ := strconv.ParseUint(test.expected, 16, 64)
+
+		if fingerprintInt != expectedInt {
+			t.Errorf("FingerprintToUInt64(%s, 0, %d)\nexpected %d\nactual %d\n\n", test.input, test.opts, expectedInt, fingerprintInt)
+		}
+	}
+}
+
+func TestFingerprintParserOptions(t *testing.T) {
+	// A type name is not valid with the default top-level SQL grammar
+	_, err := pg_query.Fingerprint("character varying(32)", pg_query.ParseDefault, 0)
+	if err == nil {
+		t.Errorf("Fingerprint with ParseDefault expected error for a type name, but none returned")
+	}
+
+	// ... but can be fingerprinted in the type name parse mode
+	expected := "453ab4df8fd3eea9"
+	fingerprint, err := pg_query.Fingerprint("character varying(32)", pg_query.ParseTypeName, 0)
+	if err != nil {
+		t.Errorf("Fingerprint with ParseTypeName\nparse error %s\n\n", err)
+	} else if fingerprint != expected {
+		t.Errorf("Fingerprint with ParseTypeName\nexpected %s\nactual %s\n\n", expected, fingerprint)
+	}
+
+	fingerprintInt, err := pg_query.FingerprintToUInt64("character varying(32)", pg_query.ParseTypeName, 0)
+	expectedInt, _ := strconv.ParseUint(expected, 16, 64)
+	if err != nil {
+		t.Errorf("FingerprintToUInt64 with ParseTypeName\nparse error %s\n\n", err)
+	} else if fingerprintInt != expectedInt {
+		t.Errorf("FingerprintToUInt64 with ParseTypeName\nexpected %d\nactual %d\n\n", expectedInt, fingerprintInt)
+	}
 }
 
 var hashTests = []struct {

@@ -6,8 +6,8 @@ package pg_query_test
 import (
 	"testing"
 
-	pg_query "github.com/pganalyze/pg_query_go/v6"
-	"github.com/pganalyze/pg_query_go/v6/parser"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
+	"github.com/pganalyze/pg_query_go/v18/parser"
 )
 
 // Prevent compiler optimizations by assigning all results to global variables
@@ -17,7 +17,7 @@ var resultTree *pg_query.ParseResult
 
 func benchmarkParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		resultTree, err = pg_query.Parse(input)
+		resultTree, err = pg_query.Parse(input, 0)
 
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
@@ -28,7 +28,7 @@ func benchmarkParse(input string, b *testing.B) {
 func benchmarkParseParallel(input string, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, err = pg_query.Parse(input)
+			_, err = pg_query.Parse(input, 0)
 
 			if err != nil {
 				b.Errorf("Benchmark produced error %s\n\n", err)
@@ -39,7 +39,7 @@ func benchmarkParseParallel(input string, b *testing.B) {
 
 func benchmarkRawParse(input string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		resultStr, err = parser.ParseToProtobuf(input)
+		resultStr, err = parser.ParseToProtobuf(input, 0)
 
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
@@ -56,7 +56,7 @@ func benchmarkRawParseParallel(input string, b *testing.B) {
 		var str []byte
 
 		for pb.Next() {
-			str, err = parser.ParseToProtobuf(input)
+			str, err = parser.ParseToProtobuf(input, 0)
 
 			if err != nil {
 				b.Errorf("Benchmark produced error %s\n\n", err)
@@ -72,7 +72,7 @@ func benchmarkRawParseParallel(input string, b *testing.B) {
 func benchmarkFingerprint(input string, b *testing.B) {
 	var str string
 	for i := 0; i < b.N; i++ {
-		str, err = pg_query.Fingerprint(input)
+		str, err = pg_query.Fingerprint(input, 0, 0)
 		if err != nil {
 			b.Errorf("Benchmark produced error %s\n\n", err)
 		}

@@ -64,11 +64,11 @@ func newPgQueryError(errC *C.PgQueryError) *Error {
 }
 
 // ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)
-func ParseToJSON(input string) (result string, err error) {
+func ParseToJSON(input string, parserOptions int) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_parse(inputC)
+	resultC := C.pg_query_parse_opts(inputC, C.int(parserOptions))
 
 	defer C.pg_query_free_parse_result(resultC)
 
@@ -101,11 +101,11 @@ func ScanToProtobuf(input string) (result []byte, err error) {
 }
 
 // ParseToProtobuf - Parses the given SQL statement into a parse tree (Protobuf format)
-func ParseToProtobuf(input string) ([]byte, error) {
+func ParseToProtobuf(input string, parserOptions int) ([]byte, error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_parse_protobuf(inputC)
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.int(parserOptions))
 
 	defer C.pg_query_free_protobuf_parse_result(resultC)
 
@@ -240,11 +240,11 @@ func handleSplitResult(input string, trimSpace bool, resultC C.PgQuerySplitResul
 }
 
 // FingerprintToUInt64 - Fingerprint the passed SQL statement using the C extension and returns result as uint64
-func FingerprintToUInt64(input string) (result uint64, err error) {
+func FingerprintToUInt64(input string, parserOptions int, fingerprintOptions int) (result uint64, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_fingerprint(inputC)
+	resultC := C.pg_query_fingerprint_opts(inputC, C.int(parserOptions), C.int(fingerprintOptions))
 	defer C.pg_query_free_fingerprint_result(resultC)
 
 	if resultC.error != nil {
@@ -259,11 +259,11 @@ func FingerprintToUInt64(input string) (result uint64, err error) {
 }
 
 // FingerprintToHexStr - Fingerprint the passed SQL statement using the C extension and returns result as hex string
-func FingerprintToHexStr(input string) (result string, err error) {
+func FingerprintToHexStr(input string, parserOptions int, fingerprintOptions int) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_fingerprint(inputC)
+	resultC := C.pg_query_fingerprint_opts(inputC, C.int(parserOptions), C.int(fingerprintOptions))
 	defer C.pg_query_free_fingerprint_result(resultC)
 
 	if resultC.error != nil {
@@ -311,11 +311,11 @@ func IsUtilityStmt(input string) (result []bool, err error) {
 }
 
 // SummaryToProtobuf - Extracts summary information from SQL statement
-func SummaryToProtobuf(input string, truncateLimit int) ([]byte, error) {
+func SummaryToProtobuf(input string, parserOptions int, truncateLimit int) ([]byte, error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_summary(inputC, C.int(0), C.int(truncateLimit))
+	resultC := C.pg_query_summary(inputC, C.int(parserOptions), C.int(truncateLimit))
 	defer C.pg_query_free_summary_parse_result(resultC)
 
 	if resultC.error != nil {

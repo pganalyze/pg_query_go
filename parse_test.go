@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	pg_query "github.com/pganalyze/pg_query_go/v6"
-	"github.com/pganalyze/pg_query_go/v6/parser"
+	pg_query "github.com/pganalyze/pg_query_go/v18"
+	"github.com/pganalyze/pg_query_go/v18/parser"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
@@ -22,9 +22,9 @@ var parseTests = []struct {
 }{
 	{
 		"SELECT 1",
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -47,9 +47,9 @@ var parseTests = []struct {
 	},
 	{
 		"SELECT * FROM x WHERE z = 1",
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"z"}}],"location":22}},"rexpr":{"A_Const":{"ival":{"ival":1},"location":26}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"z"}}],"location":22}},"rexpr":{"A_Const":{"ival":{"ival":1},"location":26}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -98,9 +98,9 @@ var parseTests = []struct {
 	},
 	{
 		`INSERT INTO "schema_index_stats" ("snapshot_id","schema_index_id","size_bytes") VALUES (11710849,8448632,16384),(11710849,8448633,16384) RETURNING id`,
-		`{"version":170007,"stmts":[{"stmt":{"InsertStmt":{"relation":{"relname":"schema_index_stats","inh":true,"relpersistence":"p","location":12},"cols":[{"ResTarget":{"name":"snapshot_id","location":34}},{"ResTarget":{"name":"schema_index_id","location":48}},{"ResTarget":{"name":"size_bytes","location":66}}],"selectStmt":{"SelectStmt":{"valuesLists":[{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":88}},{"A_Const":{"ival":{"ival":8448632},"location":97}},{"A_Const":{"ival":{"ival":16384},"location":105}}]}},{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":113}},{"A_Const":{"ival":{"ival":8448633},"location":122}},{"A_Const":{"ival":{"ival":16384},"location":130}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"returningList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"String":{"sval":"id"}}],"location":147}},"location":147}}],"override":"OVERRIDING_NOT_SET"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"InsertStmt":{"relation":{"relname":"schema_index_stats","inh":true,"relpersistence":"p","location":12},"cols":[{"ResTarget":{"name":"snapshot_id","location":34}},{"ResTarget":{"name":"schema_index_id","location":48}},{"ResTarget":{"name":"size_bytes","location":66}}],"selectStmt":{"SelectStmt":{"valuesLists":[{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":88}},{"A_Const":{"ival":{"ival":8448632},"location":97}},{"A_Const":{"ival":{"ival":16384},"location":105}}]}},{"List":{"items":[{"A_Const":{"ival":{"ival":11710849},"location":113}},{"A_Const":{"ival":{"ival":8448633},"location":122}},{"A_Const":{"ival":{"ival":16384},"location":130}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"returningClause":{"exprs":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"String":{"sval":"id"}}],"location":147}},"location":147}}]},"override":"OVERRIDING_NOT_SET"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -133,16 +133,18 @@ var parseTests = []struct {
 										},
 									},
 								},
-								ReturningList: []*pg_query.Node{
-									pg_query.MakeResTargetNodeWithVal(
-										pg_query.MakeColumnRefNode(
-											[]*pg_query.Node{
-												pg_query.MakeStrNode("id"),
-											},
+								ReturningClause: &pg_query.ReturningClause{
+									Exprs: []*pg_query.Node{
+										pg_query.MakeResTargetNodeWithVal(
+											pg_query.MakeColumnRefNode(
+												[]*pg_query.Node{
+													pg_query.MakeStrNode("id"),
+												},
+												147,
+											),
 											147,
 										),
-										147,
-									),
+									},
 								},
 							},
 						},
@@ -153,9 +155,9 @@ var parseTests = []struct {
 	},
 	{
 		"SELECT * FROM x WHERE y IN ($1)",
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"y"}}],"location":22}},"rexpr":{"List":{"items":[{"ParamRef":{"number":1,"location":28}}]}},"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeVar":{"relname":"x","inh":true,"relpersistence":"p","location":14}}],"whereClause":{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"y"}}],"location":22}},"rexpr":{"List":{"items":[{"ParamRef":{"number":1,"location":28}}]}},"rexpr_list_start":27,"rexpr_list_end":30,"location":24}},"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -193,7 +195,9 @@ var parseTests = []struct {
 											Rexpr: pg_query.MakeListNode([]*pg_query.Node{
 												pg_query.MakeParamRefNode(1, 28),
 											}),
-											Location: 24,
+											RexprListStart: 27,
+											RexprListEnd:   30,
+											Location:       24,
 										},
 									},
 								},
@@ -217,9 +221,9 @@ var parseTests = []struct {
 						AND n.nspname !~ '^pg_toast'
 						AND pg_catalog.pg_table_is_visible(c.oid)
 			ORDER BY 1,2;`,
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"name":"Schema","val":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":7}},"location":7}},{"ResTarget":{"name":"Name","val":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relname"}}],"location":36}},"location":36}},{"ResTarget":{"name":"Type","val":{"CaseExpr":{"arg":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":68}},"args":[{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"r"},"location":83}},"result":{"A_Const":{"sval":{"sval":"table"},"location":92}},"location":78}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"v"},"location":105}},"result":{"A_Const":{"sval":{"sval":"view"},"location":114}},"location":100}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"m"},"location":126}},"result":{"A_Const":{"sval":{"sval":"materialized view"},"location":135}},"location":121}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"i"},"location":160}},"result":{"A_Const":{"sval":{"sval":"index"},"location":169}},"location":155}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"S"},"location":182}},"result":{"A_Const":{"sval":{"sval":"sequence"},"location":191}},"location":177}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"s"},"location":207}},"result":{"A_Const":{"sval":{"sval":"special"},"location":216}},"location":202}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"f"},"location":231}},"result":{"A_Const":{"sval":{"sval":"foreign table"},"location":240}},"location":226}}],"location":63}},"location":63}},{"ResTarget":{"name":"Owner","val":{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_get_userbyid"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relowner"}}],"location":304}}],"funcformat":"COERCE_EXPLICIT_CALL","location":277}},"location":277}}],"fromClause":[{"JoinExpr":{"jointype":"JOIN_LEFT","larg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_class","inh":true,"relpersistence":"p","alias":{"aliasname":"c"},"location":336}},"rarg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_namespace","inh":true,"relpersistence":"p","alias":{"aliasname":"n"},"location":374}},"quals":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"oid"}}],"location":403}},"rexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relnamespace"}}],"location":411}},"location":409}}}}],"whereClause":{"BoolExpr":{"boolop":"AND_EXPR","args":[{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":435}},"rexpr":{"List":{"items":[{"A_Const":{"sval":{"sval":"r"},"location":449}},{"A_Const":{"sval":{"sval":""},"location":453}}]}},"location":445}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":467}},"rexpr":{"A_Const":{"sval":{"sval":"pg_catalog"},"location":480}},"location":477}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":503}},"rexpr":{"A_Const":{"sval":{"sval":"information_schema"},"location":516}},"location":513}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"!~"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":547}},"rexpr":{"A_Const":{"sval":{"sval":"^pg_toast"},"location":560}},"location":557}},{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_table_is_visible"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"oid"}}],"location":613}}],"funcformat":"COERCE_EXPLICIT_CALL","location":582}}],"location":463}},"sortClause":[{"SortBy":{"node":{"A_Const":{"ival":{"ival":1},"location":632}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}},{"SortBy":{"node":{"A_Const":{"ival":{"ival":2},"location":634}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"stmt_len":635}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"name":"Schema","val":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":7}},"location":7}},{"ResTarget":{"name":"Name","val":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relname"}}],"location":36}},"location":36}},{"ResTarget":{"name":"Type","val":{"CaseExpr":{"arg":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":68}},"args":[{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"r"},"location":83}},"result":{"A_Const":{"sval":{"sval":"table"},"location":92}},"location":78}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"v"},"location":105}},"result":{"A_Const":{"sval":{"sval":"view"},"location":114}},"location":100}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"m"},"location":126}},"result":{"A_Const":{"sval":{"sval":"materialized view"},"location":135}},"location":121}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"i"},"location":160}},"result":{"A_Const":{"sval":{"sval":"index"},"location":169}},"location":155}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"S"},"location":182}},"result":{"A_Const":{"sval":{"sval":"sequence"},"location":191}},"location":177}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"s"},"location":207}},"result":{"A_Const":{"sval":{"sval":"special"},"location":216}},"location":202}},{"CaseWhen":{"expr":{"A_Const":{"sval":{"sval":"f"},"location":231}},"result":{"A_Const":{"sval":{"sval":"foreign table"},"location":240}},"location":226}}],"location":63}},"location":63}},{"ResTarget":{"name":"Owner","val":{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_get_userbyid"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relowner"}}],"location":304}}],"funcformat":"COERCE_EXPLICIT_CALL","location":277}},"location":277}}],"fromClause":[{"JoinExpr":{"jointype":"JOIN_LEFT","larg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_class","inh":true,"relpersistence":"p","alias":{"aliasname":"c"},"location":336}},"rarg":{"RangeVar":{"schemaname":"pg_catalog","relname":"pg_namespace","inh":true,"relpersistence":"p","alias":{"aliasname":"n"},"location":374}},"quals":{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"oid"}}],"location":403}},"rexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relnamespace"}}],"location":411}},"location":409}}}}],"whereClause":{"BoolExpr":{"boolop":"AND_EXPR","args":[{"A_Expr":{"kind":"AEXPR_IN","name":[{"String":{"sval":"="}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"relkind"}}],"location":435}},"rexpr":{"List":{"items":[{"A_Const":{"sval":{"sval":"r"},"location":449}},{"A_Const":{"sval":{"sval":""},"location":453}}]}},"rexpr_list_start":448,"rexpr_list_end":455,"location":445}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":467}},"rexpr":{"A_Const":{"sval":{"sval":"pg_catalog"},"location":480}},"location":477}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"\u003c\u003e"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":503}},"rexpr":{"A_Const":{"sval":{"sval":"information_schema"},"location":516}},"location":513}},{"A_Expr":{"kind":"AEXPR_OP","name":[{"String":{"sval":"!~"}}],"lexpr":{"ColumnRef":{"fields":[{"String":{"sval":"n"}},{"String":{"sval":"nspname"}}],"location":547}},"rexpr":{"A_Const":{"sval":{"sval":"^pg_toast"},"location":560}},"location":557}},{"FuncCall":{"funcname":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"pg_table_is_visible"}}],"args":[{"ColumnRef":{"fields":[{"String":{"sval":"c"}},{"String":{"sval":"oid"}}],"location":613}}],"funcformat":"COERCE_EXPLICIT_CALL","location":582}}],"location":463}},"sortClause":[{"SortBy":{"node":{"A_Const":{"ival":{"ival":1},"location":632}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}},{"SortBy":{"node":{"A_Const":{"ival":{"ival":2},"location":634}},"sortby_dir":"SORTBY_DEFAULT","sortby_nulls":"SORTBY_NULLS_DEFAULT","location":-1}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}},"stmt_len":635}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -319,19 +323,25 @@ var parseTests = []struct {
 								WhereClause: pg_query.MakeBoolExprNode(
 									pg_query.BoolExprType_AND_EXPR,
 									[]*pg_query.Node{
-										pg_query.MakeAExprNode(
-											pg_query.A_Expr_Kind_AEXPR_IN,
-											[]*pg_query.Node{pg_query.MakeStrNode("=")},
-											pg_query.MakeColumnRefNode(
-												[]*pg_query.Node{pg_query.MakeStrNode("c"), pg_query.MakeStrNode("relkind")},
-												435,
-											),
-											pg_query.MakeListNode([]*pg_query.Node{
-												pg_query.MakeAConstStrNode("r", 449),
-												pg_query.MakeAConstStrNode("", 453),
-											}),
-											445,
-										),
+										{
+											Node: &pg_query.Node_AExpr{
+												AExpr: &pg_query.A_Expr{
+													Kind: pg_query.A_Expr_Kind_AEXPR_IN,
+													Name: []*pg_query.Node{pg_query.MakeStrNode("=")},
+													Lexpr: pg_query.MakeColumnRefNode(
+														[]*pg_query.Node{pg_query.MakeStrNode("c"), pg_query.MakeStrNode("relkind")},
+														435,
+													),
+													Rexpr: pg_query.MakeListNode([]*pg_query.Node{
+														pg_query.MakeAConstStrNode("r", 449),
+														pg_query.MakeAConstStrNode("", 453),
+													}),
+													RexprListStart: 448,
+													RexprListEnd:   455,
+													Location:       445,
+												},
+											},
+										},
 										pg_query.MakeAExprNode(
 											pg_query.A_Expr_Kind_AEXPR_OP,
 											[]*pg_query.Node{pg_query.MakeStrNode("<>")},
@@ -399,9 +409,9 @@ var parseTests = []struct {
 			PERFORM 'dummy';
 		END;
 		$$;`,
-		`{"version":170007,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"sval":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"sval":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"sval":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53,"arg_location":-1}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"sval":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71,"arg_location":74}}]}},"stmt_len":126}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"CreateFunctionStmt":{"funcname":[{"String":{"sval":"change_trigger_v2"}}],"returnType":{"names":[{"String":{"sval":"trigger"}}],"typemod":-1,"location":44},"options":[{"DefElem":{"defname":"language","arg":{"String":{"sval":"plpgsql"}},"defaction":"DEFELEM_UNSPEC","location":53,"arg_location":-1}},{"DefElem":{"defname":"as","arg":{"List":{"items":[{"String":{"sval":"\n\t\tDECLARE\n\t\tBEGIN\n\t\t\tPERFORM 'dummy';\n\t\tEND;\n\t\t"}}]}},"defaction":"DEFELEM_UNSPEC","location":71,"arg_location":74}}]}},"stmt_len":126}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -458,9 +468,9 @@ var parseTests = []struct {
 			 id SERIAL PRIMARY KEY,
 			 user_id integer DEFAULT 0 NOT NULL,
 			 created_at timestamp without time zone NOT NULL);`,
-		`{"version":170007,"stmts":[{"stmt":{"CreateStmt":{"relation":{"relname":"test","inh":true,"relpersistence":"p","location":13},"tableElts":[{"ColumnDef":{"colname":"id","typeName":{"names":[{"String":{"sval":"serial"}}],"typemod":-1,"location":27},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_PRIMARY","location":34}}],"location":24}},{"ColumnDef":{"colname":"user_id","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":59},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_DEFAULT","raw_expr":{"A_Const":{"ival":{},"location":75}},"location":67}},{"Constraint":{"contype":"CONSTR_NOTNULL","location":77}}],"location":51}},{"ColumnDef":{"colname":"created_at","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":102},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","location":130}}],"location":91}}],"oncommit":"ONCOMMIT_NOOP"}},"stmt_len":139}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"CreateStmt":{"relation":{"relname":"test","inh":true,"relpersistence":"p","location":13},"tableElts":[{"ColumnDef":{"colname":"id","typeName":{"names":[{"String":{"sval":"serial"}}],"typemod":-1,"location":27},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_PRIMARY","location":34}}],"location":24}},{"ColumnDef":{"colname":"user_id","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"int4"}}],"typemod":-1,"location":59},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_DEFAULT","raw_expr":{"A_Const":{"ival":{},"location":75}},"location":67}},{"Constraint":{"contype":"CONSTR_NOTNULL","is_enforced":true,"initially_valid":true,"location":77}}],"location":51}},{"ColumnDef":{"colname":"created_at","typeName":{"names":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"timestamp"}}],"typemod":-1,"location":102},"is_local":true,"constraints":[{"Constraint":{"contype":"CONSTR_NOTNULL","is_enforced":true,"initially_valid":true,"location":130}}],"location":91}}],"oncommit":"ONCOMMIT_NOOP"}},"stmt_len":139}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -525,9 +535,9 @@ var parseTests = []struct {
 	},
 	{
 		`SELECT * FROM a(1)`,
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeFunction":{"functions":[{"List":{"items":[{"FuncCall":{"funcname":[{"String":{"sval":"a"}}],"args":[{"A_Const":{"ival":{"ival":1},"location":16}}],"funcformat":"COERCE_EXPLICIT_CALL","location":14}},{}]}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"ColumnRef":{"fields":[{"A_Star":{}}],"location":7}},"location":7}}],"fromClause":[{"RangeFunction":{"functions":[{"List":{"items":[{"FuncCall":{"funcname":[{"String":{"sval":"a"}}],"args":[{"A_Const":{"ival":{"ival":1},"location":16}}],"funcformat":"COERCE_EXPLICIT_CALL","location":14}},{}]}}]}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -568,9 +578,9 @@ var parseTests = []struct {
 	{
 		// Test for null-byte related crashes
 		string([]byte{'S', 'E', 'L', 'E', 'C', 'T', ' ', '1', '\x00'}),
-		`{"version":170007,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
+		`{"version":180006,"stmts":[{"stmt":{"SelectStmt":{"targetList":[{"ResTarget":{"val":{"A_Const":{"ival":{"ival":1},"location":7}},"location":7}}],"limitOption":"LIMIT_OPTION_DEFAULT","op":"SETOP_NONE"}}}]}`,
 		&pg_query.ParseResult{
-			Version: int32(170007),
+			Version: int32(180006),
 			Stmts: []*pg_query.RawStmt{
 				{
 					Stmt: &pg_query.Node{
@@ -595,14 +605,14 @@ var parseTests = []struct {
 
 func TestParse(t *testing.T) {
 	for _, test := range parseTests {
-		actualJSON, err := pg_query.ParseToJSON(test.input)
+		actualJSON, err := pg_query.ParseToJSON(test.input, 0)
 		if err != nil {
 			t.Errorf("Parse(%s)\nerror %s\n\n", test.input, err)
 		} else if actualJSON != test.expectedJSON {
 			t.Errorf("Parse(%s)\nexpected %s\nactual %s\n\n", test.input, test.expectedJSON, actualJSON)
 		}
 
-		actualTree, err := pg_query.Parse(test.input)
+		actualTree, err := pg_query.Parse(test.input, 0)
 
 		if err != nil {
 			t.Errorf("protobuf error %s\n\n", err)
@@ -638,7 +648,7 @@ var parseErrorTests = []struct {
 
 func TestParseError(t *testing.T) {
 	for _, test := range parseErrorTests {
-		_, actualErr := pg_query.Parse(test.input)
+		_, actualErr := pg_query.Parse(test.input, 0)
 
 		if actualErr == nil {
 			t.Errorf("Parse(%s)\nexpected error but none returned\n\n", test.input)
@@ -666,7 +676,7 @@ func TestParseConcurrency(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_, err := pg_query.Parse("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')")
+			_, err := pg_query.Parse("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')", 0)
 
 			if err != nil {
 				t.Errorf("Concurrency test produced error %s\n\n", err)
@@ -696,7 +706,7 @@ var parsePlPgSQLTests = []struct {
 			`END;` +
 			`$$ LANGUAGE plpgsql;`,
 		`[
-{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"varchar\""}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"varchar\""}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"pg_catalog.\"boolean\""}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL","parseMode":2}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name","parseMode":2}}}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version","parseMode":2}}}}]}}}}
+{"PLpgSQL_function":{"datums":[{"PLpgSQL_var":{"refname":"v_name","datatype":{"PLpgSQL_type":{"typname":"varchar"}}}},{"PLpgSQL_var":{"refname":"v_version","datatype":{"PLpgSQL_type":{"typname":"varchar"}}}},{"PLpgSQL_var":{"refname":"found","datatype":{"PLpgSQL_type":{"typname":"bool"}}}}],"action":{"PLpgSQL_stmt_block":{"lineno":1,"body":[{"PLpgSQL_stmt_if":{"lineno":1,"cond":{"PLpgSQL_expr":{"query":"v_version IS NULL","parseMode":2}},"then_body":[{"PLpgSQL_stmt_return":{"lineno":1}}]}},{"PLpgSQL_stmt_return":{"lineno":1,"expr":{"PLpgSQL_expr":{"query":"v_name || '/' || v_version","parseMode":2}}}}]}}}}
 ]`,
 	},
 }
@@ -725,5 +735,50 @@ func TestScan(t *testing.T) {
 	}
 	for _, testCase := range parsePlPgSQLTests {
 		smokeTest(testCase.input)
+	}
+}
+
+func TestParseWithParserOptions(t *testing.T) {
+	// A type name is not valid with the default top-level SQL grammar
+	_, err := pg_query.ParseToJSON("character varying(32)", pg_query.ParseDefault)
+	if err == nil {
+		t.Errorf("ParseToJSON with ParseDefault expected error for a type name, but none returned")
+	}
+
+	// ... but can be parsed in the type name parse mode
+	expectedJSON := `{"version":180006,"stmts":[{"stmt":{"List":{"items":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}]}}}]}`
+	actualJSON, err := pg_query.ParseToJSON("character varying(32)", pg_query.ParseTypeName)
+	if err != nil {
+		t.Errorf("ParseToJSON with ParseTypeName\nerror %s\n\n", err)
+	} else if actualJSON != expectedJSON {
+		t.Errorf("ParseToJSON with ParseTypeName\nexpected %s\nactual %s\n\n", expectedJSON, actualJSON)
+	}
+
+	tree, err := pg_query.Parse("character varying(32)", pg_query.ParseTypeName)
+	if err != nil {
+		t.Errorf("Parse with ParseTypeName\nerror %s\n\n", err)
+	} else if items := tree.Stmts[0].Stmt.GetList().GetItems(); len(items) != 2 || items[1].GetString_().GetSval() != "varchar" {
+		t.Errorf("Parse with ParseTypeName\nunexpected tree %s\n\n", tree)
+	}
+
+	// Backslash escapes are only accepted in regular string literals when
+	// standard_conforming_strings is turned off
+	input := `SELECT 'a\'b'`
+	_, err = pg_query.Parse(input, 0)
+	if err == nil {
+		t.Errorf("Parse(%s) expected error with default options, but none returned", input)
+	}
+
+	tree, err = pg_query.Parse(input, pg_query.DisableStandardConformingStrings)
+	if err != nil {
+		t.Errorf("Parse(%s) with DisableStandardConformingStrings\nerror %s\n\n", input, err)
+	} else if sval := tree.Stmts[0].Stmt.GetSelectStmt().GetTargetList()[0].GetResTarget().GetVal().GetAConst().GetSval().GetSval(); sval != "a'b" {
+		t.Errorf("Parse(%s) with DisableStandardConformingStrings\nexpected a'b\nactual %s\n\n", input, sval)
+	}
+
+	// Flags can be combined
+	_, err = pg_query.Parse(input, pg_query.DisableStandardConformingStrings|pg_query.DisableBackslashQuote)
+	if err == nil || err.Error() != `unsafe use of \' in a string literal` {
+		t.Errorf("Parse(%s) with DisableBackslashQuote\nexpected unsafe use error\nactual %v\n\n", input, err)
 	}
 }
