@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-	tree, err := pg_query.ParseToJSON("SELECT 1")
+	tree, err := pg_query.ParseToJSON("SELECT 1", 0)
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +61,7 @@ import (
 )
 
 func main() {
-	result, err := pg_query.Parse("SELECT 42")
+	result, err := pg_query.Parse("SELECT 42", 0)
 	if err != nil {
 		panic(err)
 	}
@@ -72,6 +72,38 @@ func main() {
 ```
 
 You can find all the node types in the `pg_query.pb.go` Protobuf definition.
+
+### Parser options
+
+`Parse`, `ParseToJSON`, `Fingerprint`, `FingerprintToUInt64` and `Summary` accept parser options
+that control how the input is parsed. Pass `0` (`pg_query.ParseDefault`) for the standard
+top-level SQL grammar, as shown in the examples above.
+
+The options consist of a parse mode (which grammar to use), optionally combined with flags
+that mirror Postgres settings:
+
+```go
+// Parse a type name instead of a full SQL statement
+result, err := pg_query.Parse("character varying(32)", pg_query.ParseTypeName)
+
+// Parse like a server that has standard_conforming_strings = off
+result, err = pg_query.Parse(`SELECT 'a\'b'`, pg_query.DisableStandardConformingStrings)
+
+// Mode and flags can be combined
+result, err = pg_query.Parse("integer", pg_query.ParseTypeName|pg_query.DisableEscapeStringWarning)
+```
+
+| `ParserOptions`                    | effect                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `ParseDefault` (0)                 | parse using the standard top-level SQL grammar                            |
+| `ParseTypeName`                    | parse a type name (e.g. `integer`, `character varying(32)`)               |
+| `ParsePlPgSqlExpr`                 | parse a PL/pgSQL expression                                               |
+| `ParsePlPgSqlAssign1`              | parse a PL/pgSQL assignment (target 1)                                    |
+| `ParsePlPgSqlAssign2`              | parse a PL/pgSQL assignment (target 2)                                    |
+| `ParsePlPgSqlAssign3`              | parse a PL/pgSQL assignment (target 3)                                    |
+| `DisableBackslashQuote`            | `backslash_quote = off` (default is `safe_encoding`, which is effectively on) |
+| `DisableStandardConformingStrings` | `standard_conforming_strings = off` (default is on)                       |
+| `DisableEscapeStringWarning`       | `escape_string_warning = off` (default is on)                             |
 
 ### Deparsing a parse tree back into a SQL statement
 
@@ -87,7 +119,7 @@ import (
 )
 
 func main() {
-	result, err := pg_query.Parse("SELECT 42")
+	result, err := pg_query.Parse("SELECT 42", 0)
 	if err != nil {
 		panic(err)
 	}
@@ -109,6 +141,72 @@ SELECT 'Hello World'
 ```
 
 Note that it is currently not recommended to pass unsanitized input to the deparser, as it may lead to crashes.
+
+### Fingerprinting a query
+
+```go
+package main
+
+import (
+	"fmt"
+
+	pg_query "github.com/pganalyze/pg_query_go/v18"
+)
+
+func main() {
+	fingerprint, err := pg_query.Fingerprint("SELECT * FROM contacts.person WHERE id IN (1, 2, 3, 4);", 0, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	// This will output "5735f5c64dd9f68e"
+	fmt.Printf("%s\n", fingerprint)
+}
+```
+
+Fingerprinting allows you to identify similar queries that are different only
+because of the specific object being queried (e.g. different object ids in the
+`WHERE` clause) or because of formatting. It is intended to be a superset of
+the Postgres `queryid` mechanism: constant values are ignored, so
+`... WHERE id = 123` and `... WHERE id = 456` get the same fingerprint.
+
+`Fingerprint` returns the fingerprint as a hex string, use `FingerprintToUInt64`
+to get it as a `uint64` instead. Both take the parser options as their second
+argument (see above), and the fingerprint options as their third argument.
+Pass `0` for either when no specific options are needed.
+
+Postgres 18 significantly changed how schema names and table aliases in `FROM`
+clauses are handled for `queryid`, and pg_query follows that by default:
+
+- **Postgres 17 and earlier**: the schema name was significant, and table
+  aliases were always ignored.
+- **Postgres 18 (default)**: schema names are ignored, and a table alias (if
+  present) is used instead of the relation name.
+
+This means that fingerprints differ from those calculated by pg_query_go v6
+and earlier, unless you pass `pg_query.FingerprintRangeVarPG17Compat`:
+
+```go
+// Postgres 18 behaviour (default): schema is ignored and the alias replaces the relation name
+a, _ := pg_query.Fingerprint("SELECT * FROM public.users u", 0, 0)
+b, _ := pg_query.Fingerprint("SELECT * FROM myschema.users u", 0, 0)
+// a == b ("6640d8be64880eed")
+
+// Postgres 17 compatible fingerprints take the schema into account
+a, _ = pg_query.Fingerprint("SELECT * FROM public.users u", 0, pg_query.FingerprintRangeVarPG17Compat)
+b, _ = pg_query.Fingerprint("SELECT * FROM myschema.users u", 0, pg_query.FingerprintRangeVarPG17Compat)
+// a != b ("d3198777453aef12" vs "91e880cf13f4f219")
+```
+
+Available fingerprint options (these can be combined with a bitwise OR):
+
+| `FingerprintOptions`               | effect                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `FingerprintDefault` (0)           | Postgres 18 query ID behaviour                                            |
+| `FingerprintRangeVarIgnoreAliases` | relation names are always fingerprinted; aliases are ignored              |
+| `FingerprintRangeVarIncludeSchema` | schema names are also fingerprinted in SELECT/DML statements              |
+| `FingerprintRangeVarPG17Compat`    | combination of the two above, matching Postgres 17 (and pg_query_go v6) fingerprints |
+| `FingerprintFullRelname`           | fingerprint the full relation name instead of ignoring 2+ consecutive digits (which by default groups date/number-suffixed partitions together) |
 
 ### Parsing a PL/pgSQL function into JSON (Experimental)
 

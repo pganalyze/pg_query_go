@@ -605,14 +605,14 @@ var parseTests = []struct {
 
 func TestParse(t *testing.T) {
 	for _, test := range parseTests {
-		actualJSON, err := pg_query.ParseToJSON(test.input)
+		actualJSON, err := pg_query.ParseToJSON(test.input, 0)
 		if err != nil {
 			t.Errorf("Parse(%s)\nerror %s\n\n", test.input, err)
 		} else if actualJSON != test.expectedJSON {
 			t.Errorf("Parse(%s)\nexpected %s\nactual %s\n\n", test.input, test.expectedJSON, actualJSON)
 		}
 
-		actualTree, err := pg_query.Parse(test.input)
+		actualTree, err := pg_query.Parse(test.input, 0)
 
 		if err != nil {
 			t.Errorf("protobuf error %s\n\n", err)
@@ -648,7 +648,7 @@ var parseErrorTests = []struct {
 
 func TestParseError(t *testing.T) {
 	for _, test := range parseErrorTests {
-		_, actualErr := pg_query.Parse(test.input)
+		_, actualErr := pg_query.Parse(test.input, 0)
 
 		if actualErr == nil {
 			t.Errorf("Parse(%s)\nexpected error but none returned\n\n", test.input)
@@ -676,7 +676,7 @@ func TestParseConcurrency(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_, err := pg_query.Parse("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')")
+			_, err := pg_query.Parse("SELECT 1 FROM x WHERE y IN ('a', 'b', 'c')", 0)
 
 			if err != nil {
 				t.Errorf("Concurrency test produced error %s\n\n", err)
@@ -735,5 +735,50 @@ func TestScan(t *testing.T) {
 	}
 	for _, testCase := range parsePlPgSQLTests {
 		smokeTest(testCase.input)
+	}
+}
+
+func TestParseWithParserOptions(t *testing.T) {
+	// A type name is not valid with the default top-level SQL grammar
+	_, err := pg_query.ParseToJSON("character varying(32)", pg_query.ParseDefault)
+	if err == nil {
+		t.Errorf("ParseToJSON with ParseDefault expected error for a type name, but none returned")
+	}
+
+	// ... but can be parsed in the type name parse mode
+	expectedJSON := `{"version":180006,"stmts":[{"stmt":{"List":{"items":[{"String":{"sval":"pg_catalog"}},{"String":{"sval":"varchar"}}]}}}]}`
+	actualJSON, err := pg_query.ParseToJSON("character varying(32)", pg_query.ParseTypeName)
+	if err != nil {
+		t.Errorf("ParseToJSON with ParseTypeName\nerror %s\n\n", err)
+	} else if actualJSON != expectedJSON {
+		t.Errorf("ParseToJSON with ParseTypeName\nexpected %s\nactual %s\n\n", expectedJSON, actualJSON)
+	}
+
+	tree, err := pg_query.Parse("character varying(32)", pg_query.ParseTypeName)
+	if err != nil {
+		t.Errorf("Parse with ParseTypeName\nerror %s\n\n", err)
+	} else if items := tree.Stmts[0].Stmt.GetList().GetItems(); len(items) != 2 || items[1].GetString_().GetSval() != "varchar" {
+		t.Errorf("Parse with ParseTypeName\nunexpected tree %s\n\n", tree)
+	}
+
+	// Backslash escapes are only accepted in regular string literals when
+	// standard_conforming_strings is turned off
+	input := `SELECT 'a\'b'`
+	_, err = pg_query.Parse(input, 0)
+	if err == nil {
+		t.Errorf("Parse(%s) expected error with default options, but none returned", input)
+	}
+
+	tree, err = pg_query.Parse(input, pg_query.DisableStandardConformingStrings)
+	if err != nil {
+		t.Errorf("Parse(%s) with DisableStandardConformingStrings\nerror %s\n\n", input, err)
+	} else if sval := tree.Stmts[0].Stmt.GetSelectStmt().GetTargetList()[0].GetResTarget().GetVal().GetAConst().GetSval().GetSval(); sval != "a'b" {
+		t.Errorf("Parse(%s) with DisableStandardConformingStrings\nexpected a'b\nactual %s\n\n", input, sval)
+	}
+
+	// Flags can be combined
+	_, err = pg_query.Parse(input, pg_query.DisableStandardConformingStrings|pg_query.DisableBackslashQuote)
+	if err == nil || err.Error() != `unsafe use of \' in a string literal` {
+		t.Errorf("Parse(%s) with DisableBackslashQuote\nexpected unsafe use error\nactual %v\n\n", input, err)
 	}
 }

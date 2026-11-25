@@ -36,8 +36,8 @@
       - This changes fingerprints compared to prior releases: By default, in SELECT/DML
         statements the alias name replaces the relation name when present, and schema
         names are ignored
-      - Use `FingerprintWithOpts` with `FingerprintRangeVarPG17Compat` to get fingerprints
-        that match prior releases
+      - Pass `FingerprintRangeVarPG17Compat` as the fingerprint options to `Fingerprint`
+        to get fingerprints that match prior releases
     - Ignore `NOTIFY` payloads, similar to channel names
     - Ignore role names (e.g. in `CREATE ROLE`, `DROP ROLE`, `GRANT` and `ALTER ... RENAME`)
     - Include `BEGIN`/`START TRANSACTION` options (e.g. read-only, isolation level)
@@ -63,13 +63,23 @@
   - Summary:
     - Fix a relation going missing when a CTE shares its name
     - Fix memory leak when the tree walk throws an error
-* Add `FingerprintWithOpts` and `FingerprintToUInt64WithOpts` functions
-  - These accept a `FingerprintOption` bitmask to control how fingerprints are calculated:
+* Add parser options and fingerprint options arguments, matching pg_query.rs **(breaking change)**
+  - `Parse`, `ParseToJSON` and `Summary` now take a `ParserOptions` argument after the input,
+    and `Fingerprint` and `FingerprintToUInt64` now take both a `ParserOptions` and a
+    `FingerprintOptions` argument
+    - Pass `0` to keep the default behavior, e.g. `pg_query.Parse(input, 0)`,
+      `pg_query.Fingerprint(input, 0, 0)` and `pg_query.Summary(input, 0, -1)`
+    - The corresponding functions in the `parser` package take the same options as plain `int` arguments
+  - `ParserOptions` select the parse mode (`ParseDefault`, `ParseTypeName`, `ParsePlPgSqlExpr`,
+    `ParsePlPgSqlAssign1`, `ParsePlPgSqlAssign2`, `ParsePlPgSqlAssign3`), optionally combined
+    with the `DisableBackslashQuote`, `DisableStandardConformingStrings` and
+    `DisableEscapeStringWarning` flags
+  - `FingerprintOptions` is a bitmask to control how fingerprints are calculated:
     - `FingerprintRangeVarIgnoreAliases` always fingerprints relation names and ignores aliases
     - `FingerprintRangeVarIncludeSchema` also fingerprints schema names in SELECT/DML statements
     - `FingerprintRangeVarPG17Compat` combines both, matching how Postgres 17 and earlier
       calculate query IDs, and how prior releases calculated fingerprints
-    - `FingerprintRelnameFull` fingerprints the full relation name, instead of the default
+    - `FingerprintFullRelname` fingerprints the full relation name, instead of the default
       behavior of ignoring 2+ consecutive digits (which groups queries on
       date/number-suffixed tables together)
 * `MakeNotNullConstraintNode` now sets `IsEnforced` and `InitiallyValid`, matching

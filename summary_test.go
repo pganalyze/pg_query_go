@@ -115,7 +115,7 @@ var summaryTests = []struct {
 func TestSummary(t *testing.T) {
 	for _, tt := range summaryTests {
 		t.Run(tt.input, func(t *testing.T) {
-			result, err := pg_query.Summary(tt.input, tt.truncateLimit)
+			result, err := pg_query.Summary(tt.input, 0, tt.truncateLimit)
 			if err != nil {
 				t.Fatalf("Summary() error: %s", err)
 			}
@@ -128,8 +128,26 @@ func TestSummary(t *testing.T) {
 }
 
 func TestSummaryError(t *testing.T) {
-	_, err := pg_query.Summary("SELECT * FROM", -1)
+	_, err := pg_query.Summary("SELECT * FROM", 0, -1)
 	if err == nil {
 		t.Error("expected error for invalid SQL")
+	}
+}
+
+func TestSummaryParserOptions(t *testing.T) {
+	// Backslash escapes are only accepted in regular string literals when
+	// standard_conforming_strings is turned off
+	input := `SELECT 'a\'b' FROM x`
+	_, err := pg_query.Summary(input, 0, -1)
+	if err == nil {
+		t.Errorf("Summary(%s) expected error with default options, but none returned", input)
+	}
+
+	result, err := pg_query.Summary(input, pg_query.DisableStandardConformingStrings, -1)
+	if err != nil {
+		t.Fatalf("Summary(%s) with DisableStandardConformingStrings\nerror %s\n\n", input, err)
+	}
+	if len(result.Tables) != 1 || result.Tables[0].Name != "x" {
+		t.Errorf("Summary(%s) with DisableStandardConformingStrings\nunexpected tables %v\n\n", input, result.Tables)
 	}
 }

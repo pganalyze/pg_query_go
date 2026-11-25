@@ -64,11 +64,11 @@ func newPgQueryError(errC *C.PgQueryError) *Error {
 }
 
 // ParseToJSON - Parses the given SQL statement into a parse tree (JSON format)
-func ParseToJSON(input string) (result string, err error) {
+func ParseToJSON(input string, parserOptions int) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_parse(inputC)
+	resultC := C.pg_query_parse_opts(inputC, C.int(parserOptions))
 
 	defer C.pg_query_free_parse_result(resultC)
 
@@ -101,11 +101,11 @@ func ScanToProtobuf(input string) (result []byte, err error) {
 }
 
 // ParseToProtobuf - Parses the given SQL statement into a parse tree (Protobuf format)
-func ParseToProtobuf(input string) ([]byte, error) {
+func ParseToProtobuf(input string, parserOptions int) ([]byte, error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_parse_protobuf(inputC)
+	resultC := C.pg_query_parse_protobuf_opts(inputC, C.int(parserOptions))
 
 	defer C.pg_query_free_protobuf_parse_result(resultC)
 
@@ -239,47 +239,12 @@ func handleSplitResult(input string, trimSpace bool, resultC C.PgQuerySplitResul
 	return
 }
 
-// FingerprintOption is a bitmask of flags controlling how fingerprints are
-// calculated, mirroring the PgQueryFingerprintOption enum in pg_query.h
-type FingerprintOption int
-
-const (
-	// FingerprintDefault fingerprints relation references following the
-	// Postgres 18+ query ID behavior: in SELECT/DML statements the alias name
-	// is fingerprinted, the relation name is ignored when an alias is present,
-	// and schema names are ignored. Sequences of two or more digits in
-	// relation names are ignored, so that queries on date/number-suffixed
-	// tables (e.g. partitions like "orders_2024_01") get the same fingerprint.
-	FingerprintDefault FingerprintOption = C.PG_QUERY_FINGERPRINT_DEFAULT
-
-	// FingerprintRangeVarIgnoreAliases always fingerprints relation names and ignores aliases
-	FingerprintRangeVarIgnoreAliases FingerprintOption = C.PG_QUERY_FINGERPRINT_RANGEVAR_IGNORE_ALIASES
-
-	// FingerprintRangeVarIncludeSchema also fingerprints schema names in SELECT/DML
-	// statements (they are always fingerprinted in utility statements)
-	FingerprintRangeVarIncludeSchema FingerprintOption = C.PG_QUERY_FINGERPRINT_RANGEVAR_INCLUDE_SCHEMA
-
-	// FingerprintRangeVarPG17Compat is a convenience combination that matches how
-	// Postgres 17 and earlier calculate query IDs, and how libpg_query 17 and
-	// earlier calculated fingerprints
-	FingerprintRangeVarPG17Compat FingerprintOption = C.PG_QUERY_FINGERPRINT_RANGEVAR_PG17_COMPAT
-
-	// FingerprintRelnameFull fingerprints the full relation name, including digit sequences
-	FingerprintRelnameFull FingerprintOption = C.PG_QUERY_FINGERPRINT_FULL_RELNAME
-)
-
 // FingerprintToUInt64 - Fingerprint the passed SQL statement using the C extension and returns result as uint64
-func FingerprintToUInt64(input string) (result uint64, err error) {
-	return FingerprintToUInt64WithOpts(input, FingerprintDefault)
-}
-
-// FingerprintToUInt64WithOpts - Fingerprint the passed SQL statement using the C extension
-// with the given fingerprint options and returns result as uint64
-func FingerprintToUInt64WithOpts(input string, opts FingerprintOption) (result uint64, err error) {
+func FingerprintToUInt64(input string, parserOptions int, fingerprintOptions int) (result uint64, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_fingerprint_opts(inputC, C.int(C.PG_QUERY_PARSE_DEFAULT), C.int(opts))
+	resultC := C.pg_query_fingerprint_opts(inputC, C.int(parserOptions), C.int(fingerprintOptions))
 	defer C.pg_query_free_fingerprint_result(resultC)
 
 	if resultC.error != nil {
@@ -294,17 +259,11 @@ func FingerprintToUInt64WithOpts(input string, opts FingerprintOption) (result u
 }
 
 // FingerprintToHexStr - Fingerprint the passed SQL statement using the C extension and returns result as hex string
-func FingerprintToHexStr(input string) (result string, err error) {
-	return FingerprintToHexStrWithOpts(input, FingerprintDefault)
-}
-
-// FingerprintToHexStrWithOpts - Fingerprint the passed SQL statement using the C extension
-// with the given fingerprint options and returns result as hex string
-func FingerprintToHexStrWithOpts(input string, opts FingerprintOption) (result string, err error) {
+func FingerprintToHexStr(input string, parserOptions int, fingerprintOptions int) (result string, err error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_fingerprint_opts(inputC, C.int(C.PG_QUERY_PARSE_DEFAULT), C.int(opts))
+	resultC := C.pg_query_fingerprint_opts(inputC, C.int(parserOptions), C.int(fingerprintOptions))
 	defer C.pg_query_free_fingerprint_result(resultC)
 
 	if resultC.error != nil {
@@ -352,11 +311,11 @@ func IsUtilityStmt(input string) (result []bool, err error) {
 }
 
 // SummaryToProtobuf - Extracts summary information from SQL statement
-func SummaryToProtobuf(input string, truncateLimit int) ([]byte, error) {
+func SummaryToProtobuf(input string, parserOptions int, truncateLimit int) ([]byte, error) {
 	inputC := C.CString(input)
 	defer C.free(unsafe.Pointer(inputC))
 
-	resultC := C.pg_query_summary(inputC, C.int(0), C.int(truncateLimit))
+	resultC := C.pg_query_summary(inputC, C.int(parserOptions), C.int(truncateLimit))
 	defer C.pg_query_free_summary_parse_result(resultC)
 
 	if resultC.error != nil {
